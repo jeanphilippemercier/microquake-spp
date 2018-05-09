@@ -55,10 +55,53 @@ def gen_random_stream_test(starttime, endtime, station):
     return Stream(traces=[tr])
 
 
-def get_data(station, params, starttime, endtime):
+def get_data_site(starttime, endtime, site_ids, UTC=False):
+    """
+    Get data from a defined start time. The end time is determined by value in the configuration file
+    Note that there is no need to define the time zone. The system time defined in the time.json config file will be
+    used
+    :param starttime: start time local time unless specified by the UTC flag
+    :type starttime: datetime.datetime
+    :type site_ids: list of int
+    :param UTC: if true start and end times are assumed to be expressed in UTC. Local time is assumed otherwise
+    (Default False)
+    :type UTC: bool
+    :return: microquake.core.stream.Stream
+    """
+
+    from microquake.IMS.web_api import get_continuous
+    from datetime import datetime, timedelta
+    from spp import time
+    from numpy import arange
+
+    config_dir = os.environ('SPP_CONFIG')
+    fname = os.path.join(config_dir, 'ingest_config.json')
+    params = json.load(open(fname))
     base_url = params['data_source']['location']
+
+    minimum_offset = params["minimum_time_offset"]
+    window_length = params["window_length"]
+    overlap = params['overlap']
+
+    starttime = starttime.replace(tzinfo=time.get_time_zone())
+    endtime = datetime.now().replace(tzinfo=time.get_time_zone()) - timedelta(seconds=minimum_offset)
+
+    times = arange(starttime, endtime, timedelta(window_length))
+    endtime = times[-1] + timedelta(seconds=overlap)
+
+    st = gen_random_stream_test(starttime, endtime, site_ids=site_ids)
+    overlap =
+
+    sts = []
+    for stime in times[:-1]:
+        for etime in times[1:]:
+            stime=
+            st.trim(starttime=starttime)
+
+
+    return get_continuous(base_url, start_datetime=starttime, end_datetime=)
     
-    st = gen_random_stream_test(starttime, endtime, station)
+
 
     if not st:
         return

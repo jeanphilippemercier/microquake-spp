@@ -1,7 +1,4 @@
-// configuration file for data ingestion from ims server
-
 {
-    "UTC_offset": 8,
     "minimum_time_offset": 120,
     "frequency" : 60,
     "window_length": 1,
@@ -11,5 +8,13 @@
         "type": "remote",
         "location": "http://10.95.64.12:8002/ims-database-server/databases/mgl"
     },
-    "help":"all time expressed in second"
+    "help":
+    {
+        "minimun_time_offset": "minimum time offset from the time of the request in seconds",
+        "frequency": "frequency between each run in seconds",
+        "window_lenght": "length of chunk of data in seconds",
+        "overlap": "overlap between the windows in seconds",
+        "max_window_length": "maximum length of data to request in seconds",
+        "data_source": "describes the source of the data and base url"
+    }
 }
