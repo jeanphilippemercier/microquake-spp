@@ -1,0 +1,22 @@
+{
+    "minimum_time_offset": 120,
+    "frequency" : 60, 
+    "window_length": 1,
+    "overlap": 0.1,
+    "max_window_length": 90,
+    "data_source": {
+        "type": "remote",
+        "location": "http://10.95.64.12:8002/ims-database-server/databases/mgl"
+    },
+    "data_expiration_time": 600,
+    "redis":{
+        "host":"localhost",
+        "port":"6379",
+        "db":0
+    },
+    "spark":{
+        "app_name":"ingest",
+        "master":"local[8]"
+    },
+    "help":"all time expressed in second"
+}
