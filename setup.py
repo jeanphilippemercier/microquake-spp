@@ -3,10 +3,6 @@
 import os
 import sys
 
-from pkg_resources import Requirement, resource_filename
-
-filename = resource_filename(Requirement.parse("MyProject"),"sample.conf")
-
 from setuptools import setup
 
 version = "0.1.0"

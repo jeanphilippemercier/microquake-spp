@@ -1,11 +1,8 @@
+
 from microquake.IMS import web_api
+from multiprocessing import Pool
 from microquake.core.data.station import read_stations
-from microquake.core import read, UTCDateTime, Stream, Trace, Stats
-from datetime import datetime, timedelta
-from microquake.core.event import Catalog
-import redis
-from microquake.core.util import q64
-from microquake.spark import mq_map
+import os
 import numpy as np
 
 # for scheduling task
@@ -44,20 +41,23 @@ def run_tmpl(sc, spark_context):
     sc.run()
     return 
 
+def gen_random_stream_test(starttime, endtime, station):
+    # this function will need to be changed so it reads some real data for test
+    sr = 6000
+    npts = int((endtime - starttime) * sr)
+    data = np.random.randn(npts)
+    stats = Stats()
+    tr = Trace(data=data)
+    tr.stats.station = station
+    tr.stats.sampling_rate = sr
+    tr.stats.channel = 'Z'
+    tr.stats.starttime = starttime
+    return Stream(traces=[tr])
+
 
 def get_data(station, params, starttime, endtime):
     base_url = params['data_source']['location']
     
-    rhost = params['redis']['host']
-    rport = params['redis']['port']
-    rdb = params['redis']['db']
-    r = redis.StrictRedis(host=rhost, port=rport, db=rdb)
-    
-    # to get the data from the IMS web API
-    # st = web_api.get_continuous(base_url, starttime, endtime,
-    #                             station, format='binary-gz', 
-    #                             network='')
-
     st = gen_random_stream_test(starttime, endtime, station)
 
     if not st:
@@ -77,18 +77,7 @@ def get_data(station, params, starttime, endtime):
     # the key will consist 
     # the message will be consumed by a module
 
-def gen_random_stream_test(starttime, endtime, station):
-    # this function will need to be changed so it reads some real data for test
-    sr = 6000
-    npts = int((endtime - starttime) * sr)
-    data = np.random.randn(npts)
-    stats = Stats()
-    tr = Trace(data=data)
-    tr.stats.station = station
-    tr.stats.sampling_rate = sr
-    tr.stats.channel = 'Z'
-    tr.stats.starttime = starttime
-    return Stream(traces=[tr])
+
 
 
 
