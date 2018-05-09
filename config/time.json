@@ -1,6 +1,5 @@
-// config file containg time information
-
 {
-    "type": "UTC_offset",                   // either Time_zone or UTC_offset 
-    "time_zone_or_utc_offset": 8            // time zone or UTC offset in hours
+    "type": "UTC_offset",
+    "time_zone_code": "ULN",
+    "offset": 8
 }

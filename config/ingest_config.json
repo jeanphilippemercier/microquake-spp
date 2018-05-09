@@ -1,11 +1,11 @@
 // configuration file for data ingestion from ims server
 
 {
-    "UTC_offset": 8,              // UTC offset in hours
-    "minimum_time_offset": 120,   // time offset in seconds 
-    "frequency" : 60,             // How often the script needs to be run
-    "window_length": 1,           // window length in second
-    "overlap": 0.1,               // overlap in second
+    "UTC_offset": 8,
+    "minimum_time_offset": 120,
+    "frequency" : 60,
+    "window_length": 1,
+    "overlap": 0.1,
     "max_window_length": 90,
     "data_source": {
         "type": "remote",

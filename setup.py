@@ -39,17 +39,17 @@ ENTRY_POINTS = {
 }
 
 setup(
-    name='seismic-processing-platform',
+    name='spp',
     version=version,
     description=('Python library for processing of seismic data'),
     long_description=long_description,
-    author='seismic-processing-platform development team',
-    author_email='d',
+    author='spp development team',
+    author_email='',
     url='',
     packages=[
         'spp',
     ],
-    package_dir={'seismic-processing-platform': 'spp'},
+    package_dir={'spp': 'spp'},
     entry_points=ENTRY_POINTS,
     include_package_data=True,
     install_requires=requirements,
