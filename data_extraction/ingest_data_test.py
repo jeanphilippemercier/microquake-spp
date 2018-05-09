@@ -22,10 +22,6 @@ def run_tmpl(sc, spark_context):
 
     # schedule the next task
     sc.enter(params['frequency'], 1, run_tmpl,(sc, spark_context))
-
-    rhost = params['redis']['host']
-    rport = params['redis']['port']
-    rdb = params['redis']['db']
     
     r = redis.StrictRedis(host=rhost, port=rport, db=rdb)
     site = read_stations('sensors.csv', has_header=True)
