@@ -1,0 +1,14 @@
+// configuration file for data ingestion from ims server
+
+{
+    "minimum_time_offset": 120,   // time offset in seconds 
+    "frequency" : 60,             // How often the script needs to be run
+    "window_length": 1,           // window length in second
+    "overlap": 0.1,               // overlap in second
+    "max_window_length": 90,
+    "data_source": {
+        "type": "remote",
+        "location": "http://10.95.64.12:8002/ims-database-server/databases/mgl"
+    },
+    "help":"all time expressed in second"
+}
