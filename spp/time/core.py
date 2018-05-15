@@ -8,11 +8,11 @@ def get_time_zone():
     :return: a time zone object
     """
 
-    import json
+    import yaml
     import os
 
     fname = os.path.join(os.environ['SPP_CONFIG'], 'time.json')
-    params = json.load(open(fname))
+    params = yaml.load(open(fname))
 
     if params['type'] == "UTC_offset":
         from dateutil.tz import tzoffset
