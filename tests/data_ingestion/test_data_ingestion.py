@@ -40,6 +40,9 @@ def get_data(base_url, starttime, endtime, overlap, window_length, filter, taper
         print(e)
         return
 
+    if not st:
+        return
+
     sts = []
     # for stime in times[:-1]:
     #     for etime in times[1:]:
