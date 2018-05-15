@@ -11,7 +11,7 @@ def get_time_zone():
     import yaml
     import os
 
-    fname = os.path.join(os.environ['SPP_CONFIG'], 'time.json')
+    fname = os.path.join(os.environ['SPP_CONFIG'], 'time.yaml')
     params = yaml.load(open(fname))
 
     if params['type'] == "UTC_offset":
