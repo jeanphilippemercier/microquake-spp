@@ -6,6 +6,7 @@ from pathos.multiprocessing import Pool
 import yaml
 from microquake.core.util import q64
 from toolz.functoolz import curry
+from timeit import default_timer as timer
 
 
 @curry
@@ -79,7 +80,10 @@ if __name__ == '__main__':
     #get_data(32, base_url, starttime, endtime, overlap)
 
     # st_stations = p.map(get_data_for_st_code, st_code)
+    start = timer()	
     st_stations = p.map(get_data(base_url, starttime, endtime, overlap, window_length), st_code)
+    end = timer()
+    print(end - start)
 
 
 
