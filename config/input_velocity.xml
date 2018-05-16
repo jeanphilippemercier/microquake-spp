@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <microquake filetype="automatic-processing" site="example" project_code="OT" spark_enabled="False">
 
+	<file_locations>
+		<common_file_location value="$SPP_COMMON"/>
+	</file_locations>
+
 	<grid>
 		<definition method="ODS">
       		<units value="meters"/>
