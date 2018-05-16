@@ -30,6 +30,6 @@ def get_time_zone():
             try:
                 tz = pytz.timezone(params['time_zone_code'])
             except Exception as e:
-                print e
+                print(e)
                 return
     return tz

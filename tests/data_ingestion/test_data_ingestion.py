@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
     st_code = [int(station.code) for station in site.stations()]
 
-    p = Pool(8)
+    p = Pool(10)
 
     starttime_q64 = q64.encode(starttime)
     endtime_q64 = q64.encode(endtime)
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     end = timer()
     print(end - start)
 
-    outputs = [result[0] for result in results]
+    # outputs = [result[0] for result in results]
 
 
     # st = get_data(base_url, starttime, endtime, overlap, window_length, filter, taper).call(75)

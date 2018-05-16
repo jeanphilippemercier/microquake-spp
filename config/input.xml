@@ -17,7 +17,7 @@
 
 		<velmodel id="0">
 			<method homogeneous="false"/>
-			<velocity vp="Vp.pickle" vs="Vs.pickle" format="PICKLE"/>
+			<velocity vp="vp.pickle" vs="vs.pickle" format="PICKLE"/>
 		</velmodel>
 
 		 <!--<velmodel id="0">-->
