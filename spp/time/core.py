@@ -8,11 +8,11 @@ def get_time_zone():
     :return: a time zone object
     """
 
-    import json
+    import yaml
     import os
 
-    fname = os.path.join(os.environ['SPP_CONFIG'], 'time.json')
-    params = json.load(open(fname))
+    fname = os.path.join(os.environ['SPP_CONFIG'], 'time.yaml')
+    params = yaml.load(open(fname))
 
     if params['type'] == "UTC_offset":
         from dateutil.tz import tzoffset
@@ -30,6 +30,6 @@ def get_time_zone():
             try:
                 tz = pytz.timezone(params['time_zone_code'])
             except Exception as e:
-                print e
+                print(e)
                 return
     return tz
