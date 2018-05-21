@@ -1,12 +1,24 @@
 from microquake.core import read_events,stream
 from microquake.db.mongo import mongo
-reload(mongo)
+import yaml
+import os
+# reload(mongo)
+
+# reading the config file
+
+config_dir = os.environ['SPP_CONFIG']
+config_file = os.path.join(config_dir, 'permanent_db.yaml')
+
+with open(config_file,'r') as cfg_file:
+        params = yaml.load(cfg_file)
+        params = params['db']
 
 # Testing saving and loading Event
 cat = read_events('nll_processed.xml')
 event = cat[10]
+
 print("connecting to DB")
-db = mongo.connect(uri='mongodb://localhost:27017/', db_name='test')
+db = mongo.connect(uri=params['uri'], db_name=params['db_name'])
 print("inserting into DB")
 wf=stream.read("20170419_153133.mseed")
 mongo.insert_event(db, event, catalog_index=0)
