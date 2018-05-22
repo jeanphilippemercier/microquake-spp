@@ -50,7 +50,7 @@ def get_data(base_url, starttime, endtime, overlap, window_length, filter, taper
         st_trim = st_trim.filter(**filter)
         sts.append(st_trim)
 
-    return (sts, 0)
+    return sts
 
 
 if __name__ == '__main__':
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     minimum_offset = params["minimum_time_offset"]
     window_length = params["window_length"]
-    overlap = timedelta(seconds=2*params['overlap'])
+    overlap = timedelta(seconds=params['overlap'])
     period = params['period']
     filter = params['filter']
     taper = params['taper']
@@ -78,11 +78,11 @@ if __name__ == '__main__':
 
     # get end time of last window, note that time in the file should be in
     # local time
-    fname = os.path.join(common_dir, 'ingest_info.txt')
+    ftime = os.path.join(common_dir, 'ingest_info.txt')
 
     now = datetime.now().replace(tzinfo=time_zone)
 
-    if not os.path.isfile(fname):
+    if not os.path.isfile(ftime):
         starttime = now \
                     - timedelta(seconds=minimum_offset) \
                     - timedelta(seconds=period) \
@@ -90,7 +90,7 @@ if __name__ == '__main__':
         endtime = now - timedelta(seconds=minimum_offset)
 
     else:
-        with open(fname, 'r') as timefile:
+        with open(ftime, 'r') as timefile:
             starttime = parser.parse(timefile.readline()) - overlap
             starttime = starttime.replace(time_zone=time_zone)
 
@@ -111,13 +111,28 @@ if __name__ == '__main__':
 
     st_code = [int(station.code) for station in site.stations()]
 
-    # p = Pool(10)
+    p = Pool(10)
     #
-    # start = timer()
-    # results = p.map(get_data(base_url, starttime, endtime, overlap,
-    #                          window_length, filter, taper), st_code)
-    # end = timer()
-    # print(end - start)
+    start = timer()
+    results = p.map(get_data(base_url, starttime, endtime, overlap,
+                             window_length, filter, taper), st_code)
+
+
+    end = timer()
+
+    for result in results:
+        result[0]
+
+    print(end - start)
+
+    with open(ftime, 'w') as timefile:
+        timefile.write(endtime.strftime("%Y-%m-%d %H:%M:%S.%f"))
+
+
+    for result in results:
+
+
+
 
 
 

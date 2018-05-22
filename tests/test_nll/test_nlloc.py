@@ -35,7 +35,7 @@ base_url = "http://10.95.64.12:8002/ims-database-server/databases/mgl"
 # 			    get_arrivals=True)
 # cat.write('test.xml', format='QUAKEML')
 
-cat = read_events('test.xml', format='QUAKEML')
+cat = read_events('../../data/test.xml', format='QUAKEML')
 
 evts_out = []
 for event in cat:
