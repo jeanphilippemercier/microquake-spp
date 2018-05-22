@@ -1,6 +1,6 @@
 
 data_ingestion:
-  minimum_time_offset: 60           # minimum time offset from the time of the
+  minimum_time_offset: 120          # minimum time offset from the time of the
                                     # request in seconds
   period: 60                        # frequency between each run in seconds
   window_length: 1                  # length of chunk of data in seconds

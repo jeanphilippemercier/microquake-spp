@@ -72,7 +72,7 @@ if __name__ == '__main__':
     period = params['period']
     filter = params['filter']
     taper = params['taper']
-    max_window_length = params['maximum_window_length']
+    max_window_length = params['max_window_length']
 
     time_zone = time.get_time_zone()
 
@@ -104,7 +104,7 @@ if __name__ == '__main__':
     endtime = starttime + timedelta(seconds=window_length)
 
 
-    station_file = os.path.join(config_dir, 'sensors.csv')
+    station_file = os.path.join(common_dir, 'sensors.csv')
     site = read_stations(station_file, has_header=True)
 
     st_code = [int(station.code) for station in site.stations()]
