@@ -87,6 +87,7 @@ if __name__ == '__main__':
                     - timedelta(seconds=minimum_offset) \
                     - timedelta(seconds=period) \
                     - overlap
+        endtime = now - timedelta(seconds=minimum_offset)
 
     else:
         with open(fname, 'r') as timefile:
@@ -99,9 +100,10 @@ if __name__ == '__main__':
                                                     max_window_length)) - \
                             overlap
 
+            endtime = now - timedelta(seconds=minimum_offset)
 
 
-    endtime = starttime + timedelta(seconds=window_length)
+    # endtime = starttime + timedelta(seconds=window_length)
 
 
     station_file = os.path.join(common_dir, 'sensors.csv')
@@ -109,13 +111,13 @@ if __name__ == '__main__':
 
     st_code = [int(station.code) for station in site.stations()]
 
-    p = Pool(10)
-
-    start = timer()
-    results = p.map(get_data(base_url, starttime, endtime, overlap,
-                             window_length, filter, taper), st_code)
-    end = timer()
-    print(end - start)
+    # p = Pool(10)
+    #
+    # start = timer()
+    # results = p.map(get_data(base_url, starttime, endtime, overlap,
+    #                          window_length, filter, taper), st_code)
+    # end = timer()
+    # print(end - start)
 
 
 
