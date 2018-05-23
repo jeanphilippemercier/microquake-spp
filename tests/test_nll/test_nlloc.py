@@ -44,4 +44,5 @@ for event in cat:
     
 
 cat_loc = Catalog(events=evts_out)
+cat.write('nll_processed.xml', format='QUAKEML')
 

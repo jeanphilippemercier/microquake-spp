@@ -111,25 +111,24 @@ if __name__ == '__main__':
 
     st_code = [int(station.code) for station in site.stations()]
 
-    p = Pool(10)
+    # p = Pool(10)
     #
-    start = timer()
-    results = p.map(get_data(base_url, starttime, endtime, overlap,
-                             window_length, filter, taper), st_code)
+    # start = timer()
+    # results = p.map(get_data(base_url, starttime, endtime, overlap,
+    #                          window_length, filter, taper), st_code)
 
 
-    end = timer()
+    # end = timer()
 
-    for result in results:
-        result[0]
+    # for result in results:
+    #     result[0]
 
-    print(end - start)
+    # print(end - start)
 
-    with open(ftime, 'w') as timefile:
-        timefile.write(endtime.strftime("%Y-%m-%d %H:%M:%S.%f"))
+    # with open(ftime, 'w') as timefile:
+    #     timefile.write(endtime.strftime("%Y-%m-%d %H:%M:%S.%f"))
 
 
-    for result in results:
 
 
 

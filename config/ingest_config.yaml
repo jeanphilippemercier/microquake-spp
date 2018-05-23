@@ -2,7 +2,7 @@
 data_ingestion:
   minimum_time_offset: 120          # minimum time offset from the time of the
                                     # request in seconds
-  period: 60                        # frequency between each run in seconds
+  period: 120                        # frequency between each run in seconds
   window_length: 1                  # length of chunk of data in seconds
   overlap: 0.1                      # overlap between the windows in seconds
   max_window_length: 90             # maximum length of data to request in seconds
