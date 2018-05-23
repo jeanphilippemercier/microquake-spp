@@ -14,13 +14,12 @@ with open(config_file,'r') as cfg_file:
         params = params['db']
 
 # Testing saving and loading Event
-cat = read_events('nll_processed.xml')
+cat = read_events(config_dir + "../data/" + 'nll_processed.xml')
 event = cat[10]
 
 print("connecting to DB")
 db = mongo.connect(uri=params['uri'], db_name=params['db_name'])
 print("inserting into DB")
-wf=stream.read("20170419_153133.mseed")
 mongo.insert_event(db, event, catalog_index=0)
 # read event
 print("Reading Event...")
@@ -31,7 +30,7 @@ print(decoded_ev)
 
 # Testing waveform saving and loading
 # read mseed waveform
-wf = stream.read("20170419_153133.mseed")
+wf = stream.read(config_dir + "../data/" + "20170419_153133.mseed")
 # json_wf = json.dumps(wf, default=d)
 print("Waveform:")
 id = mongo.insert_waveform(db, wf, event.resource_id.id)
