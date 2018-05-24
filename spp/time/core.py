@@ -33,3 +33,17 @@ def get_time_zone():
                 print(e)
                 return
     return tz
+
+
+def localize(datetime):
+    from microquake.core import UTCDateTime
+    from datetime import datetime as dt
+    from pytz import utc
+    if isinstance(datetime, UTCDateTime):
+        return datetime.datetime.replace(tzinfo=utc).astimezone(get_time_zone())
+
+    elif isinstance(datetime, dt):
+        if datetime.tzinfo:
+            return datetime.astimezone(get_time_zone())
+        else:
+            return datetime.replace(tzinfo=utc).astimezone(get_time_zone())
