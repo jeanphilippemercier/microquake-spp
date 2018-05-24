@@ -55,19 +55,25 @@ def get_data(base_url, starttime, endtime, overlap, window_length, filter,
     return sts
 
 
-def partition(mapped_value):
+def partition(mapped_values):
+
     import collections
 
     partitionned_data = collections.defaultdict(list)
-    for key, value in mapped_value:
-        partitionned_data[key].append(value)
+    for ele in mapped_values:
+        if not ele:
+            continue
+        for key, value in ele:
+            partitionned_data[key].append(value)
 
     return partitionned_data.values()
 
 
 def reduce(partitionned_data):
 
-    time, datas = partitionned_data
+    from microquake.core.stream import Stream
+
+    datas = partitionned_data
 
     traces = []
     for data in datas:
@@ -75,7 +81,6 @@ def reduce(partitionned_data):
             traces.append(tr)
 
     return Stream(traces=traces)
-
 
 
 
@@ -143,9 +148,12 @@ if __name__ == '__main__':
     map_responses = p.map(get_data(base_url, starttime, endtime, overlap,
                                   window_length, filter, taper), st_code)
 
-    partionned = partition(itertools.chain(*map_responses))
+    partitionned = partition(map_responses)
 
-    blocks = p.map(reduce, partitionned)
+    data_blocks = []
+    for group in partitionned:
+        data_blocks.append(reduce(group))
+    # blocks = map(reduce, partitionned)
 
 
     end = timer()
