@@ -1,11 +1,14 @@
 from microquake.IMS import web_api
-from microquake.core import read_stations
+from microquake.core import read_stations, read_events, read
 from spp import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import yaml
 from microquake.core import ctl
 from microquake import nlloc
+import numpy as np
 import os
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 tz = time.get_time_zone()
 
@@ -28,22 +31,94 @@ sensor_file = os.path.join(common_dir, 'sensors.csv')
 site = read_stations(sensor_file, has_header=True)
 
 
-cat = web_api.get_catalogue(base_url, starttime, endtime, site, blast=False,
-                            event=True, accepted=True, manual=True,
-                            get_arrivals=True)
+# cat = web_api.get_catalogue(base_url, starttime, endtime, site, blast=False,
+#                             event=True, accepted=True, manual=True,
+#                             get_arrivals=True)
+# #
+# # # st = web_api.get_seismogram_event(base_url, cat[0], 'OT')
+# #
+# #
+# params = ctl.parse_control_file(config_file)
+# nll_opts = nlloc.init_nlloc_from_params(params)
+# #
+# # # The following line only needs to be run once. It creates the base directory
+# # nll_opts.prepare(create_time_grids=True, tar_files=False, SparkContext=None)
+# #
+# #
+# event_loc = nll_opts.run_event(cat[0])
+# event_loc.write('../../data/2018-04-15_034422.xml', format='QuakeML')
 
-# st = web_api.get_seismogram_event(base_url, cat[0], 'OT')
+event_loc = read_events('../../data/2018-04-15_034422.xml')
+st = read('../../data/2018-04-15_034422.mseed')
 
+res_ims = []
+res_ims = [arrival.time_residual for arrival in event_loc[0].origins[
+    0].arrivals]
 
-params = ctl.parse_control_file(config_file)
-nll_opts = nlloc.init_nlloc_from_params(params)
+res_nll = [arrival.time_residual for arrival in event_loc[0].origins[
+    1].arrivals]
 
-# The following line only needs to be run once. It creates the base directory
-# nll_opts.prepare(create_time_grids=True, tar_files=False, SparkContext=None)
+plt.figure(1)
+plt.clf()
 
+dists = [arrival.distance for arrival in event_loc[0].origins[1].arrivals]
+stations = [arrival.pick.waveform_id.station_code for arrival in event_loc[
+    0].origins[1].arrivals]
 
-event_loc = nll_opts.run_event(cat[0])
+indices = np.argsort(dists)
+stations = np.array(stations)[indices]
+dists = np.array(dists)[indices]
 
+st_comp = st.composite()
 
+arrivals = event_loc[0].origins[1].arrivals
+#arrivals2 = event_loc[0].origins[0].arrivals
 
+stations = []
+scale = 10
+times = []
+distances = []
+
+plt.figure(1)
+plt.clf()
+ax = plt.subplot()
+
+for k, arrival in enumerate(arrivals):
+    pick = arrival.pick
+    time = pick.time
+    station = pick.waveform_id.station_code
+    phase = arrival.phase
+    distance = arrival.distance
+
+    times.append(time)
+    distances.append(distance)
+
+    if phase == 'P':
+        color = 'r'
+    else:
+        color = 'b'
+
+    # plt.vlines(time, distance - scale, distance + scale, color=color)
+    plt.vlines(time - arrival.time_residual, distance - scale, distance +
+               scale, color=color, linestyle = 'dotted')
+
+    if station in stations:
+        continue
+    stations.append(station)
+    tr = st_comp.select(station=station)
+    if not tr:
+        continue
+
+    tr = tr[0].detrend('demean')
+    rts = np.arange(0, len(tr)) / tr.stats.sampling_rate
+    tr_starttime = tr.stats.starttime
+    t = [tr_starttime + timedelta(seconds=rt) for rt in rts]
+    data = tr.data / np.max(tr.data) * 20 + distance
+    plt.plot(t, data, 'k')
+
+#plt.tight_layout()
+ax.format_xdata = mdates.DateFormatter('%H:%M:%s.%f')
+plt.ylabel('distance (m)')
+plt.xlabel('time')
+plt.show()
 
