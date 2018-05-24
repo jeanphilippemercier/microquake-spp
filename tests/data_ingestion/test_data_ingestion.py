@@ -111,60 +111,72 @@ if __name__ == '__main__':
     # local time
     ftime = os.path.join(common_dir, 'ingest_info.txt')
 
-    now = datetime.now().replace(tzinfo=time_zone)
 
-    if not os.path.isfile(ftime):
-        starttime = now \
-                    - timedelta(seconds=minimum_offset) \
-                    - timedelta(seconds=period) \
-                    - overlap
-        endtime = now - timedelta(seconds=minimum_offset)
+    starttime = datetime(2018, 5, 23, 18, 50, 0, tzinfo=time_zone)
 
-    else:
-        with open(ftime, 'r') as timefile:
-            starttime = parser.parse(timefile.readline()) - overlap
-            starttime = starttime.replace(time_zone=time_zone)
+    endtime = datetime(2018, 5, 23, 21, 0, 0, tzinfo=time_zone)
 
-            dt = (now - starttime).total_seconds()
-            if dt - minimum_offset > max_window_length:
-                starttime = now - timedelta(seconds=(minimum_offset +
-                                                    max_window_length)) - \
-                            overlap
+    while startime < endtime:
 
+        # now = datetime.now().replace(tzinfo=time_zone)
+        now = starttime
+
+        if not os.path.isfile(ftime):
+            starttime = now \
+                        - timedelta(seconds=minimum_offset) \
+                        - timedelta(seconds=period) \
+                        - overlap
             endtime = now - timedelta(seconds=minimum_offset)
 
+        else:
+            with open(ftime, 'r') as timefile:
+                starttime = parser.parse(timefile.readline()) - overlap
+                starttime = starttime.replace(time_zone=time_zone)
 
-    # endtime = starttime + timedelta(seconds=window_length)
+                dt = (now - starttime).total_seconds()
+                if dt - minimum_offset > max_window_length:
+                    starttime = now - timedelta(seconds=(minimum_offset +
+                                                         max_window_length)) - \
+                                overlap
 
-
-    station_file = os.path.join(common_dir, 'sensors.csv')
-    site = read_stations(station_file, has_header=True)
-
-    st_code = [int(station.code) for station in site.stations()]
-
-    p = Pool(10)
-    #
-    start = timer()
-    map_responses = p.map(get_data(base_url, starttime, endtime, overlap,
-                                  window_length, filter, taper), st_code)
-
-    partitionned = partition(map_responses)
-
-    data_blocks = []
-    for group in partitionned:
-        data_blocks.append(reduce(group))
-    # blocks = map(reduce, partitionned)
+                endtime = now - timedelta(seconds=minimum_offset)
 
 
-    end = timer()
+        # endtime = starttime + timedelta(seconds=window_length)
 
-    # for result in results:
-    #     result[0]
 
-    print(end - start)
+        station_file = os.path.join(common_dir, 'sensors.csv')
+        site = read_stations(station_file, has_header=True)
 
-    # with open(ftime, 'w') as timefile:
-    #     timefile.write(endtime.strftime("%Y-%m-%d %H:%M:%S.%f"))
+        st_code = [int(station.code) for station in site.stations()]
+
+        p = Pool(10)
+        #
+        start = timer()
+        map_responses = p.map(get_data(base_url, starttime, endtime, overlap,
+                                       window_length, filter, taper), st_code)
+
+        partitionned = partition(map_responses)
+
+        data_blocks = []
+        for group in partitionned:
+            block = reduce(group)
+            fname = block[0].stats.starttime.strftime("%Y%m%d_%H%M%S.mseed")
+            block.write("/home/jeanphilippem/data/" + fname, format='MSEED')
+        # blocks = map(reduce, partitionned)
+
+
+        starttime = endtime - overlap
+
+        end = timer()
+
+        # for result in results:
+        #     result[0]
+
+        print(end - start)
+
+        # with open(ftime, 'w') as timefile:
+        #     timefile.write(endtime.strftime("%Y-%m-%d %H:%M:%S.%f"))
 
 
 
