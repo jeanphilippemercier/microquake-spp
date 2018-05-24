@@ -8,10 +8,12 @@ from microquake.core.util import q64
 from toolz.functoolz import curry
 from timeit import default_timer as timer
 from IPython.core.debugger import Tracer
+import itertools
 
 
 @curry
-def get_data(base_url, starttime, endtime, overlap, window_length, filter, taper, site_id):
+def get_data(base_url, starttime, endtime, overlap, window_length, filter,
+             taper, site_id):
 
     print(site_id)
     from numpy import floor
@@ -48,9 +50,33 @@ def get_data(base_url, starttime, endtime, overlap, window_length, filter, taper
         st_trim = st.copy().trim(starttime=UTCDateTime(stime), endtime=UTCDateTime(etime))
         st_trim = st_trim.taper(1, **taper)
         st_trim = st_trim.filter(**filter)
-        sts.append(st_trim)
+        sts.append((stime.strftime('%Y%m%d%H%M%S%f'), st_trim))
 
     return sts
+
+
+def partition(mapped_value):
+    import collections
+
+    partitionned_data = collections.defaultdict(list)
+    for key, value in mapped_value:
+        partitionned_data[key].append(value)
+
+    return partitionned_data.values()
+
+
+def reduce(partitionned_data):
+
+    time, datas = partitionned_data
+
+    traces = []
+    for data in datas:
+        for tr in data:
+            traces.append(tr)
+
+    return Stream(traces=traces)
+
+
 
 
 if __name__ == '__main__':
@@ -111,19 +137,23 @@ if __name__ == '__main__':
 
     st_code = [int(station.code) for station in site.stations()]
 
-    # p = Pool(10)
+    p = Pool(10)
     #
-    # start = timer()
-    # results = p.map(get_data(base_url, starttime, endtime, overlap,
-    #                          window_length, filter, taper), st_code)
+    start = timer()
+    map_responses = p.map(get_data(base_url, starttime, endtime, overlap,
+                                  window_length, filter, taper), st_code)
+
+    partionned = partition(itertools.chain(*map_responses))
+
+    blocks = p.map(reduce, partitionned)
 
 
-    # end = timer()
+    end = timer()
 
     # for result in results:
     #     result[0]
 
-    # print(end - start)
+    print(end - start)
 
     # with open(ftime, 'w') as timefile:
     #     timefile.write(endtime.strftime("%Y-%m-%d %H:%M:%S.%f"))
