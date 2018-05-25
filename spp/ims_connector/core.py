@@ -9,6 +9,7 @@ from toolz.functoolz import curry
 from timeit import default_timer as timer
 from IPython.core.debugger import Tracer
 import itertools
+from dateutil import parser
 
 
 # class RequestHandler():
@@ -215,7 +216,7 @@ def request_handler():
         else:
             with open(ftime, 'r') as timefile:
                 starttime = parser.parse(timefile.readline()) - overlap
-                starttime = starttime.replace(time_zone=time_zone)
+                starttime = starttime.replace(tzinfo=time_zone)
 
                 dt = (now - starttime).total_seconds()
                 if dt - minimum_offset > max_window_length:
@@ -253,7 +254,9 @@ def request_handler():
             fname = stime + etime
 
             # eventually to be written to Kafka
-            block.write(fname, format='MSEED')
+            #block.write(fname, format='MSEED')
+            with open('tmp.txt', 'a') as tmp:
+                 tmp.write(fname)
         # blocks = map(reduce, partitionned)
 
         starttime = endtime

@@ -18,4 +18,4 @@ ims_connector:
     max_length: 0.01                # window length ideally this value should be significantly smaller than overlap
 
   multiprocessing:                  # options related to multiprocessing
-    workers: 4                      # number of workers
+    workers: 16                     # number of workers
