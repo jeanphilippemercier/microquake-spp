@@ -83,7 +83,7 @@ import itertools
 #
 #         return Stream(traces=traces)
 
-
+@curry
 def get_data(base_url, starttime, endtime, overlap, window_length, filter,
              taper, site_id):
     """
@@ -173,11 +173,11 @@ def request_handler():
 
     config_dir = os.environ['SPP_CONFIG']
     common_dir = os.environ['SPP_COMMON']
-    fname = os.path.join(config_dir, 'ingest_config.yaml')
+    fname = os.path.join(config_dir, 'ims_connector_config.yaml')
 
     with open(fname, 'r') as cfg_file:
         params = yaml.load(cfg_file)
-        params = params['data_ingestion']
+        params = params['ims_connector']
 
     base_url = params['data_source']['location']
 
@@ -188,6 +188,8 @@ def request_handler():
     filter = params['filter']
     taper = params['taper']
     max_window_length = params['max_window_length']
+
+    workers = params['multiprocessing']['workers']
 
     time_zone = time.get_time_zone()
 
@@ -231,7 +233,7 @@ def request_handler():
 
         st_code = [int(station.code) for station in site.stations()]
 
-        p = Pool(16)
+        p = Pool(workers)
         start = timer()
         map_responses = p.map(get_data(base_url, starttime, endtime, overlap,
                                        window_length, filter, taper), st_code)
@@ -251,7 +253,7 @@ def request_handler():
             fname = stime + etime
 
             # eventually to be written to Kafka
-            block.write("/home/jeanphilippem/data/" + fname, format='MSEED')
+            block.write(fname, format='MSEED')
         # blocks = map(reduce, partitionned)
 
         starttime = endtime

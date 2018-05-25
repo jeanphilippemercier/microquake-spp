@@ -1,5 +1,5 @@
 
-data_ingestion:
+ims_connector:
   minimum_time_offset: 120          # minimum time offset from the time of the
                                     # request in seconds
   period: 120                        # frequency between each run in seconds
@@ -16,3 +16,6 @@ data_ingestion:
   taper:                            # argument of Obspy Trace.taper function
     type: cosine                    # tapering function to apply
     max_length: 0.01                # window length ideally this value should be significantly smaller than overlap
+
+  multiprocessing:                  # options related to multiprocessing
+    workers: 4                      # number of workers
