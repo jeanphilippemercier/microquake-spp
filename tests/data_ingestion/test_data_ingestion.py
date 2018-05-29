@@ -8,10 +8,12 @@ from microquake.core.util import q64
 from toolz.functoolz import curry
 from timeit import default_timer as timer
 from IPython.core.debugger import Tracer
+import itertools
 
 
 @curry
-def get_data(base_url, starttime, endtime, overlap, window_length, filter, taper, site_id):
+def get_data(base_url, starttime, endtime, overlap, window_length, filter,
+             taper, site_id):
 
     print(site_id)
     from numpy import floor
@@ -26,13 +28,13 @@ def get_data(base_url, starttime, endtime, overlap, window_length, filter, taper
 
     period = endtime - starttime
     nsec = int(floor(period.total_seconds()))
-    dts = range(0, nsec + 1, window_length)
+    dts = range(0, nsec, window_length)
     dtimes = [timedelta(seconds=dt) for dt in dts]
 
-    starttime = starttime - overlap
-    endtime = endtime + overlap
+    starttime = starttime
+    endtime = starttime + timedelta(seconds=len(dts) * window_length) + overlap
     try:
-        st = web_api.get_continuous(base_url, starttime, endtime, site_ids=[site_id])
+        st = web_api.get_continuous(base_url, starttime-overlap, endtime+overlap, site_ids=[site_id])
     except Exception as e:
         print(e)
         return
@@ -43,14 +45,43 @@ def get_data(base_url, starttime, endtime, overlap, window_length, filter, taper
     sts = []
 
     for dtime in dtimes:
-        stime = starttime + dtime
-        etime = starttime + dtime + timedelta(seconds=window_length) + 2 * overlap
+        stime = starttime + dtime - overlap
+        etime = starttime + dtime + timedelta(seconds=window_length) + overlap
         st_trim = st.copy().trim(starttime=UTCDateTime(stime), endtime=UTCDateTime(etime))
         st_trim = st_trim.taper(1, **taper)
         st_trim = st_trim.filter(**filter)
-        sts.append(st_trim)
+        sts.append((stime.strftime('%Y%m%d%H%M%S%f'), st_trim))
 
     return sts
+
+
+def partition(mapped_values):
+
+    import collections
+
+    partitionned_data = collections.defaultdict(list)
+    for ele in mapped_values:
+        if not ele:
+            continue
+        for key, value in ele:
+            partitionned_data[key].append(value)
+
+    return partitionned_data.values()
+
+
+def reduce(partitionned_data):
+
+    from microquake.core.stream import Stream
+
+    datas = partitionned_data
+
+    traces = []
+    for data in datas:
+        for tr in data:
+            traces.append(tr)
+
+    return Stream(traces=traces)
+
 
 
 if __name__ == '__main__':
@@ -80,56 +111,79 @@ if __name__ == '__main__':
     # local time
     ftime = os.path.join(common_dir, 'ingest_info.txt')
 
-    now = datetime.now().replace(tzinfo=time_zone)
 
-    if not os.path.isfile(ftime):
-        starttime = now \
-                    - timedelta(seconds=minimum_offset) \
-                    - timedelta(seconds=period) \
-                    - overlap
+    starttime = datetime(2018, 5, 23, 18, 49, 0, tzinfo=time_zone)
+
+    endtime_ = datetime(2018, 5, 23, 19, 40, 0, tzinfo=time_zone)
+
+    while starttime < endtime_:
+
+        # now = datetime.now().replace(tzinfo=time_zone)
+        now = starttime
+
+        # if not os.path.isfile(ftime):
+        #     starttime = now \
+        #                 - timedelta(seconds=minimum_offset) \
+        #                 - timedelta(seconds=period) 
+
+        #     endtime = now - timedelta(seconds=minimum_offset)
+
+        # else:
+        #     with open(ftime, 'r') as timefile:
+        #         starttime = parser.parse(timefile.readline()) - overlap
+        #         starttime = starttime.replace(time_zone=time_zone)
+
+        #         dt = (now - starttime).total_seconds()
+        #         if dt - minimum_offset > max_window_length:
+        #             starttime = now \
+        #                         - timedelta(seconds=(minimum_offset + 
+        #                                                  max_window_length)) - \
+        #                         overlap
+
         endtime = now - timedelta(seconds=minimum_offset)
 
-    else:
-        with open(ftime, 'r') as timefile:
-            starttime = parser.parse(timefile.readline()) - overlap
-            starttime = starttime.replace(time_zone=time_zone)
 
-            dt = (now - starttime).total_seconds()
-            if dt - minimum_offset > max_window_length:
-                starttime = now - timedelta(seconds=(minimum_offset +
-                                                    max_window_length)) - \
-                            overlap
-
-            endtime = now - timedelta(seconds=minimum_offset)
+        endtime = starttime + timedelta(seconds=period)
 
 
-    # endtime = starttime + timedelta(seconds=window_length)
+        station_file = os.path.join(common_dir, 'sensors.csv')
+        site = read_stations(station_file, has_header=True)
+
+        st_code = [int(station.code) for station in site.stations()]
+
+        p = Pool(16)
+        #
+        start = timer()
+        map_responses = p.map(get_data(base_url, starttime, endtime, overlap,
+                                       window_length, filter, taper), st_code)
+
+        partitionned = partition(map_responses)
+
+        data_blocks = []
+        from spp.time import localize
+        for group in partitionned:
+            block = reduce(group)
+            stime = localize(block[0].stats.starttime).strftime("%Y%m%d_%H%M%S_%f")
+            etime = localize(block[0].stats.endtime).strftime("_%Y%m%d_%H%M%S_%f.mseed")
+		
+            fname = stime + etime 
+            block.write("/home/jeanphilippem/data/" + fname, format='MSEED')
+        # blocks = map(reduce, partitionned)
 
 
-    station_file = os.path.join(common_dir, 'sensors.csv')
-    site = read_stations(station_file, has_header=True)
+        starttime = endtime 
 
-    st_code = [int(station.code) for station in site.stations()]
+        end = timer()
 
-    p = Pool(10)
-    #
-    start = timer()
-    results = p.map(get_data(base_url, starttime, endtime, overlap,
-                             window_length, filter, taper), st_code)
+        # for result in results:
+        #     result[0]
 
+        print(end - start)
 
-    end = timer()
-
-    for result in results:
-        result[0]
-
-    print(end - start)
-
-    with open(ftime, 'w') as timefile:
-        timefile.write(endtime.strftime("%Y-%m-%d %H:%M:%S.%f"))
+        # with open(ftime, 'w') as timefile:
+        #     timefile.write(endtime.strftime("%Y-%m-%d %H:%M:%S.%f"))
 
 
-    for result in results:
 
 
 
