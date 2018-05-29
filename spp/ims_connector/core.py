@@ -287,20 +287,15 @@ def request_handler():
 
         fname = stime + etime
 
-        # eventually to be written to Kafka
-        #block.write(fname, format='MSEED')
         with open('tmp.txt', 'a') as tmp:
              tmp.write(fname)
 
-        yeild(block)
-
-    # blocks = map(reduce, partitionned)
+        yield block
 
 
 def request_handler_local(data_directory):
     return get_continuous_local(data_directory)
 
-    # insert code to connect ot Kafka
 
 
 

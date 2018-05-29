@@ -10,6 +10,7 @@ if __name__ == "__main__":
 
     import os
     import yaml
+    from microquake.core.event import Catalog
 
     config_dir = os.environ['SPP_CONFIG']
     common_dir = os.environ['SPP_COMMON']
@@ -21,8 +22,13 @@ if __name__ == "__main__":
         params = params['ims_connector']
 
     if params['data_source']['type'] == 'remote':
-        st = core.request_handler()
+        for st in core.request_handler():
+            print(st)
+
+            # write to Kafka
 
     elif params['data_source']['type'] == 'local':
         location = params['data_source']['location']
         st = core.request_handler_local(location)
+
+        # write to Kafka
