@@ -86,154 +86,31 @@ from dateutil import parser
 
 
 # Create Local get_continous to load data from files:
-def get_continuous_local(base_url, start_datetime, end_datetime,
-                   site_ids, format='binary-gz', network=''):
-    """
-    :param base_url: base url of the IMS server
-    example: http://10.95.64.12:8002/ims-database-server/databases/mgl
-    :param start_datetime: request start time (if not localized, UTC assumed)
-    :type start_datetime: datetime.datetime
-    :param end_datetime: request end time (if not localized, UTC assumed)
-    :type end_datetime: datetime.datetime
-    :param site_ids: list of sites for which data should be read
-    :type site_ids: list or integer
-    :param format: Requested data format ('possible values: binary and binary-gz')
-    :type format: str
-    :param network: Network name (default = '')
-    :type network: str
-    :param dtype: output type for mseed
-    :return: microquake.core.stream.Stream
+def get_continuous_local(data_directory, file_name=None):
     """
 
-    """
-    binary file structure:
-    * a binary header of size N bytes, consisting of
-        - header size written as int32
-        - netid written as int32
-        - siteid written as int32
-        - start time written as int64(time in nanoseconds)
-        - end time written as int64(time in nanoseconds)
-        - netADC id written as int32
-        - sensor id written as int32
-        - attenuator id written as int32
-        - attenuator configuration id written as int32
-        - remainder of bytes(N minus total so far) written as zero
-        padded.
-    * A sequence of 20 - byte samples, each consisting of
-        - sample timestamp, written as int64(time in nanoseconds)
-        - raw X value as float32
-        - raw Y value as float32
-        - raw Z value as float32
+    :param data_directory: directory where data files are located
+    :param file_name: name of a file, if not specified a file is randomly
+    selected
+    :return: a stream containing the data in the file
     """
 
-    import calendar
-    from datetime import datetime
-    from gzip import GzipFile
-    import struct
-    import numpy as np
-    from microquake.core import Trace, Stats, Stream, UTCDateTime
-    import sys
+    from microquake.core import read
 
-    if sys.version_info[0] < 3:
-        from StringIO import StringIO
+    if file_name:
+        return read(file_name, format='MSEED')
+
     else:
-        from io import StringIO, BytesIO
+        from glob import glob
+        from numpy.random import rand
+        from numpy import floor, array
+        file_list = array(glob(data_directory + "/*.mseed"))
+        index = int(floor(rand() * len(file_list)))
+        return read(file_list[index], format='MSEED')
 
-    if isinstance(site_ids, int):
-        site_ids = [site_ids]
 
-    start_datetime_utc = UTCDateTime(start_datetime)
-    end_datetime_utc = UTCDateTime(end_datetime)
-
-    time_start = calendar.timegm(start_datetime_utc.timetuple()) * 1e9 + start_datetime_utc.microsecond * 1e3 - 1e9
-    time_end = calendar.timegm(end_datetime_utc.timetuple()) * 1e9 + end_datetime_utc.microsecond * 1e3 + 1e9
-    url_cont = base_url + '/continuous-seismogram?' + \
-               'startTimeNanos=%d&endTimeNanos=%d&siteId' + \
-               '=%d&format=%s'
-
-    traces = []
-    for site in site_ids:
-
-        r = open(base_url, 'rb')
-
-        if format == 'binary-gz':
-            fileobj = GzipFile(fileobj=BytesIO(r.content))
-        elif format == 'binary':
-            fileobj = r
-        else:
-            raise Exception('unsuported format!')
-            return
-
-        fileobj.seek(0)
-
-        # Reading header
-        try:
-            header_size = struct.unpack('>i', fileobj.read(4))[0]
-            net_id = struct.unpack('>i', fileobj.read(4))[0]
-            site_id = struct.unpack('>i', fileobj.read(4))[0]
-            starttime = struct.unpack('>q', fileobj.read(8))[0]
-            endtime = struct.unpack('>q', fileobj.read(8))[0]
-            netADC_id = struct.unpack('>i', fileobj.read(4))[0]
-            sensor_id = struct.unpack('>i', fileobj.read(4))[0]
-            attenuator_id = struct.unpack('>i', fileobj.read(4))[0]
-            attenuator_config_id = struct.unpack('>i', fileobj.read(4))[0]
-
-            # Reading data
-            fileobj.seek(header_size)
-            content = fileobj.read()
-
-            npts = int(len(content) / 20)
-
-            time = np.zeros(npts)
-            X = np.zeros(npts)
-            Y = np.zeros(npts)
-            Z = np.zeros(npts)
-            for i in range(0, npts):
-                s = 20 * i
-                time[i] = (struct.unpack('>q', content[s:s + 8])[0])
-                X[i] = (struct.unpack('>f', content[s + 8:s + 12])[0])
-                Y[i] = (struct.unpack('>f', content[s + 12:s + 16])[0])
-                Z[i] = (struct.unpack('>f', content[s + 16:s + 20])[0])
-
-            # Tracer()()
-
-            sampling_rate = int(np.round(1 / np.mean(np.diff(time) * 1e-9)))
-
-            t_int = np.int64(np.arange(0, len(X))) / \
-                    np.float(sampling_rate) * 1e9 + time[0]
-
-            # if not np.all(np.isnan(X)):
-            #     X_int = np.interp(time, t_int, X)
-            #     Y_int = np.interp(time, t_int, Y)
-            #
-            # Z_int = np.interp(time, t_int, Z)
-
-            stats = Stats()
-            stats.sampling_rate = sampling_rate
-            stats.network = str(network)
-            stats.station = str(site)
-            time_zone = start_datetime.tzinfo
-            stats.starttime = UTCDateTime(datetime.fromtimestamp(starttime * 1.e-9).replace(tzinfo=time_zone))
-            microsecond = int(((starttime * 1e-9) - np.floor(starttime * 1e-9)) * 1e6)
-            stats.starttime.microsecond = microsecond
-            stats.npts = npts
-
-            if not np.all(np.isnan(X)):
-                stats.channel = 'X'
-                traces.append(Trace(data=X, header=stats))
-
-                stats.channel = 'Y'
-                traces.append(Trace(data=Y, header=stats))
-
-            stats.channel = 'Z'
-            traces.append(Trace(data=Z, header=stats))
-
-        except:
-            print('Unable to read the data stream for sensor %i!\nCheck request start and end times.' %site)
-
-    return Stream(traces=traces).detrend('linear').detrend('demean').trim(starttime=start_datetime_utc,
-                                                                          endtime=end_datetime_utc)
-
+# def get_data_local(local_directory, file_name=None):
+#     return get_continuous_local(local_directory, file_name=file_name)
 
 
 @curry
@@ -274,12 +151,11 @@ def get_data(base_url, starttime, endtime, overlap, window_length, filter,
     endtime = starttime + timedelta(seconds=len(dts) * window_length) + overlap
     try:
         # Use below for Global Use
-        # st = web_api.get_continuous(base_url, starttime - overlap, endtime + overlap, site_ids=[site_id])
+        st = web_api.get_continuous(base_url, starttime - overlap, endtime + overlap, site_ids=[site_id])
 
         # Use below for local use
         #base_url = '/Users/hanee/Rio_Tinto/sample_data/20170408_224235.mseed'
-        st = get_continuous_local(base_url, starttime - overlap, endtime + overlap,
-                                          site_ids=[site_id], format='binary')
+        # st = get_continuous_local()
 
     except Exception as e:
         print(e)
@@ -359,75 +235,72 @@ def request_handler():
     # local time
     ftime = os.path.join(common_dir, 'ingest_info.txt')
 
-    starttime = datetime(2018, 5, 23, 18, 49, 0, tzinfo=time_zone)
+    now = datetime.now().replace(tzinfo=time_zone)
 
-    endtime_ = datetime(2018, 5, 23, 19, 40, 0, tzinfo=time_zone)
+    if not os.path.isfile(ftime):
+        starttime = now \
+                    - timedelta(seconds=minimum_offset) \
+                    - timedelta(seconds=period)
 
-    while starttime < endtime_:
+    else:
+        with open(ftime, 'r') as timefile:
+            starttime = parser.parse(timefile.readline()) - overlap
+            starttime = starttime.replace(tzinfo=time_zone)
 
-        now = datetime.now().replace(tzinfo=time_zone)
+            dt = (now - starttime).total_seconds()
+            if dt - minimum_offset > max_window_length:
+                starttime = now \
+                            - timedelta(seconds=(minimum_offset +
+                                                     max_window_length)) - \
+                            overlap
 
-        if not os.path.isfile(ftime):
-            starttime = now \
-                        - timedelta(seconds=minimum_offset) \
-                        - timedelta(seconds=period)
+    endtime = starttime + timedelta(seconds=period)
 
-            endtime = now - timedelta(seconds=minimum_offset)
+    station_file = os.path.join(common_dir, 'sensors.csv')
+    site = read_stations(station_file, has_header=True)
 
-        else:
-            with open(ftime, 'r') as timefile:
-                starttime = parser.parse(timefile.readline()) - overlap
-                starttime = starttime.replace(tzinfo=time_zone)
+    st_code = [int(station.code) for station in site.stations()]
 
-                dt = (now - starttime).total_seconds()
-                if dt - minimum_offset > max_window_length:
-                    starttime = now \
-                                - timedelta(seconds=(minimum_offset +
-                                                         max_window_length)) - \
-                                overlap
+    p = Pool(workers)
 
-        endtime = now - timedelta(seconds=minimum_offset)
+    # Tracer()()
 
-        endtime = starttime + timedelta(seconds=period)
+    # get_data(base_url, starttime, endtime, overlap,
+    #                                window_length, filter, taper).call(51)
 
-        station_file = os.path.join(common_dir, 'sensors.csv')
-        site = read_stations(station_file, has_header=True)
+    map_responses = p.map(get_data(base_url, starttime, endtime, overlap,
+                                   window_length, filter, taper), st_code)
 
-        st_code = [int(station.code) for station in site.stations()]
+    partitionned = partition(map_responses)
 
-        p = Pool(workers)
-        start = timer()
-        map_responses = p.map(get_data(base_url, starttime, endtime, overlap,
-                                       window_length, filter, taper), st_code)
+    from spp.time import localize
 
-        partitionned = partition(map_responses)
+    with open(ftime, 'w') as timefile:
+        timefile.write(endtime.strftime("%Y-%m-%d %H:%M:%S.%f"))
 
-        data_blocks = []
-        from spp.time import localize
+    for group in partitionned:
+        block = reduce(group)
+        stime = localize(block[0].stats.starttime).strftime(
+            "%Y%m%d_%H%M%S_%f")
+        etime = localize(block[0].stats.endtime).strftime(
+            "_%Y%m%d_%H%M%S_%f.mseed")
 
-        for group in partitionned:
-            block = reduce(group)
-            stime = localize(block[0].stats.starttime).strftime(
-                "%Y%m%d_%H%M%S_%f")
-            etime = localize(block[0].stats.endtime).strftime(
-                "_%Y%m%d_%H%M%S_%f.mseed")
+        fname = stime + etime
 
-            fname = stime + etime
+        # eventually to be written to Kafka
+        #block.write(fname, format='MSEED')
+        with open('tmp.txt', 'a') as tmp:
+             tmp.write(fname)
 
-            # eventually to be written to Kafka
-            #block.write(fname, format='MSEED')
-            with open('tmp.txt', 'a') as tmp:
-                 tmp.write(fname)
-        # blocks = map(reduce, partitionned)
+        yeild(block)
 
-        starttime = endtime
+    # blocks = map(reduce, partitionned)
 
-        end = timer()
 
-        print(end - start)
+def request_handler_local(data_directory):
+    return get_continuous_local(data_directory)
 
-        with open(ftime, 'w') as timefile:
-            timefile.write(endtime.strftime("%Y-%m-%d %H:%M:%S.%f"))
+    # insert code to connect ot Kafka
 
 
 
