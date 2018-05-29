@@ -13,27 +13,24 @@ from IPython.core.debugger import Tracer
 @curry
 def get_data(base_url, starttime, endtime, overlap, window_length, filter, taper, site_id):
 
-    print site_id
+    print(site_id)
     from numpy import floor
     from microquake.core import UTCDateTime
     from microquake.IMS import web_api
     from datetime import timedelta
+    from importlib import reload
+    from dateutil import parser
+
     reload(web_api)
-    from IPython.core.debugger import Tracer
-    # starttime = q64.decode(starttime_q64)
-    # endtime = q64.decode(endtime_q64)
-    # overlap = q64.decode(overlap_q64)
+    import pdb
 
     period = endtime - starttime
     nsec = int(floor(period.total_seconds()))
     dts = range(0, nsec + 1, window_length)
     dtimes = [timedelta(seconds=dt) for dt in dts]
 
-    # starttime = UTCDateTime(starttime)
-    # endtime = UTCDateTime(endtime)
     starttime = starttime - overlap
     endtime = endtime + overlap
-    # st = web_api.get_continuous(base_url, starttime, endtime, site_ids=[site_id])
     try:
         st = web_api.get_continuous(base_url, starttime, endtime, site_ids=[site_id])
     except Exception as e:
@@ -44,8 +41,7 @@ def get_data(base_url, starttime, endtime, overlap, window_length, filter, taper
         return
 
     sts = []
-    # for stime in times[:-1]:
-    #     for etime in times[1:]:
+
     for dtime in dtimes:
         stime = starttime + dtime
         etime = starttime + dtime + timedelta(seconds=window_length) + 2 * overlap
@@ -54,57 +50,90 @@ def get_data(base_url, starttime, endtime, overlap, window_length, filter, taper
         st_trim = st_trim.filter(**filter)
         sts.append(st_trim)
 
-    return (sts, 0)
+    return sts
 
 
 if __name__ == '__main__':
 
     config_dir = os.environ['SPP_CONFIG']
+    common_dir = os.environ['SPP_COMMON']
     fname = os.path.join(config_dir, 'ingest_config.yaml')
-    with open(fname) as cfg_file:
+
+    with open(fname, 'r') as cfg_file:
         params = yaml.load(cfg_file)
         params = params['data_ingestion']
+
 
     base_url = params['data_source']['location']
 
     minimum_offset = params["minimum_time_offset"]
     window_length = params["window_length"]
-    overlap = timedelta(seconds=2*params['overlap'])
+    overlap = timedelta(seconds=params['overlap'])
+    period = params['period']
     filter = params['filter']
     taper = params['taper']
+    max_window_length = params['max_window_length']
 
     time_zone = time.get_time_zone()
-    starttime = datetime.now().replace(tzinfo=time_zone) - timedelta(minutes=10)
-    # starttime = q64.encode(starttime)
-    endtime = starttime + timedelta(seconds=minimum_offset)
-    # endtime = q64.encode(endtime)
 
-    # overlap = q64.encode(overlap)
+    # get end time of last window, note that time in the file should be in
+    # local time
+    ftime = os.path.join(common_dir, 'ingest_info.txt')
 
-    station_file = os.path.join(config_dir, 'sensors.csv')
+    now = datetime.now().replace(tzinfo=time_zone)
+
+    if not os.path.isfile(ftime):
+        starttime = now \
+                    - timedelta(seconds=minimum_offset) \
+                    - timedelta(seconds=period) \
+                    - overlap
+        endtime = now - timedelta(seconds=minimum_offset)
+
+    else:
+        with open(ftime, 'r') as timefile:
+            starttime = parser.parse(timefile.readline()) - overlap
+            starttime = starttime.replace(time_zone=time_zone)
+
+            dt = (now - starttime).total_seconds()
+            if dt - minimum_offset > max_window_length:
+                starttime = now - timedelta(seconds=(minimum_offset +
+                                                    max_window_length)) - \
+                            overlap
+
+            endtime = now - timedelta(seconds=minimum_offset)
+
+
+    # endtime = starttime + timedelta(seconds=window_length)
+
+
+    station_file = os.path.join(common_dir, 'sensors.csv')
     site = read_stations(station_file, has_header=True)
 
     st_code = [int(station.code) for station in site.stations()]
 
     p = Pool(10)
-
-    starttime_q64 = q64.encode(starttime)
-    endtime_q64 = q64.encode(endtime)
-    overlap_q64 = q64.encode(overlap)
-
-    # get_data_f = lambda k: get_data(k, base_url, starttime, endtime, overlap)
-
-    #get_data(32, base_url, starttime, endtime, overlap)
-
+    #
     start = timer()
-    results = p.map(get_data(base_url, starttime, endtime, overlap, window_length, filter, taper), st_code)
+    results = p.map(get_data(base_url, starttime, endtime, overlap,
+                             window_length, filter, taper), st_code)
+
+
     end = timer()
+
+    for result in results:
+        result[0]
+
     print(end - start)
 
-    # outputs = [result[0] for result in results]
+    with open(ftime, 'w') as timefile:
+        timefile.write(endtime.strftime("%Y-%m-%d %H:%M:%S.%f"))
 
 
-    # st = get_data(base_url, starttime, endtime, overlap, window_length, filter, taper).call(75)
+    for result in results:
+
+
+
+
 
 
 

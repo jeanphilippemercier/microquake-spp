@@ -23,7 +23,7 @@ nll_opts = nlloc.init_nlloc_from_params(params)
 
 
 # The following line only needs to be run once. It creates the base directory
-nll_opts.prepare(create_time_grids=True, tar_files=False, SparkContext=None)
+# nll_opts.prepare(create_time_grids=True, tar_files=False, SparkContext=None)
 
 tz = get_time_zone()
 
@@ -35,12 +35,13 @@ base_url = "http://10.95.64.12:8002/ims-database-server/databases/mgl"
 # 			    get_arrivals=True)
 # cat.write('test.xml', format='QUAKEML')
 
-cat = read_events('test.xml', format='QUAKEML')
+cat = read_events('../../data/test.xml', format='QUAKEML')
 
 evts_out = []
 for event in cat:
     evts_out.append(nll_opts.run_event(event)[0])
     print(evts_out[-1])
     
+
 cat_loc = Catalog(events=evts_out)
 
