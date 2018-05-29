@@ -11,6 +11,7 @@ if __name__ == "__main__":
     import os
     import yaml
     from microquake.core.event import Catalog
+    import numpy as np
 
     config_dir = os.environ['SPP_CONFIG']
     common_dir = os.environ['SPP_COMMON']
@@ -29,6 +30,11 @@ if __name__ == "__main__":
 
     elif params['data_source']['type'] == 'local':
         location = params['data_source']['location']
-        st = core.request_handler_local(location)
+        period = params['period']
+        window_length = params['window_length']
+
+        for i in np.arange(0, period, window_length):
+            st = core.request_handler_local(location)
+            print(st)
 
         # write to Kafka

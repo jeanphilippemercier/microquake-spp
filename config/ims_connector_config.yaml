@@ -8,10 +8,10 @@ ims_connector:
   max_window_length: 90             # maximum length of data to request in seconds
   data_source:                      # describes the data source and base url
                                     # or path to the data
-    # type: local
-    # location: /Users/jpmercier/continuous_data
-    type: remote
-    location: http://10.95.64.12:8002/ims-database-server/databases/mgl
+    type: local
+    location: /Users/jpmercier/continuous_data
+    # type: remote
+    # location: http://10.95.64.12:8002/ims-database-server/databases/mgl
 
   filter:                           # filter to apply to the data. These value are the argument to pass to the Obspy
                                     # filter function "Stream.filter"
