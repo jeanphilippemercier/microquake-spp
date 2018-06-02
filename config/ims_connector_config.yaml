@@ -9,7 +9,7 @@ ims_connector:
   data_source:                      # describes the data source and base url
                                     # or path to the data
     type: local
-    location: /Users/jpmercier/continuous_data
+    location: /Users/hanee/Rio_Tinto/sample_data
     # type: remote
     # location: http://10.95.64.12:8002/ims-database-server/databases/mgl
 
@@ -23,5 +23,9 @@ ims_connector:
 
   multiprocessing:                  # options related to multiprocessing
     workers: 8                      # number of workers
+
+  kafka:
+    brokers: "40.121.4.219:9092,40.121.6.242:9092,40.117.251.121:9092"
+    topic: mseed_samples
 
 
