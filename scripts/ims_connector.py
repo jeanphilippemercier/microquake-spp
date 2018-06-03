@@ -51,6 +51,10 @@ if __name__ == "__main__":
         window_length = params['window_length']
 
         import sys
+        import time
+
+        stime = time.time()
+
         for i in np.arange(0, period, window_length):
             st = core.request_handler_local(location)
             print("---------------------------> ", type(st))
@@ -59,8 +63,13 @@ if __name__ == "__main__":
             print("(", i, " from", period, ")")
             write_to_kafka(kafka,kafka_topic, st)
 
-    print("Flushing and Closing Kafka....")
-    kafka.producer.flush()
-    print("Program Exit")
+
+        print("Flushing and Closing Kafka....")
+        kafka.producer.flush()
+
+        etime = time.time()
+        print("==> Total Time Taken: ", etime - stime)
+
+        print("Program Exit")
 
 
