@@ -25,7 +25,7 @@ ims_connector:
     workers: 8                      # number of workers
 
   kafka:
-    brokers: "40.121.4.219:9092,40.121.6.242:9092,40.117.251.121:9092"
+    brokers: "kafka-node-001:9092,kafka-node-002:9092,kafka-node-003:9092"
     topic: mseed_samples
     threads: 4
 
