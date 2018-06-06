@@ -1,9 +1,11 @@
 from kafka import KafkaProducer, KafkaConsumer
+import logging
 
 
 class KafkaHandler:
 
     def __init__(self, brokers_list):
+        logging.basicConfig(level=logging.ERROR)
         self.producer = KafkaProducer(bootstrap_servers=brokers_list, max_request_size=20971520)
 
     def send_to_kafka(self, topic_name, message, key=None):

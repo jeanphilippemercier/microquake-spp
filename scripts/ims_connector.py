@@ -2,23 +2,29 @@ from spp.ims_connector import core
 from importlib import reload
 from scripts.kafka_utils import KafkaHandler
 from io import BytesIO
+import logging
 
 reload(core)
 
 
 def write_to_kafka(kafka_handler_obj, kafka_topic, stream_object):
+    s_time = time.time()
     buf = BytesIO()
     stream_object.write(buf, format='MSEED')
     encoded_obj = serializer.encode_base64(buf)
     msg_key = str(stream_object[0].stats.starttime)
+    e_time = time.time() - s_time
+    print("object preparation took:", e_time)
     print("sending to kafka...", "key:", msg_key, "msg size:", sys.getsizeof(encoded_obj) / 1024 / 1024, "MB")
+    s_time = time.time()
     kafka_handler_obj.send_to_kafka(kafka_topic, serializer.encode_base64(buf), msg_key.encode('utf-8'))
-
+    e_time = time.time() - s_time
+    print("object submission took:", e_time)
 
 if __name__ == "__main__":
 
     # read yaml file
-
+    logging.basicConfig(level=logging.ERROR)
     import os
     import yaml
     from microquake.core.event import Catalog

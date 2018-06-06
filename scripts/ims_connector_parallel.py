@@ -10,12 +10,18 @@ reload(core)
 
 
 def write_to_kafka(kafka_handler_obj, kafka_topic, stream_object):
+    s_time = time.time()
     buf = BytesIO()
     stream_object.write(buf, format='MSEED')
     encoded_obj = serializer.encode_base64(buf)
     msg_key = str(stream_object[0].stats.starttime)
+    e_time = time.time() - s_time
+    print("object preparation took:", e_time)
     print("sending to kafka...", "key:", msg_key, "msg size:", sys.getsizeof(encoded_obj) / 1024 / 1024, "MB")
+    s_time = time.time()
     kafka_handler_obj.send_to_kafka(kafka_topic, serializer.encode_base64(buf), msg_key.encode('utf-8'))
+    e_time = time.time() - s_time
+    print("object submission took:", e_time)
 
 
 def send_list_to_kafka(kafka_handler_obj, kafka_topic, st_list):
