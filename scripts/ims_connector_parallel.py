@@ -2,7 +2,9 @@ from spp.ims_connector import core
 from importlib import reload
 from scripts.kafka_utils import KafkaHandler
 from io import BytesIO
-import logging
+import sys
+import time
+import threading
 
 reload(core)
 
@@ -21,10 +23,40 @@ def write_to_kafka(kafka_handler_obj, kafka_topic, stream_object):
     e_time = time.time() - s_time
     print("object submission took:", e_time)
 
+
+def send_list_to_kafka(kafka_handler_obj, kafka_topic, st_list):
+    for stream_object in st_list:
+        write_to_kafka(kafka_handler_obj, kafka_topic, stream_object)
+
+    print("Flushing and Closing Kafka....")
+    kafka_handler_obj.producer.flush()
+
+
+def run_kafka_threads(streams_list, kafka_topic, kafka_brokers):
+    # run a kafka producer thread for each array of streams
+    threads_list = []
+    for i in range(len(streams_list)):
+        print("Starting Thread #", i)
+        threads_list.append(threading.Thread(target=send_list_to_kafka, args=(KafkaHandler(kafka_brokers),
+                                                                              kafka_topic, streams_list[i])))
+        threads_list[i].start()
+
+    # wait for all threads to finish
+    for th in threads_list:
+        th.join()
+
+
+def initialize_streams_list(threads_cnt):
+    lst = []
+    for i in range(threads_cnt):
+        lst.append([])
+    return lst
+
+
 if __name__ == "__main__":
 
     # read yaml file
-    logging.basicConfig(level=logging.ERROR)
+
     import os
     import yaml
     from microquake.core.event import Catalog
@@ -32,7 +64,7 @@ if __name__ == "__main__":
     import numpy as np
 
     config_dir = os.environ['SPP_CONFIG']
-    common_dir = os.environ['SPP_COMMON']
+    #common_dir = os.environ['SPP_COMMON']
 
     fname = os.path.join(config_dir, 'ims_connector_config.yaml')
 
@@ -41,41 +73,42 @@ if __name__ == "__main__":
         params = params['ims_connector']
 
 
-    # Create Kafka Object
-    kafka = KafkaHandler(params['kafka']['brokers'])
+    # Kafka configs
+    kafka_brokers = params['kafka']['brokers']
     kafka_topic = params['kafka']['topic']
 
+    threads_count = params['kafka']['threads']
+
+    stime = time.time()
+
+    # creating different lists for threads
+    streams_list = initialize_streams_list(threads_count)
+
     if params['data_source']['type'] == 'remote':
+        j = 0
         for st in core.request_handler():
             print(st)
             # write to Kafka
-            write_to_kafka(kafka, kafka_topic, st)
+            streams_list[j % threads_count].append(st)
+            j += 1
 
     elif params['data_source']['type'] == 'local':
         location = params['data_source']['location']
         period = params['period']
         window_length = params['window_length']
 
-        import sys
-        import time
-
-        stime = time.time()
-
+        # distribute the streams on the lists
         for i in np.arange(0, period, window_length):
             st = core.request_handler_local(location)
-            print("---------------------------> ", type(st))
-            # print(st)
-            #  write to Kafka
             print("(", i, " from", period, ")")
-            write_to_kafka(kafka,kafka_topic, st)
+            print("---------Putting in List #------------------> ", i % threads_count)
+            streams_list[i % threads_count].append(st)
 
+    run_kafka_threads(streams_list, kafka_topic, kafka_brokers)
 
-        print("Flushing and Closing Kafka....")
-        kafka.producer.flush()
+    etime = time.time()
+    print("==> Total Time Taken: ", etime - stime)
 
-        etime = time.time()
-        print("==> Total Time Taken: ", etime - stime)
-
-        print("Program Exit")
+    print("Program Exit")
 
 
