@@ -16,8 +16,6 @@ from microquake.realtime.signal import kurtosis
 reload(core)
 
 
-
-
 if __name__ == "__main__":
 
     location = [651280, 4767430, -140]
@@ -25,6 +23,7 @@ if __name__ == "__main__":
     stations = get_stations()
 
     data_dir = os.environ['SPP_DATA']
+    config_dir = os.environ['SPP_CONFIG']
 
     st2 = read(os.path.join(data_dir, '2018-04-15_034422.mseed'),
                format='MSEED')
