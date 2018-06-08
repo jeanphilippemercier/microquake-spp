@@ -1,13 +1,16 @@
 
 from IPython.core.debugger import Tracer
 
+from microquake.core.data.grid import read_grid
+from microquake.core import read_stations
+
 def init_travel_time():
     """
     Calculate travel time grid if required
     :return: status
     """
 
-    from microquake.core import read_grid, read_stations
+    #from microquake.core import read_grid, read_stations
     import os
     from microquake.simul import eik
 
@@ -26,10 +29,12 @@ def init_travel_time():
         seed = station.loc
         seed_label = station.code
 
-        fname_p = os.path.join(common_dir, 'tt_grids', '%s_p.pickle' %
-                               station.code)
-        fname_s = os.path.join(common_dir, 'tt_grids', '%s_s.pickle' %
-                               station.code)
+        fname_p = os.path.join(common_dir, 'tt_grids', '%s_p.pickle' % station.code)
+        fname_s = os.path.join(common_dir, 'tt_grids', '%s_s.pickle' % station.code)
+        fname_az_p = os.path.join(common_dir, 'tt_grids', '%s_azimuth_p.pickle' % station.code)
+        fname_to_p = os.path.join(common_dir, 'tt_grids', '%s_takeoff_p.pickle' % station.code)
+        fname_az_s = os.path.join(common_dir, 'tt_grids', '%s_azimuth_s.pickle' % station.code)
+        fname_to_s = os.path.join(common_dir, 'tt_grids', '%s_takeoff_s.pickle' % station.code)
 
         if os.path.exists(fname_p):
             ttp = read_grid(fname_p)
@@ -37,15 +42,15 @@ def init_travel_time():
                 ttp = eik.eikonal_solver(vp, seed, seed_label)
                 ttp.write(fname_p, format='PICKLE')
                 (ttp_azimuth, ttp_takeoff) = eik.angles(ttp)
-                ttp_azimuth.write(fname_p.replace('_p', '_azimuth_p'))
-                ttp_takeoff.write(fname_p.replace('_p', '_takeoff_p'))
+                ttp_azimuth.write(fname_az_p)
+                ttp_takeoff.write(fname_to_p)
 
         else:
             ttp = eik.eikonal_solver(vp, seed, seed_label)
             ttp.write(fname_p, format='PICKLE')
             (ttp_azimuth, ttp_takeoff) = eik.angles(ttp)
-            ttp_azimuth.write(fname_p.replace('_p', '_azimuth_p'))
-            ttp_takeoff.write(fname_p.replace('_p', '_takeoff_p'))
+            ttp_azimuth.write(fname_az_p)
+            ttp_takeoff.write(fname_to_p)
 
         if os.path.exists(fname_s):
             tts = read_grid(fname_s)
@@ -53,22 +58,21 @@ def init_travel_time():
                 tts = eik.eikonal_solver(vs, seed, seed_label)
                 (tts_azimuth, tts_takeoff) = eik.angles(tts)
                 tts.write(fname_s, format='PICKLE')
-                tts_azimuth.write(fname_s.replace('_s', '_azimuth_s'))
-                tts_takeoff.write(fname_s.replace('_s', '_takeoff_s'))
+                tts_azimuth.write(fname_az_s)
+                tts_takeoff.write(fname_to_s)
 
         else:
             tts = eik.eikonal_solver(vs, seed, seed_label)
             tts.write(fname_s, format='PICKLE')
             (tts_azimuth, tts_takeoff) = eik.angles(tts)
-            tts.write(fname_s, format='PICKLE')
-            tts_azimuth.write(fname_s.replace('_s', '_azimuth_s'))
-            tts_takeoff.write(fname_s.replace('_s', '_takeoff_s'))
+            tts_azimuth.write(fname_az_s)
+            tts_takeoff.write(fname_to_s)
 
 
     return 1
 
 
-def __get_grid_value_single_station(station_phase, location):
+def __get_grid_value_single_station(station_phase, location, use_eikonal=True):
     """
     Get interpolated grid values for a single station and phase
     :param station_phase: a tuple containing the station id and the phase
@@ -78,22 +82,24 @@ def __get_grid_value_single_station(station_phase, location):
 
     import os
     common_dir = os.environ['SPP_COMMON']
-    from microquake.core import read_grid
 
     station = station_phase[0]
     phase = station_phase[1].lower()
 
-    f_tt = os.path.join(common_dir, 'tt_grids', '%s_%s.pickle' %
-                            (station, phase))
+    if use_eikonal:
+        f_tt = os.path.join(common_dir, 'tt_grids', '%s_%s.pickle' % (station, phase))
+        tt_grid = read_grid(f_tt, format='PICKLE')
 
-    tt_grid = read_grid(f_tt, format='PICKLE')
+    else:
+        f_tt = os.path.join(common_dir, 'NLL/time', 'OT.%s.%s.time.buf' % (phase.upper(), station))
+        tt_grid = read_grid(f_tt, format='NLLOC')
 
     tt = tt_grid.interpolate(location, grid_coordinate=False)
 
     return tt
 
 
-def get_travel_time_grid(station, location, phase):
+def get_travel_time_grid(station, location, phase, use_eikonal=True):
     """
     get the travel time
     :param stations: list of stations
@@ -101,23 +107,22 @@ def get_travel_time_grid(station, location, phase):
     can be converted to a numpy array, locations can be a vector of coordinates
     :param phase: Phase either P or S, if None both P and S travel time are
     extracted
+    :param use_eikonal: If True read eikonal time grids; If False read NLLOC station time grids directly
     :param spark_context: a spark context for parallelization purpose
     :return: a pandas DataFrame
     """
 
-    from microquake.core import read_grid, UTCDateTime
+    from microquake.core import UTCDateTime
     from microquake.spark import mq_map
     import os
     from pandas import DataFrame
     from spp.time import get_time_zone
 
-
-
     # building spark keys
     # need to be parallelized but for now running in loops
 
     station_phase = (station, phase)
-    tt = __get_grid_value_single_station(station_phase, location)
+    tt = __get_grid_value_single_station(station_phase, location, use_eikonal)
 
 
     return tt[0]
