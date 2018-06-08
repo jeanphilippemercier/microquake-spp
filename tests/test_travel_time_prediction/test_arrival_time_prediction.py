@@ -30,15 +30,47 @@ if __name__ == "__main__":
 
     core.init_travel_time()
 
-    cat = core.create_event(st2, location)
+    cat = core.create_event(st2,
+                            location)
 
     origin_time = cat[0].origins[0].time
     picks = cat[0].picks
 
-    plt.clf()
+
     st = read(os.path.join(data_dir, '2018-04-15_034422.mseed'), format='MSEED')
+    ##########
+    # INSERT PICKER HERE, the picker function should take two non keyword
+    # arguments (a stream and a catalogue and as many as keyword arguments as
+    # you want. the keyword arguments will be passed from a config file
+    # For instance in let say we get the parameter from a yaml file we would get
+    # >> import yaml
+    # >> params = yaml.load(...)
+    # >> cat_out = picker(stream, catalogue, **params[picker][kwargs]
+    # the SNR picker currently returns a catalogue but could probably simply
+    # return a list of picks.
+    # example of how I use the SNR picker below.
+    # Note 1: The SNR picker is not optimized and does not currently work well.
+    # Note 2: you will probably want to filter the waveforms. I have tried
+    # filtering between 50 and 300 Hz. You may want to play more with the filter
+    # Note, that the origin time should also be corrected following the
+    # picking. Bias which will be the mean of the difference between the
+    # initial picks and the new picks (Bias = new picks - initial picks) should
+    #  be added to the origin time.
+
+
+
+    (cat_picked, snr) = SNR_picker(st2.filter('bandpass', freqmin=50,
+                                              freqmax=300), cat,
+                                   SNR_dt=np.linspace(-10e-3, 10e-3, 100),
+                                   SNR_window=(-5e-3, 20e-3))
+
+    #########
+
+
+    plt.clf()
+
     for tr in st.composite():
-        for pk in picks:
+        for pk in cat_picked[0].picks:
             if pk.waveform_id.station_code == tr.stats.station:
                 if pk.phase_hint == "P":
                     pk_p = pk.time
