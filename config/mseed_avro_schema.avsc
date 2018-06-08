@@ -1,0 +1,7 @@
+{"namespace": "miniseed.avro",
+ "type": "record",
+ "name": "User",
+ "fields": [
+     {"name": "mseed", "type": "array"}
+ ]
+}
