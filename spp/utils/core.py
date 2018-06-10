@@ -14,12 +14,21 @@ def encode_avro(stream):
     :return:
     """
     import os
+    #from avro.io import DatumWriter
+    import avro.io
+    import avro.schema
+    import io
 
     config_dir = os.environ['SPP_CONFIG']
+    schema_path = config_dir + '/mseed_avro_schema.avsc'
+    schema = avro.schema.Parse(open(schema_path).read())
 
-    avro = None
+    writer = avro.io.DatumWriter(schema)
+    bytes_writer = io.BytesIO()
+    encoder = avro.io.BinaryEncoder(bytes_writer)
+    writer.write(stream, encoder)
 
-    return avro
+    return bytes_writer.getvalue()
 
 
 def decode_avro(avro):

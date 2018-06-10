@@ -26,7 +26,7 @@ ims_connector:
 
   kafka:
     brokers: "kafka-node-001:9092,kafka-node-002:9092,kafka-node-003:9092"
-    topic: mseed_samples
-    threads: 4
+    topic: mseed_samples_3
+    threads: 1
 
 

@@ -6,7 +6,7 @@ class KafkaHandler:
 
     def __init__(self, brokers_list):
         logging.basicConfig(level=logging.ERROR)
-        self.producer = KafkaProducer(bootstrap_servers=brokers_list, max_request_size=20971520)
+        self.producer = KafkaProducer(bootstrap_servers=brokers_list, max_request_size=20971520, batch_size=20)
 
     def send_to_kafka(self, topic_name, message, key=None):
         if key is None:
