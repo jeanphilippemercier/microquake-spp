@@ -1,6 +1,6 @@
-from scripts.kafka_utils import KafkaHandler
 from io import BytesIO
 
+from spp.utils.kafka import KafkaHandler
 
 if __name__ == "__main__":
 

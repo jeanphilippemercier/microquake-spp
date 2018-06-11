@@ -1,8 +1,9 @@
-from spp.ims_connector import core
-from importlib import reload
-from scripts.kafka_utils import KafkaHandler
-from io import BytesIO
 import logging
+from importlib import reload
+from io import BytesIO
+
+from spp.ims_connector import core
+from spp.utils.kafka import KafkaHandler
 
 reload(core)
 
@@ -28,8 +29,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR)
     import os
     import yaml
-    from microquake.core.event import Catalog
-    from microquake.core.util import serializer
     import numpy as np
 
     config_dir = os.environ['SPP_CONFIG']
