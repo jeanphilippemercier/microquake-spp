@@ -5,6 +5,7 @@ from io import BytesIO
 import sys
 import time
 import threading
+from multiprocessing import Process
 
 reload(core)
 
@@ -28,11 +29,11 @@ def send_list_to_kafka(kafka_handler_obj, kafka_topic, st_list):
     for stream_object in st_list:
         write_to_kafka(kafka_handler_obj, kafka_topic, stream_object)
 
-    print("Flushing and Closing Kafka....")
-    s_time = time.time()
-    kafka_handler_obj.producer.flush()
-    e_time = time.time() - s_time
-    print("Flushing Kafka took:", e_time)
+    # print("Flushing and Closing Kafka....")
+    # s_time = time.time()
+    # kafka_handler_obj.producer.flush()
+    # e_time = time.time() - s_time
+    # print("Flushing Kafka took:", e_time)
 
 
 def run_kafka_threads(streams_list, kafka_topic, kafka_brokers):
@@ -48,6 +49,26 @@ def run_kafka_threads(streams_list, kafka_topic, kafka_brokers):
     for th in threads_list:
         th.join()
 
+
+
+def run_kafka_processes(streams_list, kafka_topic, kafka_brokers):
+    # run a kafka producer thread for each array of streams
+    threads_list = []
+    kf = KafkaHandler(kafka_brokers)
+    for i in range(len(streams_list)):
+        print("Starting Thread #", i)
+        threads_list.append(Process(target=send_list_to_kafka, args=(kf, kafka_topic, streams_list[i])))
+        threads_list[i].start()
+
+    # wait for all threads to finish
+    for th in threads_list:
+        th.join()
+
+    print("Flushing and Closing Kafka....")
+    s_time = time.time()
+    kf.producer.flush()
+    e_time = time.time() - s_time
+    print("Flushing Kafka took:", e_time)
 
 def initialize_streams_list(threads_cnt):
     lst = []
@@ -107,7 +128,8 @@ if __name__ == "__main__":
             print("---------Putting in List #------------------> ", i % threads_count)
             streams_list[i % threads_count].append(st)
 
-    run_kafka_threads(streams_list, kafka_topic, kafka_brokers)
+    run_kafka_processes(streams_list, kafka_topic, kafka_brokers)
+    #run_kafka_threads(streams_list, kafka_topic, kafka_brokers)
 
     etime = time.time()
     print("==> Total Time Taken: ", etime - stime)
