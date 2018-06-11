@@ -123,10 +123,13 @@ if __name__ == "__main__":
 
         # distribute the streams on the lists
         for i in np.arange(0, period, window_length):
+            stime_i = time.time()
             st = core.request_handler_local(location)
             print("(", i, " from", period, ")")
             print("---------Putting in List #------------------> ", i % threads_count)
             streams_list[i % threads_count].append(st)
+            etime_i = time.time() - stime_i
+            print("object loading took:", etime_i)
 
     #run_kafka_processes(streams_list, kafka_topic, kafka_brokers)
     run_kafka_threads(streams_list, kafka_topic, kafka_brokers)
