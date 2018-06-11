@@ -27,8 +27,8 @@ if __name__ == "__main__":
 
     for message in consumer:
         print("Key:", message.key)
-        decoded_msg = serializer.decode_base64(message.value)
-        stream = read(BytesIO(decoded_msg))
+        #decoded_msg = serializer.decode_base64(message.value)
+        stream = read(BytesIO(message.value))
         print(type(stream))
         print(stream)
         print("==================================================================")
