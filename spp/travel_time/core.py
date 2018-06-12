@@ -4,6 +4,14 @@ from IPython.core.debugger import Tracer
 from microquake.core.data.grid import read_grid
 from microquake.core import read_stations
 
+
+def load_travel_time_redis():
+    """
+    function to load the grid data into the Redis database
+    :return:
+    """
+
+
 def init_travel_time():
     """
     Calculate travel time grid if required
@@ -81,6 +89,7 @@ def __get_grid_value_single_station(station_phase, location, use_eikonal=True):
     """
 
     import os
+    from utils import get_stations
     common_dir = os.environ['SPP_COMMON']
 
     station = station_phase[0]
@@ -91,8 +100,11 @@ def __get_grid_value_single_station(station_phase, location, use_eikonal=True):
         tt_grid = read_grid(f_tt, format='PICKLE')
 
     else:
+        site = get_stations()
+        station = site.select(station=station)[0]
         f_tt = os.path.join(common_dir, 'NLL/time', 'OT.%s.%s.time.buf' % (phase.upper(), station))
         tt_grid = read_grid(f_tt, format='NLLOC')
+        tt_grid.seed = station.loc
 
     tt = tt_grid.interpolate(location, grid_coordinate=False)
 
