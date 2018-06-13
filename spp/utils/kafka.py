@@ -3,6 +3,10 @@ import logging
 import sys
 
 
+def on_send_error(excp):
+    raise excp
+
+
 class KafkaHandler:
 
     def __init__(self, brokers_list):
@@ -14,9 +18,9 @@ class KafkaHandler:
 
     def send_to_kafka(self, topic_name, message, key=None):
         if key is None:
-            return self.producer.send(topic=topic_name, value=message)
+            return self.producer.send(topic=topic_name, value=message).add_errback(on_send_error)
         else:
-            return self.producer.send(topic=topic_name, key=key, value=message)
+            return self.producer.send(topic=topic_name, key=key, value=message).add_errback(on_send_error)
 
     @staticmethod
     def consume_from_topic(topic_name, brokers_list):

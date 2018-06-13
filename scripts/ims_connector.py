@@ -26,7 +26,6 @@ def write_to_kafka(kafka_handler_obj, kafka_topic, stream_object):
 if __name__ == "__main__":
 
     # read yaml file
-    logging.basicConfig(level=logging.ERROR)
     import os
     import yaml
     import numpy as np
@@ -67,8 +66,6 @@ if __name__ == "__main__":
             st = core.request_handler_local(location)
             e_time = time.time() - s_time
             print("==> Fetching File took: ", e_time)
-            #print("---------------------------> ", type(st))
-            # print(st)
             #  write to Kafka
             write_to_kafka(kafka,kafka_topic, st)
 
