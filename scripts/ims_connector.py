@@ -1,16 +1,33 @@
-from spp.ims_connector import core
+import logging
 from importlib import reload
+from io import BytesIO
+
+from spp.ims_connector import core
+from spp.utils.kafka import KafkaHandler
 
 reload(core)
 
 
+def write_to_kafka(kafka_handler_obj, kafka_topic, stream_object):
+    s_time = time.time()
+    buf = BytesIO()
+    stream_object.write(buf, format='MSEED')
+    print("==> Normal:", sys.getsizeof(buf) / 1024 / 1024)
+    kafka_msg = buf.getvalue() #serializer.encode_base64(buf)
+    msg_key = str(stream_object[0].stats.starttime)
+    e_time = time.time() - s_time
+    print("==> object preparation took:", e_time)
+    print("==> sending to kafka...", "key:", msg_key, "msg size:", sys.getsizeof(kafka_msg) / 1024 / 1024, "MB")
+    s_time = time.time()
+    kafka_handler_obj.send_to_kafka(kafka_topic, kafka_msg, msg_key.encode('utf-8'))
+    e_time = time.time() - s_time
+    print("==> object submission took:", e_time)
+
 if __name__ == "__main__":
 
     # read yaml file
-
     import os
     import yaml
-    from microquake.core.event import Catalog
     import numpy as np
 
     config_dir = os.environ['SPP_CONFIG']
@@ -22,19 +39,46 @@ if __name__ == "__main__":
         params = yaml.load(cfg_file)
         params = params['ims_connector']
 
+
+    # Create Kafka Object
+    kafka = KafkaHandler(params['kafka']['brokers'])
+    kafka_topic = params['kafka']['topic']
+
     if params['data_source']['type'] == 'remote':
         for st in core.request_handler():
             print(st)
-
             # write to Kafka
+            write_to_kafka(kafka, kafka_topic, st)
 
     elif params['data_source']['type'] == 'local':
         location = params['data_source']['location']
         period = params['period']
         window_length = params['window_length']
 
-        for i in np.arange(0, period, window_length):
-            st = core.request_handler_local(location)
-            print(st)
+        import sys
+        import time
 
-        # write to Kafka
+        stime = time.time()
+
+        for i in np.arange(0, period, window_length):
+            print("==> (", i, " from", period, ")")
+            s_time = time.time()
+            st = core.request_handler_local(location)
+            e_time = time.time() - s_time
+            print("==> Fetching File took: ", e_time)
+            #  write to Kafka
+            write_to_kafka(kafka,kafka_topic, st)
+
+
+        print("==> Flushing and Closing Kafka....")
+        s_time = time.time()
+        kafka.producer.flush()
+        e_time = time.time() - s_time
+        print("==> Flushing Kafka took: ", e_time)
+
+        etime = time.time()
+        print("==> Total Time Taken: ", etime - stime)
+
+        print("==> Program Exit")
+
+
