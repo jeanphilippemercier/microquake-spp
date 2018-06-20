@@ -14,7 +14,7 @@ class KafkaHandler:
         logger.addHandler(logging.StreamHandler(sys.stdout))
         logger.setLevel(logging.ERROR)
         self.producer = KafkaProducer(bootstrap_servers=brokers_list,
-                                      max_request_size=30971520, batch_size=20)
+                                      max_request_size=30971520, batch_size=20, request_timeout_ms=70000)
 
     def send_to_kafka(self, topic_name, message, key=None):
         if key is None:
