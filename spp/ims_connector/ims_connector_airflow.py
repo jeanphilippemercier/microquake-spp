@@ -40,7 +40,7 @@ def load_from_ims():
 
     # read yaml file
 
-    config_dir = './spp/config/'
+    config_dir = os.environ['SPP_CONFIG']
     #common_dir = os.environ['SPP_COMMON']
 
     fname = os.path.join(config_dir, 'ims_connector_config.yaml')
