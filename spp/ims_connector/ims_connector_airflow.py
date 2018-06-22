@@ -82,7 +82,7 @@ def load_from_ims():
         e_time = time.time() - s_time
         print("==> Flushing Kafka took: ", "%.2f" % e_time)
 
-        etime = time.time() - stime()
+        etime = time.time() - stime
         print("==> Total Time Taken: ", "%.2f" % etime)
 
         print("==> Program Exit")
