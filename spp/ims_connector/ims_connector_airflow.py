@@ -65,25 +65,25 @@ def load_from_ims():
         period = params['period']
         window_length = params['window_length']
 
-        stime = time.time()
+        start_time_full = time.time()
 
         for i in np.arange(0, period, window_length):
             print("==> Processing (", i, " from", period, ")")
-            s_time = time.time()
+            start_time_load = time.time()
             st = core.request_handler_local(location)
-            e_time = time.time() - s_time
-            print("==> Fetching File took: ", "%.2f" % e_time)
+            end_time_load = time.time() - start_time_load
+            print("==> Fetching File took: ", "%.2f" % end_time_load)
             #  write to Kafka
             write_to_kafka(kafka, kafka_topic, st)
 
         print("==> Flushing and Closing Kafka....")
-        s_time = time.time()
+        start_time_flush = time.time()
         kafka.producer.flush()
-        e_time = time.time() - s_time
-        print("==> Flushing Kafka took: ", "%.2f" % e_time)
+        end_time_flush = time.time() - start_time_flush
+        print("==> Flushing Kafka took: ", "%.2f" % end_time_flush)
 
-        etime = time.time() - stime
-        print("==> Total Time Taken: ", "%.2f" % etime)
+        end_time_full = time.time() - start_time_full
+        print("==> Total Time Taken: ", "%.2f" % end_time_full)
 
         print("==> Program Exit")
 
