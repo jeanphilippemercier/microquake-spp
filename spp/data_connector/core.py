@@ -278,7 +278,8 @@ def write_data(stream_object):
     destination = params['data_destination']['type']
 
     if destination == "local":
-        write_to_local(stream_object, params['data_destination']['location'])
+        location = params['data_destination']['location']
+        write_to_local(stream_object, location)
 
     elif destination == "kafka":
         brokers=params['kafka']['brokers']
