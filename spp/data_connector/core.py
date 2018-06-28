@@ -214,7 +214,7 @@ def request_handler_local(data_directory):
     return get_continuous_local(data_directory)
 
 
-def write_to_local(stream_object):
+def write_to_local(stream_object, location):
     """
 
     :param path:
