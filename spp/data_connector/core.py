@@ -302,7 +302,7 @@ def load_data():
     if params['data_source']['type'] == 'remote':
         for st in request_handler():
             print(st)
-            write_data(params)
+            write_data(st)
             # write to Kafka
             # write_to_kafka(kafka, kafka_topic, st)
 
