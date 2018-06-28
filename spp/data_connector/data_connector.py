@@ -1,16 +1,12 @@
-import logging
 from importlib import reload
 from io import BytesIO
-
-from spp.ims_connector import core
+from spp.data_connector import core
 from spp.utils.kafka import KafkaHandler
 import time
 import sys
 import os
 import yaml
 import numpy as np
-import datetime
-
 
 
 reload(core)
@@ -43,7 +39,7 @@ def load_from_ims():
     config_dir = os.environ['SPP_CONFIG']
     #common_dir = os.environ['SPP_COMMON']
 
-    fname = os.path.join(config_dir, 'ims_connector_config.yaml')
+    fname = os.path.join(config_dir, 'data_connector_config.yaml')
 
     with open(fname, 'r') as cfg_file:
         params = yaml.load(cfg_file)
