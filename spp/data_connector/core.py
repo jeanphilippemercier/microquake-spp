@@ -275,7 +275,7 @@ def write_data(stream_object):
 
     params = get_data_connector_parameters()
 
-    destination = params['data_destination']['destination']
+    destination = params['data_destination']['type']
 
     if destination == "local":
         write_to_local(stream_object, params['data_destination']['location'])
