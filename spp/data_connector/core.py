@@ -3,86 +3,11 @@ from datetime import datetime, timedelta
 from spp import time
 import os
 from pathos.multiprocessing import Pool
-import yaml
 from toolz.functoolz import curry
-from timeit import default_timer as timer
 from IPython.core.debugger import Tracer
-import itertools
 from dateutil import parser
-
-
-# class RequestHandler():
-#
-#     def __init__(self):
-#         self.__time_zone = time.get_time_zone()
-#         self.__config_dir = os.environ['SPP_CONFIG']
-#         self.__common_dir = os.environ['SPP_COMMON']
-#         self.__time_info_file = os.path.join(common_dir, 'ingest_info.txt')
-#         self.__config_file = os.path.join(config_dir, 'ingest_config.yaml')
-#         with open(self.__config_file, 'r') as cfg_file:
-#             params = yaml.load(cfg_file)
-#             self.__params = params['data_ingestion']
-#
-#         self.base_url = params['data_source']['location']
-#
-#         self.minimum_offset = timedelta(seconds=params["minimum_time_offset"])
-#         self.window_length = params["window_length"]
-#         self.overlap = timedelta(seconds=params['overlap'])
-#         self.period = timedelta(seconds=params['period'])
-#         self.filter = params['filter']
-#         self.taper = params['taper']
-#         self.max_window_length = timedelta(seconds=params['max_window_length'])
-#
-#         now = datetime.now().replace(tzinfo=self.__time_zone)
-#
-#         if not os.path.isfile(ftime):
-#             self.starttime = now \
-#                             - self.minimum_offset \
-#                             - self.period
-#
-#             self.endtime = now - self.minimum_offset
-#
-#         else:
-#             with open(self.__time_info_file) as time_file:
-#                 self.starttime = parser.parse(time_file.readline()) \
-#                                  - self.overlap
-#                 self.starttime = self.starttime.replace(time_zone=time_zone)
-#
-#                 dt = (now - self.starttime).total_seconds()
-#                 if dt - self.minimum_offset > self.max_window_length:
-#                     self.starttime = now \
-#                                      - self.minimum_offset \
-#                                      + self.max_window_length \
-#                                      - self.overlap
-#
-#         self.__station_file = os.path.join(common_dir, 'sensors.csv')
-#         self.site = read_stations(self.__station_file, has_header=True)
-#
-#
-#     def partition(mapped_values):
-#         import collections
-#
-#         partitionned_data = collections.defaultdict(list)
-#         for ele in mapped_values:
-#             if not ele:
-#                 continue
-#             for key, value in ele:
-#                 partitionned_data[key].append(value)
-#
-#         return partitionned_data.values()
-#
-#     def reduce(partitionned_data):
-#         from microquake.core.stream import Stream
-#
-#         datas = partitionned_data
-#
-#         traces = []
-#         for data in datas:
-#             for tr in data:
-#                 traces.append(tr)
-#
-#         return Stream(traces=traces)
-
+from spp.utils import get_data_connector_parameters
+import numpy as np
 
 
 # Create Local get_continous to load data from files:
@@ -206,13 +131,9 @@ def reduce(partitionned_data):
 
 def request_handler():
 
-    config_dir = os.environ['SPP_CONFIG']
     common_dir = os.environ['SPP_COMMON']
-    fname = os.path.join(config_dir, 'ims_connector_config.yaml')
 
-    with open(fname, 'r') as cfg_file:
-        params = yaml.load(cfg_file)
-        params = params['ims_connector']
+    params = get_data_connector_parameters()
 
     if params['data_source']['type'] == 'remote':
         base_url = params['data_source']['location']
@@ -263,10 +184,6 @@ def request_handler():
 
     p = Pool(workers)
 
-    # Tracer()()
-
-    # get_data(base_url, starttime, endtime, overlap,
-    #                                window_length, filter, taper).call(51)
 
     map_responses = p.map(get_data(base_url, starttime, endtime, overlap,
                                    window_length, filter, taper), st_code)
@@ -296,6 +213,124 @@ def request_handler():
 def request_handler_local(data_directory):
     return get_continuous_local(data_directory)
 
+
+def write_to_local(stream_object, location):
+    """
+
+    :param path:
+    :return:
+    """
+
+    import os
+
+    fname = stream_object[0].stats.starttime.strftime("%Y%m%d%H%M%S_%f_") + \
+            stream_object[0].stats.endtime.strftime("%Y%m%d%H%M%S_%f.mseed")
+    path = os.path.join(location, fname)
+    stream_object.write(path, format='MSEED')
+
+
+def write_to_kafka(stream_object, brokers, kafka_topic):
+    """
+
+    :param stream_object: a microquake.stream.Stream object containing the
+    waveforms
+    :param brokers: a ',' delimited string containing the information on the
+    kafka brokers (e.g., "kafka-node-001:9092,kafka-node-002:9092,
+    kafka-node-003:9092")
+    :param kafka_topic:
+    :return:
+    """
+    from spp.utils.kafka import KafkaHandler
+    kafka_handler_obj = KafkaHandler(brokers)
+    # s_time = time.time()
+    buf = BytesIO()
+    stream_object.write(buf, format='MSEED')
+    kafka_msg = buf.getvalue()  # serializer.encode_base64(buf)
+    msg_key = str(stream_object[0].stats.starttime)
+    # end_time_preparation = time.time() - s_time
+
+    # msg_size = (sys.getsizeof(kafka_msg) / 1024 / 1024)
+
+    # s_time = time.time()
+    kafka_handler_obj.send_to_kafka(kafka_topic, kafka_msg,
+                                    msg_key.encode('utf-8'))
+    # end_time_submission = time.time() - s_time
+
+    # print("==> Object Size:", "%.2f" % msg_size, "MB",
+    #       "Key:", msg_key,
+    #       ", Preparation took:", "%.2f" % end_time_preparation,
+    #       ", Submission took:", "%.2f" % end_time_submission)
+
+    kafka_handler_obj.producer.flush()
+
+
+def write_data(stream_object):
+    """
+
+    :param destination: destination to write file (e.g., local (filesystem),
+    kafka, MongoDB)
+    :param kwargs: arguments to
+    :return:
+    """
+
+    params = get_data_connector_parameters()
+
+    destination = params['data_destination']['type']
+
+    if destination == "local":
+        location = params['data_destination']['location']
+        write_to_local(stream_object, location)
+
+    elif destination == "kafka":
+        brokers=params['kafka']['brokers']
+        kafka_topic=params['kafka']['kafka_topic']
+
+        write_to_kafka(stream_object, brokers, kafka_topic)
+    elif destination == "mongo":
+        pass
+        #write_to_mongo()
+
+
+def load_data():
+
+    params = get_data_connector_parameters()
+
+    # # Create Kafka Object
+    # kafka = KafkaHandler(params['kafka']['brokers'])
+    # kafka_topic = params['kafka']['topic']
+
+    if params['data_source']['type'] == 'remote':
+        for st in request_handler():
+            print(st)
+            write_data(st)
+            # write to Kafka
+            # write_to_kafka(kafka, kafka_topic, st)
+
+    elif params['data_source']['type'] == 'local':
+        location = params['data_source']['location']
+        period = params['period']
+        window_length = params['window_length']
+
+        start_time_full = time.time()
+
+        for i in np.arange(0, period, window_length):
+            print("==> Processing (", i, " from", period, ")")
+            start_time_load = time.time()
+            st = request_handler_local(location)
+            end_time_load = time.time() - start_time_load
+            print("==> Fetching File took: ", "%.2f" % end_time_load)
+            write_data(st)
+
+        # print("==> Flushing and Closing Kafka....")
+        # start_time_flush = time.time()
+        # #kafka.producer.flush()
+        # end_time_flush = time.time() - start_time_flush
+        # print("==> Flushing Kafka took: ", "%.2f" % end_time_flush)
+        #
+        # end_time_full = time.time() - start_time_full
+        # print("==> Total Time Taken: ", "%.2f" % end_time_full)
+        #
+        # print("==> Program Exit")
 
 
 

@@ -7,6 +7,24 @@ def get_stations():
     return read_stations(station_file, format='CSV', has_header=True)
 
 
+def get_data_connector_parameters():
+
+    import os
+    import yaml
+
+    config_dir = os.environ['SPP_CONFIG']
+
+    fname = os.path.join(config_dir, 'data_connector_config.yaml')
+
+    with open(fname, 'r') as cfg_file:
+        params = yaml.load(cfg_file)
+        params = params['ims_connector']
+
+    return params
+
+
+
+
 def encode_avro(stream):
     """
     This function needs to be completed
