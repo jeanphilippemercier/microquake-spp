@@ -37,8 +37,8 @@ def encode_avro(stream):
     import avro.schema
     import io
 
-    config_dir = os.environ['SPP_CONFIG']config_dir + '/mseed_avro_schema.avsc'
-    schema_path =
+    config_dir = os.environ['SPP_CONFIG']
+    schema_path = config_dir + '/mseed_avro_schema.avsc'
     schema = avro.schema.Parse(open(schema_path).read())
 
     writer = avro.io.DatumWriter(schema)
