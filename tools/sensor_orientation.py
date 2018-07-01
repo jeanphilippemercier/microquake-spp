@@ -314,8 +314,16 @@ starttime = datetime(2018, 4, 1, tzinfo=tz)
 pick_dict = pickle.load(open('pick_dict.pickle', 'rb'))
 
 #'59'
-orientation = {}
+try:
+    orientation = pickle.load(open('orientation.pickle', 'rb'))
+
+except:
+    orientation = {}
+
+
 for key in pick_dict.keys():
+    if key in orientation.keys()
+        continue
     print('Processing %s' % key)
     x, y, z = calculate_orientation_station(key, pick_dict, site)
     orientation[key] = {}
@@ -323,8 +331,8 @@ for key in pick_dict.keys():
     orientation[key]['y'] = y
     orientation[key]['z'] = z
 
-with open('orientation.pickle', 'wb') as fo:
-    pickle.dump(orientation, fo)
+    with open('orientation.pickle', 'wb') as fo:
+        pickle.dump(orientation, fo)
 
 # next need to write in a file.
 
