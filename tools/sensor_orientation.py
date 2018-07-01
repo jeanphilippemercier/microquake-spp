@@ -322,7 +322,7 @@ except:
 
 
 for key in pick_dict.keys():
-    if key in orientation.keys()
+    if key in orientation.keys():
         continue
     print('Processing %s' % key)
     x, y, z = calculate_orientation_station(key, pick_dict, site)
