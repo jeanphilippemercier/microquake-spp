@@ -101,7 +101,6 @@ def get_travel_time_grid(station, location, phase):
     can be converted to a numpy array, locations can be a vector of coordinates
     :param phase: Phase either P or S, if None both P and S travel time are
     extracted
-    :param spark_context: a spark context for parallelization purpose
     :return: a pandas DataFrame
     """
 

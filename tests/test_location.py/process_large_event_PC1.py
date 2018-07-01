@@ -18,7 +18,7 @@ endtime = datetime(2018, 4, 15, 3, 50, tzinfo=tz)
 config_dir = os.environ['SPP_CONFIG']
 common_dir = os.environ['SPP_COMMON']
 fname = os.path.join(config_dir, 'ingest_config.yaml')
-config_file = os.path.join(config_dir, 'input.xml')
+config_file = os.path.join(config_dir, 'project.xml')
 
 with open(fname, 'r') as cfg_file:
     params = yaml.load(cfg_file)
