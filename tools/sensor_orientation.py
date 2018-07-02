@@ -119,6 +119,8 @@ def calculate_orientation_station(station, pick_dict, site):
 
     Res = []
 
+    tt_grid = get_traveltime_grid_station(station)
+
     for pick in pick_array:
         evloc = pick[2]
         sgram_name = pick[0]
@@ -147,9 +149,6 @@ def calculate_orientation_station(station, pick_dict, site):
         A_y = np.std(st[1].data)
         cc_x_z = np.sign(np.corrcoef(st[0].data, st[2].data)[0, 1])
         cc_y_z = np.sign(np.corrcoef(st[1].data, st[2].data)[0, 1])
-
-
-        tt_grid = get_traveltime_grid_station(station)
 
         N = 100
 
@@ -184,24 +183,24 @@ def calculate_orientation_station(station, pick_dict, site):
 
         # reload(eik)
         #
-        # ray = eik.ray_tracer(tt_grid, evloc, stloc)
-        #
-        # # finding the direction of the incident wave
-        # inc_vects = np.diff(ray.nodes, axis=0)
-        # inc_vect_norm = [inc_vect / np.linalg.norm(inc_vect) for inc_vect
-        #                  in inc_vects]
-        # inc_vect = inc_vect_norm[-2] # the last vector is reliable
+        ray = eik.ray_tracer(tt_grid, evloc, stloc)
 
-        inc_vect = (stloc - evloc) / (np.linalg.norm(stloc - evloc))
+        # finding the direction of the incident wave
+        inc_vects = np.diff(ray.nodes, axis=0)
+        inc_vect_norm = [inc_vect / np.linalg.norm(inc_vect) for inc_vect
+                         in inc_vects]
+        inc_vect = inc_vect_norm[-2] # the last vector is reliable
+
+        # inc_vect = (stloc - evloc) / (np.linalg.norm(stloc - evloc))
         SV_vect, SH_vect = sv_sh_orientation(inc_vect)
 
         dot_inc_X = np.array([np.dot(inc_vect, x) for x in X])
         dot_inc_Y = np.array([np.dot(inc_vect, y) for y in Y])
 
-        res_x = dot_inc_X / (A_x / A * np.sign(np.dot(z, inc_vect)) *
-                                 cc_x_z)
-        res_y = dot_inc_Y / (A_y / A * np.sign(np.dot(z, inc_vect)) *
-                                 cc_y_z)
+        # res_x = dot_inc_X / (A_x / A * np.sign(np.dot(z, inc_vect)) *
+        #                          cc_x_z)
+        # res_y = dot_inc_Y / (A_y / A * np.sign(np.dot(z, inc_vect)) *
+        #                          cc_y_z)
 
         P_ = [np.var(np.dot(x, inc_vect) * st[0].data + np.dot(y, inc_vect) *
              st[1].data + np.dot(z, inc_vect) * st[2].data)
