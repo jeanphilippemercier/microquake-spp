@@ -53,14 +53,25 @@ def get_traveltime_grid_station(station, phase='P'):
 
     from microquake.core import read_grid
 
-    phase = phase.lower()
-
-    filename = '%s/time/%s.%s.%s.time' % (base_dir, project_code, phase,
-                                              station)
-
     site = get_stations()
     stloc = site.select(station=station).stations()[0].loc
-    tt_grid = read_grid(filename, format='NLLOC')
+
+    try:
+        phase = phase.lower()
+
+        filename = '%s/time/%s.%s.%s.time' % (base_dir, project_code, phase,
+                                                  station)
+
+        tt_grid = read_grid(filename, format='NLLOC')
+
+    except:
+        phase = phase.upper()
+
+        filename = '%s/time/%s.%s.%s.time' % (base_dir, project_code, phase,
+                                                  station)
+
+        tt_grid = read_grid(filename, format='NLLOC')
+
     tt_grid.seed = stloc
 
     return tt_grid
