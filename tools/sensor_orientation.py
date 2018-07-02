@@ -15,6 +15,8 @@ from importlib import reload
 import numpy as np
 import pickle
 
+# from multiprocessing import pool
+
 # from pyspark import SparkContext
 
 
@@ -109,6 +111,8 @@ def calculate_orientation_station(station, pick_dict, site):
     pick_array = pick_dict[station]
 
     sta = site.select(station=station).stations()[0]
+    if len(sta.channels) != 3:
+        return 0, 0, 0
     zorientation = sta.channels[2].orientation
     stloc = sta.loc
 
