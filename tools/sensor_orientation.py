@@ -353,6 +353,7 @@ for key in pick_dict.keys():
     orientation[key]['x'] = x
     orientation[key]['y'] = y
     orientation[key]['z'] = z
+    orientation[key]['measurements'] = len(pick_dict[key])
 
     with open('orientation.pickle', 'wb') as fo:
         pickle.dump(orientation, fo)
