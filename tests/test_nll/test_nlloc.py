@@ -10,7 +10,7 @@ from microquake.core import read_stations, read_events
 from microquake.core.event import Catalog
 
 config_dir = os.environ['SPP_CONFIG']
-config_file = config_dir + '/input_velocity.xml'
+config_file = config_dir + '/project.xml'
 
 common_dir = os.environ['SPP_COMMON']
 sensor_file = common_dir + '/sensors.csv'
