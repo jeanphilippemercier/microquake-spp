@@ -1,5 +1,5 @@
 from microquake.core import read_events,stream
-from microquake.db.mongo import mongo
+from microquake.db.mongo.mongo import MongoDBHandler, EventDB, StreamDB
 import yaml
 import os
 # reload(mongo)
@@ -14,33 +14,35 @@ with open(config_file,'r') as cfg_file:
         params = params['db']
 
 # Testing saving and loading Event
-cat = read_events('nll_processed.xml')
+cat = read_events(config_dir + "../data/" + 'nll_processed.xml')
 event = cat[10]
-
 print("connecting to DB")
-db = mongo.connect(uri=params['uri'], db_name=params['db_name'])
+db = MongoDBHandler(uri=params['uri'], db_name=params['db_name'])
 print("inserting into DB")
-wf=stream.read("20170419_153133.mseed")
-mongo.insert_event(db, event, catalog_index=0)
+event_db = EventDB(db)
+event_db.insert_event(event, catalog_index=0)
 # read event
 print("Reading Event...")
-json_event = mongo.read_event(db, event.resource_id.id)
+json_event = event_db.read_event(event.resource_id.id)
 print(json_event)
-decoded_ev = mongo.read_full_event(db, event.resource_id.id)
+decoded_ev = event_db.read_full_event(event.resource_id.id)
 print(decoded_ev)
 
 # Testing waveform saving and loading
 # read mseed waveform
-wf = stream.read("20170419_153133.mseed")
+wf = stream.read(config_dir + "../data/" + "20170419_153133.mseed")
 # json_wf = json.dumps(wf, default=d)
 print("Waveform:")
-id = mongo.insert_waveform(db, wf, event.resource_id.id)
+stream_db = StreamDB(db)
+id = stream_db.insert_waveform(wf, event.resource_id.id)
 print(id)
 # read waveform
 print("Reading Waveform...")
-json_waveform = mongo.read_waveform(db, event.resource_id.id)
+json_waveform = stream_db.read_waveform(event.resource_id.id)
 print(json_waveform)
-decoded_wf = mongo.read_full_waveform(db, event.resource_id.id)
+decoded_wf = stream_db.read_full_waveform(event.resource_id.id)
 print(decoded_wf)
+print("Closing Connection...")
+db.disconnect()
 
 
