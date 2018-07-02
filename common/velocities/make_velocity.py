@@ -6,7 +6,7 @@ import numpy as np
 from microquake.core.data.grid import read_grid
 
 config_dir = os.environ['SPP_CONFIG']
-config_file = config_dir + '/input_velocity.xml'
+config_file = config_dir + '/microquake.xml'
 
 z = [1168, 459, -300]
 Vp_z = [4533, 5337, 5836]
