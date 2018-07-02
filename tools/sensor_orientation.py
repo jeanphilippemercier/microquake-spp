@@ -134,8 +134,9 @@ def calculate_orientation_station(station, pick_dict, site):
 
     Res = np.zeros(N**2)
 
-    for pick in pick_array:
-        logger.debug("processing station %s" %station)
+    for kk, pick in enumerate(pick_array):
+        logger.debug("processing station %s, event %d of %d, "
+                     "" % (station, kk, len(pick_array)))
         evloc = pick[2]
         sgram_name = pick[0]
         pk_time = UTCDateTime(pick[1])
