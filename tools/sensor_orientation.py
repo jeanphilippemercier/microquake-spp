@@ -111,9 +111,11 @@ def calculate_orientation_station(station, pick_dict, site):
     pick_array = pick_dict[station]
 
     sta = site.select(station=station).stations()[0]
-    if len(sta.channels) != 3:
-        return 0, 0, 0
-    zorientation = sta.channels[2].orientation
+
+    try:
+        zorientation = sta.channels[2].orientation
+    except:
+        return (0, 0, 0)
     stloc = sta.loc
 
     X_vects = []
