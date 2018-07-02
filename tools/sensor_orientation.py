@@ -240,13 +240,20 @@ def calculate_orientation_station(station, pick_dict, site):
         Res += res
 
         i = np.argmax(res)
+        i2 = np.argmax(Res)
 
         x = X[i, :]
+        x2 = X[i2, :]
         y = Y[i, :]
+        y2 = Y[i2, :]
 
-        logger.debug(x)
-        logger.debug(y)
+        logger.debug("x1: %s" % x)
+        logger.debug("x2: %s" % x2)
+        logger.debug("y1: %s" % y)
+        logger.debug("y1: %s" % y2)
         logger.debug(res[i])
+        logger.debug(Res[i2])
+
 
 
         # P = np.dot(x, inc_vect) * st2[0].data + np.dot(y, inc_vect) * st2[
