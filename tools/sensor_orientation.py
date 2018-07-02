@@ -14,6 +14,9 @@ from IPython.core.debugger import Tracer
 from importlib import reload
 import numpy as np
 import pickle
+import logging
+
+logger = logging.getLogger()
 
 # from multiprocessing import pool
 
@@ -127,6 +130,10 @@ def calculate_orientation_station(station, pick_dict, site):
 
     tt_grid = get_traveltime_grid_station(station)
 
+    N = 100
+
+    Res = np.zeros(N**2)
+
     for pick in pick_array:
         evloc = pick[2]
         sgram_name = pick[0]
@@ -155,8 +162,6 @@ def calculate_orientation_station(station, pick_dict, site):
         A_y = np.std(st[1].data)
         cc_x_z = np.sign(np.corrcoef(st[0].data, st[2].data)[0, 1])
         cc_y_z = np.sign(np.corrcoef(st[1].data, st[2].data)[0, 1])
-
-        N = 100
 
         x = np.linspace(-1, 1, N)
         y = np.linspace(-1, 1, N)
@@ -189,15 +194,15 @@ def calculate_orientation_station(station, pick_dict, site):
 
         # reload(eik)
         #
-        ray = eik.ray_tracer(tt_grid, evloc, stloc)
+        # ray = eik.ray_tracer(tt_grid, evloc, stloc)
+        #
+        # # finding the direction of the incident wave
+        # inc_vects = np.diff(ray.nodes, axis=0)
+        # inc_vect_norm = [inc_vect / np.linalg.norm(inc_vect) for inc_vect
+        #                  in inc_vects]
+        # inc_vect = inc_vect_norm[-2] # the last vector is reliable
 
-        # finding the direction of the incident wave
-        inc_vects = np.diff(ray.nodes, axis=0)
-        inc_vect_norm = [inc_vect / np.linalg.norm(inc_vect) for inc_vect
-                         in inc_vects]
-        inc_vect = inc_vect_norm[-2] # the last vector is reliable
-
-        # inc_vect = (stloc - evloc) / (np.linalg.norm(stloc - evloc))
+        inc_vect = (stloc - evloc) / (np.linalg.norm(stloc - evloc))
         SV_vect, SH_vect = sv_sh_orientation(inc_vect)
 
         dot_inc_X = np.array([np.dot(inc_vect, x) for x in X])
@@ -230,15 +235,16 @@ def calculate_orientation_station(station, pick_dict, site):
         # res = (SV_ + SH_) / P_
         res = (SV_ + SH_) / P_
         res = 1 / res
-        Res.append(res)
+        Res += res
 
         i = np.argmax(res)
 
         x = X[i, :]
         y = Y[i, :]
 
-        print(x)
-        print(y)
+        logger.debug(x)
+        logger.debug(y)
+        logger.debug(res[i])
 
 
         # P = np.dot(x, inc_vect) * st2[0].data + np.dot(y, inc_vect) * st2[
