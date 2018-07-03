@@ -356,12 +356,12 @@ for key in pick_dict.keys():
     if key in orientation.keys():
         continue
     print('Processing %s' % key)
-    #try:
-    x, y, z = calculate_orientation_station(key, pick_dict, site)
+    try:
+        x, y, z = calculate_orientation_station(key, pick_dict, site)
     # if x == 0:
     #     continue
-    #except:
-    #    continue
+    except:
+        continue
     orientation[key] = {}
     orientation[key]['x'] = x
     orientation[key]['y'] = y
