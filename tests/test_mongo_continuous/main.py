@@ -1,60 +1,175 @@
-from microquake.core import read_events, stream, read
-from microquake.db.mongo.mongo import MongoDBHandler, EventDB, StreamDB
-import yaml
-import os
-# reload(mongo)
+from microquake.core import read
+from microquake.db.mongo.mongo import MongoDBHandler
+import numpy as np
+from datetime import datetime
+import time
+from IPython.core.debugger import Tracer
+from multiprocessing import Pool
 
-def insert_continuous_db(stream):
+def encode_stream(stream):
+    """
+    Encode a stream object for storage in the database
+    :param stream: a microquake.core.Trace object to be encoded
+    :return: encoded stream in bson format
     """
 
-    :param stream:
+    from io import BytesIO
+    from microquake.core.stream import Stream
+    from microquake.core import UTCDateTime
+    from microquake.core.util import serializer
+
+    traces = []
+    for tr in stream:
+        trout = dict()
+        trout['stats'] = dict()
+        for key in tr.stats.keys():
+            if isinstance(tr.stats[key], UTCDateTime):
+                trout['stats'][key] = tr.stats[key].datetime
+            else:
+                trout['stats'][key] = tr.stats[key]
+
+        stout = Stream(traces=[tr])
+        buf = BytesIO()
+        stout.write(buf, format='MSEED')
+        trout['encoded_mseed'] = serializer.encode_base64(buf)
+        traces.append(trout)
+
+    return traces
+
+
+def decode_stream(encoded_stream):
+    """
+    Decode a stream object encoded in bson
+    :param encoded_stream: encoded stream produced by the encode_stream function
+    :return: a microquake.core.Stream object
+    """
+
+    from microquake.core.stream import Stream
+    from microquake.core import read
+    from io import BytesIO
+    from microquake.core.util import serializer
+
+    traces = []
+    for encoded_tr in encoded_stream:
+        bstream = serializer.decode_base64(encoded_tr['encoded_mseed'])
+        tr = read(BytesIO(bstream))[0]
+        traces.append(tr)
+
+    return Stream(traces=traces)
+
+
+def insert_continuous_mongo(fname, uri='mongodb://localhost:27017/',
+                            db_name='test_continuous'):
+    """
+
+    :param st: stream
+    :param uri: db uri
+    :param db_name: db name
     :return:
     """
+    st = read(fname)
+
+    from microquake.core import Stream
+    db = MongoDBHandler(uri=uri, db_name=db_name)
+
+    documents = []
+    for tr in st:
+        tr.stats.mseed.encoding = 'FLOAT32'
+        tr.data = tr.data.astype(np.float32)
+        st_out = Stream(traces=[tr])
+
+        data = encode_stream(st_out)
+
+        starttime_ns = int(np.float64(tr.stats.starttime.timestamp) * 1e9)
+        endtime_ns = int(np.float64(tr.stats.endtime.timestamp) * 1e9)
+        network = tr.stats.network
+        station = tr.stats.station
+        channel = tr.stats.channel
+        document = {'time_created' : datetime.utcnow(),
+                    'network': network,
+                    'station': station,
+                    'channel': channel,
+                    'data': data,
+                    'starttime': starttime_ns,
+                    'endtime': endtime_ns}
+        db.db['waveforms'].insert_one(document)
+
+    db.disconnect()
+
+
+def get_time_channel(starttime, endtime, network=None, station=None,
+                     channel=None, uri='mongodb://localhost:27017/',
+                     db_name='test_continuous'):
+    from microquake.core import UTCDateTime, Stream
+
+    db = MongoDBHandler(uri=uri, db_name=db_name)
+
+    starttime_ns = int(np.float64(UTCDateTime(starttime).timestamp) * 1e9)
+    endtime_ns = int(np.float64(UTCDateTime(endtime).timestamp) * 1e9)
+
+    if not station:
+        query = {'endtime': {'$gte': starttime_ns},
+                 'starttime' : {'$lte' : endtime_ns}}
+
+    else:
+
+        query = {'endtime': {'$gte': starttime_ns},
+                 'starttime' : {'$lte' : endtime_ns},
+                 'station': station}
 
 
 
-# reading the config file
 
-config_dir = os.environ['SPP_CONFIG']
-config_file = os.path.join(config_dir, 'permanent_db.yaml')
+    # query = {'network': network,
+    #          'station': station,
+    #          'channel': channel}
 
-with open(config_file,'r') as cfg_file:
-        params = yaml.load(cfg_file)
-        params = params['db']
+    traces = []
 
-# Testing saving and loading Event
-cat = read_events(config_dir + "../data/" + 'nll_processed.xml')
-event = cat[10]
-print("connecting to DB")
-db = MongoDBHandler(uri=params['uri'], db_name='waveforms')
+    sampling_rate = 6000
+    for rec in db.db.waveforms.find(query):
+        tr = decode_stream(rec['data'])[0]
+        if tr.stats.sampling_rate != sampling_rate:
+            continue
+        traces.append(tr)
 
-st = read('../../data/2018-04-15_034422.mseed')
+    st = Stream(traces=traces)
+    st.merge()
+
+    Tracer()()
+
+
+    return db.db.waveforms.find(query)
 
 
 
-# print("inserting into DB")
-# event_db = EventDB(db)
-# event_db.insert_event(event, catalog_index=0)
-# # read event
-# print("Reading Event...")
-# json_event = event_db.read_event(event.resource_id.id)
-# print(json_event)
-# decoded_ev = event_db.read_full_event(event.resource_id.id)
-# print(decoded_ev)
+from glob import glob
+
+# files = glob('/Users/jpmercier/continuous_data/*.mseed')
+# P = Pool(8)
 #
-# # Testing waveform saving and loading
-# # read mseed waveform
-# wf = stream.read(config_dir + "../data/" + "20170419_153133.mseed")
-# # json_wf = json.dumps(wf, default=d)
-# print("Waveform:")
-# stream_db = StreamDB(db)
-# id = stream_db.insert_waveform(wf, event.resource_id.id)
-# print(id)
-# # read waveform
-# print("Reading Waveform...")
-# json_waveform = stream_db.read_waveform(event.resource_id.id)
-# print(json_waveform)
-# decoded_wf = stream_db.read_full_waveform(event.resource_id.id)
-# print(decoded_wf)
-# print("Closing Connection...")
-# db.disconnect()
+# P.map(insert_continuous_mongo, files)
+#
+# for fle in glob('/Users/jpmercier/continuous_data/*.mseed'):
+#     st_t = time.time()
+#     insert_continuous_mongo(fle)
+#     ed_t = time.time()
+#     print (ed_t - st_t)
+
+from microquake.core import UTCDateTime
+
+starttime = UTCDateTime(2018,5,23,10,49,20)
+endtime = UTCDateTime(2018,5,23,10,49,26)
+
+get_time_channel(starttime, endtime)
+
+# starttime_ns = int(np.float64(UTCDateTime(starttime).timestamp) * 1e9)
+# endtime_ns = int(np.float64(UTCDateTime(endtime).timestamp) * 1e9)
+#
+#
+# station = '53'
+#
+# query = {'endtime': {'$gte': starttime_ns},
+#          'starttime' : {'$lte' : endtime_ns},
+#           'station': station}
+
