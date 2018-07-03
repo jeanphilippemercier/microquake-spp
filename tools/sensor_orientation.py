@@ -356,12 +356,12 @@ for key in pick_dict.keys():
     if key in orientation.keys():
         continue
     print('Processing %s' % key)
-    try:
-        x, y, z = calculate_orientation_station(key, pick_dict, site)
-        if x == 0:
-            continue
-    except:
-        continue
+    #try:
+    x, y, z = calculate_orientation_station(key, pick_dict, site)
+    # if x == 0:
+    #     continue
+    #except:
+    #    continue
     orientation[key] = {}
     orientation[key]['x'] = x
     orientation[key]['y'] = y
@@ -370,6 +370,28 @@ for key in pick_dict.keys():
 
     with open('orientation.pickle', 'wb') as fo:
         pickle.dump(orientation, fo)
+
+st_ids = np.arange(1,110,)
+
+with open('orientation.csv', 'w') as fo:
+    for st_id in st_ids:
+        key = str(st_id)
+        try:
+            zorientation = site.select(station=key).stations()[0].channels[
+            1].orientation
+            orient = orientation[key]
+        except:
+            zorientation = site.select(station=key).stations()[0].channels[
+            0].orientation
+            fo.write("%s,z,%f,%f,%f\n" % (st_id, zorientation[0],
+                                          zorientation[1], zorientation[2]))
+        else:
+            fo.write("%s,x,%f,%f,%f,y,%f,%f,%f,z,%f,%f,%f\n" % (st_id,
+                    orient['x'][0],
+                     orient['x'][1], orient['x'][2], orient['y'][0],
+                     orient['y'][1], orient['y'][2], orient['z'][0],
+                     orient['z'][1], orient['z'][2]))
+
 
 # next need to write in a file.
 
