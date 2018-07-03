@@ -352,32 +352,34 @@ except:
     orientation = {}
 
 
-for key in pick_dict.keys():
-    # if key in orientation.keys():
-    #     continue
-    print('Processing %s' % key)
-    try:
-        x, y, z = calculate_orientation_station(key, pick_dict, site)
-    # if x == 0:
-    #     continue
-    except:
-        continue
-    orientation[key] = {}
-    orientation[key]['x'] = x
-    orientation[key]['y'] = y
-    orientation[key]['z'] = z
-    orientation[key]['measurements'] = len(pick_dict[key])
+# for key in pick_dict.keys():
+#     # if key in orientation.keys():
+#     #     continue
+#     print('Processing %s' % key)
+#     try:
+#         x, y, z = calculate_orientation_station(key, pick_dict, site)
+#     # if x == 0:
+#     #     continue
+#     except:
+#         continue
+#     orientation[key] = {}
+#     orientation[key]['x'] = x
+#     orientation[key]['y'] = y
+#     orientation[key]['z'] = z
+#     orientation[key]['measurements'] = len(pick_dict[key])
+#
+#     with open('orientation.pickle', 'wb') as fo:
+#         pickle.dump(orientation, fo)
 
-    with open('orientation.pickle', 'wb') as fo:
-        pickle.dump(orientation, fo)
-
-st_ids = np.arange(1,110,)
+st_ids = np.arange(1,110)
 
 with open('orientation.csv', 'w') as fo:
     for st_id in st_ids:
         key = str(st_id)
         if not key in orientation.keys():
+            fo.write("%s,z,0,90\n" % st_id)
             continue
+        print(key)
         for k, station in enumerate(site.networks[0].stations):
             if site.networks[0].stations[k].code == key:
                 if len(site.networks[0].stations[k].channels) == 1:
@@ -395,6 +397,7 @@ with open('orientation.csv', 'w') as fo:
                     fo.write("%s,x,%f,%f,y,%f,%f,z,%f,%f\n" \
                              % (st_id, x.azimuth, x.dip,
                                 y.azimuth, y.dip, z.azimuth, z.dip))
+
 
 
 
