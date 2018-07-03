@@ -46,6 +46,14 @@ def get_data_connector_parameters():
     return params
 
 
+def get_project_params():
+
+    import os
+    from microquake.core import ctl
+
+    config_dir = os.environ['SPP_CONFIG']
+
+    return ctl.parse_control_file(config_dir + '/project.xml')
 
 
 def encode_avro(stream):
