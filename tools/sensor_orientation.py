@@ -310,7 +310,7 @@ def calculate_orientation_station(station, pick_dict, site):
         #
         # # Tracer()()
 
-    i = np.argmax(np.sum(Res,axis=0))
+    i = np.argmax(Res)
     x = X[i, :]
     y = Y[i, :]
 
@@ -353,8 +353,8 @@ except:
 
 
 for key in pick_dict.keys():
-    if key in orientation.keys():
-        continue
+    # if key in orientation.keys():
+    #     continue
     print('Processing %s' % key)
     try:
         x, y, z = calculate_orientation_station(key, pick_dict, site)
@@ -376,21 +376,27 @@ st_ids = np.arange(1,110,)
 with open('orientation.csv', 'w') as fo:
     for st_id in st_ids:
         key = str(st_id)
-        try:
-            zorientation = site.select(station=key).stations()[0].channels[
-            1].orientation
-            orient = orientation[key]
-        except:
-            zorientation = site.select(station=key).stations()[0].channels[
-            0].orientation
-            fo.write("%s,z,%f,%f,%f\n" % (st_id, zorientation[0],
-                                          zorientation[1], zorientation[2]))
-        else:
-            fo.write("%s,x,%f,%f,%f,y,%f,%f,%f,z,%f,%f,%f\n" % (st_id,
-                    orient['x'][0],
-                     orient['x'][1], orient['x'][2], orient['y'][0],
-                     orient['y'][1], orient['y'][2], orient['z'][0],
-                     orient['z'][1], orient['z'][2]))
+        if not key in orientation.keys():
+            continue
+        for k, station in enumerate(site.networks[0].stations):
+            if site.networks[0].stations[k].code == key:
+                if len(site.networks[0].stations[k].channels) == 1:
+                    z = site.networks[0].stations[k].channels[0]
+                    fo.write("%s,z,%f,%f\n" % (st_id, z.azimuth,
+                                          z.dip))
+                else:
+                    site.networks[0].stations[k].channels[0].orientation =  \
+                        orientation[key]['x']
+                    site.networks[0].stations[k].channels[1].orientation = \
+                        orientation[key]['y']
+                    x = site.networks[0].stations[k].channels[0]
+                    y = site.networks[0].stations[k].channels[1]
+                    z = site.networks[0].stations[k].channels[2]
+                    fo.write("%s,x,%f,%f,y,%f,%f,z,%f,%f\n" \
+                             % (st_id, x.azimuth, x.dip,
+                                y.azimuth, y.dip, z.azimuth, z.dip))
+
+
 
 
 # next need to write in a file.
