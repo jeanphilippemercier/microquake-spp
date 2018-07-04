@@ -16,7 +16,7 @@ ims_connector:
 
   data_destination:
     type: local
-    location: /Volume/Aegis DT/Data/
+    location: /Users/hanee/Rio_Tinto/sample_data_out
 #    type: Kafka
 
   filter:                           # filter to apply to the data. These value are the argument to pass to the Obspy
