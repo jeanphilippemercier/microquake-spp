@@ -8,6 +8,7 @@ from IPython.core.debugger import Tracer
 from dateutil import parser
 from spp.utils import get_data_connector_parameters
 import numpy as np
+import time
 
 
 # Create Local get_continous to load data from files:
@@ -284,8 +285,8 @@ def write_data(stream_object):
     elif destination == "kafka":
         brokers=params['kafka']['brokers']
         kafka_topic=params['kafka']['kafka_topic']
-
         write_to_kafka(stream_object, brokers, kafka_topic)
+
     elif destination == "mongo":
         pass
         #write_to_mongo()
