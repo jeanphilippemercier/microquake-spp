@@ -7,6 +7,7 @@ from microquake.core.stream import Stream
 from microquake.core import read
 from io import BytesIO
 from microquake.core.util import serializer
+import datetime
 
 
 app = Flask(__name__)
@@ -43,8 +44,21 @@ def combine_stream_data(db_result, requested_format='MSEED'):
 @app.route('/getAll', methods=['GET'])
 def get_all_streams():
 
+    # Sample Condition
+    start = datetime.datetime(2018, 4, 6, 20, 20, 50, 436000)
+    end = datetime.datetime(2018, 4, 6, 20, 21, 55, 0)
+
+    starttime_ns = int(np.float64(UTCDateTime(starttime).timestamp) * 1e9)
+    endtime_ns = int(np.float64(UTCDateTime(endtime).timestamp) * 1e9)
+
+    print(start)
+    filter = {'stats.starttime': {
+        '$gte': start,
+        '$lt': end
+        }}
     # Query traces from mongo collection
-    result = mongo.db.traces.find({})
+
+    result = mongo.db.traces.find(filter)
     # combine traces together
     stream_data_buffer = combine_stream_data(result)
     # compress and encode the result
