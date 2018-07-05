@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <microquake filetype="automatic-processing" site="example" project_code="OT" spark_enabled="False">
-
 	<file_locations>
 		<common_file_location value="$SPP_COMMON"/>
 	</file_locations>
@@ -16,16 +15,16 @@
 		<!-- Can have multiple definitions -->
 		<!-- But NLL for now only works with one -->
 
-		<!--<velmodel id="0">-->
-			<!--<method homogeneous="false"/>-->
-			<!--<velocity vp="Vp.pickle" vs="Vs.pickle" format="PICKLE"/>  -->
-		<!--</velmodel>-->
-		
-
-		 <velmodel id="0">
-			<method homogeneous="true"/>
-			<velocity vp="5500" vs="3500"/>
+		<velmodel id="0">
+			<method homogeneous="false"/>
+			<velocity vp="velocities/vp.pickle" vs="velocities/vs.pickle"
+					  format="PICKLE"/>
 		</velmodel>
+
+		 <!--<velmodel id="0">-->
+			<!--<method homogeneous="true"/>-->
+			<!--<velocity vp="5500" vs="3500"/>-->
+		<!--</velmodel>-->
 		
 
 		<!-- Can have multiple definitions -->
@@ -53,6 +52,7 @@
         <min_number_trigger value="4"/>  <!-- minimum number of trigger required to declare an event -->
         <seismogram_length value="300"/> <!-- resulting seismograms length -->
 	</trigger>
+
 	<autopicker>
 	  <min_picks value="6"/> <!--Minimum number of picks to accept an event-->
 		<rms_residual_threshold value="0.02"/> <!--rms residual threshold to accept an event-->

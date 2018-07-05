@@ -1,0 +1,9 @@
+This directory will contain the different velocity models used throughout the
+ project. All velocity models will be kept. Reference to the velocity model
+ used for a different processing step will be stored in the QuakeML objects.
+ When doing interactive processing, it should be possible to select the
+ velocity model. By default the velocity used should be the velocity model
+ that was last used.
+
+ Velocity will change throughout the project but will only apply to a
+ particular time period.
