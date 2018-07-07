@@ -1,8 +1,7 @@
-from spp.data_connector import data_connector
+from spp.data_connector import core
 
 
 if __name__ == "__main__":
 
-    data_connector.load_from_ims()
-
+    core.load_data()
 
