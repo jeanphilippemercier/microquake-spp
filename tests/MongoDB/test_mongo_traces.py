@@ -26,6 +26,8 @@ print("inserting into DB")
 collection = "traces"
 location = "/Users/hanee/Rio_Tinto/sample_data"
 
+import BytesIO()
+
 ## Load mseed files
 for i in np.arange(0, 120, 1):
     print("==> Processing (", i, " from", 120, ")")
