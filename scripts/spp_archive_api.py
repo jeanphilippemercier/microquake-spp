@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 import yaml
 import os
 import sys
@@ -12,6 +12,9 @@ import time
 import json
 from obspy.core.utcdatetime import UTCDateTime
 import numpy as np
+from base64 import b64decode,b64encode
+from microquake.core.trace import Trace
+from obspy.core.util.attribdict import AttribDict
 
 
 app = Flask(__name__)
@@ -24,6 +27,7 @@ with open(config_file, 'r') as cfg_file:
     db_params = params['db']
 
 mongo = MongoDBHandler(db_params['uri'], db_params['db_name'])
+COLLECTION = "traces_json"
 
 
 @app.route('/', methods=['GET'])
@@ -32,26 +36,45 @@ def home():
 <p></p>'''
 
 
-def combine_stream_data(db_result, requested_format='MSEED'):
+# def combine_stream_data(db_result, requested_format='MSEED'):
+#     traces = []
+#     start_time = time.time()
+#     for encoded_tr in db_result:
+#         ### use for compressed
+#         # bstream = serializer.decode_base64(encoded_tr['encoded_mseed'])
+#         ### use for uncompressed
+#         bstream = b64decode(encoded_tr['encoded_mseed'])
+#         tr = read(BytesIO(bstream))[0]
+#         traces.append(tr)
+#
+#     end_time = time.time() - start_time
+#     print("==> DB Fetching took: ", "%.2f" % end_time, "Records Count:", len(traces))
+#
+#     stout = Stream(traces=traces)
+#     buf = BytesIO()
+#     stout.write(buf, format=requested_format)
+#     return buf
+
+
+def combine_json_to_stream_data(db_result, requested_format='MSEED'):
     traces = []
     start_time = time.time()
-    for encoded_tr in db_result:
-        bstream = serializer.decode_base64(encoded_tr['encoded_mseed'])
-        tr = read(BytesIO(bstream))[0]
-        traces.append(tr)
+    for tr in db_result:
+        t = Trace()
+        tr['stats']['starttime'] = UTCDateTime(int(tr['stats']['starttime'])/1000000000)
+        tr['stats']['endtime'] = UTCDateTime(int(tr['stats']['endtime'])/10000000000)
+        t.decode(stats=AttribDict(tr['stats']), data=np.array(tr['data']))
+        traces.append(t)
 
     end_time = time.time() - start_time
     print("==> DB Fetching took: ", "%.2f" % end_time, "Records Count:", len(traces))
 
-    stout = Stream(traces=traces)
-    buf = BytesIO()
-    stout.write(buf, format=requested_format)
-    return buf
+    return traces
 
 
 def check_and_parse_datetime(dt_str):
     try:
-        dt = datetime.strptime(dt_str, "%Y-%m-%dT%H:%M:%S.%f")
+        dt = int(np.float64(UTCDateTime(dt_str).timestamp) * 1e9)
         return dt
     except ValueError:
         error_msg = "Invalid datetime format, value should be in format: %Y-%m-%dT%H:%M:%S.%f"
@@ -64,81 +87,85 @@ def get_stream():
 
     request_starttime = time.time()
 
+    network = None
+    station = None
+    channel = None
+
     # Validate Request Params
     # Check Date Ranges
     if 'starttime' in request.args and ('endtime' in request.args or 'duration' in request.args):
+
         print(request.args['starttime'])
         start_time = check_and_parse_datetime(request.args['starttime'])
-
+        print(start_time)
         if 'endtime' in request.args:
             end_time = check_and_parse_datetime(request.args['endtime'])
         else:
-            end_time = start_time + timedelta(0, int(request.args['duration']))
+            end_time = start_time + (int(request.args['duration']) * 1000000000)
 
+        print(end_time)
     else:
         raise InvalidUsage("date-range-options must be specified like:" +
                            "(starttime=<time>) & ([endtime=<time>] | [duration=<seconds>])",
                            status_code=411)
 
-    # channel-options      ::  (net=<network> & sta=<station> cha=<channel>)
+    # Other Optional
     if 'net' in request.args:
         network = request.args['net']
-    else:
-        raise InvalidUsage("network option must be specified like:" +
-                           "net=<network>",
-                           status_code=411)
 
     if 'sta' in request.args:
         station = request.args['sta']
-    else:
-        raise InvalidUsage("station option must be specified like:" +
-                           "sta=<station>",
-                           status_code=411)
 
     if 'cha' in request.args:
         channel = request.args['cha']
-    else:
-        raise InvalidUsage("channel option must be specified like:" +
-                           "cha=<channel>",
-                           status_code=411)
 
     criteria_filter = construct_filter_criteria(start_time, end_time, network, station, channel)
 
-    result = mongo.db.traces.find(criteria_filter)
+    result = mongo.db[COLLECTION].find(criteria_filter, {"_id": 0})
+
     # combine traces together
-    stream_data_buffer = combine_stream_data(result)
+    stream_data_buffer = combine_json_to_stream_data(result)
+
     # compress and encode the result
-    response_data = serializer.encode_base64(stream_data_buffer)
+    ### use for compressed
+    # response_data = serializer.encode_base64(stream_data_buffer)
+    ### use for uncompressed
+    # response_data = b64encode(stream_data_buffer.getvalue())
+
+    stout = Stream(traces=stream_data_buffer)
+    buf = BytesIO()
+    stout.write(buf, format="MSEED")
+    response_data = buf.getvalue()
 
     request_endtime = time.time() - request_starttime
     print("=======> Request Done and Size of returned data is:",
           "%.2f" % (sys.getsizeof(response_data)/1024/1024), "MB",
-          "Request took: ", "%.2f" % request_endtime, "seconds")
+          "Total API Request took: ", "%.2f" % request_endtime, "seconds")
 
-    return response_data
+    buf.seek(0)
+    return send_file(buf, attachment_filename="testing.mseed", as_attachment=True)
 
 
 def construct_filter_criteria(start_time, end_time, network, station, channel):
-
-    #start_time = int(np.float64(UTCDateTime(start_time).timestamp) * 1e9)  #UTCDateTime(start_time).timestamp
-    #print("---", start_time)
-    #end_time = int(np.float64(UTCDateTime(end_time).timestamp) * 1e9)
 
     filter = {
         'stats.starttime': {
             '$gte': start_time,
             '$lt': end_time
-         },
-        'stats.network': network
+         }
     }
 
-    if station != 'ALL':
+    if network is not None:
+        filter['stats.network'] = network
+
+    if station is not None and station != 'ALL':
         filter['stats.station'] = station
 
-    if channel != 'ALL':
+    if channel is not None and channel != 'ALL':
         filter['stats.channel'] = channel
 
     return filter
+
 
 @app.errorhandler(404)
 def page_not_found(e):
