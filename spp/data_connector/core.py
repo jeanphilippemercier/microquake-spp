@@ -189,7 +189,7 @@ class requestHandler():
         st_codes = np.array([int(station.code) for station in
                              self.site.stations()])
 
-        st_codes = st_codes[20:30].tolist()
+        st_codes = st_codes[20:21].tolist()
 
         p = Pool(self.workers)
         map_responses = p.map(self.get_data(), st_codes)
@@ -417,38 +417,61 @@ def get_data(base_url, starttime, endtime, overlap, window_length, filter,
     starttime = starttime
     endtime = starttime + timedelta(seconds=len(dts) * window_length) + overlap
 
-    try:
-        # Use below for Global Use
-        st = web_api.get_continuous(base_url, starttime - overlap,
-                                    endtime + overlap, site_ids=site_id)
+    # try:
+    # Use below for Global Use
+    st = web_api.get_continuous(base_url, starttime - overlap,
+                                endtime + overlap, site_ids=site_id)
 
-        for k, tr in enumerate(st):
-            station = site.select(station=tr.stats.station).stations()[0]
-            st[k].stats.location = station.long_name
-            st[k].stats.network = site.networks[0].code
-
-        period = st[0].stats.endtime - st[0].stats.starttime
-        nperiod = int(np.floor(period / window_length))
-        dts = np.linspace(0, nperiod * window_length, nperiod)
-        # dts = range(0, nsec, window_length)
-        dtimes = [timedelta(seconds=dt) for dt in dts]
-
-    except Exception as e:
-        print(e)
-        return
 
     if not st:
         return
 
+    for k, tr in enumerate(st):
+        station = site.select(station=tr.stats.station).stations()[0]
+        st[k].stats.location = station.long_name
+        st[k].stats.network = site.networks[0].code
+
+    period = st[0].stats.endtime - st[0].stats.starttime
+    nperiod = int(np.floor(period / window_length))
+    dts = np.linspace(0, nperiod * window_length, nperiod)
+    # dts = range(0, nsec, window_length)
+    dtimes = [timedelta(seconds=dt) for dt in dts]
+
+    # except Exception as e:
+    #     print(e)
+    #     return
+
     sts = []
 
     for dtime in dtimes:
-        stime = starttime + dtime
-        etime = starttime + dtime + timedelta(seconds=window_length) + overlap
+        buffer = timedelta(seconds = params['taper']['max_length'])
+        stime = starttime + dtime - buffer
+        etime = starttime + dtime + timedelta(seconds=window_length) + \
+                overlap + buffer
         st_trim = st.copy().trim(starttime=UTCDateTime(stime),
                                  endtime=UTCDateTime(etime))
-        # st_trim = st_trim.taper(1, **taper)
+
+        nan_flag = False
+        for k, tr in enumerate(st_trim):
+            if np.isnan(np.mean(tr.data)):
+                nan_flag = True
+            st_trim[k].data.astype(np.float32)
+
+        if nan_flag:
+            continue
+
+
+        st_trim = st_trim.detrend('demean')
+        st_trim = st_trim.detrend('linear')
+
+        st_trim = st_trim.taper(1, **taper)
         st_trim = st_trim.filter(**filter)
+
+        stime = stime + buffer
+        etime = etime - buffer
+
+        st_trim = st_trim.trim(starttime=UTCDateTime(stime),
+                               endtime=UTCDateTime(etime))
         sts.append((stime.strftime('%Y%m%d%H%M%S%f'), st_trim))
 
     return sts
@@ -536,13 +559,12 @@ def request_handler():
 
     st_codes = np.array([int(station.code) for station in site.stations()])
 
-    # Tracer()()
-    st_codes = st_codes.tolist()
+    st_codes = st_codes[20:21].tolist()
 
     # if workers > 1:
     p = Pool(workers)
 
-    map_responses = p.map(get_data(base_url, starttime, endtime, overlap,
+    map_responses = map(get_data(base_url, starttime, endtime, overlap,
                                     window_length, filter, taper), st_codes)
 
     partitionned = partition(map_responses)
