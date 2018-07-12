@@ -170,7 +170,7 @@ def create_event(stream, event_location):
     for phase in ["p", "s"]:
         for trace in stream.composite():
             station = trace.stats.station
-            tt = get_travel_time_grid(station, event_location, phase=phase)
+            tt = get_travel_time_grid(station, event_location, phase=phase, use_eikonal=False)
             trace.stats.starttime = trace.stats.starttime - tt
             data = trace.data
             data /= np.max(np.abs(data))
@@ -223,13 +223,15 @@ def create_event(stream, event_location):
 
     origin.time = origin_time
     origin.evaluation_mode = 'automatic'
-    origin.evaluation_station = 'preliminary'
+    origin.evaluation_status = 'preliminary'
+    origin.method = 'spp.travel_time.core.create_event'
 
     picks = []
     for phase in ['p', 's']:
         for station in stations:
             pk = Pick()
-            tt = get_travel_time_grid(station, event_location, phase=phase)
+            tt = get_travel_time_grid(station, event_location, phase=phase, use_eikonal=False)
+            #tt = get_travel_time_grid(station, event_location, phase=phase)
             pk.phase_hint = phase.upper()
             pk.time = origin_time + tt
             pk.evaluation_mode = "automatic"
@@ -245,6 +247,8 @@ def create_event(stream, event_location):
     event = Event()
     event.origins = [origin]
     event.picks = picks
+    event.pick_method = 'predicted from get_travel_time_grid'
+
     catalog = Catalog()
     catalog.events = [event]
 

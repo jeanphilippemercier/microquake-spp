@@ -12,32 +12,136 @@ from microquake.waveform.pick import SNR_picker, calculate_snr
 from IPython.core.debugger import Tracer
 import matplotlib.pyplot as plt
 from microquake.realtime.signal import kurtosis
+from microquake.core import read_events
+
+from microquake import nlloc
+from microquake.core import ctl
+
+from microquake.core.event import Arrival, Origin, Event
+
+from helpers import *
 
 reload(core)
 
+data_dir   = os.environ['SPP_DATA']
+config_dir = os.environ['SPP_CONFIG']
 
 if __name__ == "__main__":
 
-    location = [651280, 4767430, -140]
-    origin_time = datetime(2018, 4, 14, 19, 44, 22, 92372)
-    stations = get_stations()
-
-    data_dir = os.environ['SPP_DATA']
-    config_dir = os.environ['SPP_CONFIG']
-
-    st2 = read(os.path.join(data_dir, '2018-04-15_034422.mseed'),
-               format='MSEED')
-
-    core.init_travel_time()
-
-    cat = core.create_event(st2,
-                            location)
-
-    origin_time = cat[0].origins[0].time
-    picks = cat[0].picks
-
+    event_file = '../../data/2018-04-15_034422.xml'
+    event = read_events(event_file, format='QUAKEML')[0]
+    ims_picks = copy_picks_to_dict(event.picks)
 
     st = read(os.path.join(data_dir, '2018-04-15_034422.mseed'), format='MSEED')
+
+    stn_list = ims_picks.keys()
+    tr_stn_list = set()
+    for tr in st:
+        tr_stn_list.add(tr.stats.station)
+
+    missing_stns = []
+    for station in stn_list:
+        if station not in tr_stn_list:
+            print('stn:%2s is missing from mseed!' % station)
+            missing_stns.append(station)
+
+    tmp = []
+    for pick in event.picks:
+        if pick.phase_hint == 'P':
+            tmp.append(pick)
+
+    from collections import OrderedDict
+    master_stations = OrderedDict()
+    for pick in sorted(tmp, key=lambda x: x.time.timestamp):
+        station = pick.waveform_id.station_code
+        if station not in missing_stns:
+            master_stations[station] = {}
+            master_stations[station]['P'] = ims_picks[station]['P']
+            master_stations[station]['S'] = ims_picks[station]['S']
+            
+    #for station in master_stations:
+        #print('sta:%s P:%s S:%s' % (station, master_stations[station]['P'].time, master_stations[station]['S'].time))
+
+    location = [651280, 4767430, -140]
+    #core.init_travel_time()
+
+    # 1. Stack traces to get origin time + predicted picks for origin time + loc:
+    cat = core.create_event(st, location)
+    origin_time = cat[0].origins[0].time
+    picks = cat[0].picks
+    # prelim_picks = predicted for specified location + calculated origin_time
+    prelim_picks = copy_picks_to_dict(cat[0].picks)
+
+    plot_profile_with_picks(st, picks=event.picks, origin=cat[0].origins[0], title='2018-04-14 03:44:22 [IMS picks]')
+    #st.filter("bandpass", freqmin=40, freqmax=350)
+    #plot_profile_with_picks(st, picks=event.picks, origin=cat[0].origins[0], title='2018-04-14 03:44:22 [IMS picks]')
+    #exit()
+    #plot_profile_with_picks(st, picks=None, origin=cat[0].origins[0], title='2018-04-14 03:44:22 [Pred picks]')
+
+    # 2. Randomly perturb the IMS picks:
+    import random
+    perturbed_picks = []
+    for pick in event.picks:
+        #x = random.random()
+        x = random.randint(1,100)
+        size = .02
+        if x < 50 :
+            t_perturb = size * random.random()
+        else:
+            t_perturb = -size * random.random()
+        pick.time += t_perturb
+        perturbed_picks.append(pick)
+        
+    plot_profile_with_picks(st, picks=perturbed_picks, origin=cat[0].origins[0], title='2018-04-14 03:44:22 [IMS perturbed picks]')
+
+    # 3. Repick using SNR picker:
+
+    cat[0].picks = perturbed_picks
+    # Separately tune picker for P
+    #st2 = st.select(station='23')
+    #st2 = st.select(station='40')
+    st2 = st
+    (cat_picked, snrs) = SNR_picker(st2, cat, SNR_dt=np.linspace(-.05, .05, 200), SNR_window=(1e-3, 5e-3))
+    p_picks = []
+    for pick in cat_picked[0].picks:
+        if pick.phase_hint == 'P':
+            p_picks.append(pick)
+
+    # Separately tune picker for S
+    #(cat_picked, snrs) = SNR_picker(st2, cat, SNR_dt=np.linspace(-.1, .1, 200), SNR_window=(1e-3, 10e-3))
+    (cat_picked, snrs) = SNR_picker(st2, cat, SNR_dt=np.linspace(-.05, .05, 200), SNR_window=(1e-3, 10e-3))
+    #(cat_picked, snrs) = SNR_picker(st2, cat, SNR_dt=np.linspace(-.05, .05, 200), SNR_window=(1e-3, 20e-3))
+    s_picks = []
+    for pick in cat_picked[0].picks:
+        if pick.phase_hint == 'S':
+            s_picks.append(pick)
+
+    cat_picked[0].picks = p_picks + s_picks
+
+    snr_picks = copy_picks_to_dict(p_picks + s_picks)
+    plot_profile_with_picks(st, picks=cat_picked[0].picks, origin=cat[0].origins[0], title='2018-04-14 03:44:22 [SNR picks]')
+    # Output resids between IMS and SNR picks:
+
+    for pick in sorted(p_picks, key=lambda x: x.time.timestamp):
+        station = pick.waveform_id.station_code
+        if station in missing_stns:
+            print('sta: %s is missing' % station)
+        else:
+            p_pick = snr_picks[station]['P'].time.datetime.time()
+            p_snr  = float(snr_picks[station]['P'].comments[0].text.split('SNR=')[1])
+            s_pick = snr_picks[station]['S'].time.datetime.time()
+            s_snr  = float(snr_picks[station]['S'].comments[0].text.split('SNR=')[1])
+            ims_p  = ims_picks[station]['P'].time.datetime.time()
+            ims_s  = ims_picks[station]['S'].time.datetime.time()
+            res_p  = ims_picks[station]['P'].time.timestamp - snr_picks[station]['P'].time.timestamp
+            res_s  = ims_picks[station]['S'].time.timestamp - snr_picks[station]['S'].time.timestamp
+
+            print('%2s: [P] ims:%s snr:%s res:%7.4f [S] ims:%s snr:%s res:%7.4f' % 
+                 (station, ims_p, p_pick, res_p, ims_s, s_pick, res_s))
+            '''
+            print('%2s: [P] ims:%s snr:%s [SNR: %.1f] res:%7.4f' % 
+                 (station, ims_p, p_pick, p_snr, res_p))
+            '''
     ##########
     # INSERT PICKER HERE, the picker function should take two non keyword
     # arguments (a stream and a catalogue and as many as keyword arguments as
@@ -57,181 +161,80 @@ if __name__ == "__main__":
     # initial picks and the new picks (Bias = new picks - initial picks) should
     #  be added to the origin time.
 
-
+    '''
 
     (cat_picked, snr) = SNR_picker(st2.filter('bandpass', freqmin=50,
                                               freqmax=300), cat,
                                    SNR_dt=np.linspace(-10e-3, 10e-3, 100),
                                    SNR_window=(-5e-3, 20e-3))
+    '''
 
     #########
 
+    config_file = config_dir + '/input.xml'
+    params = ctl.parse_control_file(config_file)
+    nll_opts = nlloc.init_nlloc_from_params(params)
 
-    plt.clf()
+    # The following line only needs to be run once. It creates the base directory
+    
+    #nll_opts.prepare(create_time_grids=True, tar_files=False, SparkContext=None)
 
-    for tr in st.composite():
-        for pk in cat_picked[0].picks:
-            if pk.waveform_id.station_code == tr.stats.station:
-                if pk.phase_hint == "P":
-                    pk_p = pk.time
-                else:
-                    pk_s = pk.time
+# Need to pass in an event with a preferred origin
 
-        starttime = tr.stats.starttime
-        rt = np.arange(0, tr.stats.npts) / tr.stats.sampling_rate
-        t = np.array([starttime + dt for dt in rt])
+    print(cat[0].origins[0])
+    #event_new = copy.deepcopy(event)
 
-        d = (pk_p - origin_time) * 5000
+    event_new = Event()
+    origin = cat[0].origins[0]
 
-        data = tr.data
-        data /= np.max(np.abs(data))
+    event_new.origins.append(origin)
+    for origin in event_new.origins:
+        print('Heres an origin:')
+        print(origin)
+    print('Done')
 
-        plt.plot(t, tr.data*20 + d, 'k')
-        plt.vlines(pk_p, d-20, d+20, colors='r', linestyles=':')
-        plt.vlines(pk_s, d-20, d+20, colors='r', linestyles='--')
+    event_new.picks = cat_picked[0].picks
+    from microquake.core.event import ResourceIdentifier
+    #event_new.preferred_origin_id = ResourceIdentifier(referred_object=origin)
+    event_new.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id)
 
+    arrivals = []
+    for pick in event_new.picks:
+        arrival = Arrival()
+        arrival.phase = pick.phase_hint
+        arrival.pick_id = pick.resource_id.id
+        arrivals.append(arrival)
+        #print(pick)
 
-    plt.show()
+    event_new.preferred_origin().arrivals = arrivals
+    print('Event:')
+    print(event_new)
+    print('Preferred Origin:')
+    print(event_new.preferred_origin())
 
+    #origin.update_arrivals(site)
+    ot_event = nll_opts.run_event(event_new)[0]
 
+    print('**** Here are the origins after nlloc')
+    for origin in ot_event.origins:
+        print(origin)
 
-    # starttimes = []
-    # endtimes = []
-    # sampling_rates = []
-    # for trace in st:
-    #     starttimes.append(trace.stats.starttime.datetime)
-    #     endtimes.append(trace.stats.endtime.datetime)
-    #     sampling_rates.append(trace.stats.sampling_rate)
-    #
-    # min_starttime = UTCDateTime(np.min(starttimes)) - 0.5
-    # max_endtime = UTCDateTime(np.max(endtimes))
-    # max_sampling_rate = np.max(sampling_rates)
-    #
-    # nb_pts = np.int((max_endtime - min_starttime) * max_sampling_rate)
-    #
-    # core.init_travel_time()
-    #
-    # traces_shifted_p = []
-    # traces_shifted_s = []
-    #
-    # t_i = np.arange(0, nb_pts) / max_sampling_rate
-    #
-    # for station in stations.stations():
-    #     print(station.code)
-    #     station_id = station.code
-    #     st_station = st.copy().select(station=station_id).composite()
-    #     if not st_station:
-    #         continue
-    #
-    #     (st_p, tt) = core.get_arrival_time_station(station_id, 'P', location,
-    #                                                origin_time, st_station)
-    #
-    #     for trace in st_p:
-    #         data = trace.data
-    #         data = data / np.max(np.abs(data))
-    #         sr = trace.stats.sampling_rate
-    #         startsamp = int((trace.stats.starttime - min_starttime) *
-    #                     trace.stats.sampling_rate)
-    #         endsamp = startsamp + trace.stats.npts
-    #         t = np.arange(startsamp, endsamp) / sr
-    #         f = interp1d(t, data, bounds_error=False, fill_value=0)
-    #
-    #         traces_shifted_p.append(f(t_i))
-    #
-    #     st_station = st.copy().select(station=station_id).composite()
-    #
-    #     st_s = core.get_arrival_time_station(station_id, 'S', location,
-    #                                           origin_time, st_station)
-    #
-    #     for trace in st_s:
-    #         data = trace.data
-    #         data = data / np.max(np.abs(data))
-    #         sr = trace.stats.sampling_rate
-    #         startsamp = int((trace.stats.starttime - min_starttime) *
-    #                     trace.stats.sampling_rate)
-    #         endsamp = startsamp + trace.stats.npts
-    #         t = np.arange(startsamp, endsamp) / sr
-    #         f = interp1d(t, data, bounds_error=False, fill_value=0)
-    #
-    #         traces_shifted_s.append(f(t_i))
-    #
-    #
-    # # replacing NaN by 0
-    #
-    # # traces_shifted_p[traces_shifted_p == np.nan] = 0
-    # # traces_shifted_s[traces_shifted_s == np.nan] = 0
-    #
-    # w_len_sec = 50e-3
-    # w_len_samp = int(w_len_sec * max_sampling_rate)
-    #
-    # traces_shifted = np.vstack((traces_shifted_p, traces_shifted_s))
-    # stacked = np.sum(np.array(traces_shifted)**2, axis=0)
-    # stacked = stacked / np.max(np.abs(stacked))
-    # #
-    # i_max = np.argmax(np.sum(np.array(traces_shifted)**2, axis=0))
-    #
-    # if i_max - w_len_samp < 0:
-    #     pass
-    #     # return
-    #
-    # stacked_tr = Trace()
-    # stacked_tr.data = stacked
-    # stacked_tr.stats.starttime = min_starttime
-    # stacked_tr.stats.sampling_rate = max_sampling_rate
-    #
-    # k = kurtosis(stacked_tr, win=30e-3)
-    # diff_k = np.diff(k)
-    #
-    # o_i = np.argmax(np.abs(diff_k[i_max - w_len_samp: i_max + w_len_samp])) + \
-    #       i_max - w_len_samp
-    #
-    # origin_time = min_starttime + o_i / max_sampling_rate
+    print('Preferred Origin:')
+    print(ot_event.preferred_origin())
+
+# Does nlloc return new picks ??
+    plot_profile_with_picks(st, picks=None, origin=ot_event.preferred_origin(), title='2018-04-14 03:44:22 [NLLOC origin]')
+    exit()
 
 
-    #
-    # w_len = 512
-    # traces_shifted_2 = []
-    # for k, t1 in enumerate(traces_shifted_p[3:4]):
-    #     for t2 in traces_shifted_p[10:20]:
-    #         print('bubu')
-    #         d1 = t1
-    #         D1 = np.fft.fft(d1)
-    #         d2 = t2
-    #         D2 = np.fft.fft(d2)
-    #
-    #         CC = D1 * np.conj(D2)
-    #         cc = np.fft.fftshift(np.real(np.fft.ifft(CC)))
-    #         l_cc = len(cc)
-    #         i = np.argmax(np.abs(cc[l_cc-w_len:l_cc+w_len])) - w_len
-    #
-    #         d2 = np.roll(d2, i)
-    #         traces_shifted_2.append(d2)
-
-            # if i > 0:
-            #     # plt.plot(d1[i:])
-            #     # plt.plot(d2)
-            #     traces_shifted_2.append(np.pad(d2), i, mode='constant')[
-            #     0:len(d2)]
-            # else:
-            #     # plt.plot(d1)
-            #     # plt.plot(d2[-i:])
-            #     traces_shifted_2.append(d2[-i:])
-            #
-
-            # plt.show()
-            # input('bubu')
+    nlloc_picks = []
+    for pick in cat_picked[0].picks:
+        station = pick.waveform_id.station_code
+        #tt= core.get_travel_time_grid(station, origin.loc, phase=pick.phase_hint, use_eikonal=True)
+        tt= core.get_travel_time_grid(station, origin.loc, phase=pick.phase_hint, use_eikonal=False)
+        pick.time = origin.time + tt
+        print(origin.time, tt, pick.time)
+        nlloc_picks.append(copy.deepcopy(pick))
 
 
-
-
-    # st2 = Stream(traces=traces_shifted)
-
-        # trace = trace.trim(starttime=min_starttime, endtime=max_endtime,
-        #                    fill_value=0)
-        # data = trace.data[:nb_pts]
-        # if len(data) != nb_pts:
-        #     continue
-        #
-        # data = data / np.max(np.abs(data))
-        # traces_shifted.append(data)
-
+    exit()
