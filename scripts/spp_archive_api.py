@@ -36,40 +36,34 @@ def home():
 <p></p>'''
 
 
-# def combine_stream_data(db_result, requested_format='MSEED'):
-#     traces = []
-#     start_time = time.time()
-#     for encoded_tr in db_result:
-#         ### use for compressed
-#         # bstream = serializer.decode_base64(encoded_tr['encoded_mseed'])
-#         ### use for uncompressed
-#         bstream = b64decode(encoded_tr['encoded_mseed'])
-#         tr = read(BytesIO(bstream))[0]
-#         traces.append(tr)
-#
-#     end_time = time.time() - start_time
-#     print("==> DB Fetching took: ", "%.2f" % end_time, "Records Count:", len(traces))
-#
-#     stout = Stream(traces=traces)
-#     buf = BytesIO()
-#     stout.write(buf, format=requested_format)
-#     return buf
-
-
-def combine_json_to_stream_data(db_result, requested_format='MSEED'):
-    traces = []
+def construct_output(stream_obj, requested_format='MSEED'):
+    output = None
+    output_size = 0
     start_time = time.time()
-    for tr in db_result:
-        t = Trace()
-        tr['stats']['starttime'] = UTCDateTime(int(tr['stats']['starttime'])/1000000000)
-        tr['stats']['endtime'] = UTCDateTime(int(tr['stats']['endtime'])/10000000000)
-        t.decode(stats=AttribDict(tr['stats']), data=np.array(tr['data']))
-        traces.append(t)
+
+    if requested_format == "MSEED":
+        output = BytesIO()
+        stream_obj.write(output, format="MSEED")
+        output_size = sys.getsizeof(output.getvalue())
+        output.seek(0)
+
+    # compress and encode the result
+    ### use for compressed
+    # response_data = serializer.encode_base64(stream_data_buffer)
+    ### use for uncompressed
+    # response_data = b64encode(stream_data_buffer.getvalue())
 
     end_time = time.time() - start_time
-    print("==> DB Fetching took: ", "%.2f" % end_time, "Records Count:", len(traces))
+    print("==> Formatting Output took: ", "%.2f" % end_time, "Output Size:", "%.2f" % (output_size/1024/1024), "MB")
+    return output
 
-    return traces
+
+def combine_json_to_stream_data(db_result):
+    start_time = time.time()
+    s = Stream.create_from_json_traces(db_result).merge(method=0)
+    end_time = time.time() - start_time
+    print("==> DB Fetching took: ", "%.2f" % end_time, "Records Count:", len(s.traces))
+    return s
 
 
 def check_and_parse_datetime(dt_str):
@@ -90,6 +84,9 @@ def get_stream():
     network = None
     station = None
     channel = None
+    output_formats = ["MSEED", "PLOT", "BINARY"]
+    # make default output format is MSEED
+    output_format = "MSEED"
 
     # Validate Request Params
     # Check Date Ranges
@@ -119,31 +116,28 @@ def get_stream():
     if 'cha' in request.args:
         channel = request.args['cha']
 
+    if 'output' in request.args:
+        if request.args['output'] in output_formats:
+            output_format = request.args['output']
+        else:
+            raise InvalidUsage("Invalid output option, should be one of these:" +
+                               "MSEED, PLOT, BINARY",
+                               status_code=411)
+
     criteria_filter = construct_filter_criteria(start_time, end_time, network, station, channel)
 
     result = mongo.db[COLLECTION].find(criteria_filter, {"_id": 0})
 
     # combine traces together
-    stream_data_buffer = combine_json_to_stream_data(result)
+    resulted_stream = combine_json_to_stream_data(result)
 
-    # compress and encode the result
-    ### use for compressed
-    # response_data = serializer.encode_base64(stream_data_buffer)
-    ### use for uncompressed
-    # response_data = b64encode(stream_data_buffer.getvalue())
-
-    stout = Stream(traces=stream_data_buffer)
-    buf = BytesIO()
-    stout.write(buf, format="MSEED")
-    response_data = buf.getvalue()
+    final_output = construct_output(resulted_stream, output_format)
 
     request_endtime = time.time() - request_starttime
-    print("=======> Request Done and Size of returned data is:",
-          "%.2f" % (sys.getsizeof(response_data)/1024/1024), "MB",
+    print("=======> Request Done Successfully.",
           "Total API Request took: ", "%.2f" % request_endtime, "seconds")
 
-    buf.seek(0)
-    return send_file(buf, attachment_filename="testing.mseed", as_attachment=True)
+    return send_file(final_output, attachment_filename="testing.mseed", as_attachment=True)
 
 
 def construct_filter_criteria(start_time, end_time, network, station, channel):
@@ -164,6 +158,7 @@ def construct_filter_criteria(start_time, end_time, network, station, channel):
     if channel is not None and channel != 'ALL':
         filter['stats.channel'] = channel
 
+    print("Filter:", filter)
     return filter
 
 
