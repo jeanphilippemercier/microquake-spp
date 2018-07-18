@@ -3,6 +3,7 @@ from IPython.core.debugger import Tracer
 
 from microquake.core.data.grid import read_grid
 from microquake.core import read_stations
+from obspy.core import AttribDict
 
 def init_travel_time():
     """
@@ -236,6 +237,7 @@ def create_event(stream, event_location):
             pk.time = origin_time + tt
             pk.evaluation_mode = "automatic"
             pk.evaluation_status = "preliminary"
+            pk.method = 'theoretical prediction from get_travel_time_grid, use_eikonal=False'
 
             waveform_id = WaveformStreamID()
             waveform_id.channel_code = ""
@@ -247,18 +249,12 @@ def create_event(stream, event_location):
     event = Event()
     event.origins = [origin]
     event.picks = picks
-    event.pick_method = 'predicted from get_travel_time_grid'
+    #event.pick_method = 'predicted from get_travel_time_grid'
 
     catalog = Catalog()
     catalog.events = [event]
 
     return catalog
-
-
-
-
-
-
 
 
 
