@@ -60,10 +60,13 @@ def construct_output(stream_obj, requested_format='MSEED'):
 
 def combine_json_to_stream_data(db_result):
     start_time = time.time()
-    s = Stream.create_from_json_traces(db_result).merge(method=0)
+    s = Stream.create_from_json_traces(db_result)
+    records_count = len(s.traces)
+    merged_stream = s.merge(fill_value=0, method=0)
     end_time = time.time() - start_time
-    print("==> DB Fetching took: ", "%.2f" % end_time, "Records Count:", len(s.traces))
-    return s
+    print("==> DB Fetching and Stream Creation took:", "%.2f" % end_time, ", Records Count:", records_count,
+          ", Merged Traces Count:", len(s.traces))
+    return merged_stream
 
 
 def check_and_parse_datetime(dt_str):

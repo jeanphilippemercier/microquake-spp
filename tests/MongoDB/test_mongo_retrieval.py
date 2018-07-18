@@ -8,6 +8,8 @@ from microquake.core.stream import Stream
 from obspy.core.util.attribdict import AttribDict
 from obspy.core.utcdatetime import UTCDateTime
 import numpy as np
+from microquake.core import read
+
 # reload(mongo)
 
 # reading the config file
@@ -15,7 +17,7 @@ import numpy as np
 
 def get_stream_from_db(st_time, duration):
     start_time = int(np.float64(UTCDateTime(st_time).timestamp) * 1e9)
-    end_time = start_time + (int(duration) * 1000000000)
+    end_time = start_time + (int(duration) * 1e9)
     print("Starttime:", start_time)
     filter = {
         'stats.starttime': {
@@ -46,21 +48,31 @@ collection = "traces_json"
 
 print("Reading Waveform 1...")
 stream_1 = get_stream_from_db("2018-05-23T11:00:18.000", 1)
+#stream_1 = read("/Users/hanee/Rio_Tinto/sample_data/20180523_190018_900000_20180523_190020_100066.mseed", format='MSEED')
 print(stream_1.__str__(extended=True))
 
 print("####################")
 
 print("Reading Waveform 2...")
 stream_2 = get_stream_from_db("2018-05-23T11:00:19.000", 1)
+#stream_2 = read("/Users/hanee/Rio_Tinto/sample_data/20180523_190019_900000_20180523_190021_100066.mseed", format='MSEED')
 print(stream_2.__str__(extended=True))
 
 print("####################")
 
 print("After Merging...")
-stream_merged = (stream_1 + stream_2)#.merge(fill_value=0, method=0)
+stream_merged = (stream_1 + stream_2).merge(fill_value=0, method=0)
 
 print(stream_merged.__str__(extended=True))
 print("Closing Connection...")
 mongo_conn.disconnect()
+
+
+from io import BytesIO
+import sys
+output = BytesIO()
+stream_merged.write(output, format="MSEED")
+output_size = sys.getsizeof(output.getvalue())
+print(output_size)
 
 
