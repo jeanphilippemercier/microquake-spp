@@ -242,27 +242,33 @@ def write_to_kafka(stream_object, brokers, kafka_topic):
     :return:
     """
     from spp.utils.kafka import KafkaHandler
+    from io import BytesIO
+    import sys
+
     kafka_handler_obj = KafkaHandler(brokers)
-    # s_time = time.time()
+    s_time = time.time()
     buf = BytesIO()
     stream_object.write(buf, format='MSEED')
     kafka_msg = buf.getvalue()  # serializer.encode_base64(buf)
     msg_key = str(stream_object[0].stats.starttime)
-    # end_time_preparation = time.time() - s_time
+    end_time_preparation = time.time() - s_time
 
-    # msg_size = (sys.getsizeof(kafka_msg) / 1024 / 1024)
+    msg_size = (sys.getsizeof(kafka_msg) / 1024 / 1024)
 
-    # s_time = time.time()
+    s_time = time.time()
     kafka_handler_obj.send_to_kafka(kafka_topic, kafka_msg,
                                     msg_key.encode('utf-8'))
-    # end_time_submission = time.time() - s_time
-
-    # print("==> Object Size:", "%.2f" % msg_size, "MB",
-    #       "Key:", msg_key,
-    #       ", Preparation took:", "%.2f" % end_time_preparation,
-    #       ", Submission took:", "%.2f" % end_time_submission)
 
     kafka_handler_obj.producer.flush()
+
+    end_time_submission = time.time() - s_time
+
+    print("==> Object Size:", "%.2f" % msg_size, "MB",
+          "Key:", msg_key,
+          ", Preparation took:", "%.2f" % end_time_preparation,
+          ", Submission took:", "%.2f" % end_time_submission)
+
+
 
 
 def write_data(stream_object):
@@ -284,7 +290,7 @@ def write_data(stream_object):
 
     elif destination == "kafka":
         brokers=params['kafka']['brokers']
-        kafka_topic=params['kafka']['kafka_topic']
+        kafka_topic=params['kafka']['topic']
         write_to_kafka(stream_object, brokers, kafka_topic)
 
     elif destination == "mongo":

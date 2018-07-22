@@ -15,9 +15,9 @@ ims_connector:
     #location: http://10.95.64.12:8002/ims-database-server/databases/mgl
 
   data_destination:
-    type: local
+#    type: local
     location: /Users/hanee/Rio_Tinto/sample_data_out
-#    type: Kafka
+    type: kafka
 
   filter:                           # filter to apply to the data. These value are the argument to pass to the Obspy
                                     # filter function "Stream.filter"
