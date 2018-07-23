@@ -1,0 +1,8 @@
+{
+    "namespace": "miniseed.avro",
+    "type": "record",
+    "name": "mseed_avro",
+    "fields": [
+        {"name": "mseed", "type": "bytes"}
+    ]
+}
