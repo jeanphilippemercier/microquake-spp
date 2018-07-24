@@ -21,7 +21,7 @@ mongo_conn = MongoDBHandler(uri=params['uri'], db_name=params['db_name'])
 print("inserting into DB")
 
 collection = "traces_json"
-location = "/Users/hanee/Rio_Tinto/sample_data"
+location = "/mnt/seismic_shared_storage/continuous_data"
 
 
 def convert_stream_to_traces_json(stream):
@@ -56,7 +56,7 @@ for i in np.arange(0, len(file_list), 1):
     mongo_conn.db[collection].insert_many(traces_list)
     end_time = time.time() - start_time
     print("==> Saving into Mongo took: ", "%.2f" % end_time_load, "For Records Count:", len(traces_list))
-    print(st.__str__(extended=True))
+    #print(st.__str__(extended=True))
     #st[0:3].plot()
 
 # read waveform
