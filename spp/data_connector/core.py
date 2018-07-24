@@ -1,6 +1,6 @@
 from microquake.core import read_stations
 from datetime import datetime, timedelta
-from spp import time
+from spp.time import get_time_zone
 import os
 from pathos.multiprocessing import Pool
 from toolz.functoolz import curry
@@ -9,6 +9,7 @@ from dateutil import parser
 from spp.utils import get_data_connector_parameters
 import numpy as np
 import time
+from microquake.db.mongo.mongo import MongoDBHandler
 
 
 # Create Local get_continous to load data from files:
@@ -39,6 +40,341 @@ def get_continuous_local(data_directory, file_name=None):
 #     return get_continuous_local(local_directory, file_name=file_name)
 
 
+def read_realtime_info():
+    pass
+
+
+def write_realtime_info():
+    pass
+
+
+class requestHandler():
+
+    def __init__(self):
+        from spp.utils import get_stations, get_data_connector_parameters
+        import os
+
+        params = get_data_connector_parameters()
+        self.site = get_stations()
+
+        if params['data_source']['type'] == 'remote':
+            self.base_url = params['data_source']['location']
+        else:
+            self.base_url = params['data_source']['local_location']
+
+        self.minimum_offset = params["minimum_time_offset"]
+        self.window_length = params["window_length"]
+        self.overlap = timedelta(seconds=params['overlap'])
+        self.period = params['period']
+        self.filter = params['filter']
+        self.taper = params['taper']
+        self.max_window_length = params['max_window_length']
+        self.playback = params['playback']
+        self.filter = params['filter']
+
+        self.workers = params['multiprocessing']['workers']
+
+        self.time_zone = get_time_zone()
+
+        ###########################
+
+        self.now = datetime.now().replace(tzinfo=self.time_zone)
+        self.common_dir = os.environ['SPP_COMMON']
+
+        self.endtimes = {}
+
+    def get_starttime_station(self, site_id):
+        """
+        return the starttime for a given station
+        :param site_id: station id
+        :return: (starttime, endtime), tuple containing the starttime and
+        endtime for a given station
+        """
+        import os
+
+        ftime = os.path.join(self.common_dir, 'ingest_info.yaml')
+
+        if not os.path.isfile(ftime):
+            starttime = self.now \
+                        - timedelta(seconds=self.minimum_offset) \
+                        - timedelta(seconds=self.period)
+
+        else:
+            with open(ftime, 'r') as timefile:
+                print(site_id)
+                starttime = parser.parse(timefile.readline()) - self.overlap
+                starttime = starttime.replace(tzinfo=self.time_zone)
+
+                dt = (self.now - starttime).total_seconds()
+                if dt - self.minimum_offset > self.max_window_length:
+                    starttime = self.now \
+                                - timedelta(seconds=(self.minimum_offset +
+                                                     self.max_window_length))\
+                                - self.overlap
+
+        endtime = starttime + timedelta(seconds=period)
+
+        if endtime > self.now - timedelta(seconds=self.minimum_offset):
+            endtime = self.now - timedelta(seconds=self.minimum_offset)
+
+        return (starttime, endtime)
+
+    def get_data(self, site_id):
+        """
+        :param site_id:
+        :return:
+        """
+        from microquake.core import UTCDateTime
+        from microquake.IMS import web_api
+        from datetime import timedelta
+        from importlib import reload
+        from spp.utils import get_stations
+
+        starttime, endtime = self.get_starttime_station(self, site_id)
+
+        period = endtime - starttime
+        nsec = period.total_seconds()
+        nperiod = int(np.floor(nsec / self.window_length))
+        dts = np.linspace(0, nsec, nperiod)
+        dtimes = [timedelta(seconds=dt) for dt in dts]
+
+        starttime = starttime
+        endtime = starttime + timedelta(seconds=len(dts) * self.window_length)\
+                  + self.overlap
+
+
+        try:
+            # Use below for Global Use
+            st = web_api.get_continuous(self.base_url, starttime - self.overlap,
+                                        endtime + self.overlap,
+                                        site_ids=site_id)
+
+            station = st[0].stats.station
+            long_name = st[0].stats.location
+
+            self.endtimes[station] = {}
+            self.endtime[station]['name'] = long_name
+            self.endtime[station]['endtime'] = st[0].stats.endtime.strftime(
+                '%Y-%m-%d %H:%M:%S.%f')
+
+            for k, tr in enumerate(st):
+                station = self.site.select(station=tr.stats.station).stations()[0]
+                st[k].stats.location = station.long_name
+                st[k].stats.network = self.site.networks[0].code
+
+        except Exception as e:
+            print(e)
+            return
+
+        if not st:
+            return
+
+        sts = []
+
+        for dtime in dtimes:
+            stime = starttime + dtime - self.overlap
+            etime = starttime + dtime + timedelta(seconds=self.window_length)\
+                    + self.overlap
+            st_trim = st.copy().trim(starttime=UTCDateTime(stime),
+                                     endtime=UTCDateTime(etime))
+            # st_trim = st_trim.taper(1, **self.taper)
+            st_trim = st_trim.filter(**self.filter)
+            sts.append((stime.strftime('%Y%m%d%H%M%S%f'), st_trim))
+
+        self.write_end_time(self)
+        return sts
+
+    def request_handler(self):
+        from spp.time import localize
+        st_codes = np.array([int(station.code) for station in
+                             self.site.stations()])
+
+        st_codes = st_codes[20:21].tolist()
+
+        p = Pool(self.workers)
+        map_responses = p.map(self.get_data(), st_codes)
+        partitioned = partition(map_responses)
+
+        for group in partitioned:
+            block = reduce(group)
+            if len(block) == 0:
+                continue
+            stime = localize(block[0].stats.starttime).strftime(
+                "%Y%m%d_%H%M%S_%f")
+            etime = localize(block[0].stats.endtime).strftime(
+                "_%Y%m%d_%H%M%S_%f.mseed")
+
+            fname = stime + etime
+
+            with open('tmp.txt', 'a') as tmp:
+                 tmp.write(fname)
+
+            yield block
+
+    def load_data(self):
+        params = get_data_connector_parameters()
+
+        if params['data_source']['type'] == 'remote':
+            for st in self.request_handler():
+                print(st)
+                self.write_data(st)
+
+        elif params['data_source']['type'] == 'local':
+            location = params['data_source']['location']
+            period = params['period']
+            window_length = params['window_length']
+
+            for i in np.arange(0, period, window_length):
+                print("==> Processing (", i, " from", period, ")")
+                start_time_load = time.time()
+                st = request_handler_local(location)
+                end_time_load = time.time() - start_time_load
+                print("==> Fetching File took: ", "%.2f" % end_time_load)
+                write_data(st)
+
+        return
+
+    def write_end_time(self):
+        import yaml
+        with open('ingest_info.yaml', 'w') as fout:
+            yaml.dump(self.endtimes, fout, default_flow_style=False)
+
+
+# def write_end_time(endtime):
+#     import yaml
+#     with open('ingest_info.yaml', 'w') as fout:
+#         yaml.dump(self.endtimes, fout, default_flow_style=False)
+
+
+def write_to_kafka(stream_object, brokers, kafka_topic):
+    """
+
+    :param stream_object: a microquake.stream.Stream object containing the
+    waveforms
+    :param brokers: a ',' delimited string containing the information on the
+    kafka brokers (e.g., "kafka-node-001:9092,kafka-node-002:9092,
+    kafka-node-003:9092")
+    :param kafka_topic:
+    :return:
+    """
+    from spp.utils.kafka import KafkaHandler
+    kafka_handler_obj = KafkaHandler(brokers)
+    # s_time = time.time()
+    buf = BytesIO()
+    stream_object.write(buf, format='MSEED')
+    kafka_msg = buf.getvalue()  # serializer.encode_base64(buf)
+    msg_key = str(stream_object[0].stats.starttime)
+    # end_time_preparation = time.time() - s_time
+
+    # msg_size = (sys.getsizeof(kafka_msg) / 1024 / 1024)
+
+    # s_time = time.time()
+    kafka_handler_obj.send_to_kafka(kafka_topic, kafka_msg,
+                                    msg_key.encode('utf-8'))
+    # end_time_submission = time.time() - s_time
+
+    # print("==> Object Size:", "%.2f" % msg_size, "MB",
+    #       "Key:", msg_key,
+    #       ", Preparation took:", "%.2f" % end_time_preparation,
+    #       ", Submission took:", "%.2f" % end_time_submission)
+
+    kafka_handler_obj.producer.flush()
+
+
+def write_to_mongo(stream_object, uri='mongodb://localhost:27017/',
+                   db_name='test_continuous'):
+    """
+
+    :param st: stream
+    :param uri: db uri
+    :param db_name: db name
+    :return:
+    """
+
+    from microquake.core import Stream
+
+    db = MongoDBHandler(uri=uri, db_name=db_name)
+    from base64 import b64encode
+    import pickle
+
+    documents = []
+    for tr in stream_object:
+        try:
+            tr.stats.mseed.encoding = 'FLOAT32'
+        except:
+            pass
+        tr.data = tr.data.astype(np.float32)
+        st_out = Stream(traces=[tr])
+
+        data = tr.data.astype(np.float32)
+
+        stats_b64 = b64encode(pickle.dumps(tr.stats))
+
+        starttime_ns = int(np.float64(tr.stats.starttime.timestamp) * 1e9)
+        endtime_ns = int(np.float64(tr.stats.endtime.timestamp) * 1e9)
+        network = tr.stats.network
+        station = tr.stats.station
+        channel = tr.stats.channel
+        document = {'time_created' : datetime.utcnow(),
+                    'network': network,
+                    'station': station,
+                    'channel': channel,
+                    'data': data.tolist(),
+                    'stats': stats_b64,
+                    'starttime': starttime_ns,
+                    'endtime': endtime_ns,
+                    'starttime_utc': tr.stats.starttime.datetime,
+                    'endtime_utc': tr.stats.endtime.datetime}
+        db.db['waveforms'].insert_one(document)
+
+    db.disconnect()
+
+
+    def write_data(self, stream_object):
+        """
+        :param destination: destination to write file (e.g., local (filesystem),
+        kafka, MongoDB)
+        :param kwargs: arguments to
+        :return:
+        """
+
+        params = get_data_connector_parameters()
+
+        if isinstance(params['data_destination']['type'], list):
+            for destination in params['data_destination']['type']:
+                if destination.lower() == "local":
+                    location = params['data_destination']['location']
+                    write_to_local(stream_object, location)
+                if destination.lower() == 'kafka':
+                    brokers=params['kafka']['brokers']
+                    kafka_topic=params['kafka']['kafka_topic']
+                    write_to_kafka(stream_object, brokers, kafka_topic)
+                if destination.lower() == 'mongo':
+                    uri = params['mongo']['uri']
+                    db_name = params['mongo']['db_name']
+                    write_to_mongo(stream_object, uri=uri, db_name=db_name)
+
+        else:
+
+            destination = params['data_destination']['type']
+
+            if destination == "local":
+                location = params['data_destination']['location']
+                write_to_local(stream_object, location)
+
+            elif destination == "kafka":
+                brokers=params['kafka']['brokers']
+                kafka_topic=params['kafka']['kafka_topic']
+                write_to_kafka(stream_object, brokers, kafka_topic)
+
+            elif destination == "mongo":
+                uri = params['mongo']['uri']
+                db_name = params['mongo']['db_name']
+                write_to_mongo(stream_object, uri=uri, db_name=db_name)
+
+                #write_to_mongo()
+
+
 @curry
 def get_data(base_url, starttime, endtime, overlap, window_length, filter,
              taper, site_id):
@@ -58,47 +394,84 @@ def get_data(base_url, starttime, endtime, overlap, window_length, filter,
     :return:
     """
     print(site_id)
-    from numpy import floor
     from microquake.core import UTCDateTime
     from microquake.IMS import web_api
     from datetime import timedelta
     from importlib import reload
-    from dateutil import parser
+    from spp.utils import get_stations
 
     reload(web_api)
     import pdb
 
+    params = get_data_connector_parameters()
+
+    site = get_stations()
+
     period = endtime - starttime
-    nsec = int(floor(period.total_seconds()))
-    dts = range(0, nsec, window_length)
+    nsec = period.total_seconds()
+    nperiod = int(np.floor(nsec / window_length))
+    dts = np.linspace(0, nsec, nperiod)
+    # dts = range(0, nsec, window_length)
     dtimes = [timedelta(seconds=dt) for dt in dts]
 
     starttime = starttime
     endtime = starttime + timedelta(seconds=len(dts) * window_length) + overlap
-    try:
-        # Use below for Global Use
-        st = web_api.get_continuous(base_url, starttime - overlap, endtime + overlap, site_ids=[site_id])
 
-        # Use below for local use
-        #base_url = '/Users/hanee/Rio_Tinto/sample_data/20170408_224235.mseed'
-        # st = get_continuous_local()
+    # try:
+    # Use below for Global Use
+    st = web_api.get_continuous(base_url, starttime - overlap,
+                                endtime + overlap, site_ids=site_id)
 
-    except Exception as e:
-        print(e)
-        return
 
     if not st:
         return
 
+    for k, tr in enumerate(st):
+        station = site.select(station=tr.stats.station).stations()[0]
+        st[k].stats.location = station.long_name
+        st[k].stats.network = site.networks[0].code
+
+    period = st[0].stats.endtime - st[0].stats.starttime
+    nperiod = int(np.floor(period / window_length))
+    dts = np.linspace(0, nperiod * window_length, nperiod)
+    # dts = range(0, nsec, window_length)
+    dtimes = [timedelta(seconds=dt) for dt in dts]
+
+    # except Exception as e:
+    #     print(e)
+    #     return
+
     sts = []
 
     for dtime in dtimes:
-        stime = starttime + dtime - overlap
-        etime = starttime + dtime + timedelta(seconds=window_length) + overlap
+        buffer = timedelta(seconds = params['taper']['max_length'])
+        stime = starttime + dtime - buffer
+        etime = starttime + dtime + timedelta(seconds=window_length) + \
+                overlap + buffer
         st_trim = st.copy().trim(starttime=UTCDateTime(stime),
                                  endtime=UTCDateTime(etime))
+
+        nan_flag = False
+        for k, tr in enumerate(st_trim):
+            if np.isnan(np.mean(tr.data)):
+                nan_flag = True
+            st_trim[k].data.astype(np.float32)
+
+        if nan_flag:
+            continue
+
+
+        st_trim = st_trim.detrend('demean')
+        st_trim = st_trim.detrend('linear')
+
         st_trim = st_trim.taper(1, **taper)
         st_trim = st_trim.filter(**filter)
+
+        stime = stime + buffer
+        etime = etime - buffer
+
+        st_trim = st_trim.trim(starttime=UTCDateTime(stime),
+                               endtime=UTCDateTime(etime))
         sts.append((stime.strftime('%Y%m%d%H%M%S%f'), st_trim))
 
     return sts
@@ -148,10 +521,11 @@ def request_handler():
     filter = params['filter']
     taper = params['taper']
     max_window_length = params['max_window_length']
+    playback = params['playback']
 
     workers = params['multiprocessing']['workers']
 
-    time_zone = time.get_time_zone()
+    time_zone = get_time_zone()
 
     # get end time of last window, note that time in the file should be in
     # local time
@@ -162,7 +536,7 @@ def request_handler():
     if not os.path.isfile(ftime):
         starttime = now \
                     - timedelta(seconds=minimum_offset) \
-                    - timedelta(seconds=period)
+                    - timedelta(seconds=max_window_length)
 
     else:
         with open(ftime, 'r') as timefile:
@@ -171,23 +545,27 @@ def request_handler():
 
             dt = (now - starttime).total_seconds()
             if dt - minimum_offset > max_window_length:
-                starttime = now \
-                            - timedelta(seconds=(minimum_offset +
+                starttime = now - timedelta(seconds=(minimum_offset +
                                                      max_window_length)) - \
                             overlap
 
-    endtime = starttime + timedelta(seconds=period)
+    endtime = starttime + timedelta(seconds=max_window_length)
+
+    if endtime > now - timedelta(seconds=minimum_offset):
+        endtime = now - timedelta(seconds=minimum_offset) + overlap
 
     station_file = os.path.join(common_dir, 'sensors.csv')
     site = read_stations(station_file, has_header=True)
 
-    st_code = [int(station.code) for station in site.stations()]
+    st_codes = np.array([int(station.code) for station in site.stations()])
 
+    st_codes = st_codes[20:21].tolist()
+
+    # if workers > 1:
     p = Pool(workers)
 
-
-    map_responses = p.map(get_data(base_url, starttime, endtime, overlap,
-                                   window_length, filter, taper), st_code)
+    map_responses = map(get_data(base_url, starttime, endtime, overlap,
+                                    window_length, filter, taper), st_codes)
 
     partitionned = partition(map_responses)
 
@@ -198,6 +576,8 @@ def request_handler():
 
     for group in partitionned:
         block = reduce(group)
+        if len(block) == 0:
+            continue
         stime = localize(block[0].stats.starttime).strftime(
             "%Y%m%d_%H%M%S_%f")
         etime = localize(block[0].stats.endtime).strftime(
@@ -271,6 +651,55 @@ def write_to_kafka(stream_object, brokers, kafka_topic):
 
 
 
+def write_to_mongo(stream_object, uri='mongodb://localhost:27017/',
+                   db_name='test_continuous'):
+    """
+
+    :param st: stream
+    :param uri: db uri
+    :param db_name: db name
+    :return:
+    """
+
+    from microquake.core import Stream
+
+    db = MongoDBHandler(uri=uri, db_name=db_name)
+    from base64 import b64encode
+    import pickle
+
+    documents = []
+    for tr in stream_object:
+        try:
+            tr.stats.mseed.encoding = 'FLOAT32'
+        except:
+            pass
+        tr.data = tr.data.astype(np.float32)
+        st_out = Stream(traces=[tr])
+
+        data = tr.data.astype(np.float32)
+
+        stats_b64 = b64encode(pickle.dumps(tr.stats))
+
+        starttime_ns = int(np.float64(tr.stats.starttime.timestamp) * 1e9)
+        endtime_ns = int(np.float64(tr.stats.endtime.timestamp) * 1e9)
+        network = tr.stats.network
+        station = tr.stats.station
+        channel = tr.stats.channel
+        document = {'time_created' : datetime.utcnow(),
+                    'network': network,
+                    'station': station,
+                    'channel': channel,
+                    'data': data.tolist(),
+                    'stats': stats_b64,
+                    'starttime': starttime_ns,
+                    'endtime': endtime_ns,
+                    'starttime_utc': tr.stats.starttime.datetime,
+                    'endtime_utc': tr.stats.endtime.datetime}
+        db.db['waveforms'].insert_one(document)
+
+    db.disconnect()
+
+
 def write_data(stream_object):
     """
 
@@ -282,20 +711,39 @@ def write_data(stream_object):
 
     params = get_data_connector_parameters()
 
-    destination = params['data_destination']['type']
+    if isinstance(params['data_destination']['type'], list):
+        for destination in params['data_destination']['type']:
+            if destination.lower() == "local":
+                location = params['data_destination']['location']
+                write_to_local(stream_object, location)
+            if destination.lower() == 'kafka':
+                brokers=params['kafka']['brokers']
+                kafka_topic=params['kafka']['kafka_topic']
+                write_to_kafka(stream_object, brokers, kafka_topic)
+            if destination.lower() == 'mongo':
+                uri = params['mongo']['uri']
+                db_name = params['mongo']['db_name']
+                write_to_mongo(stream_object, uri=uri, db_name=db_name)
 
-    if destination == "local":
-        location = params['data_destination']['location']
-        write_to_local(stream_object, location)
+    else:
 
-    elif destination == "kafka":
-        brokers=params['kafka']['brokers']
-        kafka_topic=params['kafka']['topic']
-        write_to_kafka(stream_object, brokers, kafka_topic)
+        destination = params['data_destination']['type']
 
-    elif destination == "mongo":
-        pass
-        #write_to_mongo()
+        if destination == "local":
+            location = params['data_destination']['location']
+            write_to_local(stream_object, location)
+
+        elif destination == "kafka":
+            brokers=params['kafka']['brokers']
+            kafka_topic=params['kafka']['kafka_topic']
+            write_to_kafka(stream_object, brokers, kafka_topic)
+
+        elif destination == "mongo":
+            uri = params['mongo']['uri']
+            db_name = params['mongo']['db_name']
+            write_to_mongo(stream_object, uri=uri, db_name=db_name)
+
+            #write_to_mongo()
 
 
 def load_data():
@@ -308,7 +756,7 @@ def load_data():
 
     if params['data_source']['type'] == 'remote':
         for st in request_handler():
-            print(st)
+            # print(st)
             write_data(st)
             # write to Kafka
             # write_to_kafka(kafka, kafka_topic, st)
@@ -327,6 +775,8 @@ def load_data():
             end_time_load = time.time() - start_time_load
             print("==> Fetching File took: ", "%.2f" % end_time_load)
             write_data(st)
+
+
 
         # print("==> Flushing and Closing Kafka....")
         # start_time_flush = time.time()
