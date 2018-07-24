@@ -62,7 +62,7 @@ def combine_json_to_stream_data(db_result):
     start_time = time.time()
     s = Stream.create_from_json_traces(db_result)
     records_count = len(s.traces)
-    merged_stream = s.merge(fill_value=0, method=0)
+    merged_stream = s.merge(fill_value=0, method=1)
     end_time = time.time() - start_time
     print("==> DB Fetching and Stream Creation took:", "%.2f" % end_time, ", Records Count:", records_count,
           ", Merged Traces Count:", len(s.traces))
@@ -94,8 +94,8 @@ def get_stream():
     # Validate Request Params
     # Check Date Ranges
     if 'starttime' in request.args and ('endtime' in request.args or 'duration' in request.args):
+        print('get_stream: starttime:%s endtime:%s' % (request.args['starttime'], request.args['endtime']))
 
-        print(request.args['starttime'])
         start_time = check_and_parse_datetime(request.args['starttime'])
         print(start_time)
         if 'endtime' in request.args:
@@ -134,6 +134,10 @@ def get_stream():
     # combine traces together
     resulted_stream = combine_json_to_stream_data(result)
 
+    start_time = UTCDateTime( request.args['starttime'] )
+    end_time   = UTCDateTime( request.args['endtime'] )
+    resulted_stream.trim(start_time, end_time, pad=True, fill_value=0.0)
+
     final_output = construct_output(resulted_stream, output_format)
 
     request_endtime = time.time() - request_starttime
@@ -145,7 +149,15 @@ def get_stream():
 
 def construct_filter_criteria(start_time, end_time, network, station, channel):
 
-    filter = {
+    filter= {
+        'stats.starttime': {
+            '$lte': end_time
+         },
+        'stats.endtime': {
+            '$gte': start_time
+         }
+    }
+    filter2 = {
         'stats.starttime': {
             '$gte': start_time,
             '$lt': end_time

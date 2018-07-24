@@ -15,10 +15,10 @@ data_connector:
 
   data_source:                      # describes the data source and base url
                                     # or path to the data
-#    type: local
-#    location: /Users/hanee/Rio_Tinto/sample_data
-    type: remote
-    location: http://10.95.64.12:8002/ims-database-server/databases/mgl
+    type: local
+    location: /mnt/seismic_shared_storage/continuous_data/
+    #type: remote
+    #location: http://10.95.64.12:8002/ims-database-server/databases/mgl
 
   data_destination:
     # type: [local, Mongo]

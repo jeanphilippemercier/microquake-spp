@@ -1,5 +1,5 @@
 db:
-  uri: mongodb://localhost:27017/
-  db_name: test
+  uri: mongodb://mongo-node-001:27017/
+  db_name: seismic
   traces_collection: traces_json
   ##
