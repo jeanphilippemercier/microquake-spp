@@ -2,3 +2,4 @@ db:
   uri: mongodb://localhost:27017/
   db_name: test
   traces_collection: traces_json
+  ##
