@@ -7,6 +7,7 @@ import sys
 import os
 import yaml
 import numpy as np
+from spp.utils import get_data_connector_parameters
 
 
 reload(core)
@@ -37,14 +38,8 @@ def load_from_ims():
     # read yaml file
 
     config_dir = os.environ['SPP_CONFIG']
-    #common_dir = os.environ['SPP_COMMON']
 
-    fname = os.path.join(config_dir, 'data_connector_config.yaml')
-
-    with open(fname, 'r') as cfg_file:
-        params = yaml.load(cfg_file)
-        params = params['ims_connector']
-
+    params = get_data_connector_parameters()['ims_connector']
 
     # Create Kafka Object
     kafka = KafkaHandler(params['kafka']['brokers'])
