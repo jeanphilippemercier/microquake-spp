@@ -85,7 +85,13 @@
 			<loccom value="Test"/>
 
 			<locsearch value="OCT 20 20 30 1e-6 50000 1000 0 1"/>
+<!--
+			<locmeth value="GAU_ANALYTIC 9999.0 4 -1 -1 -1 0"/>
+			<locmeth value="L1_NORM 9999.0 4 -1 -1 -1 0"/>
+			<locmeth value="GAU_ANALYTIC 9999.0 4 -1 -1 -1 0"/>
 			<locmeth value="EDT 9999.0 4 -1 -1 -1 0"/>
+-->
+			<locmeth value="EDT_OT_WT 9999.0 4 -1 -1 -1 0"/>
 		</NLL>
 	</calcparams>
 
