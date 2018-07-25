@@ -180,6 +180,8 @@ def make_event(xyzt_array):
   # 5. Relocate event with cleaned picks
 
     config_file = config_dir + '/input.xml'
+    config_file = config_dir + '/project.xml'
+
     params = ctl.parse_control_file(config_file)
     nll_opts = nlloc.init_nlloc_from_params(params)
 
