@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, send_file
 import yaml
 import os
 import sys
-from microquake.db.mongo.mongo import MongoDBHandler, StreamDB
+from microquake.db.mongo.mongo import MongoDBHandler, StreamDB, EventDB
 from microquake.core.stream import Stream
 from microquake.core import read
 from io import BytesIO
@@ -15,20 +15,23 @@ import numpy as np
 from base64 import b64decode,b64encode
 from microquake.core.trace import Trace
 from obspy.core.util.attribdict import AttribDict
+from obspy.core.event import read_events
+from microquake.core.event import Event
+import base64
+from spp.utils.config import Configuration
+
 
 
 app = Flask(__name__)
 
 # load configuration file
-config_dir = os.environ['SPP_CONFIG']
-config_file = os.path.join(config_dir, 'permanent_db.yaml')
-with open(config_file, 'r') as cfg_file:
-    params = yaml.load(cfg_file)
-    db_params = params['db']
+config = Configuration()
 
-mongo = MongoDBHandler(db_params['uri'], db_params['db_name'])
-COLLECTION = "traces_json"
+mongo = MongoDBHandler(config.DB_CONFIG['uri'], config.DB_CONFIG['db_name'])
 
+TRACES_COLLECTION = config.DB_CONFIG['traces_collection']
+EVENTS_COLLECTION = config.DB_CONFIG['events_collection']
+BASE_DIR = config.DB_CONFIG['filestore_base_dir']
 
 @app.route('/', methods=['GET'])
 def home():
@@ -129,13 +132,13 @@ def get_stream():
 
     criteria_filter = construct_filter_criteria(start_time, end_time, network, station, channel)
 
-    result = mongo.db[COLLECTION].find(criteria_filter, {"_id": 0})
+    result = mongo.db[TRACES_COLLECTION].find(criteria_filter, {"_id": 0})
 
     # combine traces together
     resulted_stream = combine_json_to_stream_data(result)
 
-    start_time = UTCDateTime( request.args['starttime'] )
-    end_time   = UTCDateTime( request.args['endtime'] )
+    start_time = UTCDateTime(request.args['starttime'])
+    end_time = UTCDateTime(request.args['endtime'])
     resulted_stream.trim(start_time, end_time, pad=True, fill_value=0.0)
 
     final_output = construct_output(resulted_stream, output_format)
@@ -175,6 +178,80 @@ def construct_filter_criteria(start_time, end_time, network, station, channel):
 
     print("Filter:", filter)
     return filter
+
+
+def generate_filename_from_date(dt):
+    return dt.strftime("%Y%m%d_%H%M%S%f")
+
+
+def generate_filepath_from_date(dt):
+    return dt.strftime("/%Y/%m/%d/%H/")
+
+
+def create_filestore_directories(basedir, filepath):
+    events_dir = basedir + "events" + filepath
+    waveforms_dir = basedir + "waveforms" + filepath
+
+    # create directory in events if not exists
+    if not os.path.exists(events_dir):
+        os.makedirs(events_dir)
+    # create directory in events if not exists
+    if not os.path.exists(waveforms_dir):
+        os.makedirs(waveforms_dir)
+
+
+def construct_relative_files_paths(filepath, filename):
+    # events
+    event_filepath = "events" + filepath + filename + ".xml"
+    waveform_filepath = "waveforms" + filepath + filename + ".mseed"
+    waveform_context_filepath= "waveforms" + filepath + filename + ".mseed_context"
+    return event_filepath, waveform_filepath, waveform_context_filepath
+
+@app.route('/events/putEvent', methods=['POST'])
+def put_event():
+
+    request_starttime = time.time()
+
+    if request.method == 'POST':
+        # if request.is_json:
+        #     print(request.get_json())
+        if 'event' and 'waveform' and 'context' in request.get_json():
+            conversion_starttime = time.time()
+            event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
+            waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
+            waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])), format='MSEED')
+            conversion_endtime = time.time() - conversion_starttime
+            print("=======> Conversion took: ", "%.2f" % conversion_endtime, "seconds")
+        else:
+            raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context must be specified in request body",
+                               status_code=411)
+
+    ev_flat_dict = EventDB.flatten_event(Event(event))
+    print(ev_flat_dict)
+    filename = generate_filename_from_date(ev_flat_dict['time'])
+    filepath = generate_filepath_from_date(ev_flat_dict['time'])
+    print(filepath + filename)
+
+    event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(filepath, filename)
+
+    ev_flat_dict['event_filepath'] = event_filepath
+    ev_flat_dict['waveform_filepath'] = waveform_filepath
+    ev_flat_dict['waveform_context_filepath'] = waveform_context_filepath
+
+    # write files in filestore
+    event.write(BASE_DIR + event_filepath, format="QUAKEML")
+    waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
+    waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
+
+    inserted_event_id = mongo.db[EVENTS_COLLECTION].insert_one(ev_flat_dict).inserted_id
+
+    print("Event Insertes with ID:", inserted_event_id)
+
+    request_endtime = time.time() - request_starttime
+    print("=======> Request Done Successfully.",
+          "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+
+    return str(inserted_event_id)
 
 
 @app.errorhandler(404)
