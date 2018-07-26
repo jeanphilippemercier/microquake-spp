@@ -35,12 +35,15 @@ import logging
 logger = logging.getLogger()
 #logger.setLevel(logging.WARNING)
 #print(logger.level)
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 data_dir   = os.environ['SPP_DATA']
 config_dir = os.environ['SPP_CONFIG']
 
+from spp.utils.kafka import KafkaHandler
+from io import BytesIO
 def main():
+    '''
     # Big event
     x = 651298
     y = 4767394
@@ -49,6 +52,36 @@ def main():
     #origin.time = UTCDateTime( datetime(2018, 5, 23, 10, 51, 2, 213167) )
     make_event( np.array([x,y,z,timestamp]) )
     exit()
+    '''
+
+    import struct
+    import yaml
+    from microquake.core.util import serializer
+    from microquake.core import read
+
+    fname = os.path.join(config_dir, 'data_connector_config.yaml')
+
+    with open(fname, 'r') as cfg_file:
+        params = yaml.load(cfg_file)
+        params = params['data_connector']
+
+    # Create Kafka Object
+    kafka_brokers = params['kafka']['brokers']
+    kafka_topic = 'interloc' # PAF - needs to be made configurable
+
+    consumer = KafkaHandler.consume_from_topic(kafka_topic,kafka_brokers)
+
+    s = struct.Struct('d d d d d')
+    for message in consumer:
+        print("==================================================================")
+        print("Key:", message.key)
+        from_interloc = s.unpack(message.value)
+        print(from_interloc)
+        (intensity, x, y, z, t) = from_interloc
+        print("==================================================================")
+        make_event( np.array([x,y,z,t]) )
+    exit()
+
 
     # Small event
     #time = UTCDateTime( datetime(2018, 5, 23, 10, 51, 3, 765333) )
@@ -65,13 +98,16 @@ def make_event(xyzt_array):
     if xyzt_array.size != 4:
         logger.error('%s: expecting 4 inputs = {x, y, z, t}' % fname)
         exit(2)
+    print('%s: Got:%s' % (fname, xyzt_array))
+    print('%s: type xyzt_array[0]:%s' % (fname, type(xyzt_array[0])))
     origin = Origin()
     origin.time = UTCDateTime( xyzt_array[3])
     origin.x = xyzt_array[0]
     origin.y = xyzt_array[1]
     origin.z = xyzt_array[2]
-    #event = Event()
-    event = obsEvent()
+    print(origin)
+    event = Event()
+    #event = obsEvent()
     event.origins = [origin]
     # Don't use the method below - it bungles the pref id
     #event.preferred_origin_id = ResourceIdentifier(referred_object=origin)
@@ -81,8 +117,9 @@ def make_event(xyzt_array):
     print(event)
     print()
     print()
-    print(origin)
     origin.method = 'InterLoc Event'
+    print(origin)
+    exit()
     print('origins[0] id:%s' % event.origins[0].resource_id.id)
     print('pref_orig  id:%s' % event.preferred_origin().resource_id.id)
     print('pref_orig  id:%s' % event.preferred_origin().resource_id)
