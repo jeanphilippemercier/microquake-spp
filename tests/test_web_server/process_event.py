@@ -50,6 +50,14 @@ def main():
     y = 4767394
     z = -148
     timestamp = 1527072662.2131672
+
+    '''
+    x=651275.000000
+    y=4767395.000000
+    z=-175.000000
+    timestamp = 1527072662.2110002041
+    '''
+
     #origin.time = UTCDateTime( datetime(2018, 5, 23, 10, 51, 2, 213167) )
     make_event( np.array([x,y,z,timestamp,intensity]) )
     exit()
@@ -170,11 +178,14 @@ def make_event(xyzti_array):
     first_pick = sorted_p_picks[0]
     first_sta  = first_pick.waveform_id.station_code
 
+    first_sta = '32'
+
     starttime = origin.time - 10
     endtime   = origin.time + 10
     st_temp   = get_stream_from_mongo(starttime, endtime, sta=first_sta)
     st_new = Stream(st_temp).composite()
-    #st_new.plot()
+    st_new.plot()
+    #exit()
     #st_new.decimate(factor=10)
     #st_new.plot()
     st_new.write("event_context.mseed")
