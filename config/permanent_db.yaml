@@ -1,7 +1,9 @@
 db:
-  uri: mongodb://localhost:27017/
+  uri: mongodb://mongo-node-001:27017/
   db_name: seismic
   traces_collection: traces_json
   events_collection: events
+  events_inuse_collection: events_inuse
   filestore_base_dir: /Users/hanee/Rio_Tinto/data/
+  inuse_ttl: 300
   ##

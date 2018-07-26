@@ -23,7 +23,7 @@ config_dir = os.environ['SPP_CONFIG']
 url_base = 'http://localhost:5000/events/'
 
 
-def build_data():
+def build_event_data():
     # prepare event
     evt = read_events(config_dir + "/../data/" + 'event4.xml') #'2018-04-15_034422.xml')
     #cat = Catalog(events=[evt])
@@ -43,13 +43,19 @@ def build_data():
 
     #print(data)
     #print(json.dumps(data))
-    return json.dumps(data)
+    return json.dumps(data).encode("utf-8")
 
-def put_event():
-    method_url = "putEvent"
-    #req_data = urllib.parse.urlencode(build_data()).encode("utf-8")
-    req_data = build_data().encode("utf-8")
-    request = urllib_request.Request(url=url_base + method_url, data=req_data)
+
+def build_event_inuse_data():
+
+    data = {}
+    data['eventid'] = "5b59ec5da949fef9a73dff06"
+    data['userid'] = "5b59ec5da949fef9a73dff00"
+
+    return json.dumps(data).encode("utf-8")
+
+def post_data(method_url, request_data):
+    request = urllib_request.Request(url=url_base + method_url, data=request_data)
     #url_opener=set_opener(None, None)
     request.add_header("Content-Type", 'application/json')
     url_opener = urllib_request.build_opener()
@@ -62,4 +68,6 @@ def put_event():
 
 if __name__ == "__main__":
 
-    put_event()
+    #post_data("putEvent", build_event_data())
+
+    post_data("putEventInUse", build_event_inuse_data())
