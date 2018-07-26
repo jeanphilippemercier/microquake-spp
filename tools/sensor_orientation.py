@@ -192,7 +192,7 @@ def calculate_orientation_station(station, pick_dict, site):
         X = np.array([([x_x, y_x, z_x] ) for (x_x, y_x, z_x) in zip(Xx, Yx,
                                                                     Zx)])
         z = zorientation
-        Y = np.array([np.cross(x, z) for x in X])
+        Y = - np.array([np.cross(x, z) for x in X])
 
         # reload(eik)
         #

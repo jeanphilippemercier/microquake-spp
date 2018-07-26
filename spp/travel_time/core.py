@@ -3,7 +3,11 @@ from IPython.core.debugger import Tracer
 
 from microquake.core.data.grid import read_grid
 from microquake.core import read_stations
+<<<<<<< Updated upstream
 from obspy.core import AttribDict
+=======
+
+>>>>>>> Stashed changes
 
 def init_travel_time():
     """
@@ -73,7 +77,7 @@ def init_travel_time():
     return 1
 
 
-def __get_grid_value_single_station(station_phase, location, use_eikonal=True):
+def __get_grid_value_single_station(station_phase, location, use_eikonal=False):
     """
     Get interpolated grid values for a single station and phase
     :param station_phase: a tuple containing the station id and the phase
@@ -82,6 +86,7 @@ def __get_grid_value_single_station(station_phase, location, use_eikonal=True):
     """
 
     import os
+    from spp.utils import get_stations
     common_dir = os.environ['SPP_COMMON']
 
     station = station_phase[0]
@@ -100,7 +105,7 @@ def __get_grid_value_single_station(station_phase, location, use_eikonal=True):
     return tt
 
 
-def get_travel_time_grid(station, location, phase, use_eikonal=True):
+def get_travel_time_grid_point(station, location, phase, use_eikonal=False):
     """
     get the travel time
     :param stations: list of stations
@@ -127,6 +132,21 @@ def get_travel_time_grid(station, location, phase, use_eikonal=True):
 
 
     return tt[0]
+
+
+def get_travel_time_grid(station, phase):
+
+    import os
+    from spp.utils import get_stations
+    common_dir = os.environ['SPP_COMMON']
+
+    site = get_stations()
+    station = site.select(station=station)[0]
+    f_tt = os.path.join(common_dir, 'NLL/time', 'OT.%s.%s.time.buf' % (phase.upper(), station))
+    tt_grid = read_grid(f_tt, format='NLLOC')
+    tt_grid.seed = station.loc
+
+    return tt_grid
 
 
 def create_event(stream, event_location):
@@ -171,7 +191,11 @@ def create_event(stream, event_location):
     for phase in ["p", "s"]:
         for trace in stream.composite():
             station = trace.stats.station
+<<<<<<< Updated upstream
             tt = get_travel_time_grid(station, event_location, phase=phase, use_eikonal=False)
+=======
+            tt = get_travel_time_grid_point(station, event_location, phase=phase)
+>>>>>>> Stashed changes
             trace.stats.starttime = trace.stats.starttime - tt
             data = trace.data
             data /= np.max(np.abs(data))
@@ -231,8 +255,12 @@ def create_event(stream, event_location):
     for phase in ['p', 's']:
         for station in stations:
             pk = Pick()
+<<<<<<< Updated upstream
             tt = get_travel_time_grid(station, event_location, phase=phase, use_eikonal=False)
             #tt = get_travel_time_grid(station, event_location, phase=phase)
+=======
+            tt = get_travel_time_grid_point(station, event_location, phase=phase)
+>>>>>>> Stashed changes
             pk.phase_hint = phase.upper()
             pk.time = origin_time + tt
             pk.evaluation_mode = "automatic"
