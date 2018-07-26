@@ -20,6 +20,7 @@ from web_client import get_stream_from_mongo
 #from microquake.realtime.signal import kurtosis
 # Don't use!
 #from microquake.core import read_events
+from microquake.core import read_events as micro_read_events
 from obspy.core.event import read_events
 # MTH: the diff is if you use obspy read_events, then you need to drill down to get
 #      to the extra[] dict values, e.g.:
@@ -41,13 +42,16 @@ data_dir   = os.environ['SPP_DATA']
 config_dir = os.environ['SPP_CONFIG']
 
 def main():
+
+    intensity = 1.0
+
     # Big event
     x = 651298
     y = 4767394
     z = -148
     timestamp = 1527072662.2131672
     #origin.time = UTCDateTime( datetime(2018, 5, 23, 10, 51, 2, 213167) )
-    make_event( np.array([x,y,z,timestamp]) )
+    make_event( np.array([x,y,z,timestamp,intensity]) )
     exit()
 
     # Small event
@@ -56,22 +60,26 @@ def main():
     y = 4767400
     z = -200
     timestamp = 1527072663.765333
-    make_event( np.array([x,y,z,timestamp]) )
+    make_event( np.array([x,y,z,timestamp,intensity]) )
 
-def make_event(xyzt_array):
-    plot_profiles = 0
+def make_event(xyzti_array):
+#MTH: You have to have these 2 set to get pretty print output of Origin:  -->
+        #<evaluationMode>manual</evaluationMode>
+        #<evaluationStatus>reviewed</evaluationStatus>
+
+    plot_profiles = 1
 
     fname = 'make_event'
-    if xyzt_array.size != 4:
-        logger.error('%s: expecting 4 inputs = {x, y, z, t}' % fname)
+    if xyzti_array.size != 5:
+        logger.error('%s: expecting 5 inputs = {x, y, z, t, intensity}' % fname)
         exit(2)
     origin = Origin()
-    origin.time = UTCDateTime( xyzt_array[3])
-    origin.x = xyzt_array[0]
-    origin.y = xyzt_array[1]
-    origin.z = xyzt_array[2]
-    #event = Event()
-    event = obsEvent()
+    origin.time = UTCDateTime( xyzti_array[3])
+    origin.x = xyzti_array[0]
+    origin.y = xyzti_array[1]
+    origin.z = xyzti_array[2]
+    event = Event()
+    #event = obsEvent()
     event.origins = [origin]
     # Don't use the method below - it bungles the pref id
     #event.preferred_origin_id = ResourceIdentifier(referred_object=origin)
@@ -79,27 +87,15 @@ def make_event(xyzt_array):
     event.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id)
     #event.preferred_origin_id = origin.resource_id
     print(event)
-    print()
-    print()
-    print(origin)
     origin.method = 'InterLoc Event'
-    print('origins[0] id:%s' % event.origins[0].resource_id.id)
-    print('pref_orig  id:%s' % event.preferred_origin().resource_id.id)
-    print('pref_orig  id:%s' % event.preferred_origin().resource_id)
-    print('pref_orig  id:%s' % event.preferred_origin_id)
+    print(origin)
     event.write('event.xml', format='quakeml')
     event_read = read_events('event.xml', format='QUAKEML')[0]
     print('read pref  id:%s' % event_read.preferred_origin_id)
-    print('pref_orig  id:%s' % event.preferred_origin_id)
-    print('type:%s' % type(event.preferred_origin_id))
 
     starttime = origin.time - 0.1
     endtime   = origin.time + 0.9
     st1 = get_stream_from_mongo(starttime, endtime)
-
-    #starttime = origin.time - 10
-    #endtime   = origin.time + 10
-    #st = get_stream_from_mongo(starttime, endtime, chan=chan)
 
     for tr in st1:
         print('id:%s \t %s - %s' % (tr.get_id(), tr.stats.starttime, tr.stats.endtime))
@@ -168,12 +164,28 @@ def make_event(xyzt_array):
         #print(foo_picks[station]['S'].pick)
         #plot_channels_with_picks(st, station, picks=new_picks, title=title)
 
+ # Make the context mseed
+    sorted_p_picks = sorted([pick for pick in cleaned_picks if pick.phase_hint == 'P'], key=lambda x: x.time)
+    first_pick = sorted_p_picks[0]
+    first_sta  = first_pick.waveform_id.station_code
+
+    starttime = origin.time - 10
+    endtime   = origin.time + 10
+    st_temp   = get_stream_from_mongo(starttime, endtime, sta=first_sta)
+    st_new = Stream(st_temp).composite()
+    #st_new.plot()
+    #st_new.decimate(factor=10)
+    #st_new.plot()
+    st_new.write("event_context.mseed")
+
     plot_profile_with_picks(st, picks=cleaned_picks, origin=origin, title='[Cleaned SNR picks] f:80-600Hz')
 
     event.picks += copy.deepcopy(cleaned_picks)
     event.origins[1].arrivals = picks_to_arrivals(cleaned_picks) 
     event.preferred_origin_id = event.origins[1].resource_id
     event.write('event3.xml', format='quakeml')
+
+    exit()
 
     #########
 
