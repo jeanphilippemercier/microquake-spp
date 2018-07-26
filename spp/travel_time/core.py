@@ -3,11 +3,6 @@ from IPython.core.debugger import Tracer
 
 from microquake.core.data.grid import read_grid
 from microquake.core import read_stations
-<<<<<<< Updated upstream
-from obspy.core import AttribDict
-=======
-
->>>>>>> Stashed changes
 
 def init_travel_time():
     """
@@ -191,11 +186,7 @@ def create_event(stream, event_location):
     for phase in ["p", "s"]:
         for trace in stream.composite():
             station = trace.stats.station
-<<<<<<< Updated upstream
-            tt = get_travel_time_grid(station, event_location, phase=phase, use_eikonal=False)
-=======
             tt = get_travel_time_grid_point(station, event_location, phase=phase)
->>>>>>> Stashed changes
             trace.stats.starttime = trace.stats.starttime - tt
             data = trace.data
             data /= np.max(np.abs(data))
@@ -255,12 +246,7 @@ def create_event(stream, event_location):
     for phase in ['p', 's']:
         for station in stations:
             pk = Pick()
-<<<<<<< Updated upstream
-            tt = get_travel_time_grid(station, event_location, phase=phase, use_eikonal=False)
-            #tt = get_travel_time_grid(station, event_location, phase=phase)
-=======
             tt = get_travel_time_grid_point(station, event_location, phase=phase)
->>>>>>> Stashed changes
             pk.phase_hint = phase.upper()
             pk.time = origin_time + tt
             pk.evaluation_mode = "automatic"
