@@ -68,6 +68,6 @@ def post_data(method_url, request_data):
 
 if __name__ == "__main__":
 
-    #post_data("putEvent", build_event_data())
+    post_data("putEvent", build_event_data())
 
-    post_data("putEventInUse", build_event_inuse_data())
+    #post_data("putEventInUse", build_event_inuse_data())

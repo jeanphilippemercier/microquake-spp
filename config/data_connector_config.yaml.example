@@ -1,0 +1,58 @@
+
+data_connector:
+  minimum_time_offset: 120          # minimum time offset from the time of the
+                                    # request in seconds
+  period: 30                       # frequency between each run in seconds
+  window_length: 1                # length of chunk of data in seconds
+  overlap: 0.1                     # overlap between the windows in seconds
+  max_window_length: 90             # maximum length of data to request in
+                                    # seconds
+  realtime: True                   # if False playback data
+
+  playback:
+    starttime: 2018/07/7 17:10:0      # starttime for playback
+    endtime: 2018/7/7 22:10:0         # endtime for playback (can be omitted)
+
+  data_source:                      # describes the data source and base url
+                                    # or path to the data
+    type: local
+    location: /mnt/seismic_shared_storage/continuous_data/
+    #type: remote
+    #location: http://10.95.64.12:8002/ims-database-server/databases/mgl
+
+  data_destination:
+    # type: [local, Mongo]
+    # location: /Users/jpmercier/data_100ms/ #
+    type: local
+    location: /Volumes/Aegis DT/
+#    /Users/hanee/Rio_Tinto/sample_data_out
+#    type: Kafka
+
+
+  filter:                           # filter to apply to the data. These value are the argument to pass to the Obspy
+                                    # filter function "Stream.filter"
+    type: highpass
+    freq: 60                        # frequency
+
+  taper:                            # argument of Obspy Trace.taper function
+    type: cosine                    # tapering function to apply
+    max_length: 0.01                # window length ideally this value should be significantly smaller than overlap
+
+  multiprocessing:                  # options related to multiprocessing
+    workers: 4                      # number of workers
+
+  kafka:
+    brokers: "kafka-node-001:9092,kafka-node-002:9092,kafka-node-003:9092"
+    topic: mseed_samples_6
+    threads: 3
+
+  mongo:
+    uri: mongodb://localhost:27017/
+    db_name: test_continuous
+
+  airflow:
+    description: Data Loader
+    catchup: False
+
+
+

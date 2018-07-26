@@ -217,6 +217,8 @@ def put_event():
     filepath = generate_filepath_from_date(ev_flat_dict['time'])
     print(filepath + filename)
 
+    create_filestore_directories(BASE_DIR, filepath)
+
     event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(filepath, filename)
 
     ev_flat_dict['filename'] = filename
