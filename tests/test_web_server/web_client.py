@@ -11,10 +11,23 @@ handlers = []
 url_opener = None
 
 url_base = 'http://40.76.192.141:5000/getStream'
-def get_url(starttime=None, endtime=None):
+def get_url(starttime=None, endtime=None, **kwargs):
+    # start/end are required
     start_time = str(starttime)
     end_time   = str(endtime)
     url = '%s?starttime=%s&endtime=%s' % (url_base, start_time, end_time)
+    #MTH: the params are all expected to be strings without quotation
+    if 'net' in kwargs:
+        url += '&net=%s' % kwargs['net']
+    if 'sta' in kwargs:
+        #url += '&sta=\"%s\"' % kwargs['sta']
+        url += '&sta=%s' % kwargs['sta']
+    if 'cha' in kwargs:
+        url += '&cha=%s' % kwargs['cha']
+        #url += '&cha=\"%s\"' % kwargs['cha']
+    print('get_url: [%s]' % url)
+    #exit()
+
     return(url)
 
 
@@ -52,14 +65,13 @@ def get_stream(url):
     data_stream.close()
     return(st)
 
-def get_stream_from_mongo(starttime, endtime):
+def get_stream_from_mongo(starttime, endtime, **kwargs):
 #starttime='2018-05-23T10:51:02.000'
 #endtime  ='2018-05-23T10:51:03.000'
 #starttime='2018-05-23T10:51:03.7'
 #endtime  ='2018-05-23T10:51:04.7'
     
-
-    url = get_url(starttime, endtime)
+    url = get_url(starttime, endtime, **kwargs)
     st = get_stream(url)
     return(st)
 
