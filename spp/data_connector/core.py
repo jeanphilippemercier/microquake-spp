@@ -347,7 +347,7 @@ def write_to_mongo(stream_object, uri='mongodb://localhost:27017/',
                     write_to_local(stream_object, location)
                 if destination.lower() == 'kafka':
                     brokers=params['kafka']['brokers']
-                    kafka_topic=params['kafka']['kafka_topic']
+                    kafka_topic=params['kafka']['topic']
                     write_to_kafka(stream_object, brokers, kafka_topic)
                 if destination.lower() == 'mongo':
                     uri = params['mongo']['uri']
@@ -364,7 +364,7 @@ def write_to_mongo(stream_object, uri='mongodb://localhost:27017/',
 
             elif destination == "kafka":
                 brokers=params['kafka']['brokers']
-                kafka_topic=params['kafka']['kafka_topic']
+                kafka_topic=params['kafka']['topic']
                 write_to_kafka(stream_object, brokers, kafka_topic)
 
             elif destination == "mongo":
@@ -735,7 +735,7 @@ def write_data(stream_object):
 
         elif destination == "kafka":
             brokers=params['kafka']['brokers']
-            kafka_topic=params['kafka']['kafka_topic']
+            kafka_topic=params['kafka']['topic']
             write_to_kafka(stream_object, brokers, kafka_topic)
 
         elif destination == "mongo":
@@ -763,11 +763,16 @@ def load_data():
 
     elif params['data_source']['type'] == 'local':
         location = params['data_source']['location']
+        if os.path.isfile(location):
+            print("==> Processing single file %s" % location)
+            st = get_continuous_local(location, file_name=location)
+            write_data(st)
+            return
         period = params['period']
         window_length = params['window_length']
-
         start_time_full = time.time()
 
+        # simulator that returns random files
         for i in np.arange(0, period, window_length):
             print("==> Processing (", i, " from", period, ")")
             start_time_load = time.time()
