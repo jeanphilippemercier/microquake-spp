@@ -67,7 +67,7 @@ def make_event(xyzti_array):
         #<evaluationMode>manual</evaluationMode>
         #<evaluationStatus>reviewed</evaluationStatus>
 
-    plot_profiles = 1
+    plot_profiles = 0
 
     fname = 'make_event'
     if xyzti_array.size != 5:
@@ -121,6 +121,7 @@ def make_event(xyzti_array):
     event.origins.append(origin2)
     event.picks = event2.picks
     event.write('event2.xml', format='quakeml')
+
 
     # prelim_picks = predicted for specified location + calculated origin_time
     prelim_picks = event2.picks
@@ -185,7 +186,23 @@ def make_event(xyzti_array):
     event.preferred_origin_id = event.origins[1].resource_id
     event.write('event3.xml', format='quakeml')
 
+    '''
+    from microquake.waveform.mag import moment_magnitude
+    from spp.utils import get_stations
+    site = get_stations()
+    print('Before: pref mag:%s' % event.preferred_magnitude_id)
+    print('Here comes site:')
+    print(site)
+    for sta in site.stations():
+        print(sta)
+    event_mag = moment_magnitude(st, event, site, vp=5200, vs=5200/np.sqrt(3))
+    print('Here comes mag:')
+    print(event_mag)
+    for mag in event_mag.magnitudes:
+        print(mag)
+
     exit()
+    '''
 
     #########
 
