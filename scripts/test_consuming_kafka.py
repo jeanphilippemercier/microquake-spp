@@ -13,11 +13,11 @@ if __name__ == "__main__":
     config_dir = os.environ['SPP_CONFIG']
     #common_dir = os.environ['SPP_COMMON']
 
-    fname = os.path.join(config_dir, 'ims_connector_config.yaml')
+    fname = os.path.join(config_dir, 'data_connector_config.yaml')
 
     with open(fname, 'r') as cfg_file:
         params = yaml.load(cfg_file)
-        params = params['ims_connector']
+        params = params['data_connector']
 
     # Create Kafka Object
     kafka_brokers = params['kafka']['brokers']
