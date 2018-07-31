@@ -14,7 +14,8 @@ import base64
 from spp.utils.config import Configuration
 from bson.objectid import ObjectId
 import json
-
+import zipfile
+import tarfile
 
 app = Flask(__name__)
 
@@ -28,6 +29,12 @@ EVENTS_COLLECTION = config.DB_CONFIG['events_collection']
 EVENTS_INUSE_COLLECTION = config.DB_CONFIG['events_inuse_collection']
 INUSE_TTL = int(config.DB_CONFIG['inuse_ttl'])
 BASE_DIR = config.DB_CONFIG['filestore_base_dir']
+
+OUTPUT_TYPES = {'MSEED': ".mseed",
+                'MSEED_CONTEXT': ".mseed_context",
+                'QUAKEML': ".xml",
+                'ALL': '.zip'}
+
 
 @app.route('/', methods=['GET'])
 def home():
@@ -192,9 +199,6 @@ def construct_relative_files_paths(filepath, filename):
     return event_filepath, waveform_filepath, waveform_context_filepath
 
 
-
-
-
 @app.route('/events/putEvent', methods=['POST'])
 def put_event():
 
@@ -269,6 +273,17 @@ def construct_event_output(event_data, requested_format):
         output = read_and_write_file_as_bytes(event_data['waveform_filepath'], requested_format)
     elif requested_format == "MSEED_CONTEXT":
         output = read_and_write_file_as_bytes(event_data['waveform_context_filepath'], requested_format)
+    elif requested_format == "ALL":
+        tar_file_bytes = BytesIO()
+        #with zipfile.ZipFile(zip_file_bytes, 'w') as myzip:
+        with tarfile.open(fileobj=tar_file_bytes, mode='w:gz') as mytar:
+            for out_type in OUTPUT_TYPES.keys():
+                if out_type != 'ALL':
+                    file = construct_event_output(event_data, out_type)
+                    fname = event_data['filename'] + OUTPUT_TYPES[out_type]
+                    mytar.addfile(tarfile.TarInfo(fname), file.getvalue())
+        mytar.close()
+        output = tar_file_bytes
 
     output_size = sys.getsizeof(output.getvalue())
     output.seek(0)
@@ -282,11 +297,6 @@ def get_event():
 
     request_starttime = time.time()
 
-    output_types = {'MSEED': ".mseed",
-                    'MSEED_CONTEXT': ".mseed",
-                    'QUAKEML': ".xml",
-                    'ALL': '.gzip'}
-
     # Check Date Ranges
     if 'eventid' in request.args:
         print('get_Event: eventid:%s' % request.args['eventid'])
@@ -297,11 +307,11 @@ def get_event():
                            status_code=411)
 
     if 'output' in request.args:
-        if request.args['output'] in output_types.keys():
+        if request.args['output'] in OUTPUT_TYPES.keys():
             output_format = request.args['output']
         else:
             raise InvalidUsage("Invalid output option, should be one of these:" +
-                               "MSEED, MSEED_CONTEXT, QUAKEML",
+                               "MSEED, MSEED_CONTEXT, QUAKEML or ALL",
                                status_code=411)
     else:
         output_format = "ALL"
@@ -313,8 +323,9 @@ def get_event():
     if event_result.count() == 1:
 
         output_file = construct_event_output(event_result[0], output_format)
+
         # construct downloaded filename
-        output_filename = event_result[0]['filename'] + output_types[output_format]
+        output_filename = event_result[0]['filename'] + OUTPUT_TYPES[output_format]
 
         request_endtime = time.time() - request_starttime
         print("=======> Request Done Successfully.",
