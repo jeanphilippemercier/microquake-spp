@@ -12,7 +12,7 @@ from obspy.core.utcdatetime import UTCDateTime
 from microquake.core.stream import Trace, Stream
 #from obspy.core.stream import Stream
 #from microquake.waveform.pick import SNR_picker, calculate_snr
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import copy
 #from lib.waveform import WaveformPlotting as wp
 

@@ -36,15 +36,16 @@ import logging
 logger = logging.getLogger()
 #logger.setLevel(logging.WARNING)
 #print(logger.level)
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 data_dir   = os.environ['SPP_DATA']
 config_dir = os.environ['SPP_CONFIG']
 
+from spp.utils.kafka import KafkaHandler
+from io import BytesIO
 def main():
-
+    '''
     intensity = 1.0
-
     # Big event
     x = 651298
     y = 4767394
@@ -61,6 +62,46 @@ def main():
     #origin.time = UTCDateTime( datetime(2018, 5, 23, 10, 51, 2, 213167) )
     make_event( np.array([x,y,z,timestamp,intensity]) )
     exit()
+    '''
+
+    import struct
+    import yaml
+    from microquake.core.util import serializer
+    from microquake.core import read
+
+    fname = os.path.join(config_dir, 'data_connector_config.yaml')
+
+    with open(fname, 'r') as cfg_file:
+        params = yaml.load(cfg_file)
+        params = params['data_connector']
+
+    # Create Kafka Object
+    kafka_brokers = params['kafka']['brokers']
+    kafka_topic = 'interloc' # PAF - needs to be made configurable
+
+    consumer = KafkaHandler.consume_from_topic(kafka_topic,kafka_brokers)
+
+    t=1527072662.2110002041
+    x=651275.000000
+    y=4767395.000000
+    z=-175.000000
+
+    s = struct.Struct('d d d d d')
+    for message in consumer:
+        print("==================================================================")
+        print("Key:", message.key)
+        from_interloc = s.unpack(message.value)
+        print(from_interloc)
+        (intensity, x, y, z, t) = from_interloc
+        print('got t=',t)
+        print('%15.10f' % t)
+        print('x=%f' % x)
+        print('y=%f' % y)
+        print('z=%f' % z)
+        print("==================================================================")
+        make_event( np.array([x,y,z,t]) )
+    exit()
+
 
     # Small event
     #time = UTCDateTime( datetime(2018, 5, 23, 10, 51, 3, 765333) )
@@ -70,7 +111,7 @@ def main():
     timestamp = 1527072663.765333
     make_event( np.array([x,y,z,timestamp,intensity]) )
 
-def make_event(xyzti_array):
+def make_event(xyzt_array):
 #MTH: You have to have these 2 set to get pretty print output of Origin:  -->
         #<evaluationMode>manual</evaluationMode>
         #<evaluationStatus>reviewed</evaluationStatus>
@@ -78,14 +119,18 @@ def make_event(xyzti_array):
     plot_profiles = 0
 
     fname = 'make_event'
-    if xyzti_array.size != 5:
-        logger.error('%s: expecting 5 inputs = {x, y, z, t, intensity}' % fname)
+    if xyzt_array.size != 4:
+        logger.error('%s: expecting 4 inputs = {x, y, z, t}' % fname)
+        #logger.error('%s: expecting 5 inputs = {x, y, z, t, intensity}' % fname)
         exit(2)
+    print('%s: Got:%s' % (fname, xyzt_array))
+    print('%s: type xyzt_array[0]:%s' % (fname, type(xyzt_array[0])))
     origin = Origin()
-    origin.time = UTCDateTime( xyzti_array[3])
-    origin.x = xyzti_array[0]
-    origin.y = xyzti_array[1]
-    origin.z = xyzti_array[2]
+    origin.time = UTCDateTime( xyzt_array[3])
+    origin.x = xyzt_array[0]
+    origin.y = xyzt_array[1]
+    origin.z = xyzt_array[2]
+    print(origin)
     event = Event()
     #event = obsEvent()
     event.origins = [origin]
@@ -95,6 +140,8 @@ def make_event(xyzti_array):
     event.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id)
     #event.preferred_origin_id = origin.resource_id
     print(event)
+    print()
+    print()
     origin.method = 'InterLoc Event'
     print(origin)
     event.write('event.xml', format='quakeml')
@@ -177,12 +224,18 @@ def make_event(xyzti_array):
     sorted_p_picks = sorted([pick for pick in cleaned_picks if pick.phase_hint == 'P'], key=lambda x: x.time)
     first_pick = sorted_p_picks[0]
     first_sta  = first_pick.waveform_id.station_code
+#MTH: hard-coding for test only.  Issue is that interLoc locn causes sta=89 to be chosen first and
+#  it has issues on the server
+    first_sta  = '32'
+    
 
     first_sta = '32'
 
     starttime = origin.time - 10
     endtime   = origin.time + 10
+    print('main: Get context mseed')
     st_temp   = get_stream_from_mongo(starttime, endtime, sta=first_sta)
+    print('main: Get context mseed DONE')
     st_new = Stream(st_temp).composite()
     st_new.plot()
     #exit()
@@ -190,7 +243,7 @@ def make_event(xyzti_array):
     #st_new.plot()
     st_new.write("event_context.mseed")
 
-    plot_profile_with_picks(st, picks=cleaned_picks, origin=origin, title='[Cleaned SNR picks] f:80-600Hz')
+    #plot_profile_with_picks(st, picks=cleaned_picks, origin=origin, title='[Cleaned SNR picks] f:80-600Hz')
 
     event.picks += copy.deepcopy(cleaned_picks)
     event.origins[1].arrivals = picks_to_arrivals(cleaned_picks) 
