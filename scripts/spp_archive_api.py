@@ -16,8 +16,12 @@ from bson.objectid import ObjectId
 import json
 import zipfile
 import tarfile
+from spp.utils import logger
+import datetime
 
 app = Flask(__name__)
+
+log = logger.get_logger("SPP API", 'spp_api.log')
 
 # load configuration file
 config = Configuration()
@@ -107,7 +111,7 @@ def get_stream():
     else:
         raise InvalidUsage("date-range-options must be specified like:" +
                            "(starttime=<time>) & ([endtime=<time>] | [duration=<seconds>])",
-                           status_code=411)
+                           status_code=400)
 
     # Other Optional
     if 'net' in request.args:
@@ -125,26 +129,33 @@ def get_stream():
         else:
             raise InvalidUsage("Invalid output option, should be one of these:" +
                                "MSEED, PLOT, BINARY",
-                               status_code=411)
+                               status_code=400)
 
     criteria_filter = construct_filter_criteria(start_time, end_time, network, station, channel)
 
     result = mongo.db[TRACES_COLLECTION].find(criteria_filter, {"_id": 0})
 
-    # combine traces together
-    resulted_stream = combine_json_to_stream_data(result)
+    if result.count() >= 1:
+        # combine traces together
+        resulted_stream = combine_json_to_stream_data(result)
 
-    start_time = UTCDateTime(request.args['starttime'])
-    end_time = UTCDateTime(request.args['endtime'])
-    resulted_stream.trim(start_time, end_time, pad=True, fill_value=0.0)
+        start_time = UTCDateTime(request.args['starttime'])
+        end_time = UTCDateTime(request.args['endtime'])
+        resulted_stream.trim(start_time, end_time, pad=True, fill_value=0.0)
 
-    final_output = construct_output(resulted_stream, output_format)
+        final_output = construct_output(resulted_stream, output_format)
 
-    request_endtime = time.time() - request_starttime
-    print("=======> Request Done Successfully.",
-          "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+        request_endtime = time.time() - request_starttime
+        print("=======> Request Done Successfully.",
+              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
 
-    return send_file(final_output, attachment_filename="testing.mseed", as_attachment=True)
+        return send_file(final_output, attachment_filename="testing.mseed", as_attachment=True)
+    else:
+        request_endtime = time.time() - request_starttime
+        print("=======> Request Done Successfully but with no data found.",
+              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+
+        raise InvalidUsage("No data found", status_code=200)
 
 
 def construct_filter_criteria(start_time, end_time, network, station, channel):
@@ -172,31 +183,64 @@ def construct_filter_criteria(start_time, end_time, network, station, channel):
 
 
 def generate_filename_from_date(dt):
-    return dt.strftime("%Y%m%d_%H%M%S%f")
+    return datetime.datetime.utcfromtimestamp(dt / 1e9).strftime("%Y%m%d_%H%M%S%f")
 
 
 def generate_filepath_from_date(dt):
-    return dt.strftime("/%Y/%m/%d/%H/")
+    return datetime.datetime.utcfromtimestamp(dt / 1e9).strftime("/%Y/%m/%d/%H/")
+
+
+
+# def create_filestore_directories(basedir, filepath):
+#     events_dir = basedir + "events" + filepath
+#     waveforms_dir = basedir + "waveforms" + filepath
+#
+#     # create directory in events if not exists
+#     if not os.path.exists(events_dir):
+#         os.makedirs(events_dir)
+#     # create directory in events if not exists
+#     if not os.path.exists(waveforms_dir):
+#         os.makedirs(waveforms_dir)
+
+
+# def construct_relative_files_paths(filepath, filename):
+#     # events
+#     event_filepath = "events" + filepath + filename + ".xml"
+#     waveform_filepath = "waveforms" + filepath + filename + ".mseed"
+#     waveform_context_filepath= "waveforms" + filepath + filename + ".mseed_context"
+#     return event_filepath, waveform_filepath, waveform_context_filepath
 
 
 def create_filestore_directories(basedir, filepath):
-    events_dir = basedir + "events" + filepath
-    waveforms_dir = basedir + "waveforms" + filepath
+    store_dir = basedir + filepath
 
-    # create directory in events if not exists
-    if not os.path.exists(events_dir):
-        os.makedirs(events_dir)
-    # create directory in events if not exists
-    if not os.path.exists(waveforms_dir):
-        os.makedirs(waveforms_dir)
+    # create directory if not exists
+    if not os.path.exists(store_dir):
+        os.makedirs(store_dir)
 
 
 def construct_relative_files_paths(filepath, filename):
     # events
-    event_filepath = "events" + filepath + filename + ".xml"
-    waveform_filepath = "waveforms" + filepath + filename + ".mseed"
-    waveform_context_filepath= "waveforms" + filepath + filename + ".mseed_context"
+    event_filepath = filepath + filename + ".xml"
+    waveform_filepath = filepath + filename + ".mseed"
+    waveform_context_filepath= filepath + filename + ".mseed_context"
     return event_filepath, waveform_filepath, waveform_context_filepath
+
+
+def check_event_existance(event_time_epoch):
+    filter = {
+        'time': {
+            '$gte': event_time_epoch - 1e8,
+            '$lte': event_time_epoch + 1e8
+        }
+    }
+
+    result = mongo.db[EVENTS_COLLECTION].find(filter)
+
+    if result.count() >= 1:
+        return str(result[0]["_id"])
+    else:
+        return None
 
 
 @app.route('/events/putEvent', methods=['POST'])
@@ -213,37 +257,46 @@ def put_event():
         print("=======> Conversion took: ", "%.2f" % conversion_endtime, "seconds")
     else:
         raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context must be specified in request body",
-                           status_code=411)
+                           status_code=400)
 
     ev_flat_dict = EventDB.flatten_event(Event(event))
     print(ev_flat_dict)
-    filename = generate_filename_from_date(ev_flat_dict['time'])
-    filepath = generate_filepath_from_date(ev_flat_dict['time'])
-    print(filepath + filename)
 
-    create_filestore_directories(BASE_DIR, filepath)
+    existed_event_id = check_event_existance(ev_flat_dict['time'])
 
-    event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(filepath, filename)
+    if existed_event_id:
+        raise InvalidUsage("Event already exists with ID " + existed_event_id,
+                           status_code=200)
+    else:
+        filename = generate_filename_from_date(ev_flat_dict['time'])
+        filepath = generate_filepath_from_date(ev_flat_dict['time'])
+        print(filepath + filename)
 
-    ev_flat_dict['filename'] = filename
-    ev_flat_dict['event_filepath'] = event_filepath
-    ev_flat_dict['waveform_filepath'] = waveform_filepath
-    ev_flat_dict['waveform_context_filepath'] = waveform_context_filepath
+        create_filestore_directories(BASE_DIR, filepath)
 
-    # write files in filestore
-    event.write(BASE_DIR + event_filepath, format="QUAKEML")
-    waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
-    waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
+        event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(filepath, filename)
 
-    inserted_event_id = mongo.db[EVENTS_COLLECTION].insert_one(ev_flat_dict).inserted_id
+        ev_flat_dict['filename'] = filename
+        ev_flat_dict['event_filepath'] = event_filepath
+        ev_flat_dict['waveform_filepath'] = waveform_filepath
+        ev_flat_dict['waveform_context_filepath'] = waveform_context_filepath
+        ev_flat_dict['insertion_time'] = int(datetime.datetime.utcnow().timestamp() * 1e9)
+        ev_flat_dict['modification_time'] = 0
 
-    print("Event Insertes with ID:", inserted_event_id)
+        # write files in filestore
+        event.write(BASE_DIR + event_filepath, format="QUAKEML")
+        waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
+        waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
 
-    request_endtime = time.time() - request_starttime
-    print("=======> Request Done Successfully.",
-          "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+        inserted_event_id = mongo.db[EVENTS_COLLECTION].insert_one(ev_flat_dict).inserted_id
 
-    return str(inserted_event_id)
+        print("Event Inserted with ID:", inserted_event_id)
+
+        request_endtime = time.time() - request_starttime
+        print("=======> Request Done Successfully.",
+              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+
+        return str(inserted_event_id)
 
 
 def read_and_write_file_as_bytes(relative_filepath, format):
@@ -304,7 +357,7 @@ def get_event():
     else:
         raise InvalidUsage("Event ID must be specified like:" +
                            "eventid=<ID>",
-                           status_code=411)
+                           status_code=400)
 
     if 'output' in request.args:
         if request.args['output'] in OUTPUT_TYPES.keys():
@@ -312,7 +365,7 @@ def get_event():
         else:
             raise InvalidUsage("Invalid output option, should be one of these:" +
                                "MSEED, MSEED_CONTEXT, QUAKEML or ALL",
-                               status_code=411)
+                               status_code=400)
     else:
         output_format = "ALL"
 
@@ -328,13 +381,62 @@ def get_event():
         output_filename = event_result[0]['filename'] + OUTPUT_TYPES[output_format]
 
         request_endtime = time.time() - request_starttime
-        print("=======> Request Done Successfully.",
-              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+        log.info("=======> Request Done Successfully." +
+              "Total API Request took: " + "%.2f" % request_endtime + "seconds")
 
         return send_file(output_file, attachment_filename=output_filename, as_attachment=True)
 
     else:
-        return json.dumps({})
+        raise InvalidUsage("No data found", status_code=200)
+
+
+
+@app.route('/events/updateEvent', methods=['POST'])
+def update_event():
+
+    request_starttime = time.time()
+
+    if 'event_id' and ('event' or 'waveform' or 'context') in request.get_json():
+        conversion_starttime = time.time()
+        event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
+        waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
+        waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])), format='MSEED')
+        conversion_endtime = time.time() - conversion_starttime
+        print("=======> Conversion took: ", "%.2f" % conversion_endtime, "seconds")
+    else:
+        raise InvalidUsage("Wrong data sent..!! Event ID must be specified and one of " +
+                           "(Event, Waveform or Context) must be specified in request body",
+                           status_code=400)
+
+    ev_flat_dict = EventDB.flatten_event(Event(event))
+    print(ev_flat_dict)
+    filename = generate_filename_from_date(ev_flat_dict['time'])
+    filepath = generate_filepath_from_date(ev_flat_dict['time'])
+    print(filepath + filename)
+
+    create_filestore_directories(BASE_DIR, filepath)
+
+    event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(filepath, filename)
+
+    ev_flat_dict['filename'] = filename
+    ev_flat_dict['event_filepath'] = event_filepath
+    ev_flat_dict['waveform_filepath'] = waveform_filepath
+    ev_flat_dict['waveform_context_filepath'] = waveform_context_filepath
+
+    # write files in filestore
+    event.write(BASE_DIR + event_filepath, format="QUAKEML")
+    waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
+    waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
+
+    inserted_event_id = mongo.db[EVENTS_COLLECTION].insert_one(ev_flat_dict).inserted_id
+
+    print("Event Insertes with ID:", inserted_event_id)
+
+    request_endtime = time.time() - request_starttime
+    print("=======> Request Done Successfully.",
+          "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+
+    return str(inserted_event_id)
 
 
 @app.route('/events/getEventInUse', methods=['GET'])
@@ -350,7 +452,7 @@ def get_event_inuse():
     else:
         raise InvalidUsage("Event ID and User ID must be specified like:" +
                            "(eventid=<ID>) & (userid=<ID>)",
-                           status_code=411)
+                           status_code=400)
 
     # get current timestamp in order to fetch inuse events till now
     current_timestamp = time.time() * 10e9
@@ -385,7 +487,7 @@ def put_event_inuse():
         user_id = request.get_json()['userid']
     else:
         raise InvalidUsage("Event ID and User ID must be specified in request body",
-                           status_code=411)
+                           status_code=400)
 
     # get current timestamp in order to calculate inuse TTL expiration time
     ttl_expiration = (time.time() + INUSE_TTL) * 10e9
@@ -436,4 +538,6 @@ if __name__ == '__main__':
 
     # launch API
     #app.run(debug=True)
+    log.info("API has been started successfully.")
     app.run(host='0.0.0.0', threaded=True)
+

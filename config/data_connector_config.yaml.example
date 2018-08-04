@@ -54,5 +54,8 @@ data_connector:
     description: Data Loader
     catchup: False
 
+  logging:
+    log_directory: /var/log/spp/
+
 
 

@@ -65,6 +65,7 @@ def post_data(method_url, request_data):
         print(result.read())
     else:
         print("Error...!!", result.code)
+        print("Error Message:", result.read())
 
 if __name__ == "__main__":
 
