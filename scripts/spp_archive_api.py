@@ -133,10 +133,16 @@ def get_stream():
 
     # combine traces together
     resulted_stream = combine_json_to_stream_data(result)
+    print('MTH: type=%s' % type(resulted_stream))
+
+    if len(resulted_stream.traces) == 0:
+        print('len(resulted_stream.traces)=0 -> return None')
+        return None
 
     start_time = UTCDateTime( request.args['starttime'] )
     end_time   = UTCDateTime( request.args['endtime'] )
-    resulted_stream.trim(start_time, end_time, pad=True, fill_value=0.0)
+    #resulted_stream.trim(start_time, end_time, pad=True, fill_value=0.0)
+    resulted_stream.trim(start_time, end_time, pad=False, fill_value=0.0)
 
     final_output = construct_output(resulted_stream, output_format)
 

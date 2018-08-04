@@ -21,7 +21,9 @@ mongo_conn = MongoDBHandler(uri=params['uri'], db_name=params['db_name'])
 print("inserting into DB")
 
 collection = "traces_json"
-location = "/mnt/seismic_shared_storage/continuous_data"
+#location = "/mnt/seismic_shared_storage/continuous_data"
+#MTH:
+location = "/home/spadmin/projects/seismic-processing-platform/data/mth_test"
 
 
 def convert_stream_to_traces_json(stream):
@@ -35,6 +37,7 @@ def convert_stream_to_traces_json(stream):
 # Used to load files of dir sequential
 from glob import glob
 file_list = np.array(glob(location + "/*.mseed"))
+print('file_list=',file_list)
 
 ## Load mseed files
 for i in np.arange(0, len(file_list), 1):

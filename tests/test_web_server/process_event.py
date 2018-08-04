@@ -79,6 +79,7 @@ def main():
     z=-175.000000
 
     s = struct.Struct('d d d d d')
+    print('Here we are')
     for message in consumer:
         print("==================================================================")
         print("Key:", message.key)
