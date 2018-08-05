@@ -46,6 +46,30 @@ def build_event_data():
     return json.dumps(data).encode("utf-8")
 
 
+def build_update_event_data(event_id):
+    # prepare event
+    evt = read_events(config_dir + "/../data/" + 'event4.xml') #'2018-04-15_034422.xml')
+    #cat = Catalog(events=[evt])
+    evt_bytes = BytesIO()
+    evt.write(evt_bytes, format="QUAKEML")
+
+    # prepare waveform
+    wf = read(config_dir + "/../data/" + 'event.mseed', format='MSEED')
+    wf_bytes = BytesIO()
+    wf.write(wf_bytes)
+
+    # construct the data dict:
+    data = {}
+    data['event_id'] = event_id
+
+    #data['event'] = base64.b64encode(evt_bytes.getvalue()).decode('utf-8')
+    data['waveform'] = base64.b64encode(wf_bytes.getvalue()).decode('utf-8')
+    #data['context'] = base64.b64encode(wf_bytes.getvalue()).decode('utf-8')
+
+    #print(data)
+    #print(json.dumps(data))
+    return json.dumps(data).encode("utf-8")
+
 def build_event_inuse_data():
 
     data = {}
@@ -69,6 +93,8 @@ def post_data(method_url, request_data):
 
 if __name__ == "__main__":
 
-    post_data("putEvent", build_event_data())
+    #post_data("putEvent", build_event_data())
+
+    post_data("updateEvent", build_update_event_data('5b66243da949fe1c0e6aa471'))
 
     #post_data("putEventInUse", build_event_inuse_data())

@@ -79,7 +79,7 @@ def check_and_parse_datetime(dt_str):
         return dt
     except ValueError:
         error_msg = "Invalid datetime format, value should be in format: %Y-%m-%dT%H:%M:%S.%f"
-        print(error_msg)
+        log.error(error_msg)
         raise InvalidUsage(error_msg, status_code=410)
 
 
@@ -190,7 +190,6 @@ def generate_filepath_from_date(dt):
     return datetime.datetime.utcfromtimestamp(dt / 1e9).strftime("/%Y/%m/%d/%H/")
 
 
-
 # def create_filestore_directories(basedir, filepath):
 #     events_dir = basedir + "events" + filepath
 #     waveforms_dir = basedir + "waveforms" + filepath
@@ -248,7 +247,7 @@ def put_event():
 
     request_starttime = time.time()
 
-    if 'event' and 'waveform' and 'context' in request.get_json():
+    if 'event' in request.get_json() and 'waveform' in request.get_json() and 'context' in request.get_json():
         conversion_starttime = time.time()
         event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
         waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
@@ -281,7 +280,7 @@ def put_event():
         ev_flat_dict['waveform_filepath'] = waveform_filepath
         ev_flat_dict['waveform_context_filepath'] = waveform_context_filepath
         ev_flat_dict['insertion_time'] = int(datetime.datetime.utcnow().timestamp() * 1e9)
-        ev_flat_dict['modification_time'] = 0
+        ev_flat_dict['modification_time'] = None
 
         # write files in filestore
         event.write(BASE_DIR + event_filepath, format="QUAKEML")
@@ -296,7 +295,7 @@ def put_event():
         print("=======> Request Done Successfully.",
               "Total API Request took: ", "%.2f" % request_endtime, "seconds")
 
-        return str(inserted_event_id)
+        return json.dumps({"event_inuse_id": str(inserted_event_id)})
 
 
 def read_and_write_file_as_bytes(relative_filepath, format):
@@ -394,49 +393,79 @@ def get_event():
 @app.route('/events/updateEvent', methods=['POST'])
 def update_event():
 
-    request_starttime = time.time()
+    try:
+        request_starttime = time.time()
+        event = None
+        waveform = None
+        waveform_context = None
 
-    if 'event_id' and ('event' or 'waveform' or 'context') in request.get_json():
-        conversion_starttime = time.time()
-        event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
-        waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
-        waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])), format='MSEED')
-        conversion_endtime = time.time() - conversion_starttime
-        print("=======> Conversion took: ", "%.2f" % conversion_endtime, "seconds")
-    else:
-        raise InvalidUsage("Wrong data sent..!! Event ID must be specified and one of " +
-                           "(Event, Waveform or Context) must be specified in request body",
-                           status_code=400)
+        if 'event_id' in request.get_json() and ('event' in request.get_json()
+                                                 or 'waveform' in request.get_json()
+                                                 or 'context' in request.get_json()):
+            conversion_starttime = time.time()
 
-    ev_flat_dict = EventDB.flatten_event(Event(event))
-    print(ev_flat_dict)
-    filename = generate_filename_from_date(ev_flat_dict['time'])
-    filepath = generate_filepath_from_date(ev_flat_dict['time'])
-    print(filepath + filename)
+            event_id = request.get_json()['event_id']
+            if 'event' in request.get_json():
+                event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
+            if 'waveform' in request.get_json():
+                waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
+            if 'context' in request.get_json():
+                waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])), format='MSEED')
+            conversion_endtime = time.time() - conversion_starttime
 
-    create_filestore_directories(BASE_DIR, filepath)
+            log.info("Conversion took: %.2f seconds" % conversion_endtime)
+        else:
+            raise InvalidUsage("Wrong data sent..!! Event ID must be specified and one of " +
+                               "(Event, Waveform or Context) must be specified in request body",
+                               status_code=400)
 
-    event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(filepath, filename)
+        filter = {
+            '_id': ObjectId(event_id),
+        }
 
-    ev_flat_dict['filename'] = filename
-    ev_flat_dict['event_filepath'] = event_filepath
-    ev_flat_dict['waveform_filepath'] = waveform_filepath
-    ev_flat_dict['waveform_context_filepath'] = waveform_context_filepath
+        event_document = mongo.db[EVENTS_COLLECTION].find_one(filter)
 
-    # write files in filestore
-    event.write(BASE_DIR + event_filepath, format="QUAKEML")
-    waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
-    waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
+        if event_document:
 
-    inserted_event_id = mongo.db[EVENTS_COLLECTION].insert_one(ev_flat_dict).inserted_id
+            filename = generate_filename_from_date(event_document['time'])
+            filepath = generate_filepath_from_date(event_document['time'])
+            print(filepath + filename)
 
-    print("Event Insertes with ID:", inserted_event_id)
+            create_filestore_directories(BASE_DIR, filepath)
 
-    request_endtime = time.time() - request_starttime
-    print("=======> Request Done Successfully.",
-          "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+            event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(filepath, filename)
 
-    return str(inserted_event_id)
+            event_document['filename'] = filename
+
+            # update files in filestore
+            if event:
+                event_document['event_filepath'] = event_filepath
+                event.write(BASE_DIR + event_filepath, format="QUAKEML")
+            if waveform:
+                event_document['waveform_filepath'] = waveform_filepath
+                waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
+            if waveform_context:
+                event_document['waveform_context_filepath'] = waveform_context_filepath
+                waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
+
+            event_document['modification_time'] = int(datetime.datetime.utcnow().timestamp() * 1e9)
+
+            mongo.db[EVENTS_COLLECTION].update(filter, event_document, upsert=False)
+
+            log.info("Event  with ID:%s has been updated successfully" % event_id)
+
+            request_endtime = time.time() - request_starttime
+            log.info("Request Done Successfully. Total Update Request took: %.2f seconds" % request_endtime)
+
+            return build_message("success")
+        else:
+
+            request_endtime = time.time() - request_starttime
+            log.info("Request Done Successfully. Total Update Request took: %.2f seconds" % request_endtime)
+            return build_message("No data found")
+
+    except Exception as e:
+        log.error("Failed in Update Event: " + str(e))
 
 
 @app.route('/events/getEventInUse', methods=['GET'])
@@ -472,7 +501,7 @@ def get_event_inuse():
     if inuse_result.count() >= 1:
         return MongoJSONEncoder().encode(inuse_result[0])
     else:
-        return json.dumps({})
+        raise InvalidUsage("No data found", status_code=200)
 
 
 @app.route('/events/putEventInUse', methods=['POST'])
@@ -507,6 +536,10 @@ def put_event_inuse():
     return json.dumps({"event_inuse_id": str(inserted_record_id)})
 
 
+def build_message(message_text):
+    return json.dumps({"message": message_text})
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     return "<h1>404</h1><p>The URL is invalid, please check the URL requested</p>", 404
@@ -535,9 +568,8 @@ def handle_invalid_usage(error):
     return response
 
 if __name__ == '__main__':
-
     # launch API
+    log.info("API is starting")
     #app.run(debug=True)
-    log.info("API has been started successfully.")
     app.run(host='0.0.0.0', threaded=True)
 
