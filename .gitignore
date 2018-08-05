@@ -1,3 +1,4 @@
 *.pyc
 spp.egg-info
 *idea
+*.yaml
