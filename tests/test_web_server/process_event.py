@@ -81,10 +81,12 @@ def main():
 
     consumer = KafkaHandler.consume_from_topic(kafka_topic,kafka_brokers)
 
+    '''
     t=1527072662.2110002041
     x=651275.000000
     y=4767395.000000
     z=-175.000000
+    '''
 
     s = struct.Struct('d d d d d')
     for message in consumer:
