@@ -86,75 +86,78 @@ def check_and_parse_datetime(dt_str):
 @app.route('/getStream', methods=['GET'])
 def get_stream():
 
-    request_starttime = time.time()
+    try:
 
-    network = None
-    station = None
-    channel = None
-    output_formats = ["MSEED", "PLOT", "BINARY"]
-    # make default output format is MSEED
-    output_format = "MSEED"
+        request_starttime = time.time()
 
-    # Validate Request Params
-    # Check Date Ranges
-    if 'starttime' in request.args and ('endtime' in request.args or 'duration' in request.args):
+        network = None
+        station = None
+        channel = None
+        output_formats = ["MSEED", "PLOT", "BINARY"]
+        # make default output format is MSEED
+        output_format = "MSEED"
 
-        start_time = check_and_parse_datetime(request.args['starttime'])
-        print(start_time)
-        if 'endtime' in request.args:
-            end_time = check_and_parse_datetime(request.args['endtime'])
+        # Validate Request Params
+        # Check Date Ranges
+        if 'starttime' in request.args and ('endtime' in request.args or 'duration' in request.args):
+
+            start_time = check_and_parse_datetime(request.args['starttime'])
+            print(start_time)
+            if 'endtime' in request.args:
+                end_time = check_and_parse_datetime(request.args['endtime'])
+            else:
+                end_time = start_time + (int(request.args['duration']) * 1000000000)
+
+            print('get_stream: starttime:%s endtime:%s' % (start_time, end_time))
         else:
-            end_time = start_time + (int(request.args['duration']) * 1000000000)
-
-        print('get_stream: starttime:%s endtime:%s' % (start_time, end_time))
-    else:
-        raise InvalidUsage("date-range-options must be specified like:" +
-                           "(starttime=<time>) & ([endtime=<time>] | [duration=<seconds>])",
-                           status_code=400)
-
-    # Other Optional
-    if 'net' in request.args:
-        network = request.args['net']
-
-    if 'sta' in request.args:
-        station = request.args['sta']
-
-    if 'cha' in request.args:
-        channel = request.args['cha']
-
-    if 'output' in request.args:
-        if request.args['output'] in output_formats:
-            output_format = request.args['output']
-        else:
-            raise InvalidUsage("Invalid output option, should be one of these:" +
-                               "MSEED, PLOT, BINARY",
+            raise InvalidUsage("date-range-options must be specified like:" +
+                               "(starttime=<time>) & ([endtime=<time>] | [duration=<seconds>])",
                                status_code=400)
 
-    criteria_filter = construct_filter_criteria(start_time, end_time, network, station, channel)
+        # Other Optional
+        if 'net' in request.args:
+            network = request.args['net']
 
-    result = mongo.db[TRACES_COLLECTION].find(criteria_filter, {"_id": 0})
+        if 'sta' in request.args:
+            station = request.args['sta']
 
-    if result.count() >= 1:
-        # combine traces together
-        resulted_stream = combine_json_to_stream_data(result)
+        if 'cha' in request.args:
+            channel = request.args['cha']
 
-        start_time = UTCDateTime(request.args['starttime'])
-        end_time = UTCDateTime(request.args['endtime'])
-        resulted_stream.trim(start_time, end_time, pad=True, fill_value=0.0)
+        if 'output' in request.args:
+            if request.args['output'] in output_formats:
+                output_format = request.args['output']
+            else:
+                raise InvalidUsage("Invalid output option, should be one of these:" +
+                                   "MSEED, PLOT, BINARY",
+                                   status_code=400)
 
-        final_output = construct_output(resulted_stream, output_format)
+        criteria_filter = construct_filter_criteria(start_time, end_time, network, station, channel)
 
-        request_endtime = time.time() - request_starttime
-        print("=======> Request Done Successfully.",
-              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+        result = mongo.db[TRACES_COLLECTION].find(criteria_filter, {"_id": 0})
 
-        return send_file(final_output, attachment_filename="testing.mseed", as_attachment=True)
-    else:
-        request_endtime = time.time() - request_starttime
-        print("=======> Request Done Successfully but with no data found.",
-              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+        if result.count() >= 1:
+            # combine traces together
+            resulted_stream = combine_json_to_stream_data(result)
 
-        raise InvalidUsage("No data found", status_code=200)
+            resulted_stream.trim(UTCDateTime(start_time / 1e9), UTCDateTime(end_time / 1e9), pad=True, fill_value=0.0)
+
+            final_output = construct_output(resulted_stream, output_format)
+
+            request_endtime = time.time() - request_starttime
+            print("=======> Request Done Successfully.",
+                  "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+
+            return send_file(final_output, attachment_filename="testing.mseed", as_attachment=True)
+        else:
+            request_endtime = time.time() - request_starttime
+            print("=======> Request Done Successfully but with no data found.",
+                  "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+
+            raise InvalidUsage("No data found", status_code=200)
+
+    except Exception as e:
+        log.error("Failed in Update Event: " + str(e))
 
 
 def construct_filter_criteria(start_time, end_time, network, station, channel):
@@ -243,58 +246,62 @@ def check_event_existance(event_time_epoch):
 
 @app.route('/events/putEvent', methods=['POST'])
 def put_event():
+    try:
 
-    request_starttime = time.time()
+        request_starttime = time.time()
 
-    if 'event' in request.get_json() and 'waveform' in request.get_json() and 'context' in request.get_json():
-        conversion_starttime = time.time()
-        event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
-        waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
-        waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])), format='MSEED')
-        conversion_endtime = time.time() - conversion_starttime
-        print("=======> Conversion took: ", "%.2f" % conversion_endtime, "seconds")
-    else:
-        raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context must be specified in request body",
-                           status_code=400)
+        if 'event' in request.get_json() and 'waveform' in request.get_json() and 'context' in request.get_json():
+            conversion_starttime = time.time()
+            event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
+            waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
+            waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])), format='MSEED')
+            conversion_endtime = time.time() - conversion_starttime
+            print("=======> Conversion took: ", "%.2f" % conversion_endtime, "seconds")
+        else:
+            raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context must be specified in request body",
+                               status_code=400)
 
-    ev_flat_dict = EventDB.flatten_event(Event(event))
-    print(ev_flat_dict)
+        ev_flat_dict = EventDB.flatten_event(Event(event))
+        print(ev_flat_dict)
 
-    existed_event_id = check_event_existance(ev_flat_dict['time'])
+        existed_event_id = check_event_existance(ev_flat_dict['time'])
 
-    if existed_event_id:
-        raise InvalidUsage("Event already exists with ID " + existed_event_id,
-                           status_code=200)
-    else:
-        filename = generate_filename_from_date(ev_flat_dict['time'])
-        filepath = generate_filepath_from_date(ev_flat_dict['time'])
-        print(filepath + filename)
+        if existed_event_id:
+            raise InvalidUsage("Event already exists with ID " + existed_event_id,
+                               status_code=200)
+        else:
+            filename = generate_filename_from_date(ev_flat_dict['time'])
+            filepath = generate_filepath_from_date(ev_flat_dict['time'])
+            print(filepath + filename)
 
-        create_filestore_directories(BASE_DIR, filepath)
+            create_filestore_directories(BASE_DIR, filepath)
 
-        event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(filepath, filename)
+            event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(filepath, filename)
 
-        ev_flat_dict['filename'] = filename
-        ev_flat_dict['event_filepath'] = event_filepath
-        ev_flat_dict['waveform_filepath'] = waveform_filepath
-        ev_flat_dict['waveform_context_filepath'] = waveform_context_filepath
-        ev_flat_dict['insertion_time'] = int(datetime.datetime.utcnow().timestamp() * 1e9)
-        ev_flat_dict['modification_time'] = None
+            ev_flat_dict['filename'] = filename
+            ev_flat_dict['event_filepath'] = event_filepath
+            ev_flat_dict['waveform_filepath'] = waveform_filepath
+            ev_flat_dict['waveform_context_filepath'] = waveform_context_filepath
+            ev_flat_dict['insertion_time'] = int(datetime.datetime.utcnow().timestamp() * 1e9)
+            ev_flat_dict['modification_time'] = None
 
-        # write files in filestore
-        event.write(BASE_DIR + event_filepath, format="QUAKEML")
-        waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
-        waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
+            # write files in filestore
+            event.write(BASE_DIR + event_filepath, format="QUAKEML")
+            waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
+            waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
 
-        inserted_event_id = mongo.db[EVENTS_COLLECTION].insert_one(ev_flat_dict).inserted_id
+            inserted_event_id = mongo.db[EVENTS_COLLECTION].insert_one(ev_flat_dict).inserted_id
 
-        print("Event Inserted with ID:", inserted_event_id)
+            print("Event Inserted with ID:", inserted_event_id)
 
-        request_endtime = time.time() - request_starttime
-        print("=======> Request Done Successfully.",
-              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+            request_endtime = time.time() - request_starttime
+            print("=======> Request Done Successfully.",
+                  "Total API Request took: ", "%.2f" % request_endtime, "seconds")
 
-        return json.dumps({"event_inuse_id": str(inserted_event_id)})
+            return json.dumps({"event_inuse_id": str(inserted_event_id)})
+
+    except Exception as e:
+        log.error("Failed in Update Event: " + str(e))
 
 
 def read_and_write_file_as_bytes(relative_filepath, format):
@@ -345,48 +352,51 @@ def construct_event_output(event_data, requested_format):
 
 @app.route('/events/getEvent', methods=['GET'])
 def get_event():
+    try:
 
-    request_starttime = time.time()
+        request_starttime = time.time()
 
-    # Check Date Ranges
-    if 'eventid' in request.args:
-        print('get_Event: eventid:%s' % request.args['eventid'])
-        event_id = request.args['eventid']
-    else:
-        raise InvalidUsage("Event ID must be specified like:" +
-                           "eventid=<ID>",
-                           status_code=400)
-
-    if 'output' in request.args:
-        if request.args['output'] in OUTPUT_TYPES.keys():
-            output_format = request.args['output']
+        # Check Date Ranges
+        if 'eventid' in request.args:
+            print('get_Event: eventid:%s' % request.args['eventid'])
+            event_id = request.args['eventid']
         else:
-            raise InvalidUsage("Invalid output option, should be one of these:" +
-                               "MSEED, MSEED_CONTEXT, QUAKEML or ALL",
+            raise InvalidUsage("Event ID must be specified like:" +
+                               "eventid=<ID>",
                                status_code=400)
-    else:
-        output_format = "ALL"
 
-    query_filter = {"_id": ObjectId(event_id)}
+        if 'output' in request.args:
+            if request.args['output'] in OUTPUT_TYPES.keys():
+                output_format = request.args['output']
+            else:
+                raise InvalidUsage("Invalid output option, should be one of these:" +
+                                   "MSEED, MSEED_CONTEXT, QUAKEML or ALL",
+                                   status_code=400)
+        else:
+            output_format = "ALL"
 
-    event_result = mongo.db[EVENTS_COLLECTION].find(query_filter, {"_id": 0})
+        query_filter = {"_id": ObjectId(event_id)}
 
-    if event_result.count() == 1:
+        event_result = mongo.db[EVENTS_COLLECTION].find(query_filter, {"_id": 0})
 
-        output_file = construct_event_output(event_result[0], output_format)
+        if event_result.count() == 1:
 
-        # construct downloaded filename
-        output_filename = event_result[0]['filename'] + OUTPUT_TYPES[output_format]
+            output_file = construct_event_output(event_result[0], output_format)
 
-        request_endtime = time.time() - request_starttime
-        log.info("=======> Request Done Successfully." +
-              "Total API Request took: " + "%.2f" % request_endtime + "seconds")
+            # construct downloaded filename
+            output_filename = event_result[0]['filename'] + OUTPUT_TYPES[output_format]
 
-        return send_file(output_file, attachment_filename=output_filename, as_attachment=True)
+            request_endtime = time.time() - request_starttime
+            log.info("=======> Request Done Successfully." +
+                  "Total API Request took: " + "%.2f" % request_endtime + "seconds")
 
-    else:
-        raise InvalidUsage("No data found", status_code=200)
+            return send_file(output_file, attachment_filename=output_filename, as_attachment=True)
 
+        else:
+            raise InvalidUsage("No data found", status_code=200)
+
+    except Exception as e:
+        log.error("Failed in Update Event: " + str(e))
 
 
 @app.route('/events/updateEvent', methods=['POST'])
@@ -469,70 +479,78 @@ def update_event():
 
 @app.route('/events/getEventInUse', methods=['GET'])
 def get_event_inuse():
+    try:
 
-    request_starttime = time.time()
+        request_starttime = time.time()
 
-    # Check Date Ranges
-    if 'eventid' and 'userid' in request.args:
-        print('get_Event_InUse: eventid:%s userid:%s' % (request.args['eventid'], request.args['userid']))
-        event_id = request.args['eventid']
-        user_id = request.args['userid']
-    else:
-        raise InvalidUsage("Event ID and User ID must be specified like:" +
-                           "(eventid=<ID>) & (userid=<ID>)",
-                           status_code=400)
+        # Check Date Ranges
+        if 'eventid' and 'userid' in request.args:
+            print('get_Event_InUse: eventid:%s userid:%s' % (request.args['eventid'], request.args['userid']))
+            event_id = request.args['eventid']
+            user_id = request.args['userid']
+        else:
+            raise InvalidUsage("Event ID and User ID must be specified like:" +
+                               "(eventid=<ID>) & (userid=<ID>)",
+                               status_code=400)
 
-    # get current timestamp in order to fetch inuse events till now
-    current_timestamp = time.time() * 10e9
+        # get current timestamp in order to fetch inuse events till now
+        current_timestamp = time.time() * 10e9
 
-    query_filter = {
-        "event_id": ObjectId(event_id),
-        "user_id": ObjectId(user_id),
-        "ttl_expiration": {'$gte': current_timestamp}
-        }
+        query_filter = {
+            "event_id": ObjectId(event_id),
+            "user_id": ObjectId(user_id),
+            "ttl_expiration": {'$gte': current_timestamp}
+            }
 
-    inuse_result = mongo.db[EVENTS_INUSE_COLLECTION].find(query_filter)
+        inuse_result = mongo.db[EVENTS_INUSE_COLLECTION].find(query_filter)
 
-    request_endtime = time.time() - request_starttime
-    print("=======> Request Done Successfully.",
-          "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+        request_endtime = time.time() - request_starttime
+        print("=======> Request Done Successfully.",
+              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
 
-    if inuse_result.count() >= 1:
-        return MongoJSONEncoder().encode(inuse_result[0])
-    else:
-        raise InvalidUsage("No data found", status_code=200)
+        if inuse_result.count() >= 1:
+            return MongoJSONEncoder().encode(inuse_result[0])
+        else:
+            raise InvalidUsage("No data found", status_code=200)
+
+    except Exception as e:
+        log.error("Failed in Update Event: " + str(e))
 
 
 @app.route('/events/putEventInUse', methods=['POST'])
 def put_event_inuse():
+    try:
 
-    request_starttime = time.time()
+        request_starttime = time.time()
 
-    # Check Date Ranges
-    if 'eventid' and 'userid' in request.get_json():
-        print('put_Event_InUse: eventid:%s userid:%s' % (request.get_json()['eventid'], request.get_json()['userid']))
-        event_id = request.get_json()['eventid']
-        user_id = request.get_json()['userid']
-    else:
-        raise InvalidUsage("Event ID and User ID must be specified in request body",
-                           status_code=400)
+        # Check Date Ranges
+        if 'eventid' and 'userid' in request.get_json():
+            print('put_Event_InUse: eventid:%s userid:%s' % (request.get_json()['eventid'], request.get_json()['userid']))
+            event_id = request.get_json()['eventid']
+            user_id = request.get_json()['userid']
+        else:
+            raise InvalidUsage("Event ID and User ID must be specified in request body",
+                               status_code=400)
 
-    # get current timestamp in order to calculate inuse TTL expiration time
-    ttl_expiration = (time.time() + INUSE_TTL) * 10e9
+        # get current timestamp in order to calculate inuse TTL expiration time
+        ttl_expiration = (time.time() + INUSE_TTL) * 10e9
 
-    inuse_data = {
-        "event_id": ObjectId(event_id),
-        "user_id": ObjectId(user_id),
-        "ttl_expiration": ttl_expiration
-        }
+        inuse_data = {
+            "event_id": ObjectId(event_id),
+            "user_id": ObjectId(user_id),
+            "ttl_expiration": ttl_expiration
+            }
 
-    inserted_record_id = mongo.db[EVENTS_INUSE_COLLECTION].insert_one(inuse_data).inserted_id
+        inserted_record_id = mongo.db[EVENTS_INUSE_COLLECTION].insert_one(inuse_data).inserted_id
 
-    request_endtime = time.time() - request_starttime
-    print("=======> Request Done Successfully.",
-          "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+        request_endtime = time.time() - request_starttime
+        print("=======> Request Done Successfully.",
+              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
 
-    return json.dumps({"event_inuse_id": str(inserted_record_id)})
+        return json.dumps({"event_inuse_id": str(inserted_record_id)})
+
+    except Exception as e:
+        log.error("Failed in Update Event: " + str(e))
 
 
 def build_message(message_text):
