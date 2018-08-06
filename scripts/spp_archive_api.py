@@ -83,6 +83,12 @@ def check_and_parse_datetime(dt_str):
         raise InvalidUsage(error_msg, status_code=410)
 
 
+def handle_exception(e):
+    exception_msg = "Failed due to: " + str(e)
+    log.error(exception_msg)
+    raise InvalidUsage(exception_msg)
+
+
 @app.route('/getStream', methods=['GET'])
 def get_stream():
 
@@ -157,7 +163,7 @@ def get_stream():
             raise InvalidUsage("No data found", status_code=200)
 
     except Exception as e:
-        log.error("Failed in Update Event: " + str(e))
+        handle_exception(e)
 
 
 def construct_filter_criteria(start_time, end_time, network, station, channel):
@@ -301,7 +307,7 @@ def put_event():
             return json.dumps({"event_inuse_id": str(inserted_event_id)})
 
     except Exception as e:
-        log.error("Failed in Update Event: " + str(e))
+        handle_exception(e)
 
 
 def read_and_write_file_as_bytes(relative_filepath, format):
@@ -396,7 +402,7 @@ def get_event():
             raise InvalidUsage("No data found", status_code=200)
 
     except Exception as e:
-        log.error("Failed in Update Event: " + str(e))
+        handle_exception(e)
 
 
 @app.route('/events/updateEvent', methods=['POST'])
@@ -474,7 +480,7 @@ def update_event():
             return build_message("No data found")
 
     except Exception as e:
-        log.error("Failed in Update Event: " + str(e))
+        handle_exception(e)
 
 
 @app.route('/events/getEventInUse', methods=['GET'])
@@ -514,7 +520,7 @@ def get_event_inuse():
             raise InvalidUsage("No data found", status_code=200)
 
     except Exception as e:
-        log.error("Failed in Update Event: " + str(e))
+        handle_exception(e)
 
 
 @app.route('/events/putEventInUse', methods=['POST'])
@@ -550,7 +556,7 @@ def put_event_inuse():
         return json.dumps({"event_inuse_id": str(inserted_record_id)})
 
     except Exception as e:
-        log.error("Failed in Update Event: " + str(e))
+        handle_exception(e)
 
 
 def build_message(message_text):
