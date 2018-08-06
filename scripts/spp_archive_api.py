@@ -98,7 +98,6 @@ def get_stream():
     # Validate Request Params
     # Check Date Ranges
     if 'starttime' in request.args and ('endtime' in request.args or 'duration' in request.args):
-        print('get_stream: starttime:%s endtime:%s' % (request.args['starttime'], request.args['endtime']))
 
         start_time = check_and_parse_datetime(request.args['starttime'])
         print(start_time)
@@ -107,7 +106,7 @@ def get_stream():
         else:
             end_time = start_time + (int(request.args['duration']) * 1000000000)
 
-        print(end_time)
+        print('get_stream: starttime:%s endtime:%s' % (start_time, end_time))
     else:
         raise InvalidUsage("date-range-options must be specified like:" +
                            "(starttime=<time>) & ([endtime=<time>] | [duration=<seconds>])",
