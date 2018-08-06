@@ -13,7 +13,7 @@ class Configuration:
 
         with open(ims_fname, 'r') as cfg_file:
             params = yaml.load(cfg_file)
-            self.IMS_CONFIG = params['ims_connector']
+            self.IMS_CONFIG = params['data_connector']
 
         db_config_file = os.path.join(config_dir, 'permanent_db.yaml')
 

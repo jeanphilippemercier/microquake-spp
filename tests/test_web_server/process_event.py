@@ -51,6 +51,14 @@ def main():
     y = 4767394
     z = -148
     timestamp = 1527072662.2131672
+
+    '''
+    x=651275.000000
+    y=4767395.000000
+    z=-175.000000
+    timestamp = 1527072662.2110002041
+    '''
+
     #origin.time = UTCDateTime( datetime(2018, 5, 23, 10, 51, 2, 213167) )
     make_event( np.array([x,y,z,timestamp,intensity]) )
     exit()
@@ -73,10 +81,12 @@ def main():
 
     consumer = KafkaHandler.consume_from_topic(kafka_topic,kafka_brokers)
 
+    '''
     t=1527072662.2110002041
     x=651275.000000
     y=4767395.000000
     z=-175.000000
+    '''
 
     s = struct.Struct('d d d d d')
     print('Here we are')
@@ -222,13 +232,16 @@ def make_event(xyzt_array):
     first_sta  = '32'
     
 
+    first_sta = '32'
+
     starttime = origin.time - 10
     endtime   = origin.time + 10
     print('main: Get context mseed')
     st_temp   = get_stream_from_mongo(starttime, endtime, sta=first_sta)
     print('main: Get context mseed DONE')
     st_new = Stream(st_temp).composite()
-    #st_new.plot()
+    st_new.plot()
+    #exit()
     #st_new.decimate(factor=10)
     #st_new.plot()
     st_new.write("event_context.mseed")
