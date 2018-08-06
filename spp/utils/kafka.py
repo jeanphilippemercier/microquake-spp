@@ -23,10 +23,15 @@ class KafkaHandler:
             return self.producer.send(topic=topic_name, key=key, value=message).add_errback(on_send_error)
 
     @staticmethod
-    def consume_from_topic(topic_name, brokers_list):
+    def consume_from_topic(topic_name, brokers_list, group_id=None):
         logger = logging.getLogger('kafka')
         logger.addHandler(logging.StreamHandler(sys.stdout))
         logger.setLevel(logging.ERROR)
-        return KafkaConsumer(topic_name,
-                                 #group_id='my-group',
+        if group_id:
+            return KafkaConsumer(topic_name,
+                                 group_id=group_id,
                                  bootstrap_servers=brokers_list)
+        else:
+            return KafkaConsumer(topic_name,
+                             # group_id='my-group',
+                             bootstrap_servers=brokers_list)
