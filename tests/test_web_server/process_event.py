@@ -16,6 +16,8 @@ reload(core)
 
 from web_client import get_stream_from_mongo
 
+from test_api_events import *
+
 #from IPython.core.debugger import Tracer
 #from microquake.realtime.signal import kurtosis
 # Don't use!
@@ -92,7 +94,8 @@ def main():
         print("Key:", message.key)
         from_interloc = s.unpack(message.value)
         print(from_interloc)
-        (intensity, x, y, z, t) = from_interloc
+        (t, x, y, z, intensity) = from_interloc
+        #(intensity, x, y, z, t) = from_interloc
         print('got t=',t)
         print('%15.10f' % t)
         print('x=%f' % x)
@@ -237,7 +240,7 @@ def make_event(xyzt_array):
     st_temp   = get_stream_from_mongo(starttime, endtime, sta=first_sta)
     print('main: Get context mseed DONE')
     st_new = Stream(st_temp).composite()
-    st_new.plot()
+    #st_new.plot()
     #exit()
     #st_new.decimate(factor=10)
     #st_new.plot()
@@ -249,6 +252,12 @@ def make_event(xyzt_array):
     event.origins[1].arrivals = picks_to_arrivals(cleaned_picks) 
     event.preferred_origin_id = event.origins[1].resource_id
     event.write('event3.xml', format='quakeml')
+
+    result = post_data("putEvent", build_event_data('event3.xml', 'event.mseed', 'event_context.mseed'))
+    print('message=%s' % result.read())
+    print('code=%s' % result.code)
+    exit()
+
 
     '''
     from microquake.waveform.mag import moment_magnitude

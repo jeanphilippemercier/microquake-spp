@@ -8,7 +8,8 @@ from io import BytesIO
 import time
 from obspy.core.utcdatetime import UTCDateTime
 import numpy as np
-from obspy.core.event import read_events
+#from obspy.core.event import read_events
+from microquake.core import read_events
 from microquake.core.event import Event
 import base64
 from spp.utils.config import Configuration
@@ -247,17 +248,21 @@ def put_event():
 
     if 'event' in request.get_json() and 'waveform' in request.get_json() and 'context' in request.get_json():
         conversion_starttime = time.time()
+        log.info('put_event: call read_events')
         event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
         waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
         waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])), format='MSEED')
         conversion_endtime = time.time() - conversion_starttime
-        print("=======> Conversion took: ", "%.2f" % conversion_endtime, "seconds")
+        log.info("=======> Conversion took: %.2f seconds" % conversion_endtime)
     else:
         raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context must be specified in request body",
                            status_code=400)
 
+    test_event = Event(event)
+    print(test_event)
+    log.info('Call ev_flat_dict')
     ev_flat_dict = EventDB.flatten_event(Event(event))
-    print(ev_flat_dict)
+    log.info('flat dict:', ev_flat_dict)
 
     existed_event_id = check_event_existance(ev_flat_dict['time'])
 

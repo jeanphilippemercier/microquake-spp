@@ -5,7 +5,8 @@ from spp.utils.config import Configuration
 import os
 
 config = Configuration()
-FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
+#FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
+FORMATTER = logging.Formatter('<%(name)s> [%(levelname)7s] %(message)s')
 LOG_DIR = config.IMS_CONFIG["logging"]["log_directory"]
 
 
