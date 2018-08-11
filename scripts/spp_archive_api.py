@@ -59,7 +59,7 @@ def construct_output(stream_obj, requested_format='MSEED'):
         output.seek(0)
 
     end_time = time.time() - start_time
-    print("==> Formatting Output took: ", "%.2f" % end_time, "Output Size:", "%.2f" % (output_size/1024/1024), "MB")
+    log.info("Formatting Output took: %.2f , Output Size: %.2f MB" % (end_time, (output_size/1024/1024)))
     return output
 
 
@@ -69,8 +69,7 @@ def combine_json_to_stream_data(db_result):
     records_count = len(s.traces)
     merged_stream = s.merge(fill_value=0, method=1)
     end_time = time.time() - start_time
-    print("==> DB Fetching and Stream Creation took:", "%.2f" % end_time, ", Records Count:", records_count,
-          ", Merged Traces Count:", len(s.traces))
+    log.info("DB Fetching and Stream Creation took:%.2f , Records Count: %s, Merged Traces Count: %s" % (end_time, records_count, len(s.traces)))
     return merged_stream
 
 
@@ -80,7 +79,7 @@ def check_and_parse_datetime(dt_str):
         return dt
     except ValueError:
         error_msg = "Invalid datetime format, value should be in format: %Y-%m-%dT%H:%M:%S.%f"
-        log.error(error_msg)
+        log.exception(error_msg)
         raise InvalidUsage(error_msg, status_code=410)
 
 
@@ -107,7 +106,7 @@ def get_stream():
         else:
             end_time = start_time + (int(request.args['duration']) * 1000000000)
 
-        print('get_stream: starttime:%s endtime:%s' % (start_time, end_time))
+        log.info('get_stream: starttime:%s endtime:%s' % (start_time, end_time))
     else:
         raise InvalidUsage("date-range-options must be specified like:" +
                            "(starttime=<time>) & ([endtime=<time>] | [duration=<seconds>])",
@@ -144,16 +143,14 @@ def get_stream():
         final_output = construct_output(resulted_stream, output_format)
 
         request_endtime = time.time() - request_starttime
-        print("=======> Request Done Successfully.",
-              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+        log.info("Request Done Successfully. Total API Request took: %.2f seconds" % request_endtime)
 
         return send_file(final_output, attachment_filename="testing.mseed", as_attachment=True)
     else:
         request_endtime = time.time() - request_starttime
-        print("=======> Request Done Successfully but with no data found.",
-              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+        log.info("Request Done Successfully but with no data found. Total API Request took: ", "%.2f seconds" % request_endtime)
 
-        raise InvalidUsage("No data found", status_code=200)
+        return build_success_response("No data found")
 
 
 
@@ -177,7 +174,7 @@ def construct_filter_criteria(start_time, end_time, network, station, channel):
     if channel is not None and channel != 'ALL':
         filter['stats.channel'] = channel
 
-    print("Filter:", filter)
+    log.info("Filter: %s" % filter)
     return filter
 
 
@@ -244,6 +241,7 @@ def check_event_existance(event_time_epoch):
 @app.route('/events/putEvent', methods=['POST'])
 def put_event():
 
+    log.info("putEvent started.")
     request_starttime = time.time()
 
     if 'event' in request.get_json() and 'waveform' in request.get_json() and 'context' in request.get_json():
@@ -253,22 +251,21 @@ def put_event():
         waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
         waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])), format='MSEED')
         conversion_endtime = time.time() - conversion_starttime
-        log.info("=======> Conversion took: %.2f seconds" % conversion_endtime)
+        log.info("Conversion took: %.2f seconds" % conversion_endtime)
     else:
         raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context must be specified in request body",
                            status_code=400)
 
     test_event = Event(event)
     print(test_event)
-    log.info('Call ev_flat_dict')
+    log.info('Call flatten event')
     ev_flat_dict = EventDB.flatten_event(Event(event))
-    log.info('flat dict:', ev_flat_dict)
+    log.info('flatten event:', ev_flat_dict)
 
     existed_event_id = check_event_existance(ev_flat_dict['time'])
 
     if existed_event_id:
-        raise InvalidUsage("Event already exists with ID " + existed_event_id,
-                           status_code=200)
+        return build_success_response("Event already exists with ID " + existed_event_id)
     else:
         filename = generate_filename_from_date(ev_flat_dict['time'])
         filepath = generate_filepath_from_date(ev_flat_dict['time'])
@@ -292,24 +289,21 @@ def put_event():
 
         inserted_event_id = mongo.db[EVENTS_COLLECTION].insert_one(ev_flat_dict).inserted_id
 
-        print("Event Inserted with ID:", inserted_event_id)
+        log.info("Event Inserted with ID:" + str(inserted_event_id))
 
         request_endtime = time.time() - request_starttime
-        print("=======> Request Done Successfully.",
-              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+        log.info("putEvent ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
 
-        return json.dumps({"event_inuse_id": str(inserted_event_id)})
-
+        return build_success_response("Event inserted successfully", {"event_id": str(inserted_event_id)})
 
 
 def read_and_write_file_as_bytes(relative_filepath, format):
     bytes = BytesIO()
     obj = None
-
-    #construct full filepath
+    # construct full filepath
     full_filepath = BASE_DIR + relative_filepath
 
-    if format =='QUAKEML':
+    if format == 'QUAKEML':
         obj = read_events(full_filepath)
         obj.write(bytes, format="QUAKEML")
     elif format in ['MSEED', 'MSEED_CONTEXT']:
@@ -337,7 +331,6 @@ def construct_event_output(event_data, requested_format):
                 if out_type != 'ALL':
                     file = construct_event_output(event_data, out_type)
                     fname = event_data['filename'] + OUTPUT_TYPES[out_type]
-                    print("========Size======>", "%.2f" % (sys.getsizeof(file.getvalue())/1024/1024))
                     info = tarfile.TarInfo(fname)
                     info.size = file.getbuffer().nbytes
                     mytar.addfile(info, file)
@@ -347,18 +340,19 @@ def construct_event_output(event_data, requested_format):
     output_size = sys.getsizeof(output.getvalue())
     output.seek(0)
     end_time = time.time() - start_time
-    print("==> Formatting Output took: ", "%.2f" % end_time, "Output Size:", "%.2f" % (output_size/1024/1024), "MB")
+    log.info("Formatting Output took: %.2f , Output Size: %.2f MB" % (end_time, (output_size/1024/1024)))
     return output
 
 
 @app.route('/events/getEvent', methods=['GET'])
 def get_event():
 
+    log.info("getEvent started")
     request_starttime = time.time()
 
     # Check Date Ranges
     if 'eventid' in request.args:
-        print('get_Event: eventid:%s' % request.args['eventid'])
+        log.info('get_Event: eventid:%s' % request.args['eventid'])
         event_id = request.args['eventid']
     else:
         raise InvalidUsage("Event ID must be specified like:" +
@@ -387,17 +381,19 @@ def get_event():
         output_filename = event_result[0]['filename'] + OUTPUT_TYPES[output_format]
 
         request_endtime = time.time() - request_starttime
-        log.info("=======> Request Done Successfully." +
-              "Total API Request took: " + "%.2f" % request_endtime + "seconds")
+        log.info("getEvent ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
 
         return send_file(output_file, attachment_filename=output_filename, as_attachment=True)
 
     else:
-        raise InvalidUsage("No data found", status_code=200)
+        log.info("getEvent ended Successfully with no data found")
+        return build_success_response("No data found")
 
 
 @app.route('/events/updateEvent', methods=['POST'])
 def update_event():
+
+    log.info("updateEvent started")
 
     request_starttime = time.time()
     event = None
@@ -460,19 +456,18 @@ def update_event():
         log.info("Event  with ID:%s has been updated successfully" % event_id)
 
         request_endtime = time.time() - request_starttime
-        log.info("Request Done Successfully. Total Update Request took: %.2f seconds" % request_endtime)
+        log.info("updateEvent ended Successfully. Total Update Request took: %.2f seconds" % request_endtime)
 
-        return build_message("success")
+        return build_success_response("Event updated successfully")
     else:
-
-        request_endtime = time.time() - request_starttime
-        log.info("Request Done Successfully. Total Update Request took: %.2f seconds" % request_endtime)
-        return build_message("No data found")
+        log.info("updateEvent ended Successfully. No data found to update.")
+        return build_success_response("No data found")
 
 
 @app.route('/events/getEventInUse', methods=['GET'])
 def get_event_inuse():
 
+    log.info("getEventInUse started")
     request_starttime = time.time()
 
     # Check Date Ranges
@@ -497,23 +492,23 @@ def get_event_inuse():
     inuse_result = mongo.db[EVENTS_INUSE_COLLECTION].find(query_filter)
 
     request_endtime = time.time() - request_starttime
-    print("=======> Request Done Successfully.",
-          "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+    log.info("getEventInUse ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
 
     if inuse_result.count() >= 1:
         return MongoJSONEncoder().encode(inuse_result[0])
     else:
-        raise InvalidUsage("No data found", status_code=200)
+        return build_success_response("No data found")
 
 
 @app.route('/events/putEventInUse', methods=['POST'])
 def put_event_inuse():
 
+    log.info("putEventInUse started")
     request_starttime = time.time()
 
     # Check Date Ranges
     if 'eventid' and 'userid' in request.get_json():
-        print('put_Event_InUse: eventid:%s userid:%s' % (request.get_json()['eventid'], request.get_json()['userid']))
+        log.info('put_Event_InUse: eventid:%s userid:%s' % (request.get_json()['eventid'], request.get_json()['userid']))
         event_id = request.get_json()['eventid']
         user_id = request.get_json()['userid']
     else:
@@ -532,15 +527,20 @@ def put_event_inuse():
     inserted_record_id = mongo.db[EVENTS_INUSE_COLLECTION].insert_one(inuse_data).inserted_id
 
     request_endtime = time.time() - request_starttime
-    print("=======> Request Done Successfully.",
-          "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+    log.info("putEventInUse ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
 
-    return json.dumps({"event_inuse_id": str(inserted_record_id)})
-
+    return build_success_response("EventInUse added successfully", {"event_inuse_id": str(inserted_record_id)})
 
 
-def build_message(message_text):
-    return json.dumps({"message": message_text})
+def build_success_response(message_text, extra_dict=None):
+    success = True
+    response = {
+        'success': success,
+        'message': message_text
+    }
+    if extra_dict:
+        response.update(extra_dict)
+    return json.dumps(response)
 
 
 @app.errorhandler(404)
@@ -583,8 +583,8 @@ def handle_error(error):
             'message': message
         }
     }
-    log.error(response)
-    return jsonify(response), status_code
+    log.exception(response)
+    return json.dumps(response), status_code
 
 if __name__ == '__main__':
     # launch API

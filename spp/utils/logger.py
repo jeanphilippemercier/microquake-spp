@@ -6,7 +6,7 @@ import os
 
 config = Configuration()
 #FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
-FORMATTER = logging.Formatter('<%(name)s> [%(levelname)7s] %(message)s')
+FORMATTER = logging.Formatter('%(asctime)s <%(name)s> <%(thread)d> [%(levelname)s] %(message)s') #, datefmt='%Y-%m-%d %H:%M:%S.%f')
 LOG_DIR = config.IMS_CONFIG["logging"]["log_directory"]
 
 
