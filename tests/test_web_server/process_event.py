@@ -254,8 +254,13 @@ def make_event(xyzt_array):
     event.write('event3.xml', format='quakeml')
 
     result = post_data("putEvent", build_event_data('event3.xml', 'event.mseed', 'event_context.mseed'))
-    print('message=%s' % result.read())
-    print('code=%s' % result.code)
+    print('result.code=',result.code)
+    print('result.status=',result.status)
+    read_string  = result.read().decode('utf-8')
+    d = json.loads(read_string)
+    event_id = d['event_id']
+    print('PRINT process_event: event_id=[%s]' % event_id)
+    logger.info('process_event: event_id=[%s]' % event_id)
     exit()
 
 
@@ -284,8 +289,10 @@ def make_event(xyzt_array):
     config_file = config_dir + '/input.xml'
     config_file = config_dir + '/project.xml'
 
+    print('Now do the NLLOC relocation')
     params = ctl.parse_control_file(config_file)
     nll_opts = nlloc.init_nlloc_from_params(params)
+    print('NLLOC opts are loaded')
 
     # The following line only needs to be run once. It creates the base directory
     # MTH: this will re-create the station time grids in spp common/NLL/time:
@@ -305,14 +312,20 @@ def make_event(xyzt_array):
     #cat_new = nll_opts.run_event(event_new)[0]
     #cat_new.origins[1].method = 'NLLOC run_event'
 
+    print(event)
     event_new = nll_opts.run_event(event)[0]
     print('MTH: NLLOC is Done, now write out event4.xml')
+    exit()
     event_new.origins[2].method = 'NLLOC run_event'
     event_new.write('event4.xml', format='quakeml')
 
     print( event_new.preferred_origin().resource_id.id)
     event_read = read_events('event4.xml', format='QUAKEML')[0]
     print(event_read.preferred_origin().resource_id.id)
+
+    #result2 = post_data("updateEvent", build_update_event_data(event_id, 'event4.xml', 'event.mseed', 'event_context.mseed'))
+    #print(result2)
+
     exit()
 
     print('cat_new : %s' % cat_new.preferred_origin().resource_id.id)

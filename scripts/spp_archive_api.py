@@ -100,7 +100,6 @@ def get_stream():
     if 'starttime' in request.args and ('endtime' in request.args or 'duration' in request.args):
 
         start_time = check_and_parse_datetime(request.args['starttime'])
-        print(start_time)
         if 'endtime' in request.args:
             end_time = check_and_parse_datetime(request.args['endtime'])
         else:
@@ -148,7 +147,7 @@ def get_stream():
         return send_file(final_output, attachment_filename="testing.mseed", as_attachment=True)
     else:
         request_endtime = time.time() - request_starttime
-        log.info("Request Done Successfully but with no data found. Total API Request took: ", "%.2f seconds" % request_endtime)
+        log.info("Request Done Successfully but with no data found. Total API Request took: %.2f seconds" % request_endtime)
 
         return build_success_response("No data found")
 
@@ -256,16 +255,14 @@ def put_event():
         raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context must be specified in request body",
                            status_code=400)
 
-    test_event = Event(event)
-    print(test_event)
-    log.info('Call flatten event')
+    log.info('Call EventDB.flatten_event')
     ev_flat_dict = EventDB.flatten_event(Event(event))
-    log.info('flatten event:', ev_flat_dict)
 
     existed_event_id = check_event_existance(ev_flat_dict['time'])
 
     if existed_event_id:
-        return build_success_response("Event already exists with ID " + existed_event_id)
+        #return build_success_response("Event already exists with ID " + existed_event_id)
+        return build_success_response("Event already exists with ID " + existed_event_id, {"event_id": str(existed_event_id)})
     else:
         filename = generate_filename_from_date(ev_flat_dict['time'])
         filepath = generate_filepath_from_date(ev_flat_dict['time'])
