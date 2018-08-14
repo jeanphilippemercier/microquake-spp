@@ -74,6 +74,9 @@ def make_event(xyzt_array, plot_profiles=False, insert_event=False):
     endtime   = origin.time + 0.9
     logger.info('%s: call get_stream_from_mongo(starttime=[%s] endtime=[%s]' % (fname, starttime, endtime))
     st1 = get_stream_from_mongo(starttime, endtime)
+    if st1 is None:
+        logger.info('%s: get_stream_from_mongo returned None --> return' % fname)
+        return
 
     for tr in st1:
         logger.info('id:%s \t %s - %s' % (tr.get_id(), tr.stats.starttime, tr.stats.endtime))

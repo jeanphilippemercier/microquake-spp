@@ -64,12 +64,25 @@ def get_stream(url):
     #url_opener=set_opener(None, None)
     url_opener = urllib_request.build_opener()
     url_obj = url_opener.open(request, timeout=timeout)
-    data_stream = io.BytesIO(url_obj.read())
+    #print(type(url_obj))
 
-    data_stream.seek(0, 0)
-    st = obspy.read(data_stream, format="MSEED")
-    data_stream.close()
-    return(st)
+    result = url_obj.read()
+    try:
+        data_stream = io.BytesIO(result)
+        data_stream.seek(0, 0)
+        st = obspy.read(data_stream, format="MSEED")
+        data_stream.close()
+        return(st)
+    except:
+#obspy.io.mseed.ObsPyMSEEDFilesizeTooSmallError
+        #raise
+#UnicodeDecodeError:
+        read_string  = result.decode('utf-8')
+        d = json.loads(read_string)
+        if 'no_data_found' in d:
+            print('No data found!')
+        return None
+
 
 def get_stream_from_mongo(starttime, endtime, **kwargs):
     url = get_url(starttime, endtime, **kwargs)
