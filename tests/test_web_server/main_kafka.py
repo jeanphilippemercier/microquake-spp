@@ -1,13 +1,19 @@
 from spp.utils.kafka import KafkaHandler
+import numpy as np
+import os
 import struct
 import yaml
 
+from liblog import getLogger
 import logging
-logger = logging.getLogger()
-#logger.setLevel(logging.WARNING)
-#print(logger.level)
+logger = getLogger()
+logger.setLevel(logging.CRITICAL)
+
+from make_event import make_event
 
 def main():
+
+    logger.setLevel(logging.DEBUG)
 
     config_dir = os.environ['SPP_CONFIG']
     fname = os.path.join(config_dir, 'data_connector_config.yaml')
@@ -30,18 +36,23 @@ def main():
     '''
 
     s = struct.Struct('d d d d d')
+    logger.info("main_kafka.py: kafka listener started")
     for message in consumer:
-        print("==================================================================")
-        print("Key:", message.key)
+        logger.info("=== new message in make_event consumer ==========")
+        #logger.info("Key:", message.key.decode('utf-8'))
         from_interloc = s.unpack(message.value)
-        print(from_interloc)
+        #print(from_interloc)
         (t, x, y, z, intensity) = from_interloc
         #(intensity, x, y, z, t) = from_interloc
-        print('got t=',t)
-        print('%15.10f' % t)
-        print('x=%f' % x)
-        print('y=%f' % y)
-        print('z=%f' % z)
-        print("==================================================================")
-        make_event( np.array([x,y,z,t]) )
-    exit()
+        #print('got t=',t)
+        #print('%15.10f' % t)
+        #print('x=%f' % x)
+        #print('y=%f' % y)
+        #print('z=%f' % z)
+        #print("==================================================================")
+        logger.info("Call make_event: x=%.1f, y=%.1f, z=%.1f, t=%.1f" % (x,y,z,t))
+        make_event( np.array([x,y,z,t]), insert_event=True)
+    #exit()
+
+if __name__ == "__main__":
+    main()

@@ -5,7 +5,7 @@ def getLogger():
     #if len(logger.handlers) == 0:
     if 1==1:
         ch = logging.StreamHandler()
-        formatter = logging.Formatter('[%(levelname)7s] %(message)s')
+        formatter = logging.Formatter('%(asctime)s [%(levelname)7s] %(message)s')
         ch.setFormatter(formatter)
         logger.addHandler(ch)
       # Default logLevel - this will get passed to modules that look at root logLevel

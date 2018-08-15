@@ -9,8 +9,8 @@ headers = {}
 handlers = []
 url_opener = None
 
-#url_base = 'http://40.76.192.141:5000/getStream'
-url_base = 'http://40.76.192.141:5000'
+#url_base = 'http://40.76.192.141:5000'
+url_base = 'http://localhost:5000'
 
 import logging
 logger = logging.getLogger()

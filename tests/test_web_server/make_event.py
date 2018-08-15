@@ -29,7 +29,7 @@ from io import BytesIO
 import logging
 logger = logging.getLogger()
 #print('process_event: inherits log level=[%s]' % (logger.getEffectiveLevel()))
-print('import process_event: inherits log level=[%s]' % get_log_level(logger.getEffectiveLevel()))
+#print('import process_event: inherits log level=[%s]' % get_log_level(logger.getEffectiveLevel()))
 
 config_dir = os.environ['SPP_CONFIG']
 
@@ -175,8 +175,12 @@ def make_event(xyzt_array, plot_profiles=False, insert_event=False):
         #logger.debug(pk)
     #exit()
 
-# Try to insert event (and then return event_id) or, if event already exists,
-#   just get event_id
+    min_number_picks = 10
+    if len(cleaned_picks) < min_number_picks:
+        logger.warn('%s: n_cleaned_picks=%d < min_number_picks (%d) --> ** STOP **' % \
+                   (fname, len(cleaned_picks), min_number_picks))
+        return None
+
 
     event_id = None
     if insert_event:
@@ -202,10 +206,9 @@ def make_event(xyzt_array, plot_profiles=False, insert_event=False):
 
     logger.info('%s: Call NLLOC with event: pref_origin=%s' % (fname, event.preferred_origin().resource_id.id))
     resource = event.preferred_origin().resource_id
-    print(type(resource))
     pref_orig= resource.get_referred_object()
-    print(type(pref_orig))
-    print(pref_orig)
+    #print(type(pref_orig))
+    #print(pref_orig)
 
     params = ctl.parse_control_file(config_file)
     logger.info('%s: Call NLLOC init from params' % fname)
@@ -254,16 +257,33 @@ def make_event(xyzt_array, plot_profiles=False, insert_event=False):
         event_id = d['event_id']
         logger.info('%s: update event_id=[%s] returned msg:%s' % (fname, event_id, d['message']))
 
-    exit()
+    logger.info('%s: Finished processing event (id=%s) --> Now clean up!' % (fname, event_id))
 
+    from glob import glob
+    file_list = glob('event*.xml')
+    for f in file_list:
+        logger.debug('%s: remove file:%s' % (fname, f))
+        os.remove(f) 
+    file_list = glob('event*.mseed')
+    for f in file_list:
+        logger.debug('%s: remove file:%s' % (fname, f))
+        os.remove(f) 
+
+    logger.info('%s: Clean up DONE --> on to next event' % (fname))
+
+    return
+
+    #exit()
+
+    '''
     import pickle as pickle
     #qbytes = pickle.dumps(cat_read)
     qbytes = pickle.dumps(cat_new)
     cat_2 = pickle.loads(qbytes)
     print('   cat_2: %s' % cat_2.preferred_origin().resource_id.id)
     cat_2.write('foo2.xml', format='quakeml')
-
     exit()
+    '''
 
 
   # 6. Compare resid between cleaned picks and predicted picks for nlloc origin:
