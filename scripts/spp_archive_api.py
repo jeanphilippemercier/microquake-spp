@@ -102,7 +102,6 @@ def get_stream():
     if 'starttime' in request.args and ('endtime' in request.args or 'duration' in request.args):
 
         start_time = check_and_parse_datetime(request.args['starttime'])
-        print(start_time)
         if 'endtime' in request.args:
             end_time = check_and_parse_datetime(request.args['endtime'])
         else:
@@ -150,9 +149,10 @@ def get_stream():
         return send_file(final_output, attachment_filename="testing.mseed", as_attachment=True)
     else:
         request_endtime = time.time() - request_starttime
-        log.info("Request Done Successfully but with no data found. Total API Request took: ", "%.2f seconds" % request_endtime)
+        log.info("Request Done Successfully but with no data found. Total API Request took: %.2f seconds" % request_endtime)
 
-        return build_success_response("No data found")
+        #return build_success_response("No data found")
+        return build_success_response("No data found", {"no_data_found": True})
 
 
 
@@ -243,7 +243,7 @@ def check_event_existance(event_time_epoch):
 @app.route('/events/putEvent', methods=['POST'])
 def put_event():
 
-    log.info("putEvent started.")
+    log.info("put_event started.")
     request_starttime = time.time()
 
     if 'event' in request.get_json() and 'waveform' in request.get_json() and 'context' in request.get_json():
@@ -253,25 +253,24 @@ def put_event():
         waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
         waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])), format='MSEED')
         conversion_endtime = time.time() - conversion_starttime
-        log.info("Conversion took: %.2f seconds" % conversion_endtime)
+        log.info("put_event: Conversion took: %.2f seconds" % conversion_endtime)
     else:
         raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context must be specified in request body",
                            status_code=400)
 
-    test_event = Event(event)
-    print(test_event)
-    log.info('Call flatten event')
+    log.info('put_event: Call EventDB.flatten_event')
     ev_flat_dict = EventDB.flatten_event(Event(event))
-    log.info('flatten event:', ev_flat_dict)
 
     existed_event_id = check_event_existance(ev_flat_dict['time'])
 
     if existed_event_id:
-        return build_success_response("Event already exists with ID " + existed_event_id)
+        #return build_success_response("Event already exists with ID " + existed_event_id)
+        log.info('put_event: id=[%s] already exists in db --> Dont try to insert/update xml' % existed_event_id)
+        return build_success_response("Event already exists with ID " + existed_event_id, {"event_id": str(existed_event_id)})
     else:
         filename = generate_filename_from_date(ev_flat_dict['time'])
         filepath = generate_filepath_from_date(ev_flat_dict['time'])
-        print(filepath + filename)
+        log.info('put_event: create filestore: filepath + filename = [%s]' % (filepath + filename))
 
         create_filestore_directories(BASE_DIR, filepath)
 
@@ -291,10 +290,10 @@ def put_event():
 
         inserted_event_id = mongo.db[EVENTS_COLLECTION].insert_one(ev_flat_dict).inserted_id
 
-        log.info("Event Inserted with ID:" + str(inserted_event_id))
+        log.info("put_event: Inserted new event into mongoDB with ID:" + str(inserted_event_id))
 
         request_endtime = time.time() - request_starttime
-        log.info("putEvent ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
+        log.info("put_event ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
 
         return build_success_response("Event inserted successfully", {"event_id": str(inserted_event_id)})
 
@@ -395,7 +394,7 @@ def get_event():
 @app.route('/events/updateEvent', methods=['POST'])
 def update_event():
 
-    log.info("updateEvent started")
+    log.info("update_event started")
 
     request_starttime = time.time()
     event = None
@@ -408,6 +407,7 @@ def update_event():
         conversion_starttime = time.time()
 
         event_id = request.get_json()['event_id']
+        log.info("update_event: request to update event_id:%s" % event_id)
         if 'event' in request.get_json():
             event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
         if 'waveform' in request.get_json():
@@ -426,14 +426,21 @@ def update_event():
         '_id': ObjectId(event_id),
     }
 
+# ATODO: Need to modify this so that it recreates the mongoDB record using the latest event xml
+#  eg, a way to modify the fields ??
+
     event_document = mongo.db[EVENTS_COLLECTION].find_one(filter)
 
     if event_document:
+
+        log.info('update_event: Found event_document event_id:%s' % event_id)
 
         filename = generate_filename_from_date(event_document['time'])
         filepath = generate_filepath_from_date(event_document['time'])
         print(filepath + filename)
 
+        log.info('update_event: create_filestore: BASE_DIR=%s filepath=%s' % \
+			        (BASE_DIR, filepath))
         create_filestore_directories(BASE_DIR, filepath)
 
         event_document['filename'] = filename
@@ -443,14 +450,20 @@ def update_event():
             event_filepath = update_file_version(event_document['event_filepath'])
             event_document['event_filepath'] = event_filepath
             event.write(BASE_DIR + event_filepath, format="QUAKEML")
+            log.info('update_event: event_filepath=%s' % (event_filepath))
+
         if waveform:
             waveform_filepath = update_file_version(event_document['waveform_filepath'])
             event_document['waveform_filepath'] = waveform_filepath
             waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
+            log.info('update_event: waveform_filepath=%s' % (waveform_filepath))
+
         if waveform_context:
             waveform_context_filepath = update_file_version(event_document['waveform_context_filepath'])
             event_document['waveform_context_filepath'] = waveform_context_filepath
             waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
+            log.info('update_event: waveform_context_filepath=%s' % (waveform_context_filepath))
+
 
         event_document['modification_time'] = int(datetime.datetime.utcnow().timestamp() * 1e9)
 
@@ -461,7 +474,8 @@ def update_event():
         request_endtime = time.time() - request_starttime
         log.info("updateEvent ended Successfully. Total Update Request took: %.2f seconds" % request_endtime)
 
-        return build_success_response("Event updated successfully")
+        #return build_success_response("Event updated successfully")
+        return build_success_response("Event update successfully", {"event_id": str(event_id)})
     else:
         log.info("updateEvent ended Successfully. No data found to update.")
         return build_success_response("No data found")

@@ -2,6 +2,7 @@ from spp.travel_time import core
 from spp.utils import get_stations
 #from microquake.core import read, UTCDateTime
 #from microquake.core.stream import Stream
+from obspy.core.event.base import ResourceIdentifier
 from microquake.waveform.pick import SNR_picker, calculate_snr, kurtosis_picker
 from microquake.core.event import Pick, make_pick, Arrival
 import numpy as np
@@ -12,9 +13,27 @@ from obspy.core.utcdatetime import UTCDateTime
 from microquake.core.stream import Trace, Stream
 #from obspy.core.stream import Stream
 #from microquake.waveform.pick import SNR_picker, calculate_snr
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import copy
 #from lib.waveform import WaveformPlotting as wp
+
+import logging
+logger = logging.getLogger()
+
+def get_log_level(level_number):
+    log_level = {
+                50: 'CRITICAL',
+                40: 'ERROR',
+                30: 'WARNING',
+                20: 'INFO',
+                10: 'DEBUG',
+                 0: 'NOTSET'
+                }
+    if level_number in log_level.keys():
+        return log_level[level_number]
+    else:
+        return None
+
 
 def check_for_dead_trace(tr):
     eps = 1e-6
@@ -34,7 +53,11 @@ def picks_to_arrivals(picks):
     for pick in picks:
         arrival = Arrival()
         arrival.phase = pick.phase_hint
-        arrival.pick_id = pick.resource_id.id
+        arrival.pick_id = ResourceIdentifier(id=pick.resource_id.id, referred_object=pick)
+# MTH: obspy seems to require that we do this once or else it loses the reference:
+        pk = arrival.pick_id.get_referred_object()
+        #print(pk)
+        #arrival.pick_id = pick.resource_id.id
         arrivals.append(arrival)
     return arrivals
 
@@ -57,7 +80,7 @@ def plot_profile_with_picks(st, picks=None, origin=None, title=None):
         return 0
 
     if picks is None:
-        print(origin.time, origin.loc)
+        #print(origin.time, origin.loc)
         #picks = get_predicted_picks(st, origin)
         picks = get_predicted_picks(st.composite(), origin)
 
@@ -124,8 +147,10 @@ def get_predicted_picks(stream, origin):
     predicted_picks = []
     for tr in stream:
         station = tr.stats.station
-        ptime = core.get_travel_time_grid(station, origin.loc, phase='P', use_eikonal=False)
-        stime = core.get_travel_time_grid(station, origin.loc, phase='S', use_eikonal=False)
+        ptime = core.get_travel_time_grid_point(station, origin.loc, phase='P', use_eikonal=False)
+        stime = core.get_travel_time_grid_point(station, origin.loc, phase='S', use_eikonal=False)
+        #ptime = core.get_travel_time_grid(station, origin.loc, phase='P', use_eikonal=False)
+        #stime = core.get_travel_time_grid(station, origin.loc, phase='S', use_eikonal=False)
         predicted_picks.append( make_pick(origin.time + ptime, phase='P', wave_data=tr) )
         predicted_picks.append( make_pick(origin.time + stime, phase='S', wave_data=tr) )
 
@@ -224,7 +249,7 @@ def check_trace_channels_with_picks(stream, picks):
                 #(station, ch,m1,med1,max1,m2,med2,max2, max1/med1, max2/med2, snr))
 
             if snr < 4 :
-                print('** Remove channel=[%s] snr=%f' % (tr.get_id(), snr))
+                logger.debug('%s: Remove channel=[%s] snr=%f' % (fname, tr.get_id(), snr))
                 stream.remove(tr)
 
 
@@ -261,16 +286,16 @@ def clean_picks(st, picks, preWl=.03, postWl=.03, thresh=3):
             continue
         if 'P' in pick_dict[station]:
             p_snr  = calculate_snr(trs, pick_dict[station]['P'].time, preWl, postWl)
+            logger.debug('%s: sta:%s [P] snr [%.1f]' % (fname, station,p_snr))
             if p_snr < thresh:
-                print('sta:%s ** P snr [%.1f] is < thresh!' % (station,p_snr))
+                logger.debug('%s: sta:%s ** P snr [%.1f] is < thresh!' % (fname, station,p_snr))
                 del(pick_dict[station]['P'])
-            print('sta:%s [P] snr [%.1f]' % (station,p_snr))
         if 'S' in pick_dict[station]:
             s_snr  = calculate_snr(trs, pick_dict[station]['S'].time, preWl, postWl)
+            logger.debug('%s: sta:%s [S] snr [%.1f]' % (fname, station,s_snr))
             if s_snr < thresh:
-                print('sta:%s ** S snr  [%.1f]is < thresh!' % (station,s_snr))
+                logger.debug('%s: sta:%s ** S snr  [%.1f]is < thresh!' % (fname, station,s_snr))
                 del(pick_dict[station]['S'])
-            print('sta:%s [S] snr [%.1f]' % (station,s_snr))
             #plot_channels_with_picks(trs, station, snr_picks, title=title)
 
     cleaned_picks = []

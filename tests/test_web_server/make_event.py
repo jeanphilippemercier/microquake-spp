@@ -10,130 +10,48 @@ from obspy.core.event import Event as obsEvent
 from microquake.waveform.pick import SNR_picker, calculate_snr, kurtosis_picker
 import numpy as np
 import os
-
 from importlib import reload
 reload(core)
 
-from web_client import get_stream_from_mongo
+#from web_client import get_stream_from_mongo
+from web_client import *
 
-from test_api_events import *
-
-#from IPython.core.debugger import Tracer
-#from microquake.realtime.signal import kurtosis
-# Don't use!
-#from microquake.core import read_events
 from microquake.core import read_events as micro_read_events
 from obspy.core.event import read_events
-# MTH: the diff is if you use obspy read_events, then you need to drill down to get
-#      to the extra[] dict values, e.g.:
-#      pick.extra.method.value vs pick.method (since we've implemented useful __getattr__ on microquake Pick)
-
 from microquake import nlloc
-
-#from obspy.core.event import Catalog
 
 from helpers import *
 
+from io import BytesIO
+
+#from liblog import getLogger
+#logger = getLogger()
 import logging
 logger = logging.getLogger()
-#logger.setLevel(logging.WARNING)
-#print(logger.level)
-#import matplotlib.pyplot as plt
+#print('process_event: inherits log level=[%s]' % (logger.getEffectiveLevel()))
+#print('import process_event: inherits log level=[%s]' % get_log_level(logger.getEffectiveLevel()))
 
-data_dir   = os.environ['SPP_DATA']
 config_dir = os.environ['SPP_CONFIG']
 
-from spp.utils.kafka import KafkaHandler
-from io import BytesIO
-def main():
-    '''
-    intensity = 1.0
-    # Big event
-    x = 651298
-    y = 4767394
-    z = -148
-    timestamp = 1527072662.2131672
-
-    '''
-    x=651275.000000
-    y=4767395.000000
-    z=-175.000000
-    timestamp = 1527072662.2110002041
-    '''
-
-    #origin.time = UTCDateTime( datetime(2018, 5, 23, 10, 51, 2, 213167) )
-    make_event( np.array([x,y,z,timestamp,intensity]) )
-    exit()
-    '''
-
-    import struct
-    import yaml
-    from microquake.core.util import serializer
-    from microquake.core import read
-
-    fname = os.path.join(config_dir, 'data_connector_config.yaml')
-
-    with open(fname, 'r') as cfg_file:
-        params = yaml.load(cfg_file)
-        params = params['data_connector']
-
-    # Create Kafka Object
-    kafka_brokers = params['kafka']['brokers']
-    kafka_topic = 'interloc' # PAF - needs to be made configurable
-
-    consumer = KafkaHandler.consume_from_topic(kafka_topic,kafka_brokers)
-
-    t=1527072662.2110002041
-    x=651275.000000
-    y=4767395.000000
-    z=-175.000000
-
-    s = struct.Struct('d d d d d')
-    for message in consumer:
-        print("==================================================================")
-        print("Key:", message.key)
-        from_interloc = s.unpack(message.value)
-        print(from_interloc)
-        (t, x, y, z, intensity) = from_interloc
-        #(intensity, x, y, z, t) = from_interloc
-        print('got t=',t)
-        print('%15.10f' % t)
-        print('x=%f' % x)
-        print('y=%f' % y)
-        print('z=%f' % z)
-        print("==================================================================")
-        make_event( np.array([x,y,z,t]) )
-    exit()
-
-
-    # Small event
-    #time = UTCDateTime( datetime(2018, 5, 23, 10, 51, 3, 765333) )
-    x = 651280
-    y = 4767400
-    z = -200
-    timestamp = 1527072663.765333
-    make_event( np.array([x,y,z,timestamp,intensity]) )
-
-def make_event(xyzt_array):
+def make_event(xyzt_array, plot_profiles=False, insert_event=False):
 #MTH: You have to have these 2 set to get pretty print output of Origin:  -->
         #<evaluationMode>manual</evaluationMode>
         #<evaluationStatus>reviewed</evaluationStatus>
 
-    plot_profiles = 0
-
     fname = 'make_event'
+
+    #print('%s: LOG LEVEL=%s' % (fname, get_log_level(logger.getEffectiveLevel())))
+
     if xyzt_array.size != 4:
         logger.error('%s: expecting 4 inputs = {x, y, z, t}' % fname)
         #logger.error('%s: expecting 5 inputs = {x, y, z, t, intensity}' % fname)
         exit(2)
-    print('%s: Got:%s' % (fname, xyzt_array))
-    print('%s: type xyzt_array[0]:%s' % (fname, type(xyzt_array[0])))
     origin = Origin()
     origin.time = UTCDateTime( xyzt_array[3])
     origin.x = xyzt_array[0]
     origin.y = xyzt_array[1]
     origin.z = xyzt_array[2]
-    print(origin)
+    #print(origin)
     event = Event()
     #event = obsEvent()
     event.origins = [origin]
@@ -142,35 +60,39 @@ def make_event(xyzt_array):
     # Either of these methods seems to work:
     event.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id)
     #event.preferred_origin_id = origin.resource_id
-    print(event)
-    print()
-    print()
+    #print(event)
     origin.method = 'InterLoc Event'
-    print(origin)
+
+    logger.info('%s: Start from InterLoc Origin:' % fname)
+    logger.info(origin)
     event.write('event.xml', format='quakeml')
-    event_read = read_events('event.xml', format='QUAKEML')[0]
-    print('read pref  id:%s' % event_read.preferred_origin_id)
+    logger.info('%s: Write InterLoc Origin to event.xml' % fname)
+    #event_read = read_events('event.xml', format='QUAKEML')[0]
+    #print('read pref  id:%s' % event_read.preferred_origin_id)
 
     starttime = origin.time - 0.1
     endtime   = origin.time + 0.9
+    logger.info('%s: call get_stream_from_mongo(starttime=[%s] endtime=[%s]' % (fname, starttime, endtime))
     st1 = get_stream_from_mongo(starttime, endtime)
+    if st1 is None:
+        logger.info('%s: get_stream_from_mongo returned None --> return' % fname)
+        return
 
     for tr in st1:
-        print('id:%s \t %s - %s' % (tr.get_id(), tr.stats.starttime, tr.stats.endtime))
+        logger.info('id:%s \t %s - %s' % (tr.get_id(), tr.stats.starttime, tr.stats.endtime))
         #tr.plot()
-    #exit()
 
     st1.filter("bandpass", freqmin=80.0, freqmax=600.0, corners=4)
     # ATODO MTH: get_stream() is returning obspy Stream, not microquake
     st = Stream(st1.copy())
 
     title = 'InterLoc Orig <%.0f, %.0f, %.0f> %s' % (origin.x, origin.y, origin.z, origin.time)
-    print(type(st1))
-    print(type(st))
 
     st.write("event.mseed")
     if plot_profiles:
         plot_profile_with_picks(st, picks=None, origin=origin, title=title)
+
+    #exit()
 
   # 1. Stack traces to get origin time + prelim predicted picks for origin time + loc:
     event2 = core.create_event(st, origin.loc)[0]
@@ -229,16 +151,11 @@ def make_event(xyzt_array):
     first_sta  = first_pick.waveform_id.station_code
 #MTH: hard-coding for test only.  Issue is that interLoc locn causes sta=89 to be chosen first and
 #  it has issues on the server
-    first_sta  = '32'
-    
-
-    first_sta = '32'
+    #first_sta  = '32'
 
     starttime = origin.time - 10
     endtime   = origin.time + 10
-    print('main: Get context mseed')
     st_temp   = get_stream_from_mongo(starttime, endtime, sta=first_sta)
-    print('main: Get context mseed DONE')
     st_new = Stream(st_temp).composite()
     #st_new.plot()
     #exit()
@@ -252,30 +169,33 @@ def make_event(xyzt_array):
     event.origins[1].arrivals = picks_to_arrivals(cleaned_picks) 
     event.preferred_origin_id = event.origins[1].resource_id
     event.write('event3.xml', format='quakeml')
+    #for arr in event.origins[1].arrivals:
+        #logger.debug('arr_id=%s --> pick_id=%s' % (arr.resource_id.id, arr.pick_id))
+        #pk = arr.pick_id.get_referred_object()
+        #logger.debug(pk)
+    #exit()
 
-    result = post_data("putEvent", build_event_data('event3.xml', 'event.mseed', 'event_context.mseed'))
-    print('message=%s' % result.read())
-    print('code=%s' % result.code)
-    exit()
+    min_number_picks = 10
+    if len(cleaned_picks) < min_number_picks:
+        logger.warn('%s: n_cleaned_picks=%d < min_number_picks (%d) --> ** STOP **' % \
+                   (fname, len(cleaned_picks), min_number_picks))
+        return None
 
 
-    '''
-    from microquake.waveform.mag import moment_magnitude
-    from spp.utils import get_stations
-    site = get_stations()
-    print('Before: pref mag:%s' % event.preferred_magnitude_id)
-    print('Here comes site:')
-    print(site)
-    for sta in site.stations():
-        print(sta)
-    event_mag = moment_magnitude(st, event, site, vp=5200, vs=5200/np.sqrt(3))
-    print('Here comes mag:')
-    print(event_mag)
-    for mag in event_mag.magnitudes:
-        print(mag)
+    event_id = None
+    if insert_event:
+        logger.info('%s: Call to putEvent(event3.xml, event.mseed, event_context.mseed)' % fname)
+        result = post_data("putEvent", build_event_data('event3.xml', 'event.mseed', 'event_context.mseed'))
+        logger.info('%s: Call to putEvent --> returned result code=%d' % (fname, result.code))
+        if result.code != 200:
+            logger.error('%s: post_data returned result code=%d != 200!' % (fname, result.code))
 
-    exit()
-    '''
+        read_string  = result.read().decode('utf-8')
+        d = json.loads(read_string)
+        event_id = d['event_id']
+        logger.info('%s: putEvent returned event_id=[%s] with msg:%s' % (fname, event_id, d['message']))
+
+    #exit()
 
     #########
 
@@ -284,8 +204,16 @@ def make_event(xyzt_array):
     config_file = config_dir + '/input.xml'
     config_file = config_dir + '/project.xml'
 
+    logger.info('%s: Call NLLOC with event: pref_origin=%s' % (fname, event.preferred_origin().resource_id.id))
+    resource = event.preferred_origin().resource_id
+    pref_orig= resource.get_referred_object()
+    #print(type(pref_orig))
+    #print(pref_orig)
+
     params = ctl.parse_control_file(config_file)
+    logger.info('%s: Call NLLOC init from params' % fname)
     nll_opts = nlloc.init_nlloc_from_params(params)
+    logger.info('%s: NLLOC opts are loaded --> call run_event to relocate' % fname)
 
     # The following line only needs to be run once. It creates the base directory
     # MTH: this will re-create the station time grids in spp common/NLL/time:
@@ -293,88 +221,76 @@ def make_event(xyzt_array):
     #exit()
 
 # Need to pass in an event with a preferred origin + arrivals
-
-    #event_new = cat[0].copy()
-    #event_new.preferred_origin_id = event_new.origins[0].resource_id.id
-
-    #event_new.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id)
-    #origin.update_arrivals(site)
-    #ot_event = nll_opts.run_event(event_new)[0]
-    # MTH: run_event will run NLLOC in spp common/NLL/tmp.../loc and will scan the hypo file there
-    #cat_new = nll_opts.run_event(event_new)[0]
-    #cat_new = nll_opts.run_event(event_new)[0]
-    #cat_new.origins[1].method = 'NLLOC run_event'
-
     event_new = nll_opts.run_event(event)[0]
-    print('MTH: NLLOC is Done, now write out event4.xml')
+    logger.info('%s: NLLOC is Done, now write out event4.xml' % fname)
+    #exit()
+
+  # Compute magnitude using nlloc origin
+    from microquake.waveform.mag import moment_magnitude
+    from spp.utils import get_stations
+    site = get_stations()
+    event_new = moment_magnitude(st, event_new, site, vp=5200, vs=5200/np.sqrt(3))
     event_new.origins[2].method = 'NLLOC run_event'
     event_new.write('event4.xml', format='quakeml')
 
-    print( event_new.preferred_origin().resource_id.id)
+    logger.info('%s: event4: preferred origin_id=%s' % (fname, event_new.preferred_origin().resource_id.id))
     event_read = read_events('event4.xml', format='QUAKEML')[0]
-    print(event_read.preferred_origin().resource_id.id)
-    exit()
+    logger.info('%s: event_read: preferred origin_id=%s' % (fname, event_read.preferred_origin().resource_id.id))
 
-    print('cat_new : %s' % cat_new.preferred_origin().resource_id.id)
-    print('cat_read: %s' % cat_read.preferred_origin().resource_id.id)
-    print('type(cat_new)=%s' % type(cat_new))
-    print('type(cat_read)=%s' % type(cat_read))
-    cat_read.write('foo1.xml', format='quakeml')
+    #result2 = post_data("updateEvent", build_update_event_data(event_id, 'event4.xml', 'event.mseed', 'event_context.mseed'))
+    #print(result2)
+
+    if insert_event:
+        if event_id is None:
+            logger.error('%s: Unable to update event --> event_id is None!' % (fname))
+            exit(1)
+        
+        logger.info('%s: Try to update event id:%s with event4.xml' % (fname, event_id))
+        result = post_data("updateEvent", build_update_event_data(event_id, 'event4.xml'))
+        logger.info('%s: Call to updateEvent --> returned result code=%d' % (fname, result.code))
+        if result.code != 200:
+            logger.error('%s: post_data returned result code=%d != 200!' % (fname, result.code))
+            exit(1)
+
+        read_string  = result.read().decode('utf-8')
+        d = json.loads(read_string)
+        event_id = d['event_id']
+        logger.info('%s: update event_id=[%s] returned msg:%s' % (fname, event_id, d['message']))
+
+    logger.info('%s: Finished processing event (id=%s) --> Now clean up!' % (fname, event_id))
+
+    from glob import glob
+    file_list = glob('event*.xml')
+    for f in file_list:
+        logger.debug('%s: remove file:%s' % (fname, f))
+        os.remove(f) 
+    file_list = glob('event*.mseed')
+    for f in file_list:
+        logger.debug('%s: remove file:%s' % (fname, f))
+        os.remove(f) 
+
+    logger.info('%s: Clean up DONE --> on to next event' % (fname))
+
+    return
+
     #exit()
 
+    '''
     import pickle as pickle
     #qbytes = pickle.dumps(cat_read)
     qbytes = pickle.dumps(cat_new)
     cat_2 = pickle.loads(qbytes)
     print('   cat_2: %s' % cat_2.preferred_origin().resource_id.id)
     cat_2.write('foo2.xml', format='quakeml')
-
     exit()
-
-    for origin in cat_read.origins:
-        if 'NLLOC' in origin.method:
-            print('NLLOC origin:')
-            print(origin)
-    #newPicks = Pick.filter_picks(cat_read[0].picks, 'SNR')
-    #newPicks = Pick.filter_picks(cat_read[0].picks, 'theoretical')
-
-    #for pick in newPicks:
-        #print(pick)
-
-    print(' cat_new.preferred_origin.id=[%s]' % cat_new.preferred_origin().resource_id.id)
-    print('cat_read.preferred_origin.id=[%s]' % cat_read.preferred_origin().resource_id.id)
-
-    print('cat_2.preferred_origin.id=[%s]' % cat_2.preferred_origin().resource_id.id)
-
     '''
-   with open(filename, 'wb') as of:
-        pickle.dump(grid, of, protocol=protocol)
-    '''
-
-    exit()
 
 
   # 6. Compare resid between cleaned picks and predicted picks for nlloc origin:
     resid = calculate_residual(st, cleaned_picks, ot_event.preferred_origin()) 
 
-
 # Does nlloc return new picks ??
     plot_profile_with_picks(st, picks=None, origin=ot_event.preferred_origin(), title='2018-04-14 03:44:22 [NLLOC origin]')
-
-    exit()
-
-
-    nlloc_picks = []
-    for pick in cat_picked[0].picks:
-        station = pick.waveform_id.station_code
-        #tt= core.get_travel_time_grid(station, origin.loc, phase=pick.phase_hint, use_eikonal=True)
-        tt= core.get_travel_time_grid(station, origin.loc, phase=pick.phase_hint, use_eikonal=False)
-        pick.time = origin.time + tt
-        print(origin.time, tt, pick.time)
-        nlloc_picks.append(copy.deepcopy(pick))
-
-
-    exit()
 
 if __name__ == "__main__":
     main()
