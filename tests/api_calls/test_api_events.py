@@ -95,6 +95,6 @@ if __name__ == "__main__":
 
     post_data("putEvent", build_event_data())
 
-    post_data("updateEvent", build_update_event_data('5b6ee395a949fe7865a9c066'))
+    post_data("updateEvent", build_update_event_data('5b6f59a4a949fe8216d3cafb'))
 
     post_data("putEventInUse", build_event_inuse_data())

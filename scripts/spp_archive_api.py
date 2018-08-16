@@ -19,6 +19,8 @@ import zipfile
 import tarfile
 from spp.utils import logger
 import datetime
+import re
+
 
 app = Flask(__name__)
 
@@ -216,9 +218,9 @@ def create_filestore_directories(basedir, filepath):
 
 def construct_relative_files_paths(filepath, filename):
     # events
-    event_filepath = filepath + filename + ".xml"
-    waveform_filepath = filepath + filename + ".mseed"
-    waveform_context_filepath= filepath + filename + ".mseed_context"
+    event_filepath = filepath + filename + "_v000.xml"
+    waveform_filepath = filepath + filename + "_v000.mseed"
+    waveform_context_filepath= filepath + filename + "_v000.mseed_context"
     return event_filepath, waveform_filepath, waveform_context_filepath
 
 
@@ -434,18 +436,19 @@ def update_event():
 
         create_filestore_directories(BASE_DIR, filepath)
 
-        event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(filepath, filename)
-
         event_document['filename'] = filename
 
         # update files in filestore
         if event:
+            event_filepath = update_file_version(event_document['event_filepath'])
             event_document['event_filepath'] = event_filepath
             event.write(BASE_DIR + event_filepath, format="QUAKEML")
         if waveform:
+            waveform_filepath = update_file_version(event_document['waveform_filepath'])
             event_document['waveform_filepath'] = waveform_filepath
             waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
         if waveform_context:
+            waveform_context_filepath = update_file_version(event_document['waveform_context_filepath'])
             event_document['waveform_context_filepath'] = waveform_context_filepath
             waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
 
@@ -463,6 +466,20 @@ def update_event():
         log.info("updateEvent ended Successfully. No data found to update.")
         return build_success_response("No data found")
 
+
+def update_file_version(filename):
+    regex_formula = r"\_v\d{3}\."
+    regex = re.compile(regex_formula)
+    matched = regex.findall(filename)[0]
+    new_version_str = ""
+    if matched:
+        current_version = matched[2:-1]
+        log.info(current_version)
+        n_version = int(current_version) + 1
+        new_version_str = "_v" + str(n_version).zfill(3) + "."
+
+    filename = regex.sub(new_version_str, filename)
+    return filename
 
 @app.route('/events/getEventInUse', methods=['GET'])
 def get_event_inuse():
