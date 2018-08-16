@@ -426,8 +426,8 @@ def update_event():
         '_id': ObjectId(event_id),
     }
 
-# ATODO: Need to modify this so that it recreates the mongoDB record using the latest event xml
-#  eg, a way to modify the fields ??
+    # ATODO: Need to modify this so that it recreates the mongoDB record using the latest event xml
+    #  eg, a way to modify the fields ??
 
     event_document = mongo.db[EVENTS_COLLECTION].find_one(filter)
 
@@ -437,10 +437,9 @@ def update_event():
 
         filename = generate_filename_from_date(event_document['time'])
         filepath = generate_filepath_from_date(event_document['time'])
-        print(filepath + filename)
 
-        log.info('update_event: create_filestore: BASE_DIR=%s filepath=%s' % \
-			        (BASE_DIR, filepath))
+        log.info('update_event: create_filestore: BASE_DIR=%s filepath=%s' % (BASE_DIR, filepath))
+
         create_filestore_directories(BASE_DIR, filepath)
 
         event_document['filename'] = filename
@@ -484,16 +483,18 @@ def update_event():
 def update_file_version(filename):
     regex_formula = r"\_v\d{3}\."
     regex = re.compile(regex_formula)
-    matched = regex.findall(filename)[0]
+    str_matched_list = regex.findall(filename)
     new_version_str = ""
-    if matched:
-        current_version = matched[2:-1]
+    if str_matched_list:
+        current_version = str_matched_list[0][2:-1]
         log.info(current_version)
         n_version = int(current_version) + 1
         new_version_str = "_v" + str(n_version).zfill(3) + "."
-
-    filename = regex.sub(new_version_str, filename)
+        filename = regex.sub(new_version_str, filename)
+    else:
+        filename = filename.replace(".", "_v001.")
     return filename
+
 
 @app.route('/events/getEventInUse', methods=['GET'])
 def get_event_inuse():
