@@ -426,9 +426,6 @@ def update_event():
         '_id': ObjectId(event_id),
     }
 
-    # ATODO: Need to modify this so that it recreates the mongoDB record using the latest event xml
-    #  eg, a way to modify the fields ??
-
     event_document = mongo.db[EVENTS_COLLECTION].find_one(filter)
 
     if event_document:
@@ -446,6 +443,12 @@ def update_event():
 
         # update files in filestore
         if event:
+            log.info('put_event: Call EventDB.flatten_event')
+            # read new event as dictionary
+            ev_flat_dict = EventDB.flatten_event(Event(event))
+            # update event db object with the new data in QUAKEML file
+            for key in ev_flat_dict.keys():
+                event_document[key] = ev_flat_dict[key]
             event_filepath = update_file_version(event_document['event_filepath'])
             event_document['event_filepath'] = event_filepath
             event.write(BASE_DIR + event_filepath, format="QUAKEML")

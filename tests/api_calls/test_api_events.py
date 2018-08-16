@@ -62,7 +62,7 @@ def build_update_event_data(event_id):
     data = {}
     data['event_id'] = event_id
 
-    #data['event'] = base64.b64encode(evt_bytes.getvalue()).decode('utf-8')
+    data['event'] = base64.b64encode(evt_bytes.getvalue()).decode('utf-8')
     data['waveform'] = base64.b64encode(wf_bytes.getvalue()).decode('utf-8')
     #data['context'] = base64.b64encode(wf_bytes.getvalue()).decode('utf-8')
 
