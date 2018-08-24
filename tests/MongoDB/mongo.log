@@ -1,0 +1,10 @@
+connecting to DB
+------------> Initiating new DB connection
+inserting into DB
+file_list= ['/home/spadmin/projects/seismic-processing-platform/data/mth_test/20180707153222.mseed']
+==> Processing ( 0  from 120 )
+==> Filename: /home/spadmin/projects/seismic-processing-platform/data/mth_test/20180707153222.mseed
+==> Fetching File took:  0.03
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.03 For Records Count: 54
+Closing Connection...

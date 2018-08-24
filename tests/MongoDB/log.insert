@@ -1,0 +1,1224 @@
+connecting to DB
+------------> Initiating new DB connection
+inserting into DB
+==> Processing ( 0  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180501015429.mseed
+==> Fetching File took:  1.19
+==> Encoding Stream took:  0.13
+==> Saving into Mongo took:  1.19 For Records Count: 81
+==> Processing ( 1  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180501132331.mseed
+==> Fetching File took:  0.28
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.28 For Records Count: 24
+==> Processing ( 2  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180501155635.mseed
+==> Fetching File took:  0.32
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.32 For Records Count: 36
+==> Processing ( 3  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180501165002.mseed
+==> Fetching File took:  0.20
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.20 For Records Count: 33
+==> Processing ( 4  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180501175815.mseed
+==> Fetching File took:  0.31
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.31 For Records Count: 36
+==> Processing ( 5  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180502020033.mseed
+==> Fetching File took:  0.48
+==> Encoding Stream took:  0.06
+==> Saving into Mongo took:  0.48 For Records Count: 63
+==> Processing ( 6  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180502040357.mseed
+==> Fetching File took:  0.34
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.34 For Records Count: 30
+==> Processing ( 7  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180502041246.mseed
+==> Fetching File took:  0.30
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.30 For Records Count: 24
+==> Processing ( 8  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180502042324.mseed
+==> Fetching File took:  0.33
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.33 For Records Count: 30
+==> Processing ( 9  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180502143312.mseed
+==> Fetching File took:  0.54
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.54 For Records Count: 39
+==> Processing ( 10  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180502211647.mseed
+==> Fetching File took:  0.60
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.60 For Records Count: 60
+==> Processing ( 11  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180503010111.mseed
+==> Fetching File took:  0.49
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.49 For Records Count: 42
+==> Processing ( 12  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180503010113.mseed
+==> Fetching File took:  0.26
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.26 For Records Count: 36
+==> Processing ( 13  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180503010123.mseed
+==> Fetching File took:  0.28
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.28 For Records Count: 27
+==> Processing ( 14  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180503012139.mseed
+==> Fetching File took:  0.25
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.25 For Records Count: 27
+==> Processing ( 15  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180503063042.mseed
+==> Fetching File took:  0.45
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.45 For Records Count: 27
+==> Processing ( 16  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180503111104.mseed
+==> Fetching File took:  0.25
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.25 For Records Count: 51
+==> Processing ( 17  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180503130354.mseed
+==> Fetching File took:  0.17
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.17 For Records Count: 22
+==> Processing ( 18  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180503170743.mseed
+==> Fetching File took:  0.21
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.21 For Records Count: 51
+==> Processing ( 19  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180503175239.mseed
+==> Fetching File took:  0.72
+==> Encoding Stream took:  0.18
+==> Saving into Mongo took:  0.72 For Records Count: 135
+==> Processing ( 20  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180503192742.mseed
+==> Fetching File took:  1.01
+==> Encoding Stream took:  0.10
+==> Saving into Mongo took:  1.01 For Records Count: 78
+==> Processing ( 21  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180503202158.mseed
+==> Fetching File took:  0.74
+==> Encoding Stream took:  0.08
+==> Saving into Mongo took:  0.74 For Records Count: 111
+==> Processing ( 22  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180503202530.mseed
+==> Fetching File took:  0.27
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.27 For Records Count: 84
+==> Processing ( 23  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180504042328.mseed
+==> Fetching File took:  0.39
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.39 For Records Count: 30
+==> Processing ( 24  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180504050946.mseed
+==> Fetching File took:  0.23
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.23 For Records Count: 54
+==> Processing ( 25  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180504052117.mseed
+==> Fetching File took:  0.75
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.75 For Records Count: 39
+==> Processing ( 26  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180504053158.mseed
+==> Fetching File took:  0.58
+==> Encoding Stream took:  0.11
+==> Saving into Mongo took:  0.58 For Records Count: 129
+==> Processing ( 27  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180504072249.mseed
+==> Fetching File took:  0.43
+==> Encoding Stream took:  0.07
+==> Saving into Mongo took:  0.43 For Records Count: 60
+==> Processing ( 28  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180504190218.mseed
+==> Fetching File took:  0.62
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.62 For Records Count: 105
+==> Processing ( 29  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180504212612.mseed
+==> Fetching File took:  0.68
+==> Encoding Stream took:  0.07
+==> Saving into Mongo took:  0.68 For Records Count: 72
+==> Processing ( 30  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180505032848.mseed
+==> Fetching File took:  0.69
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.69 For Records Count: 39
+==> Processing ( 31  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180505040629.mseed
+==> Fetching File took:  0.69
+==> Encoding Stream took:  0.07
+==> Saving into Mongo took:  0.69 For Records Count: 111
+==> Processing ( 32  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180505042108.mseed
+==> Fetching File took:  0.66
+==> Encoding Stream took:  0.12
+==> Saving into Mongo took:  0.66 For Records Count: 156
+==> Processing ( 33  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180505214744.mseed
+==> Fetching File took:  0.33
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.33 For Records Count: 24
+==> Processing ( 34  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180505214745.mseed
+==> Fetching File took:  0.24
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.24 For Records Count: 39
+==> Processing ( 35  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180506202655.mseed
+==> Fetching File took:  2.01
+==> Encoding Stream took:  0.28
+==> Saving into Mongo took:  2.01 For Records Count: 195
+==> Processing ( 36  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180506224301.mseed
+==> Fetching File took:  0.32
+==> Encoding Stream took:  0.11
+==> Saving into Mongo took:  0.32 For Records Count: 44
+==> Processing ( 37  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507001224.mseed
+==> Fetching File took:  0.24
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.24 For Records Count: 75
+==> Processing ( 38  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507002750.mseed
+==> Fetching File took:  0.30
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.30 For Records Count: 27
+==> Processing ( 39  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507004921.mseed
+==> Fetching File took:  0.22
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.22 For Records Count: 36
+==> Processing ( 40  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507005425.mseed
+==> Fetching File took:  0.12
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.12 For Records Count: 26
+==> Processing ( 41  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507021814.mseed
+==> Fetching File took:  0.19
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.19 For Records Count: 39
+==> Processing ( 42  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507024825.mseed
+==> Fetching File took:  0.53
+==> Encoding Stream took:  0.06
+==> Saving into Mongo took:  0.53 For Records Count: 227
+==> Processing ( 43  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507034327.mseed
+==> Fetching File took:  0.56
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.56 For Records Count: 27
+==> Processing ( 44  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507035719.mseed
+==> Fetching File took:  0.31
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.31 For Records Count: 27
+==> Processing ( 45  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507035903.mseed
+==> Fetching File took:  0.19
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.19 For Records Count: 24
+==> Processing ( 46  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507035905.mseed
+==> Fetching File took:  0.43
+==> Encoding Stream took:  0.00
+==> Saving into Mongo took:  0.43 For Records Count: 24
+==> Processing ( 47  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507065732.mseed
+==> Fetching File took:  0.20
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.20 For Records Count: 27
+==> Processing ( 48  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507092151.mseed
+==> Fetching File took:  0.15
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.15 For Records Count: 33
+==> Processing ( 49  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507092407.mseed
+==> Fetching File took:  0.18
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.18 For Records Count: 31
+==> Processing ( 50  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507092835.mseed
+==> Fetching File took:  0.21
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.21 For Records Count: 24
+==> Processing ( 51  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507093816.mseed
+==> Fetching File took:  0.42
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.42 For Records Count: 78
+==> Processing ( 52  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507135233.mseed
+==> Fetching File took:  0.40
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.40 For Records Count: 54
+==> Processing ( 53  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507152846.mseed
+==> Fetching File took:  0.30
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.30 For Records Count: 57
+==> Processing ( 54  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507180335.mseed
+==> Fetching File took:  0.50
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.50 For Records Count: 99
+==> Processing ( 55  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507182729.mseed
+==> Fetching File took:  0.40
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.40 For Records Count: 30
+==> Processing ( 56  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507190207.mseed
+==> Fetching File took:  0.21
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.21 For Records Count: 30
+==> Processing ( 57  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507191609.mseed
+==> Fetching File took:  0.27
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.27 For Records Count: 42
+==> Processing ( 58  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507191610.mseed
+==> Fetching File took:  0.19
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.19 For Records Count: 39
+==> Processing ( 59  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507205340.mseed
+==> Fetching File took:  0.16
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.16 For Records Count: 24
+==> Processing ( 60  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507221857.mseed
+==> Fetching File took:  0.38
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.38 For Records Count: 45
+==> Processing ( 61  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507230848.mseed
+==> Fetching File took:  0.29
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.29 For Records Count: 27
+==> Processing ( 62  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507231641.mseed
+==> Fetching File took:  0.29
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.29 For Records Count: 85
+==> Processing ( 63  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507233710.mseed
+==> Fetching File took:  0.55
+==> Encoding Stream took:  0.06
+==> Saving into Mongo took:  0.55 For Records Count: 96
+==> Processing ( 64  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180507233825.mseed
+==> Fetching File took:  0.42
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.42 For Records Count: 33
+==> Processing ( 65  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180508020835.mseed
+==> Fetching File took:  0.19
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.19 For Records Count: 39
+==> Processing ( 66  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180508041012.mseed
+==> Fetching File took:  0.35
+==> Encoding Stream took:  0.08
+==> Saving into Mongo took:  0.35 For Records Count: 171
+==> Processing ( 67  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180508041013.mseed
+==> Fetching File took:  0.24
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.24 For Records Count: 48
+==> Processing ( 68  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180508041027.mseed
+==> Fetching File took:  0.19
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.19 For Records Count: 57
+==> Processing ( 69  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180508070640.mseed
+==> Fetching File took:  0.24
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.24 For Records Count: 54
+==> Processing ( 70  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180508070927.mseed
+==> Fetching File took:  0.25
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.25 For Records Count: 75
+==> Processing ( 71  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180508160849.mseed
+==> Fetching File took:  0.33
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.33 For Records Count: 75
+==> Processing ( 72  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180508175600.mseed
+==> Fetching File took:  0.21
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.21 For Records Count: 54
+==> Processing ( 73  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180508185552.mseed
+==> Fetching File took:  0.25
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.25 For Records Count: 54
+==> Processing ( 74  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180509035530.mseed
+==> Fetching File took:  0.35
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.35 For Records Count: 42
+==> Processing ( 75  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180509040641.mseed
+==> Fetching File took:  0.23
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.23 For Records Count: 25
+==> Processing ( 76  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180509044220.mseed
+==> Fetching File took:  0.14
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.14 For Records Count: 27
+==> Processing ( 77  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180509050902.mseed
+==> Fetching File took:  0.14
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.14 For Records Count: 24
+==> Processing ( 78  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180509054440.mseed
+==> Fetching File took:  0.29
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.29 For Records Count: 36
+==> Processing ( 79  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180509060900.mseed
+==> Fetching File took:  0.54
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.54 For Records Count: 24
+==> Processing ( 80  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180509155112.mseed
+==> Fetching File took:  0.61
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.61 For Records Count: 75
+==> Processing ( 81  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180509163612.mseed
+==> Fetching File took:  0.54
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.54 For Records Count: 42
+==> Processing ( 82  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180509172108.mseed
+==> Fetching File took:  0.29
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.29 For Records Count: 57
+==> Processing ( 83  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180510001214.mseed
+==> Fetching File took:  0.14
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.14 For Records Count: 42
+==> Processing ( 84  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180510034436.mseed
+==> Fetching File took:  0.17
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.17 For Records Count: 30
+==> Processing ( 85  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180512040805.mseed
+==> Fetching File took:  0.20
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.20 For Records Count: 27
+==> Processing ( 86  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180512110010.mseed
+==> Fetching File took:  0.49
+==> Encoding Stream took:  0.08
+==> Saving into Mongo took:  0.49 For Records Count: 174
+==> Processing ( 87  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180512155852.mseed
+==> Fetching File took:  0.77
+==> Encoding Stream took:  0.16
+==> Saving into Mongo took:  0.77 For Records Count: 199
+==> Processing ( 88  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180512162049.mseed
+==> Fetching File took:  0.74
+==> Encoding Stream took:  0.06
+==> Saving into Mongo took:  0.74 For Records Count: 30
+==> Processing ( 89  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180512183228.mseed
+==> Fetching File took:  0.62
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.62 For Records Count: 48
+==> Processing ( 90  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180512195907.mseed
+==> Fetching File took:  0.57
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.57 For Records Count: 63
+==> Processing ( 91  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180513083155.mseed
+==> Fetching File took:  0.65
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.65 For Records Count: 24
+==> Processing ( 92  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180513110123.mseed
+==> Fetching File took:  0.33
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.33 For Records Count: 51
+==> Processing ( 93  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180513124039.mseed
+==> Fetching File took:  0.69
+==> Encoding Stream took:  0.06
+==> Saving into Mongo took:  0.69 For Records Count: 141
+==> Processing ( 94  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180513124040.mseed
+==> Fetching File took:  0.59
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.59 For Records Count: 28
+==> Processing ( 95  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180513153345.mseed
+==> Fetching File took:  0.56
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.56 For Records Count: 39
+==> Processing ( 96  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180513190647.mseed
+==> Fetching File took:  0.76
+==> Encoding Stream took:  0.06
+==> Saving into Mongo took:  0.76 For Records Count: 114
+==> Processing ( 97  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180514071624.mseed
+==> Fetching File took:  0.51
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.51 For Records Count: 87
+==> Processing ( 98  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180514132528.mseed
+==> Fetching File took:  0.29
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.29 For Records Count: 33
+==> Processing ( 99  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180515073954.mseed
+==> Fetching File took:  0.33
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.33 For Records Count: 27
+==> Processing ( 100  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180515125740.mseed
+==> Fetching File took:  0.27
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.27 For Records Count: 39
+==> Processing ( 101  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180515140439.mseed
+==> Fetching File took:  0.22
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.22 For Records Count: 54
+==> Processing ( 102  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180515173645.mseed
+==> Fetching File took:  0.37
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.37 For Records Count: 45
+==> Processing ( 103  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180515185455.mseed
+==> Fetching File took:  0.20
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.20 For Records Count: 45
+==> Processing ( 104  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180515185543.mseed
+==> Fetching File took:  0.31
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.31 For Records Count: 48
+==> Processing ( 105  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180515221706.mseed
+==> Fetching File took:  0.64
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.64 For Records Count: 96
+==> Processing ( 106  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180515221722.mseed
+==> Fetching File took:  0.37
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.37 For Records Count: 96
+==> Processing ( 107  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180515221900.mseed
+==> Fetching File took:  0.33
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.33 For Records Count: 42
+==> Processing ( 108  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180515221935.mseed
+==> Fetching File took:  0.48
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.48 For Records Count: 114
+==> Processing ( 109  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180515221946.mseed
+==> Fetching File took:  0.47
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.47 For Records Count: 90
+==> Processing ( 110  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180515222011.mseed
+==> Fetching File took:  0.41
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.41 For Records Count: 99
+==> Processing ( 111  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180516151850.mseed
+==> Fetching File took:  0.38
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.38 For Records Count: 24
+==> Processing ( 112  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180517054407.mseed
+==> Fetching File took:  0.25
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.25 For Records Count: 24
+==> Processing ( 113  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180517124132.mseed
+==> Fetching File took:  0.35
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.35 For Records Count: 27
+==> Processing ( 114  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180517124133.mseed
+==> Fetching File took:  0.62
+==> Encoding Stream took:  0.07
+==> Saving into Mongo took:  0.62 For Records Count: 173
+==> Processing ( 115  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180517201417.mseed
+==> Fetching File took:  0.40
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.40 For Records Count: 42
+==> Processing ( 116  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180518124422.mseed
+==> Fetching File took:  0.43
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.43 For Records Count: 99
+==> Processing ( 117  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180518124444.mseed
+==> Fetching File took:  0.27
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.27 For Records Count: 60
+==> Processing ( 118  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180518124828.mseed
+==> Fetching File took:  0.34
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.34 For Records Count: 60
+==> Processing ( 119  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180518125102.mseed
+==> Fetching File took:  0.19
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.19 For Records Count: 27
+==> Processing ( 120  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180519130735.mseed
+==> Fetching File took:  0.32
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.32 For Records Count: 45
+==> Processing ( 121  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180519172834.mseed
+==> Fetching File took:  0.15
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.15 For Records Count: 24
+==> Processing ( 122  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180519213131.mseed
+==> Fetching File took:  0.15
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.15 For Records Count: 27
+==> Processing ( 123  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180519224947.mseed
+==> Fetching File took:  1.32
+==> Encoding Stream took:  0.20
+==> Saving into Mongo took:  1.32 For Records Count: 219
+==> Processing ( 124  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180520004309.mseed
+==> Fetching File took:  0.33
+==> Encoding Stream took:  0.11
+==> Saving into Mongo took:  0.33 For Records Count: 75
+==> Processing ( 125  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180520004533.mseed
+==> Fetching File took:  0.32
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.32 For Records Count: 33
+==> Processing ( 126  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180520005107.mseed
+==> Fetching File took:  0.66
+==> Encoding Stream took:  0.11
+==> Saving into Mongo took:  0.66 For Records Count: 202
+==> Processing ( 127  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180520005612.mseed
+==> Fetching File took:  0.42
+==> Encoding Stream took:  0.08
+==> Saving into Mongo took:  0.42 For Records Count: 78
+==> Processing ( 128  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180520175404.mseed
+==> Fetching File took:  0.25
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.25 For Records Count: 24
+==> Processing ( 129  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180520210104.mseed
+==> Fetching File took:  0.35
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.35 For Records Count: 75
+==> Processing ( 130  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180521145346.mseed
+==> Fetching File took:  0.38
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.38 For Records Count: 36
+==> Processing ( 131  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180521152026.mseed
+==> Fetching File took:  0.17
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.17 For Records Count: 30
+==> Processing ( 132  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180522014311.mseed
+==> Fetching File took:  0.40
+==> Encoding Stream took:  0.06
+==> Saving into Mongo took:  0.40 For Records Count: 120
+==> Processing ( 133  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180522053217.mseed
+==> Fetching File took:  0.64
+==> Encoding Stream took:  0.09
+==> Saving into Mongo took:  0.64 For Records Count: 90
+==> Processing ( 134  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180522102812.mseed
+==> Fetching File took:  1.07
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  1.07 For Records Count: 95
+==> Processing ( 135  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180522143519.mseed
+==> Fetching File took:  0.58
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.58 For Records Count: 36
+==> Processing ( 136  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180523105102.mseed
+==> Fetching File took:  0.60
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.60 For Records Count: 183
+==> Processing ( 137  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180523110615.mseed
+==> Fetching File took:  0.56
+==> Encoding Stream took:  0.09
+==> Saving into Mongo took:  0.56 For Records Count: 207
+==> Processing ( 138  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180523110842.mseed
+==> Fetching File took:  0.24
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.24 For Records Count: 33
+==> Processing ( 139  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180523111608.mseed
+==> Fetching File took:  0.64
+==> Encoding Stream took:  0.10
+==> Saving into Mongo took:  0.64 For Records Count: 210
+==> Processing ( 140  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180523111616.mseed
+==> Fetching File took:  0.19
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.19 For Records Count: 24
+==> Processing ( 141  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180523113438.mseed
+==> Fetching File took:  0.55
+==> Encoding Stream took:  0.09
+==> Saving into Mongo took:  0.55 For Records Count: 207
+==> Processing ( 142  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180523124128.mseed
+==> Fetching File took:  0.58
+==> Encoding Stream took:  0.07
+==> Saving into Mongo took:  0.58 For Records Count: 45
+==> Processing ( 143  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180523202415.mseed
+==> Fetching File took:  0.34
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.34 For Records Count: 27
+==> Processing ( 144  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180525015538.mseed
+==> Fetching File took:  0.37
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.37 For Records Count: 72
+==> Processing ( 145  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180526035813.mseed
+==> Fetching File took:  0.20
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.20 For Records Count: 39
+==> Processing ( 146  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180526044441.mseed
+==> Fetching File took:  0.27
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.27 For Records Count: 24
+==> Processing ( 147  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180526103819.mseed
+==> Fetching File took:  0.18
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.18 For Records Count: 21
+==> Processing ( 148  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180526155221.mseed
+==> Fetching File took:  0.32
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.32 For Records Count: 24
+==> Processing ( 149  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180526225106.mseed
+==> Fetching File took:  0.45
+==> Encoding Stream took:  0.07
+==> Saving into Mongo took:  0.45 For Records Count: 126
+==> Processing ( 150  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180527034911.mseed
+==> Fetching File took:  0.39
+==> Encoding Stream took:  0.07
+==> Saving into Mongo took:  0.39 For Records Count: 60
+==> Processing ( 151  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180527152448.mseed
+==> Fetching File took:  0.30
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.30 For Records Count: 48
+==> Processing ( 152  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180527185243.mseed
+==> Fetching File took:  0.58
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.58 For Records Count: 120
+==> Processing ( 153  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180528161132.mseed
+==> Fetching File took:  0.90
+==> Encoding Stream took:  0.06
+==> Saving into Mongo took:  0.90 For Records Count: 123
+==> Processing ( 154  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180529013448.mseed
+==> Fetching File took:  0.29
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.29 For Records Count: 84
+==> Processing ( 155  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180529031607.mseed
+==> Fetching File took:  0.31
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.31 For Records Count: 75
+==> Processing ( 156  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180529031648.mseed
+==> Fetching File took:  0.31
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.31 For Records Count: 72
+==> Processing ( 157  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180529031823.mseed
+==> Fetching File took:  0.37
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.37 For Records Count: 66
+==> Processing ( 158  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180529032016.mseed
+==> Fetching File took:  0.29
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.29 For Records Count: 45
+==> Processing ( 159  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180529045318.mseed
+==> Fetching File took:  0.33
+==> Encoding Stream took:  0.06
+==> Saving into Mongo took:  0.33 For Records Count: 114
+==> Processing ( 160  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180529051042.mseed
+==> Fetching File took:  0.30
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.30 For Records Count: 75
+==> Processing ( 161  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180530045856.mseed
+==> Fetching File took:  0.17
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.17 For Records Count: 36
+==> Processing ( 162  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180531180623.mseed
+==> Fetching File took:  0.10
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.10 For Records Count: 30
+==> Processing ( 163  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180531212143.mseed
+==> Fetching File took:  0.18
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.18 For Records Count: 72
+==> Processing ( 164  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180601045520.mseed
+==> Fetching File took:  0.18
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.18 For Records Count: 24
+==> Processing ( 165  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180601220255.mseed
+==> Fetching File took:  0.49
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.49 For Records Count: 174
+==> Processing ( 166  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180601231211.mseed
+==> Fetching File took:  0.21
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.21 For Records Count: 54
+==> Processing ( 167  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180601233600.mseed
+==> Fetching File took:  0.33
+==> Encoding Stream took:  0.07
+==> Saving into Mongo took:  0.33 For Records Count: 168
+==> Processing ( 168  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180602232156.mseed
+==> Fetching File took:  0.35
+==> Encoding Stream took:  0.07
+==> Saving into Mongo took:  0.35 For Records Count: 108
+==> Processing ( 169  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180605025854.mseed
+==> Fetching File took:  0.28
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.28 For Records Count: 39
+==> Processing ( 170  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180605061208.mseed
+==> Fetching File took:  1.02
+==> Encoding Stream took:  0.18
+==> Saving into Mongo took:  1.02 For Records Count: 162
+==> Processing ( 171  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180606042953.mseed
+==> Fetching File took:  0.36
+==> Encoding Stream took:  0.08
+==> Saving into Mongo took:  0.36 For Records Count: 45
+==> Processing ( 172  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180606173815.mseed
+==> Fetching File took:  0.13
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.13 For Records Count: 42
+==> Processing ( 173  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180606190717.mseed
+==> Fetching File took:  0.14
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.14 For Records Count: 33
+==> Processing ( 174  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180607002744.mseed
+==> Fetching File took:  0.30
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.30 For Records Count: 39
+==> Processing ( 175  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180607050511.mseed
+==> Fetching File took:  0.47
+==> Encoding Stream took:  0.07
+==> Saving into Mongo took:  0.47 For Records Count: 147
+==> Processing ( 176  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180607192027.mseed
+==> Fetching File took:  0.54
+==> Encoding Stream took:  0.06
+==> Saving into Mongo took:  0.54 For Records Count: 93
+==> Processing ( 177  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180607230410.mseed
+==> Fetching File took:  0.23
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.23 For Records Count: 33
+==> Processing ( 178  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180608003422.mseed
+==> Fetching File took:  0.25
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.25 For Records Count: 33
+==> Processing ( 179  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180608024406.mseed
+==> Fetching File took:  0.48
+==> Encoding Stream took:  0.07
+==> Saving into Mongo took:  0.48 For Records Count: 102
+==> Processing ( 180  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180608024902.mseed
+==> Fetching File took:  0.79
+==> Encoding Stream took:  0.07
+==> Saving into Mongo took:  0.79 For Records Count: 90
+==> Processing ( 181  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180608055414.mseed
+==> Fetching File took:  0.22
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.22 For Records Count: 28
+==> Processing ( 182  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180608143757.mseed
+==> Fetching File took:  0.14
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.14 For Records Count: 27
+==> Processing ( 183  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180609035104.mseed
+==> Fetching File took:  0.14
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.14 For Records Count: 24
+==> Processing ( 184  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180609183819.mseed
+==> Fetching File took:  0.21
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.21 For Records Count: 75
+==> Processing ( 185  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180609195044.mseed
+==> Fetching File took:  0.45
+==> Encoding Stream took:  0.11
+==> Saving into Mongo took:  0.45 For Records Count: 243
+==> Processing ( 186  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180610041126.mseed
+==> Fetching File took:  0.20
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.20 For Records Count: 24
+==> Processing ( 187  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180610164357.mseed
+==> Fetching File took:  0.12
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.12 For Records Count: 24
+==> Processing ( 188  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180610172903.mseed
+==> Fetching File took:  0.15
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.15 For Records Count: 24
+==> Processing ( 189  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180610193046.mseed
+==> Fetching File took:  0.18
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.18 For Records Count: 66
+==> Processing ( 190  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180610233346.mseed
+==> Fetching File took:  0.11
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.11 For Records Count: 18
+==> Processing ( 191  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180611035832.mseed
+==> Fetching File took:  0.40
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.40 For Records Count: 87
+==> Processing ( 192  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180611044216.mseed
+==> Fetching File took:  0.20
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.20 For Records Count: 54
+==> Processing ( 193  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180612062510.mseed
+==> Fetching File took:  0.27
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.27 For Records Count: 183
+==> Processing ( 194  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180612191105.mseed
+==> Fetching File took:  0.61
+==> Encoding Stream took:  0.06
+==> Saving into Mongo took:  0.61 For Records Count: 144
+==> Processing ( 195  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180615004057.mseed
+==> Fetching File took:  0.62
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.62 For Records Count: 60
+==> Processing ( 196  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180615162508.mseed
+==> Fetching File took:  0.27
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.27 For Records Count: 66
+==> Processing ( 197  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180616021740.mseed
+==> Fetching File took:  0.19
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.19 For Records Count: 30
+==> Processing ( 198  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180616130316.mseed
+==> Fetching File took:  0.12
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.12 For Records Count: 27
+==> Processing ( 199  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180616171533.mseed
+==> Fetching File took:  0.24
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.24 For Records Count: 57
+==> Processing ( 200  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180617041613.mseed
+==> Fetching File took:  0.20
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.20 For Records Count: 24
+==> Processing ( 201  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180617144223.mseed
+==> Fetching File took:  0.17
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.17 For Records Count: 24
+==> Processing ( 202  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180617152533.mseed
+==> Fetching File took:  0.11
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.11 For Records Count: 27
+==> Processing ( 203  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180618153602.mseed
+==> Fetching File took:  0.14
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.14 For Records Count: 25
+==> Processing ( 204  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180618153603.mseed
+==> Fetching File took:  0.19
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.19 For Records Count: 81
+==> Processing ( 205  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180621052951.mseed
+==> Fetching File took:  0.36
+==> Encoding Stream took:  0.06
+==> Saving into Mongo took:  0.36 For Records Count: 132
+==> Processing ( 206  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180621054521.mseed
+==> Fetching File took:  0.46
+==> Encoding Stream took:  0.08
+==> Saving into Mongo took:  0.46 For Records Count: 168
+==> Processing ( 207  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180621224650.mseed
+==> Fetching File took:  0.33
+==> Encoding Stream took:  0.04
+==> Saving into Mongo took:  0.33 For Records Count: 145
+==> Processing ( 208  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180621224651.mseed
+==> Fetching File took:  0.27
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.27 For Records Count: 94
+==> Processing ( 209  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180621224652.mseed
+==> Fetching File took:  0.24
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.24 For Records Count: 87
+==> Processing ( 210  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180622152007.mseed
+==> Fetching File took:  0.28
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.28 For Records Count: 123
+==> Processing ( 211  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180622173024.mseed
+==> Fetching File took:  0.19
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.19 For Records Count: 48
+==> Processing ( 212  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180622213047.mseed
+==> Fetching File took:  0.19
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.19 For Records Count: 105
+==> Processing ( 213  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180623015540.mseed
+==> Fetching File took:  0.23
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.23 For Records Count: 63
+==> Processing ( 214  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180623120439.mseed
+==> Fetching File took:  0.55
+==> Encoding Stream took:  0.12
+==> Saving into Mongo took:  0.55 For Records Count: 180
+==> Processing ( 215  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180623181341.mseed
+==> Fetching File took:  0.34
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.34 For Records Count: 24
+==> Processing ( 216  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180625000253.mseed
+==> Fetching File took:  0.15
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.15 For Records Count: 24
+==> Processing ( 217  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180625004819.mseed
+==> Fetching File took:  0.15
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.15 For Records Count: 24
+==> Processing ( 218  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180625190250.mseed
+==> Fetching File took:  0.46
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.46 For Records Count: 234
+==> Processing ( 219  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180626050711.mseed
+==> Fetching File took:  0.39
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.39 For Records Count: 138
+==> Processing ( 220  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180627034143.mseed
+==> Fetching File took:  0.15
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.15 For Records Count: 30
+==> Processing ( 221  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180627072040.mseed
+==> Fetching File took:  0.16
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.16 For Records Count: 36
+==> Processing ( 222  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180627074555.mseed
+==> Fetching File took:  0.26
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.26 For Records Count: 54
+==> Processing ( 223  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180627182920.mseed
+==> Fetching File took:  0.19
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.19 For Records Count: 57
+==> Processing ( 224  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180627184207.mseed
+==> Fetching File took:  0.14
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.14 For Records Count: 45
+==> Processing ( 225  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180627210354.mseed
+==> Fetching File took:  0.51
+==> Encoding Stream took:  0.08
+==> Saving into Mongo took:  0.51 For Records Count: 231
+==> Processing ( 226  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180628153305.mseed
+==> Fetching File took:  0.69
+==> Encoding Stream took:  0.17
+==> Saving into Mongo took:  0.69 For Records Count: 255
+==> Processing ( 227  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180628235559.mseed
+==> Fetching File took:  0.27
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.27 For Records Count: 30
+==> Processing ( 228  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180629084222.mseed
+==> Fetching File took:  0.26
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.26 For Records Count: 36
+==> Processing ( 229  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180630171615.mseed
+==> Fetching File took:  0.43
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.43 For Records Count: 24
+==> Processing ( 230  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180701061957.mseed
+==> Fetching File took:  0.23
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.23 For Records Count: 27
+==> Processing ( 231  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180701064434.mseed
+==> Fetching File took:  0.30
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.30 For Records Count: 54
+==> Processing ( 232  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180701065039.mseed
+==> Fetching File took:  0.28
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.28 For Records Count: 60
+==> Processing ( 233  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180701070955.mseed
+==> Fetching File took:  0.14
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.14 For Records Count: 54
+==> Processing ( 234  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180701133636.mseed
+==> Fetching File took:  0.14
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.14 For Records Count: 24
+==> Processing ( 235  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180702134910.mseed
+==> Fetching File took:  0.32
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.32 For Records Count: 34
+==> Processing ( 236  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180704140407.mseed
+==> Fetching File took:  0.79
+==> Encoding Stream took:  0.11
+==> Saving into Mongo took:  0.79 For Records Count: 201
+==> Processing ( 237  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180704205652.mseed
+==> Fetching File took:  0.82
+==> Encoding Stream took:  0.09
+==> Saving into Mongo took:  0.82 For Records Count: 102
+==> Processing ( 238  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180705083028.mseed
+==> Fetching File took:  0.55
+==> Encoding Stream took:  0.03
+==> Saving into Mongo took:  0.55 For Records Count: 63
+==> Processing ( 239  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180705115844.mseed
+==> Fetching File took:  0.18
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.18 For Records Count: 30
+==> Processing ( 240  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180706112101.mseed
+==> Fetching File took:  0.76
+==> Encoding Stream took:  0.07
+==> Saving into Mongo took:  0.76 For Records Count: 229
+==> Processing ( 241  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180706130324.mseed
+==> Fetching File took:  0.41
+==> Encoding Stream took:  0.05
+==> Saving into Mongo took:  0.41 For Records Count: 42
+==> Processing ( 242  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180707135950.mseed
+==> Fetching File took:  0.18
+==> Encoding Stream took:  0.01
+==> Saving into Mongo took:  0.18 For Records Count: 30
+==> Processing ( 243  from 120 )
+==> Filename: /mnt/seismic_shared_storage/tmp_mth/20180707153222.mseed
+==> Fetching File took:  0.35
+==> Encoding Stream took:  0.02
+==> Saving into Mongo took:  0.35 For Records Count: 54
+Closing Connection...
