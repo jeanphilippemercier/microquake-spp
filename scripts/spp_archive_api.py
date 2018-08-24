@@ -19,6 +19,8 @@ import zipfile
 import tarfile
 from spp.utils import logger
 import datetime
+import re
+
 
 app = Flask(__name__)
 
@@ -216,9 +218,9 @@ def create_filestore_directories(basedir, filepath):
 
 def construct_relative_files_paths(filepath, filename):
     # events
-    event_filepath = filepath + filename + ".xml"
-    waveform_filepath = filepath + filename + ".mseed"
-    waveform_context_filepath= filepath + filename + ".mseed_context"
+    event_filepath = filepath + filename + "_v000.xml"
+    waveform_filepath = filepath + filename + "_v000.mseed"
+    waveform_context_filepath= filepath + filename + "_v000.mseed_context"
     return event_filepath, waveform_filepath, waveform_context_filepath
 
 
@@ -424,9 +426,6 @@ def update_event():
         '_id': ObjectId(event_id),
     }
 
-# ATODO: Need to modify this so that it recreates the mongoDB record using the latest event xml
-#  eg, a way to modify the fields ??
-
     event_document = mongo.db[EVENTS_COLLECTION].find_one(filter)
 
     if event_document:
@@ -435,28 +434,38 @@ def update_event():
 
         filename = generate_filename_from_date(event_document['time'])
         filepath = generate_filepath_from_date(event_document['time'])
-        print(filepath + filename)
 
-        log.info('update_event: create_filestore: BASE_DIR=%s filepath=%s filename=%s' % \
-			        (BASE_DIR, filepath, filename))
+        log.info('update_event: create_filestore: BASE_DIR=%s filepath=%s' % (BASE_DIR, filepath))
+
         create_filestore_directories(BASE_DIR, filepath)
-
-        event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(filepath, filename)
-        log.info('update_event: event_filepath=%s waveform_filepath=%s' % \
-			        (event_filepath, waveform_filepath))
 
         event_document['filename'] = filename
 
         # update files in filestore
         if event:
+            log.info('put_event: Call EventDB.flatten_event')
+            # read new event as dictionary
+            ev_flat_dict = EventDB.flatten_event(Event(event))
+            # update event db object with the new data in QUAKEML file
+            for key in ev_flat_dict.keys():
+                event_document[key] = ev_flat_dict[key]
+            event_filepath = update_file_version(event_document['event_filepath'])
             event_document['event_filepath'] = event_filepath
             event.write(BASE_DIR + event_filepath, format="QUAKEML")
+            log.info('update_event: event_filepath=%s' % (event_filepath))
+
         if waveform:
+            waveform_filepath = update_file_version(event_document['waveform_filepath'])
             event_document['waveform_filepath'] = waveform_filepath
             waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
+            log.info('update_event: waveform_filepath=%s' % (waveform_filepath))
+
         if waveform_context:
+            waveform_context_filepath = update_file_version(event_document['waveform_context_filepath'])
             event_document['waveform_context_filepath'] = waveform_context_filepath
             waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
+            log.info('update_event: waveform_context_filepath=%s' % (waveform_context_filepath))
+
 
         event_document['modification_time'] = int(datetime.datetime.utcnow().timestamp() * 1e9)
 
@@ -472,6 +481,22 @@ def update_event():
     else:
         log.info("updateEvent ended Successfully. No data found to update.")
         return build_success_response("No data found")
+
+
+def update_file_version(filename):
+    regex_formula = r"\_v\d{3}\."
+    regex = re.compile(regex_formula)
+    str_matched_list = regex.findall(filename)
+    new_version_str = ""
+    if str_matched_list:
+        current_version = str_matched_list[0][2:-1]
+        log.info(current_version)
+        n_version = int(current_version) + 1
+        new_version_str = "_v" + str(n_version).zfill(3) + "."
+        filename = regex.sub(new_version_str, filename)
+    else:
+        filename = filename.replace(".", "_v001.")
+    return filename
 
 
 @app.route('/events/getEventInUse', methods=['GET'])
