@@ -24,5 +24,3 @@ python3 process_event.py >&log &
 python3 /home/spadmin/projects/seismic-processing-platform/scripts/ims_connector.py 
 
 exit
-
-

@@ -17,8 +17,10 @@ import matplotlib.pyplot as plt
 import copy
 #from lib.waveform import WaveformPlotting as wp
 
-import logging
-logger = logging.getLogger()
+from spp.utils import logger as log
+
+
+logger = log.get_logger("helper", 'helper.log')
 
 def get_log_level(level_number):
     log_level = {

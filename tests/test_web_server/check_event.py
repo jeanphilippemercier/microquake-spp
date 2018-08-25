@@ -12,33 +12,37 @@ import numpy as np
 import os
 
 from importlib import reload
+
 reload(core)
 
 from web_client import get_stream_from_mongo
 
-#from microquake.realtime.signal import kurtosis
+# from microquake.realtime.signal import kurtosis
 from microquake.core import read_events as micro_read_events
 from obspy.core.event import read_events
 from microquake import nlloc
 
 from helpers import *
 
-import logging
-logger = logging.getLogger()
-#logger.setLevel(logging.WARNING)
-#print(logger.level)
-#import matplotlib.pyplot as plt
+from spp.utils import logger as log
+
+logger = log.get_logger("kafka_events_listener", 'kafka_events_listener.log')
+
+# import matplotlib.pyplot as plt
 
 config_dir = os.environ['SPP_CONFIG']
 
 from spp.utils.kafka import KafkaHandler
 from io import BytesIO
+
+
 def main():
-	#event_read = read_events('event4.xml', format='QUAKEML')[0]
-	st = read('event_context.mseed', format="MSEED")
-	for tr in st:
-		print(tr.get_id())
-		print(tr.stats)
-	
+    # event_read = read_events('event4.xml', format='QUAKEML')[0]
+    st = read('event_context.mseed', format="MSEED")
+    for tr in st:
+        print(tr.get_id())
+        print(tr.stats)
+
+
 if __name__ == "__main__":
     main()

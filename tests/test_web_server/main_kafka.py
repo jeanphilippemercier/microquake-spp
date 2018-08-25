@@ -4,16 +4,16 @@ import os
 import struct
 import yaml
 
-from liblog import getLogger
-import logging
-logger = getLogger()
-logger.setLevel(logging.CRITICAL)
-
 from make_event import make_event
+
+from spp.utils import logger as log
+
+
+logger = log.get_logger("kafka_events_listener", 'kafka_events_listener.log')
+
 
 def main():
 
-    logger.setLevel(logging.DEBUG)
 
     config_dir = os.environ['SPP_CONFIG']
     fname = os.path.join(config_dir, 'data_connector_config.yaml')

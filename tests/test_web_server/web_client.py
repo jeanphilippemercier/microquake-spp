@@ -12,8 +12,10 @@ url_opener = None
 #url_base = 'http://40.76.192.141:5000'
 url_base = 'http://localhost:5000'
 
-import logging
-logger = logging.getLogger()
+from spp.utils import logger as log
+
+logger = log.get_logger("web_client", 'web_client.log')
+
 
 def get_url(starttime=None, endtime=None, **kwargs):
     # start/end are required

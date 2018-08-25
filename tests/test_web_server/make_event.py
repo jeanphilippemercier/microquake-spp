@@ -24,10 +24,10 @@ from helpers import *
 
 from io import BytesIO
 
-#from liblog import getLogger
-#logger = getLogger()
-import logging
-logger = logging.getLogger()
+from spp.utils import logger as log
+
+logger = log.get_logger("make_events", 'make_events.log')
+
 #print('process_event: inherits log level=[%s]' % (logger.getEffectiveLevel()))
 #print('import process_event: inherits log level=[%s]' % get_log_level(logger.getEffectiveLevel()))
 
