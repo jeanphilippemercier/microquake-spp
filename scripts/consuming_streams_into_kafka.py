@@ -7,6 +7,7 @@ import time
 import sys
 import json
 import pickle
+from spp.utils import core
 
 if __name__ == "__main__":
 
@@ -40,9 +41,10 @@ if __name__ == "__main__":
 
         stime = time.time()
         for trace in traces_list:
-            print("---- Trace:")
-            print(trace)
+            #print("---- Trace:")
+            #print(trace)
             msg = json.dumps(trace).encode('utf-8')
+            core.encode_avro(trace)
             # msg = pickle.dumps(trace)
             # msg = trace
             kafka_handler.send_to_kafka("station_%s" % trace['stats']['station'], msg, str(trace['stats']['starttime']).encode('utf-8'))

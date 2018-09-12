@@ -1,8 +1,91 @@
 {
-    "namespace": "miniseed.avro",
-    "type": "record",
-    "name": "mseed_avro",
-    "fields": [
-        {"name": "mseed", "type": "bytes"}
-    ]
+   "namespace":"spp.avro",
+   "type":"record",
+   "name":"Trace",
+   "fields":[
+      {
+         "name":"data",
+         "type":{
+            "type":"array",
+            "items":"float"
+         }
+      },
+
+
+      {
+         "name":"stats",
+         "type":"record",
+         "fields":[
+	              {
+			         "name":"starttime",
+			         "type":"long"
+			      },
+			      {
+			         "name":"endtime",
+			         "type":"long"
+			      },
+			      {
+			         "name":"station",
+			         "type":"string"
+			      },
+			   	  {
+			         "name":"npts",
+			         "type":"int"
+			      },
+			      {
+			         "name":"sampling_rate",
+			         "type":"float"
+			      },
+			      {
+			         "name":"location",
+			         "type":"string"
+			      },
+			      {
+			         "name":"calib",
+			         "type":"float"
+			      },
+			      {
+			         "name":"channel",
+			         "type":"string"
+			      },
+			      {
+			         "name":"delta",
+			         "type":"float"
+			      },
+			      {
+			         "name":"network",
+			         "type":"string"
+			      },
+			      {
+			         "name":"mseed",
+			         "type":"record",
+			         "fields":[
+				              {
+						         "name":"encoding",
+						         "type":"string"
+						      },
+						      {
+						         "name":"dataquality",
+						         "type":"string"
+						      },
+						      {
+						         "name":"number_of_records",
+						         "type":"int"
+						      },
+						      {
+						         "name":"filesize",
+						         "type":"int"
+						      },
+						      {
+						         "name":"record_length",
+						         "type":"int"
+						      },
+						      {
+						         "name":"byteorder",
+						         "type":"string"
+						      }
+				   }
+         ]
+      },
+   ]
 }

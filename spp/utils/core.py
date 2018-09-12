@@ -65,7 +65,7 @@ def get_project_params():
     return ctl.parse_control_file(config_dir + '/project.xml')
 
 
-def encode_avro(stream):
+def encode_avro(trace_json):
     """
     This function needs to be completed
     :param stream:
@@ -84,7 +84,7 @@ def encode_avro(stream):
     writer = avro.io.DatumWriter(schema)
     bytes_writer = io.BytesIO()
     encoder = avro.io.BinaryEncoder(bytes_writer)
-    writer.write(stream, encoder)
+    writer.write(trace_json, encoder)
 
     return bytes_writer.getvalue()
 
