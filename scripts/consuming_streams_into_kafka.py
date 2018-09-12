@@ -40,9 +40,11 @@ if __name__ == "__main__":
 
         stime = time.time()
         for trace in traces_list:
-            msg = json.dumps(trace)#.encode('ascii')
-            #msg = pickle.dumps(trace)
-            #msg = trace
+            print("---- Trace:")
+            print(trace)
+            msg = json.dumps(trace).encode('utf-8')
+            # msg = pickle.dumps(trace)
+            # msg = trace
             kafka_handler.send_to_kafka("station_%s" % trace['stats']['station'], msg, str(trace['stats']['starttime']).encode('utf-8'))
         kafka_handler.producer.flush() 
         etime = time.time() - stime
