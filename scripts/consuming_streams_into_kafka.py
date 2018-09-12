@@ -41,10 +41,14 @@ if __name__ == "__main__":
 
         stime = time.time()
         for trace in traces_list:
-            #print("---- Trace:")
+            print("Serializing Trace Started")
+            ser_time = time.time()
             #print(trace)
-            msg = json.dumps(trace).encode('utf-8')
-            core.encode_avro(trace)
+            #msg = json.dumps(trace).encode('utf-8')
+            msg = core.encode_avro(trace)
+
+            print("Serializing Trace Finished and took:", "%.2f" % (time.time() - ser_time))
+            print(msg)
             # msg = pickle.dumps(trace)
             # msg = trace
             kafka_handler.send_to_kafka("station_%s" % trace['stats']['station'], msg, str(trace['stats']['starttime']).encode('utf-8'))
