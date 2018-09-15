@@ -13,7 +13,7 @@ export PYTHONPATH="${PYTHONPATH}:${HOME}/projects/xseis/pyinclude"
 #nohup python3 /home/spadmin/projects/xseis/pyscripts/poc/interloc_kafka_engine.py >&log &
 #python3 /home/spadmin/projects/xseis/pyscripts/poc/interloc_kafka_engine.py &
 # Start interLoc server
-#python3 ~/projects/xseis/tests/proc_kafka.py >& log &
+python3 ~/projects/xseis/tests/proc_kafka.py >& log &
 
 # Start process_event server
 python3 process_event.py >&log &
