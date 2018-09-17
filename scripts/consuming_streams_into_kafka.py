@@ -51,8 +51,8 @@ if __name__ == "__main__":
             #print(trace)
 
             #msg = json.dumps(trace).encode('utf-8')
-            #msg = avro_handler.encode_avro(trace)
-            msg = avro_handler.encode_fastavro(trace)
+            #msg = avro_handler.encode_avro(avro_schema, trace)
+            msg = avro_handler.encode_fastavro(fastavro_schema, trace)
             # msg = pickle.dumps(trace)
             # msg = trace
 
