@@ -7,7 +7,9 @@ import time
 import sys
 import json
 import pickle
-from spp.utils import core
+from spp.utils import avro_handler
+import os
+
 
 if __name__ == "__main__":
 
@@ -18,6 +20,9 @@ if __name__ == "__main__":
     kafka_brokers = config.IMS_CONFIG['kafka']['brokers']
     kafka_topic = config.IMS_CONFIG['kafka']['topic']
     consumer = KafkaHandler.consume_from_topic(kafka_topic,kafka_brokers)
+
+    avro_schema = avro_handler.parse_avro_schema("mseed_avro_schema.avsc")
+    fastavro_schema = avro_handler.parse_fastavro_schema("mseed_avro_schema.avsc")
 
     # should be config
     stations_count = 109
@@ -46,7 +51,8 @@ if __name__ == "__main__":
             #print(trace)
 
             #msg = json.dumps(trace).encode('utf-8')
-            msg = core.encode_avro(trace)
+            #msg = avro_handler.encode_avro(trace)
+            msg = avro_handler.encode_fastavro(trace)
             # msg = pickle.dumps(trace)
             # msg = trace
 

@@ -65,38 +65,5 @@ def get_project_params():
     return ctl.parse_control_file(config_dir + '/project.xml')
 
 
-def encode_avro(trace_json):
-    """
-    This function needs to be completed
-    :param stream:
-    :return:
-    """
-    import os
-    #from avro.io import DatumWriter
-    import avro.io
-    import avro.schema
-    import io
 
-    config_dir = os.environ['SPP_CONFIG']
-    schema_path = config_dir + '/mseed_avro_schema.avsc'
-    schema = avro.schema.Parse(open(schema_path).read())
-
-    writer = avro.io.DatumWriter(schema)
-    bytes_writer = io.BytesIO()
-    encoder = avro.io.BinaryEncoder(bytes_writer)
-    writer.write(trace_json, encoder)
-
-    return bytes_writer.getvalue()
-
-
-def decode_avro(avro):
-    """
-    this function needs to be completed
-    :param avro:
-    :return:
-    """
-
-    stream = none
-
-    return stream
 
