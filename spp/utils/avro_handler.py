@@ -60,3 +60,16 @@ def encode_fastavro(schema, json_object):
 
     os.remove(tmp_file_name)
     return converted_obj
+
+
+def decode_fastavro(schema, avro_object):
+    tmp_dir = ""  # to be added as config
+    tmp_file_name = tmp_dir + "trace_tmp_" + uuid.uuid4().hex + ".avro"
+    with open(tmp_file_name, 'wb') as f:
+       f.write(avro_object)
+
+    with open(tmp_file_name, 'rb') as fp:
+        json_object = fastavro.schemaless_reader(fp, schema)
+
+    os.remove(tmp_file_name)
+    return json_object
