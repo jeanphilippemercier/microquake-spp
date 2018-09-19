@@ -1,4 +1,4 @@
-FROM wurstmeister/kafka
+FROM confluentinc/cp-kafka-connect:5.0.0
 
-ADD prom-jmx-agent-config.yml /usr/app/prom-jmx-agent-config.yml
-ADD http://central.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.10/jmx_prometheus_javaagent-0.10.jar /usr/app/jmx_prometheus_javaagent.jar
+ADD prom-jmx-agent-config.yml /usr/share/java/kafka/prom-jmx-agent-config.yml
+ADD http://central.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.3.1/jmx_prometheus_javaagent-0.3.1.jar /usr/share/java/kafka/jmx_prometheus_javaagent.jar
