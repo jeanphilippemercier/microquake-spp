@@ -15,3 +15,11 @@ The following environment variables need to be set for the package to work
 ```
 where [...] represents the directory in which the spp source code is located and [???]/.spp refers to any directory of
 your choice where you want to store temporary files.
+
+# Starting kafke
+
+```
+docker-compose up
+docker-compose exec broker kafka-topics --create --zookeeper \
+    zookeeper:2181 --replication-factor 1 --partitions 1 --topic test
+```
