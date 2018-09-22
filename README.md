@@ -15,3 +15,22 @@ The following environment variables need to be set for the package to work
 ```
 where [...] represents the directory in which the spp source code is located and [???]/.spp refers to any directory of
 your choice where you want to store temporary files.
+
+## Starting kafka
+
+```
+docker-compose up
+docker-compose exec broker kafka-topics --create --zookeeper \
+    zookeeper:2181 --replication-factor 1 --partitions 1 --topic test
+
+# consumer and producer
+docker-compose exec broker kafka-console-producer --broker-list localhost:9092 --topic test
+docker-compose exec broker kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning
+```
+
+## Importing the Grafana dashboard
+
+Configure a datasource with http://prometheus:9090
+
+Then, go to http://localhost:3000/dashboard/import and enter 721
+

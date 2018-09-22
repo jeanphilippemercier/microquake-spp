@@ -4,14 +4,6 @@ from IPython.core.debugger import Tracer
 from microquake.core.data.grid import read_grid
 from microquake.core import read_stations
 
-
-def load_travel_time_redis():
-    """
-    function to load the grid data into the Redis database
-    :return:
-    """
-
-
 def init_travel_time():
     """
     Calculate travel time grid if required
@@ -80,7 +72,7 @@ def init_travel_time():
     return 1
 
 
-def __get_grid_value_single_station(station_phase, location, use_eikonal=True):
+def __get_grid_value_single_station(station_phase, location, use_eikonal=False):
     """
     Get interpolated grid values for a single station and phase
     :param station_phase: a tuple containing the station id and the phase
@@ -89,7 +81,7 @@ def __get_grid_value_single_station(station_phase, location, use_eikonal=True):
     """
 
     import os
-    from utils import get_stations
+    from spp.utils import get_stations
     common_dir = os.environ['SPP_COMMON']
 
     station = station_phase[0]
@@ -100,18 +92,15 @@ def __get_grid_value_single_station(station_phase, location, use_eikonal=True):
         tt_grid = read_grid(f_tt, format='PICKLE')
 
     else:
-        site = get_stations()
-        station = site.select(station=station)[0]
         f_tt = os.path.join(common_dir, 'NLL/time', 'OT.%s.%s.time.buf' % (phase.upper(), station))
         tt_grid = read_grid(f_tt, format='NLLOC')
-        tt_grid.seed = station.loc
 
     tt = tt_grid.interpolate(location, grid_coordinate=False)
 
     return tt
 
 
-def get_travel_time_grid(station, location, phase, use_eikonal=True):
+def get_travel_time_grid_point(station, location, phase, use_eikonal=False):
     """
     get the travel time
     :param stations: list of stations
@@ -138,6 +127,21 @@ def get_travel_time_grid(station, location, phase, use_eikonal=True):
 
 
     return tt[0]
+
+
+def get_travel_time_grid(station, phase):
+
+    import os
+    from spp.utils import get_stations
+    common_dir = os.environ['SPP_COMMON']
+
+    site = get_stations()
+    station = site.select(station=station)[0]
+    f_tt = os.path.join(common_dir, 'NLL/time', 'OT.%s.%s.time.buf' % (phase.upper(), station))
+    tt_grid = read_grid(f_tt, format='NLLOC')
+    tt_grid.seed = station.loc
+
+    return tt_grid
 
 
 def create_event(stream, event_location):
@@ -182,7 +186,7 @@ def create_event(stream, event_location):
     for phase in ["p", "s"]:
         for trace in stream.composite():
             station = trace.stats.station
-            tt = get_travel_time_grid(station, event_location, phase=phase)
+            tt = get_travel_time_grid_point(station, event_location, phase=phase)
             trace.stats.starttime = trace.stats.starttime - tt
             data = trace.data
             data /= np.max(np.abs(data))
@@ -235,17 +239,19 @@ def create_event(stream, event_location):
 
     origin.time = origin_time
     origin.evaluation_mode = 'automatic'
-    origin.evaluation_station = 'preliminary'
+    origin.evaluation_status = 'preliminary'
+    origin.method = 'spp.travel_time.core.create_event'
 
     picks = []
     for phase in ['p', 's']:
         for station in stations:
             pk = Pick()
-            tt = get_travel_time_grid(station, event_location, phase=phase)
+            tt = get_travel_time_grid_point(station, event_location, phase=phase)
             pk.phase_hint = phase.upper()
             pk.time = origin_time + tt
             pk.evaluation_mode = "automatic"
             pk.evaluation_status = "preliminary"
+            pk.method = 'theoretical prediction from get_travel_time_grid, use_eikonal=False'
 
             waveform_id = WaveformStreamID()
             waveform_id.channel_code = ""
@@ -257,16 +263,12 @@ def create_event(stream, event_location):
     event = Event()
     event.origins = [origin]
     event.picks = picks
+    #event.pick_method = 'predicted from get_travel_time_grid'
+
     catalog = Catalog()
     catalog.events = [event]
 
     return catalog
-
-
-
-
-
-
 
 
 

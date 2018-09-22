@@ -23,6 +23,9 @@ print("inserting into DB")
 collection = "traces_json"
 location = "/mnt/seismic_shared_storage/continuous_data"
 
+#MTH:
+location = "/mnt/seismic_shared_storage/tmp_mth"
+
 
 def convert_stream_to_traces_json(stream):
     traces = []

@@ -10,7 +10,11 @@ from spp.utils import get_data_connector_parameters
 import numpy as np
 import time
 from microquake.db.mongo.mongo import MongoDBHandler
+import logging
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
+from glob import glob
 
 # Create Local get_continous to load data from files:
 def get_continuous_local(data_directory, file_name=None):
@@ -246,41 +250,6 @@ class requestHandler():
 #         yaml.dump(self.endtimes, fout, default_flow_style=False)
 
 
-def write_to_kafka(stream_object, brokers, kafka_topic):
-    """
-
-    :param stream_object: a microquake.stream.Stream object containing the
-    waveforms
-    :param brokers: a ',' delimited string containing the information on the
-    kafka brokers (e.g., "kafka-node-001:9092,kafka-node-002:9092,
-    kafka-node-003:9092")
-    :param kafka_topic:
-    :return:
-    """
-    from spp.utils.kafka import KafkaHandler
-    kafka_handler_obj = KafkaHandler(brokers)
-    # s_time = time.time()
-    buf = BytesIO()
-    stream_object.write(buf, format='MSEED')
-    kafka_msg = buf.getvalue()  # serializer.encode_base64(buf)
-    msg_key = str(stream_object[0].stats.starttime)
-    # end_time_preparation = time.time() - s_time
-
-    # msg_size = (sys.getsizeof(kafka_msg) / 1024 / 1024)
-
-    # s_time = time.time()
-    kafka_handler_obj.send_to_kafka(kafka_topic, kafka_msg,
-                                    msg_key.encode('utf-8'))
-    # end_time_submission = time.time() - s_time
-
-    # print("==> Object Size:", "%.2f" % msg_size, "MB",
-    #       "Key:", msg_key,
-    #       ", Preparation took:", "%.2f" % end_time_preparation,
-    #       ", Submission took:", "%.2f" % end_time_submission)
-
-    kafka_handler_obj.producer.flush()
-
-
 def write_to_mongo(stream_object, uri='mongodb://localhost:27017/',
                    db_name='test_continuous'):
     """
@@ -347,7 +316,7 @@ def write_to_mongo(stream_object, uri='mongodb://localhost:27017/',
                     write_to_local(stream_object, location)
                 if destination.lower() == 'kafka':
                     brokers=params['kafka']['brokers']
-                    kafka_topic=params['kafka']['kafka_topic']
+                    kafka_topic=params['kafka']['topic']
                     write_to_kafka(stream_object, brokers, kafka_topic)
                 if destination.lower() == 'mongo':
                     uri = params['mongo']['uri']
@@ -364,7 +333,7 @@ def write_to_mongo(stream_object, uri='mongodb://localhost:27017/',
 
             elif destination == "kafka":
                 brokers=params['kafka']['brokers']
-                kafka_topic=params['kafka']['kafka_topic']
+                kafka_topic=params['kafka']['topic']
                 write_to_kafka(stream_object, brokers, kafka_topic)
 
             elif destination == "mongo":
@@ -735,7 +704,7 @@ def write_data(stream_object):
 
         elif destination == "kafka":
             brokers=params['kafka']['brokers']
-            kafka_topic=params['kafka']['kafka_topic']
+            kafka_topic=params['kafka']['topic']
             write_to_kafka(stream_object, brokers, kafka_topic)
 
         elif destination == "mongo":
@@ -747,6 +716,8 @@ def write_data(stream_object):
 
 
 def load_data():
+
+    fname = 'load_data'
 
     params = get_data_connector_parameters()
 
@@ -763,11 +734,31 @@ def load_data():
 
     elif params['data_source']['type'] == 'local':
         location = params['data_source']['location']
+        if os.path.isfile(location):
+            print("==> Processing single file %s" % location)
+            st = get_continuous_local(location, file_name=location)
+            write_data(st)
+            return
         period = params['period']
         window_length = params['window_length']
-
         start_time_full = time.time()
 
+        use_glob_pattern = False
+        if 'use_glob_pattern' in params['data_source']:
+            use_glob_pattern = params['data_source']['use_glob_pattern']
+
+        if use_glob_pattern:
+            file_list = glob(location)
+            for f in file_list:
+                logger.info('%s.%s: Inject playback file:%s' % (__name__, fname, f))
+                st = get_continuous_local(f, file_name=f)
+                write_data(st)
+                #exit()
+            #exit()
+
+
+        # simulator that returns random files
+        '''
         for i in np.arange(0, period, window_length):
             print("==> Processing (", i, " from", period, ")")
             start_time_load = time.time()
@@ -775,6 +766,7 @@ def load_data():
             end_time_load = time.time() - start_time_load
             print("==> Fetching File took: ", "%.2f" % end_time_load)
             write_data(st)
+        '''
 
 
 

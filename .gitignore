@@ -1,3 +1,8 @@
 *.pyc
 spp.egg-info
 *idea
+*.yaml
+*.buf
+*.hdr
+*.obs*
+*.log

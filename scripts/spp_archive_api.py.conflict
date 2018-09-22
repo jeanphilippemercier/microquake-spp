@@ -8,8 +8,7 @@ from io import BytesIO
 import time
 from obspy.core.utcdatetime import UTCDateTime
 import numpy as np
-#from obspy.core.event import read_events
-from microquake.core import read_events
+from obspy.core.event import read_events
 from microquake.core.event import Event
 import base64
 from spp.utils.config import Configuration
@@ -19,8 +18,6 @@ import zipfile
 import tarfile
 from spp.utils import logger
 import datetime
-import re
-
 
 app = Flask(__name__)
 
@@ -61,7 +58,8 @@ def construct_output(stream_obj, requested_format='MSEED'):
         output.seek(0)
 
     end_time = time.time() - start_time
-    log.info("Formatting Output took: %.2f , Output Size: %.2f MB" % (end_time, (output_size/1024/1024)))
+    log.info("==> Formatting Output took:%.2f Output Size:%f MB" % ( end_time, (output_size/1024/1024)))
+    #log.info("==> Formatting Output took: ", "%.2f" % end_time, "Output Size:", "%.2f" % (output_size/1024/1024), "MB")
     return output
 
 
@@ -71,7 +69,10 @@ def combine_json_to_stream_data(db_result):
     records_count = len(s.traces)
     merged_stream = s.merge(fill_value=0, method=1)
     end_time = time.time() - start_time
-    log.info("DB Fetching and Stream Creation took:%.2f , Records Count: %s, Merged Traces Count: %s" % (end_time, records_count, len(s.traces)))
+    log.info("==> DB Fetching and Stream Creation took:%.2f Records Count:%d Merged Traces Count:%d" % \
+	    (end_time, records_count, len(s.traces)))
+    #log.info("==> DB Fetching and Stream Creation took:%.2f" % end_time, ", Records Count:", records_count,\
+          #", Merged Traces Count:", len(s.traces))
     return merged_stream
 
 
@@ -81,7 +82,7 @@ def check_and_parse_datetime(dt_str):
         return dt
     except ValueError:
         error_msg = "Invalid datetime format, value should be in format: %Y-%m-%dT%H:%M:%S.%f"
-        log.exception(error_msg)
+        log.error(error_msg)
         raise InvalidUsage(error_msg, status_code=410)
 
 
@@ -97,17 +98,29 @@ def get_stream():
     # make default output format is MSEED
     output_format = "MSEED"
 
+<<<<<<< HEAD
+            start_time = check_and_parse_datetime(request.args['starttime'])
+            #print(start_time)
+            if 'endtime' in request.args:
+                end_time = check_and_parse_datetime(request.args['endtime'])
+            else:
+                end_time = start_time + (int(request.args['duration']) * 1000000000)
+
+            log.info('get_stream: starttime:%s endtime:%s' % (start_time, end_time))
+=======
     # Validate Request Params
     # Check Date Ranges
     if 'starttime' in request.args and ('endtime' in request.args or 'duration' in request.args):
 
         start_time = check_and_parse_datetime(request.args['starttime'])
+        print(start_time)
         if 'endtime' in request.args:
             end_time = check_and_parse_datetime(request.args['endtime'])
+>>>>>>> b08a42e0df065f02ba09893f2e87b9cba44a9cae
         else:
             end_time = start_time + (int(request.args['duration']) * 1000000000)
 
-        log.info('get_stream: starttime:%s endtime:%s' % (start_time, end_time))
+        print('get_stream: starttime:%s endtime:%s' % (start_time, end_time))
     else:
         raise InvalidUsage("date-range-options must be specified like:" +
                            "(starttime=<time>) & ([endtime=<time>] | [duration=<seconds>])",
@@ -141,18 +154,29 @@ def get_stream():
 
         resulted_stream.trim(UTCDateTime(start_time / 1e9), UTCDateTime(end_time / 1e9), pad=True, fill_value=0.0)
 
+<<<<<<< HEAD
+            request_endtime = time.time() - request_starttime
+            log.info("=======> Request Done Successfully. Total API Request took:%.2f seconds" % request_endtime)
+
+            return send_file(final_output, attachment_filename="testing.mseed", as_attachment=True)
+        else:
+            request_endtime = time.time() - request_starttime
+            log.info("=======> Request Done Successfully but no data found. Total API Request took:%.2f seconds" % request_endtime)
+=======
         final_output = construct_output(resulted_stream, output_format)
 
         request_endtime = time.time() - request_starttime
-        log.info("Request Done Successfully. Total API Request took: %.2f seconds" % request_endtime)
+        print("=======> Request Done Successfully.",
+              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+>>>>>>> b08a42e0df065f02ba09893f2e87b9cba44a9cae
 
         return send_file(final_output, attachment_filename="testing.mseed", as_attachment=True)
     else:
         request_endtime = time.time() - request_starttime
-        log.info("Request Done Successfully but with no data found. Total API Request took: %.2f seconds" % request_endtime)
+        print("=======> Request Done Successfully but with no data found.",
+              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
 
-        #return build_success_response("No data found")
-        return build_success_response("No data found", {"no_data_found": True})
+        raise InvalidUsage("No data found", status_code=200)
 
 
 
@@ -176,7 +200,7 @@ def construct_filter_criteria(start_time, end_time, network, station, channel):
     if channel is not None and channel != 'ALL':
         filter['stats.channel'] = channel
 
-    log.info("Filter: %s" % filter)
+    #print("Filter:", filter)
     return filter
 
 
@@ -218,9 +242,9 @@ def create_filestore_directories(basedir, filepath):
 
 def construct_relative_files_paths(filepath, filename):
     # events
-    event_filepath = filepath + filename + "_v000.xml"
-    waveform_filepath = filepath + filename + "_v000.mseed"
-    waveform_context_filepath= filepath + filename + "_v000.mseed_context"
+    event_filepath = filepath + filename + ".xml"
+    waveform_filepath = filepath + filename + ".mseed"
+    waveform_context_filepath= filepath + filename + ".mseed_context"
     return event_filepath, waveform_filepath, waveform_context_filepath
 
 
@@ -243,34 +267,57 @@ def check_event_existance(event_time_epoch):
 @app.route('/events/putEvent', methods=['POST'])
 def put_event():
 
-    log.info("put_event started.")
     request_starttime = time.time()
 
+<<<<<<< HEAD
+        if 'event' in request.get_json() and 'waveform' in request.get_json() and 'context' in request.get_json():
+            conversion_starttime = time.time()
+            event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
+            waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
+            waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])), format='MSEED')
+            conversion_endtime = time.time() - conversion_starttime
+            log.info("=======> Conversion took:%.2f seconds" % conversion_endtime)
+        else:
+            raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context must be specified in request body",
+                               status_code=400)
+
+        ev_flat_dict = EventDB.flatten_event(Event(event))
+        log.info(ev_flat_dict)
+=======
     if 'event' in request.get_json() and 'waveform' in request.get_json() and 'context' in request.get_json():
         conversion_starttime = time.time()
-        log.info('put_event: call read_events')
         event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
         waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
         waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])), format='MSEED')
         conversion_endtime = time.time() - conversion_starttime
-        log.info("put_event: Conversion took: %.2f seconds" % conversion_endtime)
+        print("=======> Conversion took: ", "%.2f" % conversion_endtime, "seconds")
     else:
         raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context must be specified in request body",
                            status_code=400)
 
-    log.info('put_event: Call EventDB.flatten_event')
     ev_flat_dict = EventDB.flatten_event(Event(event))
+    print(ev_flat_dict)
+>>>>>>> b08a42e0df065f02ba09893f2e87b9cba44a9cae
 
     existed_event_id = check_event_existance(ev_flat_dict['time'])
 
+<<<<<<< HEAD
+        if existed_event_id:
+            raise InvalidUsage("Event already exists with ID " + existed_event_id,
+                               status_code=200)
+        else:
+            filename = generate_filename_from_date(ev_flat_dict['time'])
+            filepath = generate_filepath_from_date(ev_flat_dict['time'])
+            #print(filepath + filename)
+=======
     if existed_event_id:
-        #return build_success_response("Event already exists with ID " + existed_event_id)
-        log.info('put_event: id=[%s] already exists in db --> Dont try to insert/update xml' % existed_event_id)
-        return build_success_response("Event already exists with ID " + existed_event_id, {"event_id": str(existed_event_id)})
+        raise InvalidUsage("Event already exists with ID " + existed_event_id,
+                           status_code=200)
     else:
         filename = generate_filename_from_date(ev_flat_dict['time'])
         filepath = generate_filepath_from_date(ev_flat_dict['time'])
-        log.info('put_event: create filestore: filepath + filename = [%s]' % (filepath + filename))
+        print(filepath + filename)
+>>>>>>> b08a42e0df065f02ba09893f2e87b9cba44a9cae
 
         create_filestore_directories(BASE_DIR, filepath)
 
@@ -290,21 +337,31 @@ def put_event():
 
         inserted_event_id = mongo.db[EVENTS_COLLECTION].insert_one(ev_flat_dict).inserted_id
 
-        log.info("put_event: Inserted new event into mongoDB with ID:" + str(inserted_event_id))
+<<<<<<< HEAD
+            log.info("Event Inserted with ID:", inserted_event_id)
+
+            request_endtime = time.time() - request_starttime
+            log.info("=======> Request Done Successfully. Total API Request took:%.2f seconds" % request_endtime)
+=======
+        print("Event Inserted with ID:", inserted_event_id)
 
         request_endtime = time.time() - request_starttime
-        log.info("put_event ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
+        print("=======> Request Done Successfully.",
+              "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+>>>>>>> b08a42e0df065f02ba09893f2e87b9cba44a9cae
 
-        return build_success_response("Event inserted successfully", {"event_id": str(inserted_event_id)})
+        return json.dumps({"event_inuse_id": str(inserted_event_id)})
+
 
 
 def read_and_write_file_as_bytes(relative_filepath, format):
     bytes = BytesIO()
     obj = None
-    # construct full filepath
+
+    #construct full filepath
     full_filepath = BASE_DIR + relative_filepath
 
-    if format == 'QUAKEML':
+    if format =='QUAKEML':
         obj = read_events(full_filepath)
         obj.write(bytes, format="QUAKEML")
     elif format in ['MSEED', 'MSEED_CONTEXT']:
@@ -332,6 +389,7 @@ def construct_event_output(event_data, requested_format):
                 if out_type != 'ALL':
                     file = construct_event_output(event_data, out_type)
                     fname = event_data['filename'] + OUTPUT_TYPES[out_type]
+                    print("========Size======>", "%.2f" % (sys.getsizeof(file.getvalue())/1024/1024))
                     info = tarfile.TarInfo(fname)
                     info.size = file.getbuffer().nbytes
                     mytar.addfile(info, file)
@@ -341,24 +399,34 @@ def construct_event_output(event_data, requested_format):
     output_size = sys.getsizeof(output.getvalue())
     output.seek(0)
     end_time = time.time() - start_time
-    log.info("Formatting Output took: %.2f , Output Size: %.2f MB" % (end_time, (output_size/1024/1024)))
+    log.info("==> Formatting Output took: %.2f Output Size:%.2f MB" % (end_time, (output_size/1024/1024)))
     return output
 
 
 @app.route('/events/getEvent', methods=['GET'])
 def get_event():
 
-    log.info("getEvent started")
     request_starttime = time.time()
 
+<<<<<<< HEAD
+        # Check Date Ranges
+        if 'eventid' in request.args:
+            log.info('get_Event: eventid:%s' % request.args['eventid'])
+            event_id = request.args['eventid']
+        else:
+            raise InvalidUsage("Event ID must be specified like:" +
+                               "eventid=<ID>",
+                               status_code=400)
+=======
     # Check Date Ranges
     if 'eventid' in request.args:
-        log.info('get_Event: eventid:%s' % request.args['eventid'])
+        print('get_Event: eventid:%s' % request.args['eventid'])
         event_id = request.args['eventid']
     else:
         raise InvalidUsage("Event ID must be specified like:" +
                            "eventid=<ID>",
                            status_code=400)
+>>>>>>> b08a42e0df065f02ba09893f2e87b9cba44a9cae
 
     if 'output' in request.args:
         if request.args['output'] in OUTPUT_TYPES.keys():
@@ -378,23 +446,26 @@ def get_event():
 
         output_file = construct_event_output(event_result[0], output_format)
 
+<<<<<<< HEAD
+            request_endtime = time.time() - request_starttime
+            log.info("=======> Request Done Successfully. Total API Request took:%.2f seconds" % request_endtime)
+=======
         # construct downloaded filename
         output_filename = event_result[0]['filename'] + OUTPUT_TYPES[output_format]
+>>>>>>> b08a42e0df065f02ba09893f2e87b9cba44a9cae
 
         request_endtime = time.time() - request_starttime
-        log.info("getEvent ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
+        log.info("=======> Request Done Successfully." +
+              "Total API Request took: " + "%.2f" % request_endtime + "seconds")
 
         return send_file(output_file, attachment_filename=output_filename, as_attachment=True)
 
     else:
-        log.info("getEvent ended Successfully with no data found")
-        return build_success_response("No data found")
+        raise InvalidUsage("No data found", status_code=200)
 
 
 @app.route('/events/updateEvent', methods=['POST'])
 def update_event():
-
-    log.info("update_event started")
 
     request_starttime = time.time()
     event = None
@@ -407,7 +478,6 @@ def update_event():
         conversion_starttime = time.time()
 
         event_id = request.get_json()['event_id']
-        log.info("update_event: request to update event_id:%s" % event_id)
         if 'event' in request.get_json():
             event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
         if 'waveform' in request.get_json():
@@ -422,50 +492,40 @@ def update_event():
                            "(Event, Waveform or Context) must be specified in request body",
                            status_code=400)
 
+<<<<<<< HEAD
+            filename = generate_filename_from_date(event_document['time'])
+            filepath = generate_filepath_from_date(event_document['time'])
+            log.info("event_document: filepath=%s + filename=%s" % (filepath, filename))
+=======
     filter = {
         '_id': ObjectId(event_id),
     }
+>>>>>>> b08a42e0df065f02ba09893f2e87b9cba44a9cae
 
     event_document = mongo.db[EVENTS_COLLECTION].find_one(filter)
 
     if event_document:
 
-        log.info('update_event: Found event_document event_id:%s' % event_id)
-
         filename = generate_filename_from_date(event_document['time'])
         filepath = generate_filepath_from_date(event_document['time'])
-
-        log.info('update_event: create_filestore: BASE_DIR=%s filepath=%s' % (BASE_DIR, filepath))
+        print(filepath + filename)
 
         create_filestore_directories(BASE_DIR, filepath)
+
+        event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(filepath, filename)
 
         event_document['filename'] = filename
 
         # update files in filestore
         if event:
-            log.info('put_event: Call EventDB.flatten_event')
-            # read new event as dictionary
-            ev_flat_dict = EventDB.flatten_event(Event(event))
-            # update event db object with the new data in QUAKEML file
-            for key in ev_flat_dict.keys():
-                event_document[key] = ev_flat_dict[key]
-            event_filepath = update_file_version(event_document['event_filepath'])
             event_document['event_filepath'] = event_filepath
             event.write(BASE_DIR + event_filepath, format="QUAKEML")
-            log.info('update_event: event_filepath=%s' % (event_filepath))
-
         if waveform:
-            waveform_filepath = update_file_version(event_document['waveform_filepath'])
             event_document['waveform_filepath'] = waveform_filepath
             waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
-            log.info('update_event: waveform_filepath=%s' % (waveform_filepath))
-
         if waveform_context:
-            waveform_context_filepath = update_file_version(event_document['waveform_context_filepath'])
             event_document['waveform_context_filepath'] = waveform_context_filepath
             waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
-            log.info('update_event: waveform_context_filepath=%s' % (waveform_context_filepath))
-
 
         event_document['modification_time'] = int(datetime.datetime.utcnow().timestamp() * 1e9)
 
@@ -474,36 +534,32 @@ def update_event():
         log.info("Event  with ID:%s has been updated successfully" % event_id)
 
         request_endtime = time.time() - request_starttime
-        log.info("updateEvent ended Successfully. Total Update Request took: %.2f seconds" % request_endtime)
+        log.info("Request Done Successfully. Total Update Request took: %.2f seconds" % request_endtime)
 
-        #return build_success_response("Event updated successfully")
-        return build_success_response("Event update successfully", {"event_id": str(event_id)})
+        return build_message("success")
     else:
-        log.info("updateEvent ended Successfully. No data found to update.")
-        return build_success_response("No data found")
 
-
-def update_file_version(filename):
-    regex_formula = r"\_v\d{3}\."
-    regex = re.compile(regex_formula)
-    str_matched_list = regex.findall(filename)
-    new_version_str = ""
-    if str_matched_list:
-        current_version = str_matched_list[0][2:-1]
-        log.info(current_version)
-        n_version = int(current_version) + 1
-        new_version_str = "_v" + str(n_version).zfill(3) + "."
-        filename = regex.sub(new_version_str, filename)
-    else:
-        filename = filename.replace(".", "_v001.")
-    return filename
+        request_endtime = time.time() - request_starttime
+        log.info("Request Done Successfully. Total Update Request took: %.2f seconds" % request_endtime)
+        return build_message("No data found")
 
 
 @app.route('/events/getEventInUse', methods=['GET'])
 def get_event_inuse():
 
-    log.info("getEventInUse started")
+<<<<<<< HEAD
+        # Check Date Ranges
+        if 'eventid' and 'userid' in request.args:
+            log.info('get_Event_InUse: eventid:%s userid:%s' % (request.args['eventid'], request.args['userid']))
+            event_id = request.args['eventid']
+            user_id = request.args['userid']
+        else:
+            raise InvalidUsage("Event ID and User ID must be specified like:" +
+                               "(eventid=<ID>) & (userid=<ID>)",
+                               status_code=400)
+=======
     request_starttime = time.time()
+>>>>>>> b08a42e0df065f02ba09893f2e87b9cba44a9cae
 
     # Check Date Ranges
     if 'eventid' and 'userid' in request.args:
@@ -524,31 +580,47 @@ def get_event_inuse():
         "ttl_expiration": {'$gte': current_timestamp}
         }
 
+<<<<<<< HEAD
+        request_endtime = time.time() - request_starttime
+        log.info("=======> Request Done Successfully. Total API Request took:%.2f seconds" % request_endtime)
+=======
     inuse_result = mongo.db[EVENTS_INUSE_COLLECTION].find(query_filter)
+>>>>>>> b08a42e0df065f02ba09893f2e87b9cba44a9cae
 
     request_endtime = time.time() - request_starttime
-    log.info("getEventInUse ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
+    print("=======> Request Done Successfully.",
+          "Total API Request took: ", "%.2f" % request_endtime, "seconds")
 
     if inuse_result.count() >= 1:
         return MongoJSONEncoder().encode(inuse_result[0])
     else:
-        return build_success_response("No data found")
+        raise InvalidUsage("No data found", status_code=200)
 
 
 @app.route('/events/putEventInUse', methods=['POST'])
 def put_event_inuse():
 
-    log.info("putEventInUse started")
     request_starttime = time.time()
 
+<<<<<<< HEAD
+        # Check Date Ranges
+        if 'eventid' and 'userid' in request.get_json():
+            log.info('put_Event_InUse: eventid:%s userid:%s' % (request.get_json()['eventid'], request.get_json()['userid']))
+            event_id = request.get_json()['eventid']
+            user_id = request.get_json()['userid']
+        else:
+            raise InvalidUsage("Event ID and User ID must be specified in request body",
+                               status_code=400)
+=======
     # Check Date Ranges
     if 'eventid' and 'userid' in request.get_json():
-        log.info('put_Event_InUse: eventid:%s userid:%s' % (request.get_json()['eventid'], request.get_json()['userid']))
+        print('put_Event_InUse: eventid:%s userid:%s' % (request.get_json()['eventid'], request.get_json()['userid']))
         event_id = request.get_json()['eventid']
         user_id = request.get_json()['userid']
     else:
         raise InvalidUsage("Event ID and User ID must be specified in request body",
                            status_code=400)
+>>>>>>> b08a42e0df065f02ba09893f2e87b9cba44a9cae
 
     # get current timestamp in order to calculate inuse TTL expiration time
     ttl_expiration = (time.time() + INUSE_TTL) * 10e9
@@ -561,21 +633,21 @@ def put_event_inuse():
 
     inserted_record_id = mongo.db[EVENTS_INUSE_COLLECTION].insert_one(inuse_data).inserted_id
 
+<<<<<<< HEAD
+        request_endtime = time.time() - request_starttime
+        log.info("=======> Request Done Successfully. Total API Request took:%.2f seconds" % request_endtime)
+=======
     request_endtime = time.time() - request_starttime
-    log.info("putEventInUse ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
+    print("=======> Request Done Successfully.",
+          "Total API Request took: ", "%.2f" % request_endtime, "seconds")
+>>>>>>> b08a42e0df065f02ba09893f2e87b9cba44a9cae
 
-    return build_success_response("EventInUse added successfully", {"event_inuse_id": str(inserted_record_id)})
+    return json.dumps({"event_inuse_id": str(inserted_record_id)})
 
 
-def build_success_response(message_text, extra_dict=None):
-    success = True
-    response = {
-        'success': success,
-        'message': message_text
-    }
-    if extra_dict:
-        response.update(extra_dict)
-    return json.dumps(response)
+
+def build_message(message_text):
+    return json.dumps({"message": message_text})
 
 
 @app.errorhandler(404)
@@ -618,8 +690,8 @@ def handle_error(error):
             'message': message
         }
     }
-    log.exception(response)
-    return json.dumps(response), status_code
+    log.error(response)
+    return jsonify(response), status_code
 
 if __name__ == '__main__':
     # launch API
