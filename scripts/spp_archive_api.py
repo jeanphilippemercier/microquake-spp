@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, Response
 import os
 import sys
 from microquake.db.mongo.mongo import MongoDBHandler, StreamDB, EventDB, MongoJSONEncoder
@@ -20,11 +20,17 @@ import tarfile
 from spp.utils import logger
 import datetime
 import re
+import helpers.middleware as middleware
+import prometheus_client
 
 
 app = Flask(__name__)
 
 log = logger.get_logger("SPP API", 'spp_api.log')
+
+# Configure Prometheus wit the API
+middleware.setup_metrics(app)
+CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
 
 # load configuration file
 config = Configuration()
@@ -47,6 +53,11 @@ OUTPUT_TYPES = {'MSEED': ".mseed",
 def home():
     return '''<h1>Ingestion MSEED Data Retrieval</h1>
 <p></p>'''
+
+
+@app.route('/metrics')
+def metrics():
+    return Response(prometheus_client.generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 
 def construct_output(stream_obj, requested_format='MSEED'):
