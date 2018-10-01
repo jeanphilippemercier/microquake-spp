@@ -29,18 +29,20 @@ if __name__ == "__main__":
     stations_count = 109
     producers_dict = {}
 
-    key_schema_str = """
-    {
-       "name": "key",
-       "type": "record",
-       "fields" : [
-         {
-           "name" : "tkey",
-           "type" : "string"
-         }
-       ]
-    }
-    """
+    # key_schema_str = """
+    # {
+    #    "name": "key",
+    #    "type": "record",
+    #    "fields" : [
+    #      {
+    #        "name" : "tkey",
+    #        "type" : "string"
+    #      }
+    #    ]
+    # }
+    # """
+
+    key_schema_str = "\"string\""
     key_schema = avro.loads(key_schema_str)
 
     avro_producer = ConfluentKafkaHandler.get_avro_producer(kafka_brokers,
@@ -76,7 +78,9 @@ if __name__ == "__main__":
 
             #print("Serializing Trace Finished and took:", "%.2f" % (time.time() - ser_time))
 
-            key = { "tkey": str(trace['stats']['starttime']) }
+            #key = { "tkey": str(trace['stats']['starttime']) }
+            key = str(trace['stats']['starttime'])
+
             print("Sending Msg with key:%s, for station:%s" % (key,trace['stats']['station']))
             avro_producer.produce(topic="station_%s" % trace['stats']['station'], value=trace, key=key)
 
