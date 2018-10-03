@@ -250,41 +250,6 @@ class requestHandler():
 #         yaml.dump(self.endtimes, fout, default_flow_style=False)
 
 
-def write_to_kafka(stream_object, brokers, kafka_topic):
-    """
-
-    :param stream_object: a microquake.stream.Stream object containing the
-    waveforms
-    :param brokers: a ',' delimited string containing the information on the
-    kafka brokers (e.g., "kafka-node-001:9092,kafka-node-002:9092,
-    kafka-node-003:9092")
-    :param kafka_topic:
-    :return:
-    """
-    from spp.utils.kafka import KafkaHandler
-    kafka_handler_obj = KafkaHandler(brokers)
-    # s_time = time.time()
-    buf = BytesIO()
-    stream_object.write(buf, format='MSEED')
-    kafka_msg = buf.getvalue()  # serializer.encode_base64(buf)
-    msg_key = str(stream_object[0].stats.starttime)
-    # end_time_preparation = time.time() - s_time
-
-    # msg_size = (sys.getsizeof(kafka_msg) / 1024 / 1024)
-
-    # s_time = time.time()
-    kafka_handler_obj.send_to_kafka(kafka_topic, kafka_msg,
-                                    msg_key.encode('utf-8'))
-    # end_time_submission = time.time() - s_time
-
-    # print("==> Object Size:", "%.2f" % msg_size, "MB",
-    #       "Key:", msg_key,
-    #       ", Preparation took:", "%.2f" % end_time_preparation,
-    #       ", Submission took:", "%.2f" % end_time_submission)
-
-    kafka_handler_obj.producer.flush()
-
-
 def write_to_mongo(stream_object, uri='mongodb://localhost:27017/',
                    db_name='test_continuous'):
     """

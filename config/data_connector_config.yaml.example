@@ -17,6 +17,7 @@ data_connector:
                                     # or path to the data
     type: local
     location: /mnt/seismic_shared_storage/continuous_data/20180523_185101_900000_20180523_185103_100000.mseed
+    #location: /home/spadmin/projects/seismic-processing-platform/data/mth_test/20180707153222_trim.mseed
     # if location is a directory, code sends 30 random files currently
     # if location is a file, it will just send that file
     #location: /mnt/seismic_shared_storage/continuous_data/
