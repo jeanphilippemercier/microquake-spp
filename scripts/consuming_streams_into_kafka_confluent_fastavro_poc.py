@@ -11,6 +11,11 @@ from spp.utils import avro_handler
 import os
 from spp.utils.kafka_confluent import ConfluentKafkaHandler
 from confluent_kafka import avro
+from datamountaineer.schemaregistry.client import SchemaRegistryClient
+from datamountaineer.schemaregistry.serializers import MessageSerializer, Util
+
+
+
 
 if __name__ == "__main__":
 
@@ -24,6 +29,8 @@ if __name__ == "__main__":
 
     avro_schema = avro_handler.parse_avro_schema("mseed_avro_schema.avsc")
     fastavro_schema = avro_handler.parse_fastavro_schema("mseed_avro_schema.avsc")
+
+
 
     # should be config
     stations_count = 109
@@ -49,6 +56,7 @@ if __name__ == "__main__":
                                                             "http://kafka-node-002:8081",
                                                             key_schema, avro_schema)
 
+
     print("Consuming Streams from Kafka...")
     for message in consumer:
         print("Key:", message.key)
@@ -69,12 +77,6 @@ if __name__ == "__main__":
             #print("Serializing Trace Started")
             ser_time = time.time()
             #print(trace)
-
-            #msg = json.dumps(trace).encode('utf-8')
-            #msg = avro_handler.encode_avro(avro_schema, trace)
-            #msg = avro_handler.encode_fastavro(fastavro_schema, trace)
-            # msg = pickle.dumps(trace)
-            # msg = trace
 
             #print("Serializing Trace Finished and took:", "%.2f" % (time.time() - ser_time))
 
