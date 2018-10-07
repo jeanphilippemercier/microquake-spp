@@ -567,6 +567,42 @@ def put_event_inuse():
     return build_success_response("EventInUse added successfully", {"event_inuse_id": str(inserted_record_id)})
 
 
+@app.route('/events/getCatalog', methods=['GET'])
+def get_catalog():
+
+    log.info("getCatalog started")
+    request_starttime = time.time()
+
+    if 'starttime' in request.args and 'endtime' in request.args:
+        start_time = check_and_parse_datetime(request.args['starttime'])
+        end_time = check_and_parse_datetime(request.args['endtime'])
+        log.info('get_catalog: starttime:%s endtime:%s' % (start_time, end_time))
+    else:
+        raise InvalidUsage("date-range-options must be specified like:" +
+                           "(starttime=<time>) & ([endtime=<time>]) ",
+                           status_code=400)
+
+    query_filter = {
+        'time': {
+            '$gte': start_time,
+            '$lte': end_time
+        }
+    }
+
+    events_catalog_result = mongo.db[EVENTS_COLLECTION].find(query_filter)
+
+    if events_catalog_result.count() >= 1:
+        request_endtime = time.time() - request_starttime
+        log.info("getEvent ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
+        catalog = MongoJSONEncoder().encode(list(events_catalog_result))
+        return build_success_response("getCatalog ended successfully", {"catalog": catalog})
+
+    else:
+        log.info("getCatalog ended Successfully with no data found")
+        return build_success_response("No data found")
+
+
+
 def build_success_response(message_text, extra_dict=None):
     success = True
     response = {
