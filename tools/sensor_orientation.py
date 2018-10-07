@@ -121,14 +121,14 @@ def calculate_orientation_station(station, pick_dict, site):
         return (0, 0, 0)
     stloc = sta.loc
 
-    X_vects = []
-    Y_vects = []
-    Z_vects = []
-    S_in_P = []
-
-    Res = []
-
-    tt_grid = get_traveltime_grid_station(station)
+    # X_vects = []
+    # Y_vects = []
+    # Z_vects = []
+    # S_in_P = []
+    #
+    # Res = []
+    #
+    # tt_grid = get_traveltime_grid_station(station)
 
     N = 100
 
@@ -318,29 +318,33 @@ def calculate_orientation_station(station, pick_dict, site):
     return (x, y, z)
 
 
-base_url = "http://10.95.64.12:8002/ims-database-server/databases/mgl"
+base_url = "http://10.95.74.35:8002/ims-database-server/databases/mgl"
 
 site = get_stations()
 tz = get_time_zone()
 endtime = datetime.now().replace(tzinfo=tz)
 starttime = datetime(2018, 4, 1, tzinfo=tz)
+endtime = datetime(2018, 7, 10, tzinfo=tz)
 
 # cat = web_api.get_catalogue(base_url, starttime, endtime, site, blast=True,
 #                             get_arrivals=True)
-#
+
 # cat.write('events.xml', format='QUAKEML')
 
-# print('reading quakeml')
-# # cat = read_events('events.xml')
+print('reading quakeml')
+cat = read_events('events.xml')
 # cat = pickle.load(open('events.pickle', 'rb'))
-#
-# pick_dict = {}
-# for tmp1 in map(get_event_information, cat):
-#     for tmp2 in tmp1:
-#         if tmp2[0] in pick_dict.keys():
-#             pick_dict[tmp2[0]].append(np.array(tmp2[1]))
-#         else:
-#             pick_dict[tmp2[0]] = [np.array(tmp2[1])]
+print('done with reading teh data')
+
+pick_dict = {}
+for tmp1 in map(get_event_information, cat):
+    for tmp2 in tmp1:
+        if tmp2[0] in pick_dict.keys():
+            pick_dict[tmp2[0]].append(np.array(tmp2[1]))
+        else:
+            pick_dict[tmp2[0]] = [np.array(tmp2[1])]
+
+pickle.dump(pick_dict, open('pick_dict.pickle', 'wb'))
 
 pick_dict = pickle.load(open('pick_dict.pickle', 'rb'))
 
@@ -352,26 +356,26 @@ except:
     orientation = {}
 
 
-# for key in pick_dict.keys():
-#     # if key in orientation.keys():
-#     #     continue
-#     print('Processing %s' % key)
-#     try:
-#         x, y, z = calculate_orientation_station(key, pick_dict, site)
-#     # if x == 0:
-#     #     continue
-#     except:
-#         continue
-#     orientation[key] = {}
-#     orientation[key]['x'] = x
-#     orientation[key]['y'] = y
-#     orientation[key]['z'] = z
-#     orientation[key]['measurements'] = len(pick_dict[key])
-#
-#     with open('orientation.pickle', 'wb') as fo:
-#         pickle.dump(orientation, fo)
+for key in pick_dict.keys():
+    # if key in orientation.keys():
+    #     continue
+    print('Processing %s' % key)
+    try:
+        x, y, z = calculate_orientation_station(key, pick_dict, site)
+    # if x == 0:
+    #     continue
+    except:
+        continue
+    orientation[key] = {}
+    orientation[key]['x'] = x
+    orientation[key]['y'] = y
+    orientation[key]['z'] = z
+    orientation[key]['measurements'] = len(pick_dict[key])
 
-st_ids = np.arange(1,110)
+    with open('orientation.pickle', 'wb') as fo:
+        pickle.dump(orientation, fo)
+
+st_ids = np.arange(1, 110)
 
 with open('orientation.csv', 'w') as fo:
     for st_id in st_ids:
