@@ -20,6 +20,7 @@ import tarfile
 from spp.utils import logger
 import datetime
 import re
+from spp.time import core as time_util
 
 
 app = Flask(__name__)
@@ -77,8 +78,7 @@ def combine_json_to_stream_data(db_result):
 
 def check_and_parse_datetime(dt_str):
     try:
-        dt = int(np.float64(UTCDateTime(dt_str).timestamp) * 1e9)
-        return dt
+        return time_util.convert_datetime_to_epoch_nanoseconds(dt_str)
     except ValueError:
         error_msg = "Invalid datetime format, value should be in format: %Y-%m-%dT%H:%M:%S.%f"
         log.exception(error_msg)
@@ -594,8 +594,11 @@ def get_catalog():
     if events_catalog_result.count() >= 1:
         request_endtime = time.time() - request_starttime
         log.info("getEvent ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
-        catalog = MongoJSONEncoder().encode(list(events_catalog_result))
-        return build_success_response("getCatalog ended successfully", {"catalog": catalog})
+        catalog_list = []
+        for event in events_catalog_result:
+            event['time'] = time_util.convert_epoch_nanoseconds_to_utc_datetime_string(event['time'])
+            catalog_list.append(MongoJSONEncoder().encode(event))
+        return build_success_response("getCatalog ended successfully", {"catalog": catalog_list})
 
     else:
         log.info("getCatalog ended Successfully with no data found")
