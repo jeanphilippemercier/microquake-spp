@@ -4,6 +4,8 @@ from IPython.core.debugger import Tracer
 from microquake.core.data.grid import read_grid
 from microquake.core import read_stations
 
+from obspy.core.event.base import ResourceIdentifier
+
 def init_travel_time():
     """
     Calculate travel time grid if required
@@ -93,6 +95,7 @@ def __get_grid_value_single_station(station_phase, location, use_eikonal=False):
 
     else:
         f_tt = os.path.join(common_dir, 'NLL/time', 'OT.%s.%s.time.buf' % (phase.upper(), station))
+        #print("get_grid_value: Locn=%s Phase=%s NLLOC file:%s" % (location, station_phase, f_tt))
         tt_grid = read_grid(f_tt, format='NLLOC')
 
     tt = tt_grid.interpolate(location, grid_coordinate=False)
@@ -178,7 +181,6 @@ def create_event(stream, event_location):
 
     stations = np.unique([tr.stats.station for tr in stream])
 
-
     shifted_traces = []
     npts = np.int((max_endtime - min_starttime) * max_sampling_rate)
     t_i = np.arange(0, npts) / max_sampling_rate
@@ -262,6 +264,7 @@ def create_event(stream, event_location):
 
     event = Event()
     event.origins = [origin]
+    event.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id, referred_object=origin)
     event.picks = picks
     #event.pick_method = 'predicted from get_travel_time_grid'
 
