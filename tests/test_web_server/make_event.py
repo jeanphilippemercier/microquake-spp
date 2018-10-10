@@ -24,14 +24,14 @@ from helpers import *
 
 from io import BytesIO
 
-from spp.utils import logger as log
-
-logger = log.get_logger("make_events", 'make_events.log')
-
-#print('process_event: inherits log level=[%s]' % (logger.getEffectiveLevel()))
-#print('import process_event: inherits log level=[%s]' % get_log_level(logger.getEffectiveLevel()))
-
 config_dir = os.environ['SPP_CONFIG']
+
+#from spp.utils import logger as log
+#logger = log.get_logger("make_event", 'make_event.log')
+
+from liblog import getLogger
+import logging
+logger = getLogger()
 
 def make_event(xyzt_array, plot_profiles=False, insert_event=False):
 #MTH: You have to have these 2 set to get pretty print output of Origin:  -->
@@ -40,7 +40,8 @@ def make_event(xyzt_array, plot_profiles=False, insert_event=False):
 
     fname = 'make_event'
 
-    #print('%s: LOG LEVEL=%s' % (fname, get_log_level(logger.getEffectiveLevel())))
+    #print("%s: level:%s" % (fname, get_log_level(logger.getEffectiveLevel())))
+    #exit()
 
     if xyzt_array.size != 4:
         logger.error('%s: expecting 4 inputs = {x, y, z, t}' % fname)
@@ -51,40 +52,40 @@ def make_event(xyzt_array, plot_profiles=False, insert_event=False):
     origin.x = xyzt_array[0]
     origin.y = xyzt_array[1]
     origin.z = xyzt_array[2]
-    #print(origin)
     event = Event()
-    #event = obsEvent()
     event.origins = [origin]
     # Don't use the method below - it bungles the pref id
     #event.preferred_origin_id = ResourceIdentifier(referred_object=origin)
     # Either of these methods seems to work:
     event.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id)
     #event.preferred_origin_id = origin.resource_id
-    #print(event)
     origin.method = 'InterLoc Event'
 
     logger.info('%s: Start from InterLoc Origin:' % fname)
     logger.info(origin)
     event.write('event.xml', format='quakeml')
     logger.info('%s: Write InterLoc Origin to event.xml' % fname)
-    #event_read = read_events('event.xml', format='QUAKEML')[0]
-    #print('read pref  id:%s' % event_read.preferred_origin_id)
 
     starttime = origin.time - 0.1
     endtime   = origin.time + 0.9
-    logger.info('%s: call get_stream_from_mongo(starttime=[%s] endtime=[%s]' % (fname, starttime, endtime))
+    logger.debug('%s: call get_stream_from_mongo(starttime=[%s] endtime=[%s]' % (fname, starttime, endtime))
     st1 = get_stream_from_mongo(starttime, endtime)
     if st1 is None:
         logger.info('%s: get_stream_from_mongo returned None --> return' % fname)
         return
 
     for tr in st1:
-        logger.info('id:%s \t %s - %s' % (tr.get_id(), tr.stats.starttime, tr.stats.endtime))
-        #tr.plot()
+        logger.info('tr:%3s.%s %s - %s n:%d sr:%f d:%s e:%s' % (tr.stats.station, tr.stats.channel, \
+                   tr.stats.starttime, tr.stats.endtime, tr.stats.npts, tr.stats.sampling_rate, \
+                   tr.data.dtype, tr.stats.mseed.encoding))
 
-    st1.filter("bandpass", freqmin=80.0, freqmax=600.0, corners=4)
     # ATODO MTH: get_stream() is returning obspy Stream, not microquake
     st = Stream(st1.copy())
+    clean_nans(st, threshold=.05)
+    st.filter("bandpass", freqmin=80.0, freqmax=600.0, corners=4)
+    # filter will return all np data arrays as float64 which no longer matches mseed.encoding:
+    for tr in st:
+        tr.stats.mseed.encoding = 'FLOAT64'
 
     title = 'InterLoc Orig <%.0f, %.0f, %.0f> %s' % (origin.x, origin.y, origin.z, origin.time)
 
@@ -92,88 +93,75 @@ def make_event(xyzt_array, plot_profiles=False, insert_event=False):
     if plot_profiles:
         plot_profile_with_picks(st, picks=None, origin=origin, title=title)
 
-    #exit()
+    interloc_origin = copy.deepcopy(origin)
 
   # 1. Stack traces to get origin time + prelim predicted picks for origin time + loc:
-    event2 = core.create_event(st, origin.loc)[0]
-    origin2 = event2.origins[0]
-
-    event.origins.append(origin2)
-    event.picks = event2.picks
+    logger.info('%s: stack traces to get new origin time' % fname)
+    event2  = core.create_event(st, origin.loc)[0]
+    logger.info('%s: stack traces to get new origin time [DONE]' % fname)
+    origin = event2.origins[0]
+    event.origins.append(copy.deepcopy(origin))
+    event.picks = copy.deepcopy(event2.picks)
+    event.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id)
     event.write('event2.xml', format='quakeml')
 
+    noisy_chans = check_trace_channels_with_picks(st, copy_picks_to_dict(event2.picks))
+# Keep copy of original stream with all traces
+    st2 = st.copy()
+    for tr in st:
+        if tr in noisy_chans:
+            #logger.warn("Remove noisy trace:%s" % tr.get_id())
+            st.remove(tr)
 
-    # prelim_picks = predicted for specified location + calculated origin_time
-    prelim_picks = event2.picks
-
-    check_trace_channels_with_picks(st, copy_picks_to_dict(prelim_picks))
-    title = 'create_event %s' % (origin2.time)
+    title = 'create_event %s' % (origin.time)
     if plot_profiles:
-        plot_profile_with_picks(st, picks=prelim_picks, origin=origin, title=title + ' prelim picks, clean ch')
-    #exit()
+        plot_profile_with_picks(st, picks=event2.picks, origin=origin, title=title + ' prelim picks, clean ch')
 
-    picks = copy_picks_to_dict(prelim_picks)
+ # 2. Repick:
+    logger.info("%s: Repick with SNR_picker" % fname)
+    p_snr_picks = SNR_picker(st, event2.picks, SNR_dt=np.linspace(-.08, .05, 200), SNR_window=(10e-3, 5e-3),  filter='P')
+    s_snr_picks = SNR_picker(st, event2.picks, SNR_dt=np.linspace(-.05, .05, 200), SNR_window=(20e-3, 10e-3), filter='S')
 
-  # 2. Repick:
-
-    #st2 = st
-    old_picks = [picks[station]['P'] for station in picks]
-    p_picks = SNR_picker(st, old_picks, SNR_dt=np.linspace(-.05, .05, 200), SNR_window=(10e-3, 5e-3))
-    #p_picks = kurtosis_picker(st2, old_picks)
-
-    # Separately tune picker for S
-    #(cat_picked, snrs) = SNR_picker(st2, cat, SNR_dt=np.linspace(-.1, .1, 200), SNR_window=(1e-3, 10e-3))
-
-    old_picks = [picks[station]['S'] for station in picks]
-    s_picks = SNR_picker(st, old_picks, SNR_dt=np.linspace(-.05, .05, 200), SNR_window=(20e-3, 10e-3))
-    #s_picks = kurtosis_picker(st2, old_picks)
-
-    new_picks = p_picks + s_picks
+    snr_picks = p_snr_picks + s_snr_picks
 
     if plot_profiles:
-        plot_profile_with_picks(st, picks=new_picks, origin=origin, title='[SNR picks] f:80-600Hz')
-    #exit()
+        plot_profile_with_picks(st, picks=snr_picks, origin=origin, \
+                                title=origin.time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + " [SNR picks]")
 
-  # 4. Clean up picks:
-    #cleaned_picks = clean_picks(st2, new_picks, preWl=.03, postWl=.03, thresh=6.5)
-    cleaned_picks = clean_picks(st, new_picks, preWl=.06, postWl=.12, thresh=3)
-    #cleaned_picks = clean_picks(st2, new_picks, preWl=.03, postWl=.03, thresh=3)
-    foo_picks = copy_picks_to_dict(new_picks)
-    #for station in ['24', '32','72']:
-    #for station in ['24']:
-        #title = 'sta:%s' % station
-        #print(foo_picks[station]['S'].pick)
-        #plot_channels_with_picks(st, station, picks=new_picks, title=title)
+    logger.info("Before clean_picks: SNR picks: n=%d" % len(snr_picks))
+  # 3. Clean up picks:
+    noisy_picks = clean_picks(st, snr_picks, preWl=.03, postWl=.03, thresh_P=5.9, thresh_S=3.7, debug=False)
+    cleaned_picks = [pick for pick in snr_picks if pick not in noisy_picks]
 
- # Make the context mseed
+    for pick in noisy_picks:
+        logger.debug("%s: Remove noisy pick from snr picks: sta:%3s [%s]" % \
+                    (fname, pick.waveform_id.station_code, pick.phase_hint))
+    '''
+        snr_picks.remove(pick)
+    logger.info(" After clean_picks: SNR picks: n=%d" % len(snr_picks))
+    '''
+
+    if plot_profiles:
+        plot_profile_with_picks(st, picks=cleaned_picks, origin=origin, \
+                                title=origin.time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + " [Cleaned SNR picks]")
+
+ # 4. Make the context mseed
     sorted_p_picks = sorted([pick for pick in cleaned_picks if pick.phase_hint == 'P'], key=lambda x: x.time)
     first_pick = sorted_p_picks[0]
     first_sta  = first_pick.waveform_id.station_code
-#MTH: hard-coding for test only.  Issue is that interLoc locn causes sta=89 to be chosen first and
-#  it has issues on the server
-    #first_sta  = '32'
-
+    logger.info("%s: Make context mseed for first_sta:%s" % (fname, first_sta))
     starttime = origin.time - 10
     endtime   = origin.time + 10
     st_temp   = get_stream_from_mongo(starttime, endtime, sta=first_sta)
-    st_new = Stream(st_temp).composite()
-    #st_new.plot()
-    #exit()
-    #st_new.decimate(factor=10)
+    st_new = st_temp.composite()
     #st_new.plot()
     st_new.write("event_context.mseed")
 
-    #plot_profile_with_picks(st, picks=cleaned_picks, origin=origin, title='[Cleaned SNR picks] f:80-600Hz')
 
     event.picks += copy.deepcopy(cleaned_picks)
     event.origins[1].arrivals = picks_to_arrivals(cleaned_picks) 
-    event.preferred_origin_id = event.origins[1].resource_id
+    #event.preferred_origin_id = event.origins[1].resource_id
     event.write('event3.xml', format='quakeml')
-    #for arr in event.origins[1].arrivals:
-        #logger.debug('arr_id=%s --> pick_id=%s' % (arr.resource_id.id, arr.pick_id))
-        #pk = arr.pick_id.get_referred_object()
-        #logger.debug(pk)
-    #exit()
 
     min_number_picks = 10
     if len(cleaned_picks) < min_number_picks:
@@ -195,25 +183,11 @@ def make_event(xyzt_array, plot_profiles=False, insert_event=False):
         event_id = d['event_id']
         logger.info('%s: putEvent returned event_id=[%s] with msg:%s' % (fname, event_id, d['message']))
 
-    #exit()
-
-    #########
-
   # 5. Relocate event with cleaned picks
 
-    config_file = config_dir + '/input.xml'
     config_file = config_dir + '/project.xml'
-
-    logger.info('%s: Call NLLOC with event: pref_origin=%s' % (fname, event.preferred_origin().resource_id.id))
-    resource = event.preferred_origin().resource_id
-    pref_orig= resource.get_referred_object()
-    #print(type(pref_orig))
-    #print(pref_orig)
-
     params = ctl.parse_control_file(config_file)
-    logger.info('%s: Call NLLOC init from params' % fname)
     nll_opts = nlloc.init_nlloc_from_params(params)
-    logger.info('%s: NLLOC opts are loaded --> call run_event to relocate' % fname)
 
     # The following line only needs to be run once. It creates the base directory
     # MTH: this will re-create the station time grids in spp common/NLL/time:
@@ -221,9 +195,15 @@ def make_event(xyzt_array, plot_profiles=False, insert_event=False):
     #exit()
 
 # Need to pass in an event with a preferred origin + arrivals
+    import datetime
+
+    now = datetime.datetime.now()
+    logger.info('%s: Call NLLOC time:%s' % (fname, now))
     event_new = nll_opts.run_event(event)[0]
-    logger.info('%s: NLLOC is Done, now write out event4.xml' % fname)
-    #exit()
+    logger.info('%s: Call NLLOC time:%s [DONE]' % (fname, datetime.datetime.now()))
+
+    if len(event.origins) < 2:
+        logger.warn('%s: Seems NLLOC run_event failed !!' % fname)
 
   # Compute magnitude using nlloc origin
     from microquake.waveform.mag import moment_magnitude
@@ -258,6 +238,7 @@ def make_event(xyzt_array, plot_profiles=False, insert_event=False):
         logger.info('%s: update event_id=[%s] returned msg:%s' % (fname, event_id, d['message']))
 
     logger.info('%s: Finished processing event (id=%s) --> Now clean up!' % (fname, event_id))
+    exit()
 
     from glob import glob
     file_list = glob('event*.xml')
