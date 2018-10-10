@@ -32,7 +32,8 @@ requirements = [
     'flask-restful',
     'prometheus_client',
     'avro',
-    'fastavro'
+    'fastavro',
+    'confluent-kafka'
 ]
 
 # http://blog.prabeeshk.com/blog/2014/10/31/install-apache-spark-on-ubuntu-14-dot-04/

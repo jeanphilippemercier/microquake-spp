@@ -6,7 +6,8 @@ import os
 
 config = Configuration()
 #FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
-FORMATTER = logging.Formatter('%(asctime)s <%(name)s> <%(thread)d> [%(levelname)s] %(message)s') #, datefmt='%Y-%m-%d %H:%M:%S.%f')
+#FORMATTER = logging.Formatter('%(asctime)s <%(name)s> <%(thread)d> [%(levelname)s] %(message)s') #, datefmt='%Y-%m-%d %H:%M:%S.%f')
+FORMATTER = logging.Formatter('[%(levelname)s] %(message)s') #, datefmt='%Y-%m-%d %H:%M:%S.%f')
 LOG_DIR = config.IMS_CONFIG["logging"]["log_directory"]
 
 
@@ -24,10 +25,12 @@ def get_file_handler(log_filename):
     return file_handler
 
 
-def get_logger(logger_name, log_filename):
+def get_logger(logger_name, log_filename=None):
     logger = logging.getLogger(logger_name)
-    logger.setLevel(logging.DEBUG)  # better to have too much log than not enough
-    logger.addHandler(get_console_handler())
-    logger.addHandler(get_file_handler(log_filename))
-    logger.propagate = False
+# MTH: added to stop adding duplicate handlers
+    if not len(logger.handlers):
+        logger.setLevel(logging.DEBUG)  # better to have too much log than not enough
+        logger.addHandler(get_console_handler())
+        logger.addHandler(get_file_handler(log_filename))
+        logger.propagate = False
     return logger
