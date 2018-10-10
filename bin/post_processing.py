@@ -1,13 +1,14 @@
-import numpy as np
-from datetime import datetime
-from microquake.core import read_events
-from glob import glob
-
-from spp.post_processing.make_event import make_event
 from spp.post_processing.liblog import getLogger
-import logging
 #logger = getLogger('-t', logfile="z.log")
 logger = getLogger(logfile="zlog")
+import logging
+
+import numpy as np
+from datetime import datetime
+from glob import glob
+
+from microquake.core import read_events
+from spp.post_processing.make_event import make_event
 
 def main():
 
@@ -45,7 +46,8 @@ def main():
     else:
         inputs = np.array([x,y,z,timestamp])
 
-    make_event( inputs, plot_profiles=False, insert_event=False )
+    make_event( inputs, plot_profiles=False, insert_event=True )
+    #make_event( inputs, plot_profiles=False, insert_event=False )
     #make_event( np.array([x,y,z,timestamp]), plot_profiles=True, insert_event=False )
 
 if __name__ == "__main__":

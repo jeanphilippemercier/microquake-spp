@@ -13,6 +13,8 @@ import os
 from importlib import reload
 reload(core)
 
+import time
+
 #from web_client import get_stream_from_mongo
 from .web_client import *
 from .helpers import *
@@ -94,10 +96,17 @@ def make_event(xyzt_array, plot_profiles=False, insert_event=False):
     event2  = core.create_event(st, origin.loc)[0]
     logger.info('%s: stack traces to get new origin time [DONE]' % fname)
     origin = event2.origins[0]
-    event.origins.append(copy.deepcopy(origin))
+    event.origins.append(origin)
+    #event.origins.append(copy.deepcopy(origin))
     event.picks = copy.deepcopy(event2.picks)
-    event.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id)
     event.write('event2.xml', format='quakeml')
+
+    #event.preferred_origin_id = ResourceIdentifier(referred_object=origin)
+    # Either of these methods seems to work:
+    event.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id)
+    #event.preferred_origin_id = origin.resource_id
+
+    #exit()
 
     noisy_chans = check_trace_channels_with_picks(st, copy_picks_to_dict(event2.picks))
 # Keep copy of original stream with all traces
@@ -191,13 +200,15 @@ def make_event(xyzt_array, plot_profiles=False, insert_event=False):
 # Need to pass in an event with a preferred origin + arrivals
     import datetime
 
-    now = datetime.datetime.now()
-    logger.info('%s: Call NLLOC time:%s' % (fname, now))
+    pref_origin = event.preferred_origin()
+    narrivals = len(pref_origin.arrivals)
+    logger.info('%s: Call NLLOC narrivals=%d' % (fname, narrivals))
+    start_time = time.time()
     event_new = nll_opts.run_event(event)[0]
-    logger.info('%s: Call NLLOC time:%s [DONE]' % (fname, datetime.datetime.now()))
+    logger.info('%s: Call NLLOC [DONE] Took:%.2f secs' % (fname, time.time() - start_time))
 
     if len(event.origins) < 2:
-        logger.warn('%s: Seems NLLOC run_event failed !!' % fname)
+        logger.warn('%s: ** Seems NLLOC run_event failed !!' % fname)
 
   # Compute magnitude using nlloc origin
     from microquake.waveform.mag import moment_magnitude

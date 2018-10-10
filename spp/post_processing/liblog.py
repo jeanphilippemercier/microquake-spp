@@ -49,6 +49,7 @@ def getLogger(*args, **kwargs):
             fh.setFormatter(formatter)
             fh.setLevel(logging.DEBUG)
             logger.addHandler(fh)
+            #print("Log to file:%s with DEBUG" % kwargs['logfile'])
 
         # Default logLevel - this will get passed to modules that look at root logLevel
         logger.setLevel(logging.WARN)
