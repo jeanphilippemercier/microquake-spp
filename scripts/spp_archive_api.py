@@ -20,6 +20,7 @@ import tarfile
 from spp.utils import logger
 import datetime
 import re
+from spp.time import core as time_util
 
 
 app = Flask(__name__)
@@ -82,8 +83,7 @@ def combine_json_to_stream_data(db_result):
 
 def check_and_parse_datetime(dt_str):
     try:
-        dt = int(np.float64(UTCDateTime(dt_str).timestamp) * 1e9)
-        return dt
+        return time_util.convert_datetime_to_epoch_nanoseconds(dt_str)
     except ValueError:
         error_msg = "Invalid datetime format, value should be in format: %Y-%m-%dT%H:%M:%S.%f"
         log.exception(error_msg)
@@ -579,6 +579,45 @@ def put_event_inuse():
     log.info("putEventInUse ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
 
     return build_success_response("EventInUse added successfully", {"event_inuse_id": str(inserted_record_id)})
+
+
+@app.route('/events/getCatalog', methods=['GET'])
+def get_catalog():
+
+    log.info("getCatalog started")
+    request_starttime = time.time()
+
+    if 'starttime' in request.args and 'endtime' in request.args:
+        start_time = check_and_parse_datetime(request.args['starttime'])
+        end_time = check_and_parse_datetime(request.args['endtime'])
+        log.info('get_catalog: starttime:%s endtime:%s' % (start_time, end_time))
+    else:
+        raise InvalidUsage("date-range-options must be specified like:" +
+                           "(starttime=<time>) & ([endtime=<time>]) ",
+                           status_code=400)
+
+    query_filter = {
+        'time': {
+            '$gte': start_time,
+            '$lte': end_time
+        }
+    }
+
+    events_catalog_result = mongo.db[EVENTS_COLLECTION].find(query_filter)
+
+    if events_catalog_result.count() >= 1:
+        request_endtime = time.time() - request_starttime
+        log.info("getEvent ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
+        catalog_list = []
+        for event in events_catalog_result:
+            event['time'] = time_util.convert_epoch_nanoseconds_to_utc_datetime_string(event['time'])
+            catalog_list.append(MongoJSONEncoder().encode(event))
+        return build_success_response("getCatalog ended successfully", {"catalog": catalog_list})
+
+    else:
+        log.info("getCatalog ended Successfully with no data found")
+        return build_success_response("No data found")
+
 
 
 def build_success_response(message_text, extra_dict=None):

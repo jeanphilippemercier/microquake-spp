@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     # Create Kafka Object
     kafka_brokers = config.IMS_CONFIG['kafka']['brokers']
-    kafka_topic = "station_11"
+    kafka_topic = "station_7"
     consumer = KafkaHandler.consume_from_topic(kafka_topic, kafka_brokers)
 
 
