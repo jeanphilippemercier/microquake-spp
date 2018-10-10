@@ -45,7 +45,7 @@ def main():
     else:
         inputs = np.array([x,y,z,timestamp])
 
-    #make_event( inputs, plot_profiles=False, insert_event=False )
+    make_event( inputs, plot_profiles=False, insert_event=False )
     #make_event( np.array([x,y,z,timestamp]), plot_profiles=True, insert_event=False )
 
 if __name__ == "__main__":
