@@ -1,7 +1,6 @@
 from spp.travel_time import core
 from spp.utils import get_stations
 #from microquake.core import read, UTCDateTime
-#from microquake.core.stream import Stream
 from obspy.core.event.base import ResourceIdentifier
 from microquake.waveform.pick import SNR_picker, calculate_snr, kurtosis_picker
 from microquake.core.event import Pick, make_pick, Arrival
@@ -11,16 +10,14 @@ import os
 from obspy.core.utcdatetime import UTCDateTime
 
 from microquake.core.stream import Trace, Stream
-#from obspy.core.stream import Stream
-#from microquake.waveform.pick import SNR_picker, calculate_snr
 import matplotlib.pyplot as plt
 import copy
 #from lib.waveform import WaveformPlotting as wp
+from mth_lib.waveform import WaveformPlotting as wp
 
-from spp.utils import logger as log
+from liblog import getLogger
+logger = getLogger()
 
-
-logger = log.get_logger("helper", 'helper.log')
 
 def get_log_level(level_number):
     log_level = {
@@ -107,8 +104,15 @@ def plot_profile_with_picks(st, picks=None, origin=None, title=None):
             if 'S' in pick_dict[sta]:
                 pk_s = pick_dict[sta]['S'].time
 
-        if pk_p is None:
-            print('sta: %s pk_p is None' % (tr.get_id()))
+        #if pk_p is None:
+            #print('sta: %s pk_p is None' % (tr.get_id()))
+            #continue
+
+        if pk_p:
+            d = (pk_p - origin.time) * 5000
+        elif pk_s:
+            d = (pk_s - origin.time) * 5000/2.
+        else:
             continue
 
         starttime = tr.stats.starttime
@@ -116,17 +120,19 @@ def plot_profile_with_picks(st, picks=None, origin=None, title=None):
         rt = np.arange(0, tr.stats.npts) / tr.stats.sampling_rate
         t = np.array([starttime + dt for dt in rt])
 
-        d = (pk_p - origin.time) * 5000
-
         data = tr.data
         data /= np.max(np.abs(data))
 
         plt.plot(t, tr.data*20 + d, 'k')
 
-        plt.vlines(pk_p, d-20, d+20, colors='r', linestyles=':')
-        plt.vlines(pk_s, d-20, d+20, colors='b', linestyles='--')
+        if pk_p:
+            plt.vlines(pk_p, d-20, d+20, colors='r', linestyles=':')
+        if pk_s:
+            plt.vlines(pk_s, d-20, d+20, colors='b', linestyles='--')
 
     stations = st.unique_stations()
+    tmax = 0.55
+    tmax = 0.6
     for i,pick in enumerate(sorted_p_picks):
         pk_p = pick.time
         d = (pk_p - origin.time) * 5000
@@ -134,14 +140,15 @@ def plot_profile_with_picks(st, picks=None, origin=None, title=None):
         if station not in stations:
             continue
         if i%2:
-            plt.text(earliest_pick.timestamp + .5, d, station, horizontalalignment='left', \
+            plt.text(earliest_pick.timestamp + tmax, d, station, horizontalalignment='left', \
                      verticalalignment='center',color='red')
         else:
             plt.text(earliest_pick.timestamp - .1, d, station, horizontalalignment='right', \
                      verticalalignment='center',color='red')
     if title:
-        plt.title(title)
-    plt.xlim(earliest_pick.timestamp - .1, earliest_pick.timestamp + .5)
+        plt.title(title, fontsize=10)
+    plt.xlim(earliest_pick.timestamp - .1, earliest_pick.timestamp + tmax)
+    #plt.xlim(earliest_pick.timestamp - .1, earliest_pick.timestamp + .5)
     plt.show()
 
 def get_predicted_picks(stream, origin):
@@ -193,7 +200,7 @@ def plot_channels_with_picks(stream, station, picks, title=None):
             starttime = extras['ptime'] - .02
             starttime = extras['ptime'] - .03
             starttime = extras['ptime'] - .15
-            starttime = extras['ptime'] - .5
+            #starttime = extras['ptime'] - .5
             endtime   = extras['ptime'] + .20
             endtime   = extras['ptime'] + .30
             endtime   = extras['ptime'] + .50
@@ -201,19 +208,43 @@ def plot_channels_with_picks(stream, station, picks, title=None):
             starttime = extras['stime'] - .2
             endtime   = extras['stime'] + .2
         #st.trim(starttime, endtime, pad=True, fill_value=0.0)
+
+#MTH:
         st3.trim(starttime, endtime, pad=True, fill_value=0.0)
 
     waveform = wp(stream=st3, color='k', xlabel='Seconds',number_of_ticks=8, tick_rotation=0, title=title, addOverlay=False, extras=extras, outfile=None)
     waveform.plot_waveform()
 
-def check_trace_channels_with_picks(stream, picks):
+def calc_avg_snr(stream, picks, preWl=.03, postWl=.03):
+    fname = 'calc_avg_snr'
+
+    snrs = []
+    for pick in picks:
+        sta = pick.waveform_id.station_code
+        trs = stream.select(station=sta)
+        snr = calculate_snr(trs, pick.time, preWl, postWl)
+        logger.debug("%s: sta:%3s phase:%s snr:%5.2f" % (fname, sta, pick.phase_hint, snr))
+        snrs.append(snr)
+    return np.mean(np.array(snrs))
+
+
+def check_trace_channels_with_picks(stream, picks, return_snr=False, thresh=1.6):
 
     fname = 'check_trace_channels_with_picks'
 
+    noisy_chans = []
+
     for station in stream.unique_stations():
 
+        check = False
+        if station in picks and 'P' in picks[station]:
+            check = True
+        if not check:
+            logger.info("%s: Skip station:%s - has no P pick" % (fname,station))
+            continue
+
         p_time = picks[station]['P'].time
-        s_time = picks[station]['S'].time
+        #s_time = picks[station]['S'].time
 
         win1_start = p_time - .15
         win1_end   = p_time - .05
@@ -222,17 +253,41 @@ def check_trace_channels_with_picks(stream, picks):
 
         st = stream.select(station=station)
 
-        st1 = st.copy()
-        st1.trim(win1_start, win1_end, pad=True, fill_value=0.0)
-        st2 = st.copy()
-        st2.trim(win2_start, win2_end, pad=True, fill_value=0.0)
+        win1_start = p_time - .2
+        win1_end   = p_time - .05
+        win2_start = p_time - .05
+        win2_end   = p_time + .4
 
-        extras = {}
-        extras['ptime'] = p_time
-        extras['stime'] = s_time
+        min_start  = st[0].stats.starttime + .05
+        win1_start = win1_start if win1_start > min_start else min_start
+
+        max_end  = st[0].stats.endtime - .05
+        win2_end = win2_end if win2_end < max_end else max_end
+
+        if win1_end < win1_start:
+            win1_end = p_time
+            logger.warn('%s: sta:%s win1_end < win1_start ==> set win1_end=p_time' % (fname, station))
+        if win1_end < win1_start:
+            logger.warn('%s: sta:%s win1_start > p_time! --> Skip' % (fname, station))
+            continue
+
+        #logger.info("sta:%s starttime:%s P_time:%s win1_start:%s win2_end:%s endtime:%s" % \
+                   #(station, st[0].stats.starttime,p_time,win1_start,win2_end,st[0].stats.endtime))
+        #logger.info("sta:%s trace: [%s - %s] P:%s" % (station, st[0].stats.starttime, st[0].stats.endtime, p_time))
+        #logger.info("sta:%s win1:[%s - %s] win2:[%s - %s]" % (station, win1_start, win1_end, win2_start, win2_end))
+
+        st1 = st.copy()
+        st1.trim(win1_start, win1_end, pad=False, fill_value=0.0)
+        st2 = st.copy()
+        st2.trim(win2_start, win2_end, pad=False, fill_value=0.0)
+
         '''
-        waveform = wp(stream=st, color='k', xlabel='Seconds',number_of_ticks=8, tick_rotation=0, title='Something else!', addOverlay=False, extras=extras, outfile=None)
-        waveform.plot_waveform()
+        if station == '8':
+            print(p_time)
+            print(stream.select(station=station)[0].stats)
+            print(win1_start, win1_end)
+            print(win2_start, win2_end)
+            exit()
         '''
 
         for tr in st:
@@ -246,13 +301,34 @@ def check_trace_channels_with_picks(stream, picks):
             max1 = np.fabs(d1.max())
             max2 = np.fabs(d2.max())
 
-            snr = np.fabs(max2/max1)
-            #print('sta:%s ch:%s m1:%12.8g med1:%12.8g max1:%12.8g m2:%12.8g med2:%12.8g max2:%12.8g (%12.8g, %12.8g) [%12.8g]' % \
-                #(station, ch,m1,med1,max1,m2,med2,max2, max1/med1, max2/med2, snr))
+            std1 = np.sqrt(np.var(d1))
+            std2 = np.sqrt(np.var(d2))
 
-            if snr < 4 :
-                logger.debug('%s: Remove channel=[%s] snr=%f' % (fname, tr.get_id(), snr))
-                stream.remove(tr)
+            snr = np.fabs(max2/max1)
+            r1 = np.fabs(max2/max1)
+            r2 = std2/std1
+            r3 = med2/med1
+
+            station = tr.stats.station
+            #logger.debug('check_trace: sta:%3s ch:%s m1:%12.8g med1:%12.8g max1:%12.8g m2:%12.8g med2:%12.8g max2:%12.8g (%12.8g, %12.8g) [%.3f]' % \
+                #(station, ch,m1,med1,max1,m2,med2,max2, max1/med1, max2/med2, snr))
+            logger.debug('%s:  Check sta:%3s ch:%s r1=%6.3f r2=%6.3f r3=%6.3f snr=%5.3f' % \
+                        ('check_trace', station, ch, r1,r2,r3, snr))
+
+            if snr < thresh :
+            #if snr < 4 :
+                #logger.info('%s: Remove channel=[%s] snr=%f' % (fname, tr.get_id(), snr))
+                #logger.info('%s: Remove channel=[%s] r1=%.3f r2=%.3f r3=%.3f snr=%.3f' % \
+                           #(fname, tr.get_id(), r1,r2,r3, snr))
+                logger.debug('%s: Remove sta:%3s ch:%s r1=%6.3f r2=%6.3f r3=%6.3f snr=%5.3f < %.2f' % \
+                           ('check_trace', station, ch, r1,r2,r3, snr, thresh))
+
+                #if get_log_level(logger.getEffectiveLevel()) == 'DEBUG':
+                    #plot_channels_with_picks(st, station, picks, title="check_trace: remove chan=[%s] snr=%f" % (tr.get_id(),snr))
+                noisy_chans.append(tr)
+                #stream.remove(tr)
+
+    return noisy_chans
 
 
 def calculate_residual(st, picks, origin):
@@ -276,10 +352,12 @@ def calculate_residual(st, picks, origin):
     rms_resid =  np.sqrt(rms_resid)
     print('== tot_resid=%8.4f rms_resid=%8.4f' % (tot_resid, rms_resid))
 
-def clean_picks(st, picks, preWl=.03, postWl=.03, thresh=3):
+def clean_picks(st, picks, preWl=.03, postWl=.03, thresh_P=5.9, thresh_S=3.7, debug=False):
     fname = 'clean_picks'
 
     pick_dict = copy_picks_to_dict(picks)
+
+    noisy_picks = []
 
     for station in pick_dict:
         trs = st.select(station=station)
@@ -288,24 +366,63 @@ def clean_picks(st, picks, preWl=.03, postWl=.03, thresh=3):
             continue
         if 'P' in pick_dict[station]:
             p_snr  = calculate_snr(trs, pick_dict[station]['P'].time, preWl, postWl)
-            logger.debug('%s: sta:%s [P] snr [%.1f]' % (fname, station,p_snr))
-            if p_snr < thresh:
-                logger.debug('%s: sta:%s ** P snr [%.1f] is < thresh!' % (fname, station,p_snr))
-                del(pick_dict[station]['P'])
+            logger.debug('%s: sta:%3s [P] snr [%.1f]' % (fname, station,p_snr))
+            if p_snr < thresh_P:
+                logger.debug('%s: sta:%3s ** P snr [%.1f] is < thresh=%.1f' % (fname, station,p_snr, thresh_P))
+                if debug:
+                    plot_channels_with_picks(st, station, picks, title="sta:%s P snr:%.1f < thresh (Remove P!)" % (station, p_snr))
+                #del(pick_dict[station]['P'])
+                noisy_picks.append(pick_dict[station]['P'])
         if 'S' in pick_dict[station]:
             s_snr  = calculate_snr(trs, pick_dict[station]['S'].time, preWl, postWl)
-            logger.debug('%s: sta:%s [S] snr [%.1f]' % (fname, station,s_snr))
+            logger.debug('%s: sta:%3s [S] snr [%.1f]' % (fname, station,s_snr))
+            snrs=[]
+            for tr in trs:
+                tr_snr  = calculate_snr(Stream(traces=[tr]), pick_dict[station]['S'].time, preWl, postWl)
+                snrs.append((tr.stats.channel,tr_snr)) 
+            logger.debug('%s: sta:%3s [S] snr [%.1f] %s' % (fname, station,s_snr, snrs))
+
+            '''
             if s_snr < thresh:
                 logger.debug('%s: sta:%s ** S snr  [%.1f]is < thresh!' % (fname, station,s_snr))
-                del(pick_dict[station]['S'])
-            #plot_channels_with_picks(trs, station, snr_picks, title=title)
+                nabove=0
+                snrs=[]
+                for tr in trs:
+                    #st2 = Stream()
+                    #st2.append(tr)
+                    tr_snr  = calculate_snr(Stream(traces=[tr]), pick_dict[station]['S'].time, preWl, postWl)
+                    if tr_snr > thresh:
+                        nabove += 1
+                    #print("id:%s --> S snr:%f" % (tr.get_id(), tr_snr))
+                    snrs.append(tr_snr)
+                if nabove >= 2:
+                    print(" ** keep it: snrs:", snrs)
+                    pass
+                else:
+                    logger.debug(" ** remove pick")
+                    #del(pick_dict[station]['S'])
+                    noisy_picks.append(pick_dict[station]['S'])
+                #plot_channels_with_picks(st, station, picks, title="sta:%s S snr:%.1f < thresh" % (station, s_snr))
+            if station in ['67', '68', '97', '45', '31', '66', '18','67']:
+            '''
 
+            if s_snr < thresh_S:
+                logger.debug('%s: sta:%3s ** S snr  [%.1f]is < thresh_S=%.1f' % (fname, station,s_snr, thresh_S))
+                if debug:
+                    plot_channels_with_picks(st, station, picks, title="sta:%s P_snr:%.1f S_snr:%.1f (<%.1f *REMOVE S)" % \
+                                            (station, p_snr,s_snr, thresh_S))
+                noisy_picks.append(pick_dict[station]['S'])
+
+    return noisy_picks
+    
+    '''
     cleaned_picks = []
     for station in pick_dict:
         for phase in pick_dict[station]:
             cleaned_picks.append(pick_dict[station][phase])
 
     return cleaned_picks
+    '''
 
     '''
     station_distance = {}
@@ -317,3 +434,45 @@ def clean_picks(st, picks, preWl=.03, postWl=.03, thresh=3):
         station_distance[station.code] = dist
         #print(station.code, station_distance)
     '''
+
+def nan_helper(y):
+    """Helper to handle indices and logical indices of NaNs.
+
+    Input:
+        - y, 1d numpy array with possible NaNs
+    Output:
+        - nans, logical indices of NaNs
+        - index, a function, with signature indices= index(logical_indices),
+          to convert logical indices of NaNs to 'equivalent' indices
+    Example:
+        >>> # linear interpolation of NaNs
+        >>> nans, x= nan_helper(y)
+        >>> y[nans]= np.interp(x(nans), x(~nans), y[~nans])
+    """
+
+    return np.isnan(y), lambda z: z.nonzero()[0]
+
+
+def clean_nans(st, threshold=.05):
+    fname = 'clean_nans'
+    for tr in st:
+        #data  = tr.data[~np.isnan(tr.data)]
+        stats = tr.stats
+        nans, x= nan_helper(tr.data)
+        number_of_nans = tr.data[nans].size
+
+        logger.debug("%s: sta:%3s %s - %s (npts:%d n_NaN:%d) dtype:%s"% \
+             (fname, stats.station, stats.starttime, stats.endtime, stats.npts, number_of_nans, tr.data.dtype))
+
+        #tr.plot()
+
+        if float(number_of_nans/stats.npts) > threshold:
+            logger.warn("clean_nans: Drop trace:%s --> percent_nans=%.1f" % \
+                        (tr.get_id(), float(number_of_nans/stats.npts)))
+            st.remove(tr)
+            #continue
+
+        else:
+            tr.data[nans]= np.interp(x(nans), x(~nans), tr.data[~nans])
+
+    return

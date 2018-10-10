@@ -9,12 +9,14 @@ headers = {}
 handlers = []
 url_opener = None
 
-#url_base = 'http://40.76.192.141:5000'
-url_base = 'http://localhost:5000'
+url_base = 'http://40.76.192.141:5000'
+#url_base = 'http://localhost:5000'
 
-from spp.utils import logger as log
+#from spp.utils import logger as log
+#logger = log.get_logger("web_client", 'web_client.log')
 
-logger = log.get_logger("web_client", 'web_client.log')
+from liblog import getLogger
+logger = getLogger()
 
 
 def get_url(starttime=None, endtime=None, **kwargs):
@@ -61,6 +63,7 @@ def set_opener(user, password):
     print('Installed new opener with handlers: {!s}'.format(handlers))
     return url_opener
 
+from microquake.core.stream import Stream
 def get_stream(url):
     request = urllib_request.Request(url=url, headers=headers)
     #url_opener=set_opener(None, None)
@@ -74,7 +77,8 @@ def get_stream(url):
         data_stream.seek(0, 0)
         st = obspy.read(data_stream, format="MSEED")
         data_stream.close()
-        return(st)
+        return(Stream(st))
+        #return(st)
     except:
 #obspy.io.mseed.ObsPyMSEEDFilesizeTooSmallError
         #raise
@@ -88,8 +92,8 @@ def get_stream(url):
 
 def get_stream_from_mongo(starttime, endtime, **kwargs):
     url = get_url(starttime, endtime, **kwargs)
+    #logger.info("get_stream_from_mongo: url:%s" % url)
     st = get_stream(url)
-    logger.info('get_stream_from_mongo: server get_stream returned type:%s' % type(st))
     return(st)
 
 

@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file, Response
+from flask import Flask, request, jsonify, send_file
 import os
 import sys
 from microquake.db.mongo.mongo import MongoDBHandler, StreamDB, EventDB, MongoJSONEncoder
@@ -20,19 +20,11 @@ import tarfile
 from spp.utils import logger
 import datetime
 import re
-import helpers.middleware as middleware
-import prometheus_client
-from spp.time import core as time_util
-
 
 
 app = Flask(__name__)
 
 log = logger.get_logger("SPP API", 'spp_api.log')
-
-# Configure Prometheus wit the API
-middleware.setup_metrics(app)
-CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
 
 # load configuration file
 config = Configuration()
@@ -57,11 +49,6 @@ def home():
 <p></p>'''
 
 
-@app.route('/metrics')
-def metrics():
-    return Response(prometheus_client.generate_latest(), mimetype=CONTENT_TYPE_LATEST)
-
-
 def construct_output(stream_obj, requested_format='MSEED'):
     output = None
     output_size = 0
@@ -81,21 +68,17 @@ def construct_output(stream_obj, requested_format='MSEED'):
 def combine_json_to_stream_data(db_result):
     start_time = time.time()
     s = Stream.create_from_json_traces(db_result)
-
-    #for tr in s:
-        #log.info("combine_json_to_stream: id:%s st:%s et:%s (n:%d) sr:%f" % \
-                #(tr.get_id(), tr.stats.starttime, tr.stats.endtime, tr.stats.npts, tr.stats.sampling_rate)) 
     records_count = len(s.traces)
     merged_stream = s.merge(fill_value=0, method=1)
     end_time = time.time() - start_time
-    log.info("DB Fetching and Stream Creation took:%.2f , Records Count: %s, Merged Traces Count: %s" % \
-            (end_time, records_count, len(s.traces)))
+    log.info("DB Fetching and Stream Creation took:%.2f , Records Count: %s, Merged Traces Count: %s" % (end_time, records_count, len(s.traces)))
     return merged_stream
 
 
 def check_and_parse_datetime(dt_str):
     try:
-        return time_util.convert_datetime_to_epoch_nanoseconds(dt_str)
+        dt = int(np.float64(UTCDateTime(dt_str).timestamp) * 1e9)
+        return dt
     except ValueError:
         error_msg = "Invalid datetime format, value should be in format: %Y-%m-%dT%H:%M:%S.%f"
         log.exception(error_msg)
@@ -124,9 +107,7 @@ def get_stream():
         else:
             end_time = start_time + (int(request.args['duration']) * 1000000000)
 
-        st = UTCDateTime(start_time / 1e9)
-        et = UTCDateTime(end_time / 1e9)
-        log.info('get_stream: starttime:%s endtime:%s' % (st, et))
+        log.info('get_stream: starttime:%s endtime:%s' % (start_time, end_time))
     else:
         raise InvalidUsage("date-range-options must be specified like:" +
                            "(starttime=<time>) & ([endtime=<time>] | [duration=<seconds>])",
@@ -157,14 +138,6 @@ def get_stream():
     if result.count() >= 1:
         # combine traces together
         resulted_stream = combine_json_to_stream_data(result)
-        '''
-        log.info("MTH: get_stream: resulted_stream type=%s" % (type(resulted_stream)))
-        for i,tr in enumerate(resulted_stream):
-            stats = tr.stats
-            log.info("[%3d] sta:%3s ch:%s %s - %s sr:%f n:%d d:%s" % \
-                    (i,stats.station, stats.channel, stats.starttime, stats.endtime, \
-                     stats.sampling_rate, stats.npts, tr.data.dtype))
-        '''
 
         resulted_stream.trim(UTCDateTime(start_time / 1e9), UTCDateTime(end_time / 1e9), pad=True, fill_value=0.0)
 
@@ -178,6 +151,7 @@ def get_stream():
         request_endtime = time.time() - request_starttime
         log.info("Request Done Successfully but with no data found. Total API Request took: %.2f seconds" % request_endtime)
 
+        #return build_success_response("No data found")
         return build_success_response("No data found", {"no_data_found": True})
 
 
@@ -202,7 +176,7 @@ def construct_filter_criteria(start_time, end_time, network, station, channel):
     if channel is not None and channel != 'ALL':
         filter['stats.channel'] = channel
 
-    #log.info("Filter: %s" % filter)
+    log.info("Filter: %s" % filter)
     return filter
 
 
@@ -591,45 +565,6 @@ def put_event_inuse():
     log.info("putEventInUse ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
 
     return build_success_response("EventInUse added successfully", {"event_inuse_id": str(inserted_record_id)})
-
-
-@app.route('/events/getCatalog', methods=['GET'])
-def get_catalog():
-
-    log.info("getCatalog started")
-    request_starttime = time.time()
-
-    if 'starttime' in request.args and 'endtime' in request.args:
-        start_time = check_and_parse_datetime(request.args['starttime'])
-        end_time = check_and_parse_datetime(request.args['endtime'])
-        log.info('get_catalog: starttime:%s endtime:%s' % (start_time, end_time))
-    else:
-        raise InvalidUsage("date-range-options must be specified like:" +
-                           "(starttime=<time>) & ([endtime=<time>]) ",
-                           status_code=400)
-
-    query_filter = {
-        'time': {
-            '$gte': start_time,
-            '$lte': end_time
-        }
-    }
-
-    events_catalog_result = mongo.db[EVENTS_COLLECTION].find(query_filter)
-
-    if events_catalog_result.count() >= 1:
-        request_endtime = time.time() - request_starttime
-        log.info("getEvent ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
-        catalog_list = []
-        for event in events_catalog_result:
-            event['time'] = time_util.convert_epoch_nanoseconds_to_utc_datetime_string(event['time'])
-            catalog_list.append(MongoJSONEncoder().encode(event))
-        return build_success_response("getCatalog ended successfully", {"catalog": catalog_list})
-
-    else:
-        log.info("getCatalog ended Successfully with no data found")
-        return build_success_response("No data found")
-
 
 
 def build_success_response(message_text, extra_dict=None):
