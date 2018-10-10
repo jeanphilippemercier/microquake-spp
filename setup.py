@@ -30,6 +30,9 @@ requirements = [
     'kafka',
     'apache-airflow',
     'flask-restful',
+    'prometheus_client',
+    'avro',
+    'fastavro',
     'confluent-kafka'
 ]
 
