@@ -113,6 +113,8 @@ services:
   seismic-data-connector:
     image: seismic-gitlab.eastus.cloudapp.azure.com:5005/rio-tinto/seismic-processing-platform/seismic-processing-platform:09a3368f
     command: python bin/data_connector.py
+    depends_on:
+      - broker
     volumes:
       - ./:/app
     environment:
@@ -121,6 +123,8 @@ services:
   seismic-post-processing:
     image: seismic-gitlab.eastus.cloudapp.azure.com:5005/rio-tinto/seismic-processing-platform/seismic-processing-platform:09a3368f
     command: python bin/post_processing.py
+    depends_on:
+      - broker
     volumes:
       - ./:/app
     environment:
