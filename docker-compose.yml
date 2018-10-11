@@ -111,7 +111,7 @@ services:
       - "3000:3000"
 
   seismic-data-connector:
-    image: seismic-gitlab.eastus.cloudapp.azure.com:5005/rio-tinto/seismic-processing-platform/seismic-processing-platform:09a3368f
+    image: seismic-gitlab.eastus.cloudapp.azure.com:5005/rio-tinto/seismic-processing-platform/seismic-processing-platform:87f9a938
     command: python bin/data_connector.py
     depends_on:
       - broker
@@ -121,7 +121,7 @@ services:
       - PYTHONPATH=/app
 
   seismic-post-processing:
-    image: seismic-gitlab.eastus.cloudapp.azure.com:5005/rio-tinto/seismic-processing-platform/seismic-processing-platform:09a3368f
+    image: seismic-gitlab.eastus.cloudapp.azure.com:5005/rio-tinto/seismic-processing-platform/seismic-processing-platform:87f9a938
     command: python bin/post_processing.py
     depends_on:
       - broker
