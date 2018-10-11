@@ -10,7 +10,7 @@ variables:
   CI_APPLICATION_TAG: $(echo $CI_COMMIT_SHA | cut -c1-8)
   # DOCKER_HOST: 'tcp://localhost:2375'
 
-talkyoo_image:
+spp_base_image:
   image: docker:stable
   stage: build
   services:
