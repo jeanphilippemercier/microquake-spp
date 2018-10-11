@@ -19,6 +19,11 @@ spp_base_image:
         - dockerd-entrypoint.sh
       command:
         - --insecure-registry=seismic-gitlab.eastus.cloudapp.azure.com:5005
+  before_script:
+    - apk add --update openssh-client make ca-certificates openssl python ruby
+        ruby-io-console ruby-irb ruby-json ruby-rake ruby-rdoc git bash
+        build-base ruby-dev libffi-dev libxml2-dev libxslt-dev mysql-dev
+        linux-headers sqlite-dev python
   script:
     # run ssh-agent
     - eval $(ssh-agent -s)
