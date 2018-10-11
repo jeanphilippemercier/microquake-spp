@@ -5,6 +5,7 @@ RUN apt-get update -qq \
  gfortran \
  swig \
  libatlas-dev liblapack-dev \
+ libhdf5-dev libfftw3-dev \
  libfreetype6 libfreetype6-dev \
  libxft-dev \
  graphviz libgraphviz-dev \
@@ -32,6 +33,7 @@ RUN chmod 0600 /root/.ssh/*
 
 RUN pip install pipenv
 
+ENV CFLAGS "-I/usr/include/hdf5/serial"
 RUN pipenv install --system --deploy
 
 RUN rm /root/.ssh/id_rsa
