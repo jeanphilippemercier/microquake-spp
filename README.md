@@ -41,3 +41,19 @@ Then, go to http://localhost:3000/dashboard/import and enter 721
 2. impersonate user
 3. add public key /profile/keys
 4. create api access token for registry access /profile/personal_access_tokens
+
+## Hello
+
+```
+docker login seismic-gitlab.eastus.cloudapp.azure.com:5005
+```
+
+Docker Preferences +Daemon
+
+```
+/etc/docker/daemon.json
+{
+  "insecure-registries" : ["seismic-gitlab.eastus.cloudapp.azure.com:5005"]
+}
+```
+

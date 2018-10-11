@@ -45,3 +45,6 @@ spp_base_image:
     - docker tag $CI_PROJECT_NAME $CI_APPLICATION_REPOSITORY
     - docker tag $CI_PROJECT_NAME $CI_APPLICATION_REPOSITORY:$(echo $CI_COMMIT_SHA | cut -c1-8)
     - docker push $CI_APPLICATION_REPOSITORY
+  only:
+    - master
+    - docker

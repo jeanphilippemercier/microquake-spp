@@ -188,7 +188,7 @@
         },
         "microquake": {
             "git": "ssh://git@seismic-gitlab.eastus.cloudapp.azure.com/root/microquake.git",
-            "ref": "1d0aa1d6b2ab66e5dadcd9196b6e321523218f2c"
+            "ref": "16926b455c33ca22efa7b8f1c87815579fb769a0"
         },
         "mplstereonet": {
             "hashes": [
