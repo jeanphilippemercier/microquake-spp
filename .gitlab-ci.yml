@@ -29,7 +29,6 @@ spp_base_image:
     - eval $(ssh-agent -s)
 
     # add ssh key stored in SSH_PRIVATE_KEY variable to the agent store
-    - echo $SSH_PRIVATE_KEY
     - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY")'
 
     - mkdir -p ~/.ssh
