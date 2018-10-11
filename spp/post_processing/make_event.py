@@ -39,12 +39,13 @@ def make_event(txyzi_array, plot_profiles=False, insert_event=False):
     if txyzi_array.size != 5:
         logger.error('%s: expecting 5 inputs = {t, x, y, z, intensity}' % fname)
         exit(2)
+    logger.info("%s: Got:%s" % (fname, txyzi_array))
     origin = Origin()
-    origin.time = UTCDateTime( txyzi_array[3])
+    origin.time = UTCDateTime( txyzi_array[0])
     origin.intensity = txyzi_array[4]
-    origin.x = txyzi_array[0]
-    origin.y = txyzi_array[1]
-    origin.z = txyzi_array[2]
+    origin.x = txyzi_array[1]
+    origin.y = txyzi_array[2]
+    origin.z = txyzi_array[3]
     event = Event()
     event.origins = [origin]
     # Don't use the method below - it bungles the pref id
@@ -58,7 +59,6 @@ def make_event(txyzi_array, plot_profiles=False, insert_event=False):
     logger.info(origin)
     event.write('event.xml', format='quakeml')
     logger.info('%s: Write InterLoc Origin to event.xml' % fname)
-    exit()
 
     starttime = origin.time - 0.1
     endtime   = origin.time + 0.9
@@ -169,7 +169,6 @@ def make_event(txyzi_array, plot_profiles=False, insert_event=False):
         logger.warn('%s: n_cleaned_picks=%d < min_number_picks (%d) --> ** STOP **' % \
                    (fname, len(cleaned_picks), min_number_picks))
         return None
-
 
     event_id = None
     if insert_event:
