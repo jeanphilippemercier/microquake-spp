@@ -34,3 +34,10 @@ Configure a datasource with http://prometheus:9090
 
 Then, go to http://localhost:3000/dashboard/import and enter 721
 
+
+## Creating a deployment user
+
+1. add ssh key /admin/users
+2. impersonate user
+3. add public key /profile/keys
+4. create api access token for registry access /profile/personal_access_tokens
