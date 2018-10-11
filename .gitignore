@@ -6,3 +6,4 @@ spp.egg-info
 *.hdr
 *.obs*
 *.log
+.mypy_cache/
