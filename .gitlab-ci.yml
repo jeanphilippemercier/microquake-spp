@@ -38,7 +38,7 @@ spp_base_image:
     # Install CA certs, openssl to https downloads, python for gcloud sdk
     - update-ca-certificates
     - docker login -u deploy -p $CI_JOB_TOKEN $CONTAINER_REPO
-    - docker build . -t $CI_PROJECT_NAME
+    - docker build . -t $CI_PROJECT_NAME --build-arg SSH_PRIVATE_KEY
    # Write our GCP service account private key into a file
     # - docker tag $CI_PROJECT_NAME gcr.io/$GCP_PROJECT_ID/$CI_PROJECT_NAME
     # Optionally tag the image with the commit short-sha
