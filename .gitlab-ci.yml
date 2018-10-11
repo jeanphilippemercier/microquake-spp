@@ -1,0 +1,49 @@
+# When using dind, it's wise to use the overlayfs driver for
+# improved performance.
+variables:
+  DOCKER_DRIVER: overlay2
+  CONTAINER_REPO: seismic-gitlab.eastus.cloudapp.azure.com:5005
+  ## Define two new variables based on GitLab's CI/CD predefined variables
+  ## https://docs.gitlab.com/ee/ci/variables/#predefined-variables-environment-variables
+  # CI_APPLICATION_REPOSITORY: $CONTAINER_REPO/$CI_PROJECT_PATH/$CI_COMMIT_REF_SLUG
+  CI_APPLICATION_REPOSITORY: $CONTAINER_REPO/$CI_PROJECT_PATH/$CI_PROJECT_NAME
+  CI_APPLICATION_TAG: $(echo $CI_COMMIT_SHA | cut -c1-8)
+  # DOCKER_HOST: 'tcp://localhost:2375'
+
+talkyoo_image:
+  image: docker:stable
+  stage: build
+  services:
+    - name: docker:stable-dind
+      entrypoint:
+        - dockerd-entrypoint.sh
+      command:
+        - --insecure-registry=seismic-gitlab.eastus.cloudapp.azure.com:5005
+  before_script:
+    - apk add --update openssh-client make ca-certificates openssl python ruby
+        ruby-io-console ruby-irb ruby-json ruby-rake ruby-rdoc git bash
+        build-base ruby-dev libffi-dev libxml2-dev libxslt-dev mysql-dev
+        linux-headers sqlite-dev python
+  script:
+    # run ssh-agent
+    - eval $(ssh-agent -s)
+
+    # add ssh key stored in SSH_PRIVATE_KEY variable to the agent store
+    - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY")'
+
+    - mkdir -p ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod -R 700 ~/.ssh
+
+    # Install CA certs, openssl to https downloads, python for gcloud sdk
+    - update-ca-certificates
+    - gem install bundler -v $BUNDLER_VERSION --no-ri --no-rdoc
+    - bundle package --all
+    - docker login -u cibuilder -p $CI_JOB_TOKEN $CONTAINER_REPO
+    - docker build . -t $CI_PROJECT_NAME
+   # Write our GCP service account private key into a file
+    # - docker tag $CI_PROJECT_NAME gcr.io/$GCP_PROJECT_ID/$CI_PROJECT_NAME
+    # Optionally tag the image with the commit short-sha
+    - docker tag $CI_PROJECT_NAME $CI_APPLICATION_REPOSITORY
+    - docker tag $CI_PROJECT_NAME $CI_APPLICATION_REPOSITORY:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - docker push $CI_APPLICATION_REPOSITORY
