@@ -29,10 +29,11 @@ spp_base_image:
     - eval $(ssh-agent -s)
 
     # add ssh key stored in SSH_PRIVATE_KEY variable to the agent store
+    - echo $SSH_PRIVATE_KEY
     - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY")'
 
     - mkdir -p ~/.ssh
-    - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - ssh-keyscan seismic-gitlab.eastus.cloudapp.azure.com >> /root/.ssh/known_hosts¬
     - chmod -R 700 ~/.ssh
 
     # Install CA certs, openssl to https downloads, python for gcloud sdk
