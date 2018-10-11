@@ -38,8 +38,6 @@ spp_base_image:
 
     # Install CA certs, openssl to https downloads, python for gcloud sdk
     - update-ca-certificates
-    - gem install bundler -v $BUNDLER_VERSION --no-ri --no-rdoc
-    - bundle package --all
     - docker login -u cibuilder -p $CI_JOB_TOKEN $CONTAINER_REPO
     - docker build . -t $CI_PROJECT_NAME
    # Write our GCP service account private key into a file
