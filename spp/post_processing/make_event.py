@@ -29,25 +29,22 @@ from .liblog import getLogger
 import logging
 logger = getLogger()
 
-def make_event(xyzt_array, plot_profiles=False, insert_event=False):
+def make_event(txyzi_array, plot_profiles=False, insert_event=False):
 #MTH: You have to have these 2 set to get pretty print output of Origin:  -->
         #<evaluationMode>manual</evaluationMode>
         #<evaluationStatus>reviewed</evaluationStatus>
 
     fname = 'make_event'
 
-    #print("%s: level:%s" % (fname, get_log_level(logger.getEffectiveLevel())))
-    #exit()
-
-    if xyzt_array.size != 4:
-        logger.error('%s: expecting 4 inputs = {x, y, z, t}' % fname)
-        #logger.error('%s: expecting 5 inputs = {x, y, z, t, intensity}' % fname)
+    if txyzi_array.size != 5:
+        logger.error('%s: expecting 5 inputs = {t, x, y, z, intensity}' % fname)
         exit(2)
     origin = Origin()
-    origin.time = UTCDateTime( xyzt_array[3])
-    origin.x = xyzt_array[0]
-    origin.y = xyzt_array[1]
-    origin.z = xyzt_array[2]
+    origin.time = UTCDateTime( txyzi_array[3])
+    origin.intensity = txyzi_array[4]
+    origin.x = txyzi_array[0]
+    origin.y = txyzi_array[1]
+    origin.z = txyzi_array[2]
     event = Event()
     event.origins = [origin]
     # Don't use the method below - it bungles the pref id
@@ -61,6 +58,7 @@ def make_event(xyzt_array, plot_profiles=False, insert_event=False):
     logger.info(origin)
     event.write('event.xml', format='quakeml')
     logger.info('%s: Write InterLoc Origin to event.xml' % fname)
+    exit()
 
     starttime = origin.time - 0.1
     endtime   = origin.time + 0.9
