@@ -57,3 +57,15 @@ Docker Preferences +Daemon
 }
 ```
 
+## pip 18.1 causes issues
+
+```
+File "/usr/lib/python3.7/site-packages/pipenv/vendor/requirementslib/models/requirements.p[65/705]
+704, in from_line
+line, extras = _strip_extras(line)
+TypeError: 'module' object is not callable
+```
+
+```
+pipenv run python -m pip install -U 'pip==18.0'
+```

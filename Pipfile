@@ -26,6 +26,15 @@ lxml = "*"
 microquake = {git = "ssh://git@seismic-gitlab.eastus.cloudapp.azure.com/root/microquake.git"}
 xseis2 = {git = "ssh://git@seismic-gitlab.eastus.cloudapp.azure.com/rio-tinto/xseis.git"}
 cython = "*"
+kafka = "*"
+flask-restful = "*"
+prometheus-client = "*"
+avro = "*"
+fastavro = "*"
+confluent-kafka = "*"
+pathos = "*"
+pyyaml = "*"
+toolz = "*"
 
 [dev-packages]
 
