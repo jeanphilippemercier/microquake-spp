@@ -13,7 +13,7 @@ from glob import glob
 import logging
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG
+logger.setLevel(logging.DEBUG)
 
 
 # Create Local get_continous to load data from files:
@@ -42,6 +42,81 @@ def get_continuous_local(data_directory, file_name=None):
 
 # def get_data_local(local_directory, file_name=None):
 #     return get_continuous_local(local_directory, file_name=file_name)
+
+def write_mseed_chunk_to_mongo(mseed_byte_array):
+    """
+
+    :param mseed_byte_array:
+    :return:
+    """
+    pass
+
+
+def write_mseed_chunk_to_kafka(mseed_byte_array):
+    """
+
+    :param mseed_byte_array:
+    :return:
+    """
+    from pandas import DataFrame
+    from struct import unpack, pack
+    from confluent_kafka import Producer
+    from io import BytesIO
+    from datetime import datetime
+    from IPython.core.debugger import Tracer
+    from microquake.core import read
+
+    params = get_data_connector_parameters()
+
+    conf = {'bootstrap.servers': params['kafka']['brokers'],
+            'message.max.bytes': 1e7}
+
+    kafka_topic = params['kafka']['topic']
+
+    p = Producer(**conf,)
+
+    mseed_chunk_size = 4096
+
+    keys = []
+    blobs = []
+
+    starts = np.arange(0, len(mseed_byte_array), mseed_chunk_size)
+
+    for start in starts:
+        end = start + mseed_chunk_size
+        chunk = mseed_byte_array[start:end]
+        print(len(chunk))
+
+        if chunk:
+            y = unpack('>H',chunk[20:22])[0]
+            DoY = unpack('>H', chunk[22:24])[0]
+            H = unpack('>B', chunk[24:25])[0]
+            M = unpack('>B', chunk[25:26])[0]
+            S = unpack('>B', chunk[26:27])[0]
+            r = unpack('>B', chunk[27:28])[0]
+            ToMS = unpack('>H', chunk[28:30])[0]
+
+            dt = datetime.strptime('%s/%0.3d %0.2d:%0.2d:%0.2d.%0.3d'
+                                   % (y, DoY, H, M, S, ToMS),
+                                   '%Y/%j %H:%M:%S.%f')
+            keys.append(dt)
+            blobs.append(chunk)
+
+    df = DataFrame({'key': keys, 'blob': blobs})
+
+    df_grouped = df.groupby(['key'])
+
+    for name, group in df_grouped:
+        print(name)
+        data = b''
+        for g in group['blob'].values:
+            data += g
+        print(len(data)/1024**2)
+        timestamp = int(name.timestamp() * 1000)
+        key = name.strftime('%Y-%d-%m %H:%M:%S.%f')
+        print(timestamp)
+        p.produce(kafka_topic, value=data, key=key,
+                  timestamp=int(timestamp * 1e3))
 
 
 def read_realtime_info():
