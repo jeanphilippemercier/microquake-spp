@@ -303,7 +303,7 @@
             "version": "==1.0.0"
         },
         "microquake": {
-            "git": "ssh://git@seismic-gitlab.eastus.cloudapp.azure.com/root/microquake.git",
+            "git": "ssh://git@seismic-gitlab.eastus.cloudapp.azure.com/rio-tinto/microquake.git",
             "ref": "cd515b2dc1e46b2b2985b7b6f38a0df539d4feb3"
         },
         "mplstereonet": {

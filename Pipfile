@@ -23,7 +23,7 @@ pyvtk = "*"
 pyparsing = "*"
 scikit-fmm = "*"
 lxml = "*"
-microquake = {git = "ssh://git@seismic-gitlab.eastus.cloudapp.azure.com/root/microquake.git"}
+microquake = {git = "ssh://git@seismic-gitlab.eastus.cloudapp.azure.com/rio-tinto/microquake.git"}
 xseis2 = {git = "ssh://git@seismic-gitlab.eastus.cloudapp.azure.com/rio-tinto/xseis.git"}
 cython = "*"
 kafka = "*"
