@@ -27,7 +27,7 @@ def parse_nll_control_file():
     return params
 
 
-def get_data_connector_parameters():
+def get_data_connector_parameters(config_file='data_connector_config.yaml'):
 
     import os
     import yaml
@@ -36,7 +36,8 @@ def get_data_connector_parameters():
 
     config_dir = os.environ['SPP_CONFIG']
 
-    fname = os.path.join(config_dir, 'data_connector_config.yaml')
+    #fname = os.path.join(config_dir, 'data_connector_config.yaml')
+    fname = os.path.join(config_dir, config_file)
 
     tz = get_time_zone()
 
