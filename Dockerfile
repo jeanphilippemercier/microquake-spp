@@ -40,7 +40,7 @@ ENV CFLAGS "-I/usr/include/hdf5/serial"
 RUN pipenv install --system --deploy
 
 RUN apt-get --purge autoremove -y build-essential qt4-dev-tools python-qt4 libstdc++-6-dev \
-  && apt-get install graphicsmagick \
+  && apt-get install -y graphicsmagick \
   && apt-get clean -y
 
 RUN rm /root/.ssh/id_rsa
