@@ -8,3 +8,4 @@ spp.egg-info
 *.log
 .mypy_cache/
 tmp/
+data/NLLOC_grids/
