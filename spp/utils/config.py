@@ -22,4 +22,4 @@ class Configuration:
             self.DB = params['db']
 
 
-CONFIG = Configuration()
+#CONFIG = Configuration()

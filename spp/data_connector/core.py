@@ -11,10 +11,12 @@ import time
 from microquake.db.mongo.mongo import MongoDBHandler
 from glob import glob
 import logging
-from spp.utils.config import CONFIG
+from spp.utils.config import Configuration
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
+
+CONFIG = Configuration()
 
 
 # Create Local get_continous to load data from files:
@@ -67,9 +69,9 @@ def write_mseed_chunk_to_kafka(mseed_byte_array):
     # from IPython.core.debugger import Tracer
     # from microquake.core import read
 
-    kafka_brokers = CONFIG.DATA_CONNECTOR_CONFIG['kafka']['brokers']
+    kafka_brokers = CONFIG.DATA_CONNECTOR['kafka']['brokers']
 
-    kafka_topic = CONFIG.DATA_CONNECTOR_CONFIG['kafka']['topic']
+    kafka_topic = CONFIG.DATA_CONNECTOR['kafka']['topic']
 
     kafka_handler = KafkaHandler(kafka_brokers)
 
@@ -103,17 +105,20 @@ def write_mseed_chunk_to_kafka(mseed_byte_array):
     df = DataFrame({'key': keys, 'blob': blobs})
 
     df_grouped = df.groupby(['key'])
-
+    print("df_grouped length: %s" % len(df_grouped.size()))
+    i = 0
     for name, group in df_grouped:
-        print(name)
+        i += 1
+        print(i, ":", name)
         data = b''
         for g in group['blob'].values:
             data += g
         print(len(data)/1024**2)
         timestamp = int(name.timestamp() * 1e3)
-        key = name.strftime('%Y-%d-%m %H:%M:%S.%f')
+        key = name.strftime('%Y-%d-%m %H:%M:%S.%f').encode('utf-8')
         print(timestamp)
         kafka_handler.send_to_kafka(kafka_topic, message=data, key=key, timestamp=int(timestamp))
+    kafka_handler.producer.flush()
 
 
 def read_realtime_info():
@@ -173,47 +178,47 @@ def write_to_mongo(stream_object, uri='mongodb://localhost:27017/',
     db.disconnect()
 
 
-def write_data(self, stream_object):
-    """
-    :param destination: destination to write file (e.g., local (filesystem),
-    kafka, MongoDB)
-    :param kwargs: arguments to
-    :return:
-    """
-
-    params = get_data_connector_parameters()
-
-    if isinstance(params['data_destination']['type'], list):
-        for destination in params['data_destination']['type']:
-            if destination.lower() == "local":
-                location = params['data_destination']['location']
-                write_to_local(stream_object, location)
-            if destination.lower() == 'kafka':
-                brokers=params['kafka']['brokers']
-                kafka_topic=params['kafka']['topic']
-                write_to_kafka(stream_object, brokers, kafka_topic)
-            if destination.lower() == 'mongo':
-                uri = params['mongo']['uri']
-                db_name = params['mongo']['db_name']
-                write_to_mongo(stream_object, uri=uri, db_name=db_name)
-
-    else:
-
-        destination = params['data_destination']['type']
-
-        if destination == "local":
-            location = params['data_destination']['location']
-            write_to_local(stream_object, location)
-
-        elif destination == "kafka":
-            brokers=params['kafka']['brokers']
-            kafka_topic=params['kafka']['topic']
-            write_to_kafka(stream_object, brokers, kafka_topic)
-
-        elif destination == "mongo":
-            uri = params['mongo']['uri']
-            db_name = params['mongo']['db_name']
-            write_to_mongo(stream_object, uri=uri, db_name=db_name)
+# def write_data(self, stream_object):
+#     """
+#     :param destination: destination to write file (e.g., local (filesystem),
+#     kafka, MongoDB)
+#     :param kwargs: arguments to
+#     :return:
+#     """
+#
+#     params = get_data_connector_parameters()
+#
+#     if isinstance(params['data_destination']['type'], list):
+#         for destination in params['data_destination']['type']:
+#             if destination.lower() == "local":
+#                 location = params['data_destination']['location']
+#                 write_to_local(stream_object, location)
+#             if destination.lower() == 'kafka':
+#                 brokers=params['kafka']['brokers']
+#                 kafka_topic=params['kafka']['topic']
+#                 write_to_kafka(stream_object, brokers, kafka_topic)
+#             if destination.lower() == 'mongo':
+#                 uri = params['mongo']['uri']
+#                 db_name = params['mongo']['db_name']
+#                 write_to_mongo(stream_object, uri=uri, db_name=db_name)
+#
+#     else:
+#
+#         destination = params['data_destination']['type']
+#
+#         if destination == "local":
+#             location = params['data_destination']['location']
+#             write_to_local(stream_object, location)
+#
+#         elif destination == "kafka":
+#             brokers=params['kafka']['brokers']
+#             kafka_topic=params['kafka']['topic']
+#             write_to_kafka(stream_object, brokers, kafka_topic)
+#
+#         elif destination == "mongo":
+#             uri = params['mongo']['uri']
+#             db_name = params['mongo']['db_name']
+#             write_to_mongo(stream_object, uri=uri, db_name=db_name)
 
 
 @curry
@@ -540,16 +545,23 @@ def write_to_mongo(stream_object, uri='mongodb://localhost:27017/',
     db.disconnect()
 
 
+def convert_stream_to_bytes(stream_object):
+    from io import BytesIO
+
+    output = BytesIO()
+    stream_object.write(output, format="MSEED")
+    return output.getvalue()
+
+
 def write_data(stream_object):
     """
-
     :param destination: destination to write file (e.g., local (filesystem),
     kafka, MongoDB)
     :param kwargs: arguments to
     :return:
     """
 
-    params = get_data_connector_parameters()
+    params = CONFIG.DATA_CONNECTOR
 
     if isinstance(params['data_destination']['type'], list):
         for destination in params['data_destination']['type']:
@@ -561,7 +573,10 @@ def write_data(stream_object):
                 kafka_topic=params['kafka']['kafka_topic']
                 write_to_kafka(stream_object, brokers, kafka_topic)
             if destination.lower() == "kafka-chunk":
-                write_mseed_chunk_to_kafka(stream_object)
+                # Temp Solution to convert stream object into bytes
+                # will be enhanced in future
+                stream_bytes = convert_stream_to_bytes(stream_object)
+                write_mseed_chunk_to_kafka(stream_bytes)
             if destination.lower() == 'mongo':
                 uri = params['mongo']['uri']
                 db_name = params['mongo']['db_name']
@@ -581,7 +596,10 @@ def write_data(stream_object):
             write_to_kafka(stream_object, brokers, kafka_topic)
 
         elif destination.lower() == "kafka-chunk":
-            write_mseed_chunk_to_kafka(stream_object)
+            # Temp Solution to convert stream object into bytes
+            # will be enhanced in future
+            stream_bytes = convert_stream_to_bytes(stream_object)
+            write_mseed_chunk_to_kafka(stream_bytes)
 
         elif destination.lower() == "mongo":
             uri = params['mongo']['uri']
