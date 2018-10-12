@@ -70,6 +70,14 @@ sudo apt-get update
 sudo apt-get install docker-ce docker-compose
 ```
 
+## Add user to the docker group and start docker daemon
+
+```
+sudo systemctl enable docker
+sudo systemctl start docker
+sudo usermod -a -G docker phil
+```
+
 ## pip 18.1 causes issues
 
 ```
