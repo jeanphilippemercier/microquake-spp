@@ -14,9 +14,11 @@ from obspy import read
 from spp.utils.kafka import KafkaHandler
 import yaml
 
+'''
 from xseis2 import xutil
 from xseis2 import xflow
 from xseis2 import xspy
+'''
 
 nthreads = int(4)
 debug = int(0)
@@ -24,8 +26,8 @@ dsr = float(3000.)
 wlen_sec = float(1.0)
 
 common_dir = os.environ['SPP_COMMON']
-# tts_dir = os.path.join(common_dir, 'NLL/time/')
-tts_dir = '/mnt/seismic_shared_storage/time/'
+tts_dir = os.path.join(common_dir, 'NLL/time/')
+#tts_dir = '/mnt/seismic_shared_storage/time/'
 
 ttable, stalocs, namedict, gdef = xutil.ttable_from_nll_grids(tts_dir, key="OT.P")
 # ttable, stalocs, namedict, gdef = xutil.ttable_from_nll_grids(tts_path, key="OT.S")
