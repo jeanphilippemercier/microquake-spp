@@ -15,8 +15,6 @@ RUN apt-get update -qq \
  libxext-dev python-qt4 \
  qt4-dev-tools build-essential
 
-RUN apt-get clean
-
 RUN mkdir -p /app
 COPY Pipfile* /app/
 WORKDIR /app
@@ -31,11 +29,22 @@ RUN touch /root/.ssh/known_hosts
 RUN ssh-keyscan seismic-gitlab.eastus.cloudapp.azure.com >> /root/.ssh/known_hosts
 RUN chmod 0600 /root/.ssh/*
 
+RUN git clone git@seismic-gitlab.eastus.cloudapp.azure.com:rio-tinto/nlloc.git
+RUN cd nlloc && make \
+    ; mv fmm2grid fpfit2hyp Grid2GMT Grid2Time GridCascadingDecimate hypoe2hyp interface2fmm Loc2ddct LocSum Makefile NLDiffLoc NLLoc oct2grid PhsAssoc scat2latlon Time2Angles Time2EQ Vel2Grid Vel2Grid3D /usr/bin \
+    ; cd .. && rm -rf nlloc
+
 RUN pip install pipenv
 
 ENV CFLAGS "-I/usr/include/hdf5/serial"
 RUN pipenv install --system --deploy
 
+RUN apt-get --purge autoremove -y build-essential qt4-dev-tools python-qt4 libstdc++-6-dev \
+  && apt-get install -y graphicsmagick \
+  && apt-get clean -y
+
 RUN rm /root/.ssh/id_rsa
+RUN rm -rf /root/.cache
+RUN rm -rf /usr/local/lib/python3.6/site-packages/microquake/examples
 
 # CMD ["python", "app.py"]
