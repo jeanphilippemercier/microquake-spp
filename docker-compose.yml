@@ -140,7 +140,7 @@ services:
     volumes:
       - ./:/app
       - ./config:/config
-      - ./data/nll:/data
+      - ./data/NLLOC_grids:/data
     environment:
       PYTHONPATH: /app
       SPP_CONFIG: /config
@@ -154,7 +154,7 @@ services:
     volumes:
       - ./:/app
       - ./config:/config
-      - ./data/nll:/data
+      - ./data/NLLOC_grids:/data
     environment:
       PYTHONPATH: /app
       SPP_CONFIG: /config
