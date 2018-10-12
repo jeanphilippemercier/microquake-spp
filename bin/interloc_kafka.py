@@ -14,11 +14,9 @@ from obspy import read
 from spp.utils.kafka import KafkaHandler
 import yaml
 
-'''
 from xseis2 import xutil
 from xseis2 import xflow
 from xseis2 import xspy
-'''
 
 nthreads = int(4)
 debug = int(0)
