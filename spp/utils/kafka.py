@@ -16,11 +16,12 @@ class KafkaHandler:
         self.producer = KafkaProducer(bootstrap_servers=brokers_list,
                                       max_request_size=104857600, buffer_memory=104857600, batch_size=20, request_timeout_ms=100000)
 
-    def send_to_kafka(self, topic_name, message, key=None):
-        if key is None:
-            return self.producer.send(topic=topic_name, value=message).add_errback(on_send_error)
-        else:
-            return self.producer.send(topic=topic_name, key=key, value=message).add_errback(on_send_error)
+    def send_to_kafka(self, topic_name, message, key=None, timestamp=None):
+        # if key is None:
+        #     return self.producer.send(topic=topic_name, value=message).add_errback(on_send_error)
+        # else:
+        #     return self.producer.send(topic=topic_name, key=key, value=message).add_errback(on_send_error)
+        return self.producer.send(topic=topic_name, key=key, value=message, timestamp_ms=timestamp).add_errback(on_send_error)
 
     @staticmethod
     def consume_from_topic(topic_name, brokers_list, group_id=None):

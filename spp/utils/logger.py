@@ -8,7 +8,7 @@ config = Configuration()
 #FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
 #FORMATTER = logging.Formatter('%(asctime)s <%(name)s> <%(thread)d> [%(levelname)s] %(message)s') #, datefmt='%Y-%m-%d %H:%M:%S.%f')
 FORMATTER = logging.Formatter('[%(levelname)s] %(message)s') #, datefmt='%Y-%m-%d %H:%M:%S.%f')
-LOG_DIR = config.IMS_CONFIG["logging"]["log_directory"]
+LOG_DIR = config.DATA_CONNECTOR["logging"]["log_directory"]
 
 
 def get_console_handler():
