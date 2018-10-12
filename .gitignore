@@ -7,3 +7,4 @@ spp.egg-info
 *.obs*
 *.log
 .mypy_cache/
+tmp/
