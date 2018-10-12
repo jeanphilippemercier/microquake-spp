@@ -560,6 +560,8 @@ def write_data(stream_object):
                 brokers=params['kafka']['brokers']
                 kafka_topic=params['kafka']['kafka_topic']
                 write_to_kafka(stream_object, brokers, kafka_topic)
+            if destination.lower() == "kafka-chunk":
+                write_mseed_chunk_to_kafka(stream_object)
             if destination.lower() == 'mongo':
                 uri = params['mongo']['uri']
                 db_name = params['mongo']['db_name']
@@ -569,21 +571,22 @@ def write_data(stream_object):
 
         destination = params['data_destination']['type']
 
-        if destination == "local":
+        if destination.lower() == "local":
             location = params['data_destination']['location']
             write_to_local(stream_object, location)
 
-        elif destination == "kafka":
+        elif destination.lower() == "kafka":
             brokers=params['kafka']['brokers']
             kafka_topic=params['kafka']['topic']
             write_to_kafka(stream_object, brokers, kafka_topic)
 
-        elif destination == "mongo":
+        elif destination.lower() == "kafka-chunk":
+            write_mseed_chunk_to_kafka(stream_object)
+
+        elif destination.lower() == "mongo":
             uri = params['mongo']['uri']
             db_name = params['mongo']['db_name']
             write_to_mongo(stream_object, uri=uri, db_name=db_name)
-
-            #write_to_mongo()
 
 
 def load_data():
