@@ -37,13 +37,13 @@ CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
 # load configuration file
 config = Configuration()
 
-mongo = MongoDBHandler(config.DB_CONFIG['uri'], config.DB_CONFIG['db_name'])
+mongo = MongoDBHandler(config.DB['uri'], config.DB['db_name'])
 
-TRACES_COLLECTION = config.DB_CONFIG['traces_collection']
-EVENTS_COLLECTION = config.DB_CONFIG['events_collection']
-EVENTS_INUSE_COLLECTION = config.DB_CONFIG['events_inuse_collection']
-INUSE_TTL = int(config.DB_CONFIG['inuse_ttl'])
-BASE_DIR = config.DB_CONFIG['filestore_base_dir']
+TRACES_COLLECTION = config.DB['traces_collection']
+EVENTS_COLLECTION = config.DB['events_collection']
+EVENTS_INUSE_COLLECTION = config.DB['events_inuse_collection']
+INUSE_TTL = int(config.DB['inuse_ttl'])
+BASE_DIR = config.DB['filestore_base_dir']
 
 OUTPUT_TYPES = {'MSEED': ".mseed",
                 'MSEED_CONTEXT': ".mseed_context",
@@ -186,10 +186,10 @@ def construct_filter_criteria(start_time, end_time, network, station, channel):
 
     filter = {
         'stats.starttime': {
-            '$lte': end_time
+            '$gte': start_time
          },
         'stats.endtime': {
-            '$gte': start_time
+            '$lte': end_time
          }
     }
 

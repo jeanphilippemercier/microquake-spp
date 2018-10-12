@@ -12,12 +12,12 @@ if __name__ == "__main__":
     config = Configuration()
 
     print("connecting to DB")
-    mongo_conn = MongoDBHandler(uri=config.DB_CONFIG['uri'], db_name=config.DB_CONFIG['db_name'])
-    collection_name = config.DB_CONFIG['traces_collection']
+    mongo_conn = MongoDBHandler(uri=config.DB['uri'], db_name=config.DB['db_name'])
+    collection_name = config.DB['traces_collection']
 
     # Create Kafka Object
-    kafka_brokers = config.IMS_CONFIG['kafka']['brokers']
-    kafka_topic = config.IMS_CONFIG['kafka']['topic']
+    kafka_brokers = config.DATA_CONNECTOR['kafka']['brokers']
+    kafka_topic = config.DATA_CONNECTOR['kafka']['topic']
     consumer = KafkaHandler.consume_from_topic(kafka_topic,kafka_brokers)
 
     print("Consuming Streams from Kafka...")

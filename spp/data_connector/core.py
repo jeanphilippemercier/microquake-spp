@@ -11,6 +11,7 @@ import time
 from microquake.db.mongo.mongo import MongoDBHandler
 from glob import glob
 import logging
+from spp.utils.config import CONFIG
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -60,20 +61,17 @@ def write_mseed_chunk_to_kafka(mseed_byte_array):
     """
     from pandas import DataFrame
     from struct import unpack, pack
-    from confluent_kafka import Producer
-    from io import BytesIO
+    from spp.utils.kafka import KafkaHandler
     from datetime import datetime
-    from IPython.core.debugger import Tracer
-    from microquake.core import read
+    # from io import BytesIO
+    # from IPython.core.debugger import Tracer
+    # from microquake.core import read
 
-    params = get_data_connector_parameters()
+    kafka_brokers = CONFIG.DATA_CONNECTOR_CONFIG['kafka']['brokers']
 
-    conf = {'bootstrap.servers': params['kafka']['brokers'],
-            'message.max.bytes': 1e7}
+    kafka_topic = CONFIG.DATA_CONNECTOR_CONFIG['kafka']['topic']
 
-    kafka_topic = params['kafka']['topic']
-
-    p = Producer(**conf,)
+    kafka_handler = KafkaHandler(kafka_brokers)
 
     mseed_chunk_size = 4096
 
@@ -112,11 +110,10 @@ def write_mseed_chunk_to_kafka(mseed_byte_array):
         for g in group['blob'].values:
             data += g
         print(len(data)/1024**2)
-        timestamp = int(name.timestamp() * 1000)
+        timestamp = int(name.timestamp() * 1e3)
         key = name.strftime('%Y-%d-%m %H:%M:%S.%f')
         print(timestamp)
-        p.produce(kafka_topic, value=data, key=key,
-                  timestamp=int(timestamp * 1e3))
+        kafka_handler.send_to_kafka(kafka_topic, message=data, key=key, timestamp=int(timestamp))
 
 
 def read_realtime_info():

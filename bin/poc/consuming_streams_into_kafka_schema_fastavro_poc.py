@@ -19,8 +19,8 @@ if __name__ == "__main__":
     config = Configuration()
 
     # Create Kafka Object
-    kafka_brokers = config.IMS_CONFIG['kafka']['brokers']
-    kafka_topic = config.IMS_CONFIG['kafka']['topic']
+    kafka_brokers = config.DATA_CONNECTOR['kafka']['brokers']
+    kafka_topic = config.DATA_CONNECTOR['kafka']['topic']
     consumer = KafkaHandler.consume_from_topic(kafka_topic,kafka_brokers)
 
     #avro_schema = avro_handler.parse_avro_schema("mseed_avro_schema.avsc")
