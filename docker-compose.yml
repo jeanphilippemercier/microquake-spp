@@ -124,15 +124,27 @@ services:
       - 27017:27017
     command: mongod --smallfiles --logpath=/dev/null # --quiet
 
+  mongosetup:
+    image: mongo:4
+    links:
+      - mongodb
+    volumes:
+      - ./data/mongodump:/dump
+    command: mongorestore --host mongodb /dump
+
   seismic-data-connector:
     image: seismic-gitlab.eastus.cloudapp.azure.com:5005/rio-tinto/seismic-processing-platform/seismic-processing-platform
-    command: python bin/data_connector.py
+    command: python bin/interloc_kafka.py
     depends_on:
       - broker
     volumes:
       - ./:/app
+      - ./config:/config
+      - ./data/nll:/data
     environment:
-      - PYTHONPATH=/app
+      PYTHONPATH: /app
+      SPP_CONFIG: /config
+      SPP_COMMON: /data
 
   seismic-post-processing:
     image: seismic-gitlab.eastus.cloudapp.azure.com:5005/rio-tinto/seismic-processing-platform/seismic-processing-platform
@@ -141,8 +153,12 @@ services:
       - broker
     volumes:
       - ./:/app
+      - ./config:/config
+      - ./data/nll:/data
     environment:
-      - PYTHONPATH=/app
+      PYTHONPATH: /app
+      SPP_CONFIG: /config
+      SPP_COMMON: /data
 
 volumes:
     mi2: {}
