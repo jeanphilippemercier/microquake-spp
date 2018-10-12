@@ -142,9 +142,9 @@ services:
       - ./config:/config
       - ./data/nll:/data
     environment:
-      - PYTHONPATH: /app
-      - SPP_CONFIG: /config
-      - SPP_COMMON: /data
+      PYTHONPATH: /app
+      SPP_CONFIG: /config
+      SPP_COMMON: /data
 
   seismic-post-processing:
     image: seismic-gitlab.eastus.cloudapp.azure.com:5005/rio-tinto/seismic-processing-platform/seismic-processing-platform
@@ -156,9 +156,9 @@ services:
       - ./config:/config
       - ./data/nll:/data
     environment:
-      - PYTHONPATH: /app
-      - SPP_CONFIG: /config
-      - SPP_COMMON: /data
+      PYTHONPATH: /app
+      SPP_CONFIG: /config
+      SPP_COMMON: /data
 
 volumes:
     mi2: {}
