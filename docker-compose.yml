@@ -133,7 +133,7 @@ services:
     command: mongorestore --host mongodb /dump
 
   seismic-data-connector:
-    image: seismic-gitlab.eastus.cloudapp.azure.com:5005/rio-tinto/seismic-processing-platform/seismic-processing-platform
+    image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
     command: python bin/interloc_kafka.py
     depends_on:
       - broker
@@ -147,7 +147,7 @@ services:
       SPP_COMMON: /data
 
   seismic-post-processing:
-    image: seismic-gitlab.eastus.cloudapp.azure.com:5005/rio-tinto/seismic-processing-platform/seismic-processing-platform
+    image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
     command: python bin/post_processing.py
     depends_on:
       - broker
