@@ -48,11 +48,25 @@ def get_continuous_local(data_directory, file_name=None):
 
 def write_mseed_chunk_to_mongo(mseed_byte_array):
     """
-
     :param mseed_byte_array:
     :return:
     """
-    pass
+
+    from io import BytesIO
+    from microquake.core import read
+
+    mongo_uri = '?'
+    mongo_db_name = '?'
+
+    mseed_chunk_size = 4096
+
+    starts = np.arange(0, len(mseed_byte_array), mseed_chunk_size)
+
+    for start in starts:
+        end = start + mseed_chunk_size
+        chunk = mseed_byte_array[start:end]
+        st = read(BytesIO(chunk), format='MSEED')
+        write_to_mongo(st, mongo_uri, mongo_db_name)
 
 
 def write_mseed_chunk_to_kafka(mseed_byte_array):
@@ -65,9 +79,7 @@ def write_mseed_chunk_to_kafka(mseed_byte_array):
     from struct import unpack, pack
     from spp.utils.kafka import KafkaHandler
     from datetime import datetime
-    # from io import BytesIO
-    # from IPython.core.debugger import Tracer
-    # from microquake.core import read
+
 
     kafka_brokers = CONFIG.DATA_CONNECTOR['kafka']['brokers']
 
@@ -85,39 +97,34 @@ def write_mseed_chunk_to_kafka(mseed_byte_array):
     for start in starts:
         end = start + mseed_chunk_size
         chunk = mseed_byte_array[start:end]
-        print(len(chunk))
 
-        if chunk:
-            y = unpack('>H',chunk[20:22])[0]
-            DoY = unpack('>H', chunk[22:24])[0]
-            H = unpack('>B', chunk[24:25])[0]
-            M = unpack('>B', chunk[25:26])[0]
-            S = unpack('>B', chunk[26:27])[0]
-            r = unpack('>B', chunk[27:28])[0]
-            ToMS = unpack('>H', chunk[28:30])[0]
+        y = unpack('>H',chunk[20:22])[0]
+        DoY = unpack('>H', chunk[22:24])[0]
+        H = unpack('>B', chunk[24:25])[0]
+        M = unpack('>B', chunk[25:26])[0]
+        S = unpack('>B', chunk[26:27])[0]
+        r = unpack('>B', chunk[27:28])[0]
+        ToMS = unpack('>H', chunk[28:30])[0]
 
-            dt = datetime.strptime('%s/%0.3d %0.2d:%0.2d:%0.2d.%0.3d'
-                                   % (y, DoY, H, M, S, ToMS),
-                                   '%Y/%j %H:%M:%S.%f')
-            keys.append(dt)
-            blobs.append(chunk)
+        dt = datetime.strptime('%s/%0.3d %0.2d:%0.2d:%0.2d.%0.3d'
+                               % (y, DoY, H, M, S, ToMS),
+                               '%Y/%j %H:%M:%S.%f')
+        keys.append(dt)
+        blobs.append(chunk)
 
     df = DataFrame({'key': keys, 'blob': blobs})
 
     df_grouped = df.groupby(['key'])
-    print("df_grouped length: %s" % len(df_grouped.size()))
     i = 0
     for name, group in df_grouped:
         i += 1
-        print(i, ":", name)
         data = b''
         for g in group['blob'].values:
             data += g
-        print(len(data)/1024**2)
         timestamp = int(name.timestamp() * 1e3)
         key = name.strftime('%Y-%d-%m %H:%M:%S.%f').encode('utf-8')
-        print(timestamp)
-        kafka_handler.send_to_kafka(kafka_topic, message=data, key=key, timestamp=int(timestamp))
+        kafka_handler.send_to_kafka(kafka_topic, message=data, key=key,
+                                    timestamp=int(timestamp))
     kafka_handler.producer.flush()
 
 
