@@ -132,19 +132,21 @@ services:
       - ./data/mongodump:/dump
     command: mongorestore --host mongodb /dump
 
-  seismic-data-connector:
+  seismic-interloc:
     image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
     command: python bin/interloc_kafka.py
     depends_on:
       - broker
+    links:
+      - broker
     volumes:
       - ./:/app
       - ./config:/config
-      - ./data/NLLOC_grids:/data
+      - ./common:/common
     environment:
       PYTHONPATH: /app
       SPP_CONFIG: /config
-      SPP_COMMON: /data
+      SPP_COMMON: /common
 
   seismic-post-processing:
     image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
@@ -154,11 +156,11 @@ services:
     volumes:
       - ./:/app
       - ./config:/config
-      - ./data/NLLOC_grids:/data
+      - ./common:/common
     environment:
       PYTHONPATH: /app
       SPP_CONFIG: /config
-      SPP_COMMON: /data
+      SPP_COMMON: /common
 
 volumes:
     mi2: {}
