@@ -5,7 +5,6 @@ import os
 from pathos.multiprocessing import Pool
 from toolz.functoolz import curry
 from dateutil import parser
-from spp.utils import get_data_connector_parameters
 import numpy as np
 import time
 from microquake.db.mongo.mongo import MongoDBHandler
@@ -171,7 +170,7 @@ def get_data(base_url, starttime, endtime, overlap, window_length, filter,
 
     reload(web_api)
 
-    params = get_data_connector_parameters()
+    params = CONFIG.DATA_CONNECTOR
 
     site = get_stations()
 
@@ -275,7 +274,7 @@ def request_handler():
 
     common_dir = os.environ['SPP_COMMON']
 
-    params = get_data_connector_parameters()
+    params = CONFIG.DATA_CONNECTOR
 
     if params['data_source']['type'] == 'remote':
         base_url = params['data_source']['location']
@@ -417,7 +416,6 @@ def write_to_kafka(stream_object, brokers, kafka_topic):
           ", Submission took:", "%.2f" % end_time_submission)
 
 
-
 def convert_stream_to_bytes(stream_object):
     from io import BytesIO
 
@@ -453,57 +451,13 @@ def write_data(stream_object):
     #     kafka_topic = params['kafka']['kafka_topic']
     #     write_to_kafka(stream_object, brokers, kafka_topic)
 
-    # if isinstance(params['data_destination']['type'], list):
-    #     for destination in params['data_destination']['type']:
-    #         if destination.lower() == "local":
-    #             location = params['data_destination']['location']
-    #             write_to_local(stream_object, location)
-    #         if destination.lower() == 'kafka':
-    #             brokers=params['kafka']['brokers']
-    #             kafka_topic=params['kafka']['kafka_topic']
-    #             write_to_kafka(stream_object, brokers, kafka_topic)
-    #         if destination.lower() == "kafka-chunk":
-    #             # Temp Solution to convert stream object into bytes
-    #             # will be enhanced in future
-    #             stream_bytes = convert_stream_to_bytes(stream_object)
-    #             write_mseed_chunk_to_kafka(stream_bytes)
-    #         if destination.lower() == 'mongo':
-    #             uri = params['mongo']['uri']
-    #             db_name = params['mongo']['db_name']
-    #             write_to_mongo(stream_object)
-    # else:
-    #     destination = params['data_destination']['type']
-    #
-    #     if destination.lower() == "local":
-    #         location = params['data_destination']['location']
-    #         write_to_local(stream_object, location)
-    #
-    #     elif destination.lower() == "kafka":
-    #         brokers=params['kafka']['brokers']
-    #         kafka_topic=params['kafka']['topic']
-    #         write_to_kafka(stream_object, brokers, kafka_topic)
-    #
-    #     elif destination.lower() == "kafka-chunk":
-    #         # Temp Solution to convert stream object into bytes
-    #         # will be enhanced in future
-    #         stream_bytes = convert_stream_to_bytes(stream_object)
-    #         write_mseed_chunk_to_kafka(stream_bytes)
-    #
-    #     elif destination.lower() == "mongo":
-    #         uri = params['mongo']['uri']
-    #         db_name = params['mongo']['db_name']
-    #         write_to_mongo(stream_object)
+
 
 
 def load_data():
 
     fname = 'load_data'
-
-    params = get_data_connector_parameters()
-
-    # # Create Kafka Object
-    # kafka = KafkaHandler(params['kafka']['brokers'])
-    # kafka_topic = params['kafka']['topic']
+    params = CONFIG.DATA_CONNECTOR
 
     if params['data_source']['type'] == 'remote':
         for st in request_handler():
@@ -538,15 +492,15 @@ def load_data():
 
 
         # simulator that returns random files
-        '''
-        for i in np.arange(0, period, window_length):
-            print("==> Processing (", i, " from", period, ")")
-            start_time_load = time.time()
-            st = request_handler_local(location)
-            end_time_load = time.time() - start_time_load
-            print("==> Fetching File took: ", "%.2f" % end_time_load)
-            write_data(st)
-        '''
+        # '''
+        # for i in np.arange(0, period, window_length):
+        #     print("==> Processing (", i, " from", period, ")")
+        #     start_time_load = time.time()
+        #     st = request_handler_local(location)
+        #     end_time_load = time.time() - start_time_load
+        #     print("==> Fetching File took: ", "%.2f" % end_time_load)
+        #     write_data(st)
+        # '''
 
 
 
