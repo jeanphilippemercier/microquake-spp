@@ -17,7 +17,7 @@ from bson.objectid import ObjectId
 import json
 import zipfile
 import tarfile
-from spp.utils import logger
+from spp.utils import log_handler
 import datetime
 import re
 import helpers.middleware as middleware
@@ -28,7 +28,7 @@ from spp.time import core as time_util
 
 app = Flask(__name__)
 
-log = logger.get_logger("SPP API", 'spp_api.log')
+log = log_handler.get_logger("SPP API", 'spp_api.log')
 
 # Configure Prometheus wit the API
 middleware.setup_metrics(app)

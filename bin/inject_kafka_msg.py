@@ -5,6 +5,7 @@ import struct
 import yaml
 from glob import glob
 from microquake.core import read_events
+from spp.utils.config import Configuration
 
 def main():
 
@@ -20,14 +21,10 @@ def main():
             origin = event.origins[0]
             inputs = np.array([origin.time.timestamp, *origin.loc.tolist(), intensity])
 
-    cfg_file = os.path.join(os.environ['SPP_CONFIG'], 'data_connector_config.yaml')
-
-    with open(cfg_file, 'r') as cfg_file:
-        params = yaml.load(cfg_file)
-        params = params['data_connector']
+    config = Configuration()
 
     # Create Kafka Object
-    kafka_brokers = params['kafka']['brokers']
+    kafka_brokers = config.DATA_CONNECTOR['kafka']['brokers']
     kafka_topic = 'interloc' # PAF - needs to be made configurable
 
     #consumer = KafkaHandler.consume_from_topic(kafka_topic,kafka_brokers)

@@ -1,21 +1,20 @@
-from spp.post_processing.liblog import getLogger
-#logger = getLogger('-t', logfile="z.log")
-logger = getLogger(logfile="zlog")
-import logging
-
+from spp.utils import log_handler
+from spp.utils.config import Configuration
 import numpy as np
 from datetime import datetime
 from glob import glob
-
 from microquake.core import read_events
 from spp.post_processing.make_event import make_event
+
+
+logger = log_handler.get_logger("Post Processing", 'post_processing.log')
+# To be used for loading configurations
+config = Configuration()
+
 
 def main():
 
     DATA_DIR = '/Users/mth/mth/Data/OT_data/'    # Move to env ?
-
-    logger.setLevel(logging.INFO)
-    logger.setLevel(logging.DEBUG)
 
     intensity = 1.0
 

@@ -2,7 +2,9 @@ from spp.data_connector import core
 import prometheus_client
 import os
 
-REQUEST_TIME = prometheus_client.Summary('request_processing_seconds', 'Time spent processing request')
+registry = prometheus_client.CollectorRegistry()
+REQUEST_TIME = prometheus_client.Summary('dc_request_processing_seconds', 'Time spent processing request',registry=registry)
+
 
 @REQUEST_TIME.time()
 def main():
@@ -46,6 +48,7 @@ def main():
 
 if __name__ == "__main__":
 
-    prometheus_client.start_http_server(8001)
-
     main()
+
+    # Prometheus PushGateway server need to be added in config
+    prometheus_client.pushadd_to_gateway('localhost:9091', job='data_connector', registry=registry)

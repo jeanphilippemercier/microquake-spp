@@ -9,12 +9,11 @@ import numpy as np
 import time
 from microquake.db.mongo.mongo import MongoDBHandler
 from glob import glob
-import logging
 from spp.utils.config import Configuration
+from spp.utils import log_handler
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
 
+logger = log_handler.get_logger("Data Connector", 'data_connector.log')
 CONFIG = Configuration()
 
 
@@ -72,7 +71,7 @@ def write_mseed_chunk_to_mongo(mseed_byte_array):
         mongo_conn.insert_many(collection_name, traces_list)
     mongo_conn.disconnect()
     etime = time.time() - stime
-    print("==> Inserted stream chunks into MongoDB in:", "%.2f" % etime)
+    logger.info("Inserted stream chunks into MongoDB in: %.2f" % etime)
 
 
 def write_mseed_chunk_to_kafka(mseed_byte_array):
@@ -119,8 +118,7 @@ def write_mseed_chunk_to_kafka(mseed_byte_array):
 
     df_grouped = df.groupby(['key'])
 
-    print("Grouped DF Stats:")
-    print(df_grouped.size())
+    logger.debug("Grouped DF Stats:" + str(df_grouped.size()))
 
     for name, group in df_grouped:
         data = b''
@@ -132,7 +130,7 @@ def write_mseed_chunk_to_kafka(mseed_byte_array):
                                     timestamp=int(timestamp))
     kafka_handler.producer.flush()
     etime = time.time() - stime
-    print("==> Inserted stream chunks into Kafka in:", "%.2f" % etime)
+    logger.info("==> Inserted stream chunks into Kafka in: %.2f" % etime)
 
 
 def read_realtime_info():
@@ -226,7 +224,6 @@ def get_data(base_url, starttime, endtime, overlap, window_length, filter,
 
         if nan_flag:
             continue
-
 
         st_trim = st_trim.detrend('demean')
         st_trim = st_trim.detrend('linear')
@@ -410,10 +407,10 @@ def write_to_kafka(stream_object, brokers, kafka_topic):
 
     end_time_submission = time.time() - s_time
 
-    print("==> Object Size:", "%.2f" % msg_size, "MB",
-          "Key:", msg_key,
-          ", Preparation took:", "%.2f" % end_time_preparation,
-          ", Submission took:", "%.2f" % end_time_submission)
+    logger.info("Object Size:", "%.2f" % msg_size, "MB",
+                "Key:", msg_key,
+                ", Preparation took:", "%.2f" % end_time_preparation,
+                ", Submission took:", "%.2f" % end_time_submission)
 
 
 def convert_stream_to_bytes(stream_object):

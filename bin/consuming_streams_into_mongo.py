@@ -8,7 +8,6 @@ import sys
 
 if __name__ == "__main__":
 
-
     config = Configuration()
 
     print("connecting to DB")

@@ -60,6 +60,7 @@ data_connector:
 
   logging:
     log_directory: /var/log/spp/
+    log_level: INFO
 
 
 
