@@ -434,7 +434,7 @@ def write_data(stream_object):
 
     params = CONFIG.DATA_CONNECTOR
 
-    destination = params['data_destination']['type'].lower()
+    destination = params['data_destination']['type'].lower().split(",")
 
     # Temp Solution to convert stream object into bytes
     # will be enhanced in future
