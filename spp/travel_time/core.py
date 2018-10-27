@@ -1,11 +1,7 @@
-
 from IPython.core.debugger import Tracer
-
-from microquake.core.data.grid import read_grid
 from microquake.core import read_stations
 from spp.utils.log_handler import get_logger
-
-from obspy.core.event.base import ResourceIdentifier
+from microquake.core.event import ResourceIdentifier
 
 
 def get_velocity(phase):
@@ -15,7 +11,7 @@ def get_velocity(phase):
     :return:
     """
     import os
-    logger = get_logger('SPP/get_velocity', 'get_velocity.log')
+    # logger = get_logger('SPP/get_velocity', 'get_velocity.log')
 
     common_dir = os.environ['SPP_COMMON']
 
@@ -25,8 +21,8 @@ def get_velocity(phase):
     elif phase.upper() == 'S':
         return read_grid(os.path.join(common_dir, 'velocities', 'Vs.pickle'),
                          format='PICKLE')
-    else:
-        logger('invalid phase: %s' % phase)
+    # else:
+        # logger('invalid phase: %s' % phase)
 
     return
 
@@ -46,7 +42,6 @@ def init_nlloc():
     nlloc.prepare()
 
 
-@deprecated
 def init_travel_time_microquake():
     """
     Calculate travel time grid if required
@@ -179,15 +174,15 @@ def get_travel_time_grid_point(station, location, phase, use_eikonal=False):
 
 
 def get_travel_time_grid(station, phase):
-
+    from microquake.core.data.grid import read_grid
     import os
     from spp.utils import get_stations
     common_dir = os.environ['SPP_COMMON']
 
     site = get_stations()
-    station = site.select(station=station)[0]
+    station = site.select(station=station).stations()[0]
     f_tt = os.path.join(common_dir, 'NLL/time', 'OT.%s.%s.time.buf'
-                        % (phase.upper(), station))
+                        % (phase.upper(), station.code))
     tt_grid = read_grid(f_tt, format='NLLOC')
     tt_grid.seed = station.loc
 
