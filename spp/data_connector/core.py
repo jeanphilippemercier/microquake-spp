@@ -410,10 +410,10 @@ def write_to_kafka(stream_object):
 
     end_time_submission = time.time() - s_time
 
-    logger.info("Object Size:", "%.2f" % msg_size, "MB",
-                "Key:", msg_key,
-                ", Preparation took:", "%.2f" % end_time_preparation,
-                ", Submission took:", "%.2f" % end_time_submission)
+    logger.info("Object Size: %.2f MB" % msg_size,
+                ", Key: %s", msg_key,
+                ", Preparation took: %.2f" % end_time_preparation,
+                ", Submission took: %.2f" % end_time_submission)
 
 
 def convert_stream_to_bytes(stream_object):
