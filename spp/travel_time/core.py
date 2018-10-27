@@ -3,16 +3,56 @@ from IPython.core.debugger import Tracer
 
 from microquake.core.data.grid import read_grid
 from microquake.core import read_stations
+from spp.utils.log_handler import get_logger
 
 from obspy.core.event.base import ResourceIdentifier
 
-def init_travel_time():
+
+def get_velocity(phase):
+    """
+    Get velocity model for a given phase
+    :param phase: phase 'P' or 'S'
+    :return:
+    """
+    import os
+    logger = get_logger('SPP/get_velocity', 'get_velocity.log')
+
+    common_dir = os.environ['SPP_COMMON']
+
+    if phase.upper() == 'P':
+        return read_grid(os.path.join(common_dir, 'velocities', 'Vp.pickle'),
+                         format='PICKLE')
+    elif phase.upper() == 'S':
+        return read_grid(os.path.join(common_dir, 'velocities', 'Vs.pickle'),
+                         format='PICKLE')
+    else:
+        logger('invalid phase: %s' % phase)
+
+    return
+
+
+def init_nlloc():
+    """
+    initializes NonLinLoc directory
+    :return: status
+    """
+
+    from microquake.nlloc import init_nlloc_from_params
+    from spp.utils import get_project_params
+
+    params = get_project_params()
+
+    nlloc = init_nlloc_from_params(params)
+    nlloc.prepare()
+
+
+@deprecated
+def init_travel_time_microquake():
     """
     Calculate travel time grid if required
     :return: status
     """
 
-    #from microquake.core import read_grid, read_stations
     import os
     from microquake.simul import eik
 
@@ -31,12 +71,18 @@ def init_travel_time():
         seed = station.loc
         seed_label = station.code
 
-        fname_p = os.path.join(common_dir, 'tt_grids', '%s_p.pickle' % station.code)
-        fname_s = os.path.join(common_dir, 'tt_grids', '%s_s.pickle' % station.code)
-        fname_az_p = os.path.join(common_dir, 'tt_grids', '%s_azimuth_p.pickle' % station.code)
-        fname_to_p = os.path.join(common_dir, 'tt_grids', '%s_takeoff_p.pickle' % station.code)
-        fname_az_s = os.path.join(common_dir, 'tt_grids', '%s_azimuth_s.pickle' % station.code)
-        fname_to_s = os.path.join(common_dir, 'tt_grids', '%s_takeoff_s.pickle' % station.code)
+        fname_p = os.path.join(common_dir, 'tt_grids', '%s_p.pickle'
+                               % station.code)
+        fname_s = os.path.join(common_dir, 'tt_grids', '%s_s.pickle'
+                               % station.code)
+        fname_az_p = os.path.join(common_dir, 'tt_grids', '%s_azimuth_p.pickle'
+                                  % station.code)
+        fname_to_p = os.path.join(common_dir, 'tt_grids', '%s_takeoff_p.pickle'
+                                  % station.code)
+        fname_az_s = os.path.join(common_dir, 'tt_grids', '%s_azimuth_s.pickle'
+                                  % station.code)
+        fname_to_s = os.path.join(common_dir, 'tt_grids', '%s_takeoff_s.pickle'
+                                  % station.code)
 
         if os.path.exists(fname_p):
             ttp = read_grid(fname_p)
@@ -140,7 +186,8 @@ def get_travel_time_grid(station, phase):
 
     site = get_stations()
     station = site.select(station=station)[0]
-    f_tt = os.path.join(common_dir, 'NLL/time', 'OT.%s.%s.time.buf' % (phase.upper(), station))
+    f_tt = os.path.join(common_dir, 'NLL/time', 'OT.%s.%s.time.buf'
+                        % (phase.upper(), station))
     tt_grid = read_grid(f_tt, format='NLLOC')
     tt_grid.seed = station.loc
 
@@ -155,8 +202,6 @@ def create_event(stream, event_location):
     :param event_location: location of the event
     :return: catalog with one event, one origins and picks
     """
-
-    import matplotlib.pyplot as plt
 
     import numpy as np
     from scipy.interpolate import interp1d
@@ -188,7 +233,8 @@ def create_event(stream, event_location):
     for phase in ["p", "s"]:
         for trace in stream.composite():
             station = trace.stats.station
-            tt = get_travel_time_grid_point(station, event_location, phase=phase)
+            tt = get_travel_time_grid_point(station, event_location,
+                                            phase=phase)
             trace.stats.starttime = trace.stats.starttime - tt
             data = trace.data
             data /= np.max(np.abs(data))
@@ -248,7 +294,8 @@ def create_event(stream, event_location):
     for phase in ['p', 's']:
         for station in stations:
             pk = Pick()
-            tt = get_travel_time_grid_point(station, event_location, phase=phase)
+            tt = get_travel_time_grid_point(station, event_location,
+                                            phase=phase)
             pk.phase_hint = phase.upper()
             pk.time = origin_time + tt
             pk.evaluation_mode = "automatic"
@@ -264,7 +311,8 @@ def create_event(stream, event_location):
 
     event = Event()
     event.origins = [origin]
-    event.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id, referred_object=origin)
+    event.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id,
+                                                   referred_object=origin)
     event.picks = picks
     #event.pick_method = 'predicted from get_travel_time_grid'
 

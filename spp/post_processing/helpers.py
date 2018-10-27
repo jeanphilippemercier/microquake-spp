@@ -15,7 +15,8 @@ import copy
 #from lib.waveform import WaveformPlotting as wp
 from mth_lib.waveform import WaveformPlotting as wp
 
-from .liblog import getLogger
+from liblog import getLogger
+#from .liblog import getLogger
 logger = getLogger()
 
 
