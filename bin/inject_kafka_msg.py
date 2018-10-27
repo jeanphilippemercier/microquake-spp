@@ -13,6 +13,7 @@ def main():
 
     intensity = -2.0
     run_from_xml = True
+    run_from_xml = False
     if run_from_xml:
         event_files = glob(DATA_DIR + "20180706112101.xml")
 
@@ -20,6 +21,8 @@ def main():
             event = read_events(xmlfile, format='QUAKEML')[0]
             origin = event.origins[0]
             inputs = np.array([origin.time.timestamp, *origin.loc.tolist(), intensity])
+    else:
+        inputs = np.array( [ 1.53087606e+09, 6.51185000e+05, 4.76742700e+06, -1.48000000e+02, -2.00000000e+00])
 
     config = Configuration()
 
@@ -32,7 +35,8 @@ def main():
     #msg = np.array([ot_epoch, loc[0], loc[1], loc[2], power], dtype=np.float64)
     msg = inputs
     kaf_msg = struct.pack('%sd' % len(msg), *msg)
-    kaf_key = ("iloc_%d" % (origin.time.timestamp)).encode('utf-8')
+    kaf_key = ("iloc_%d" % (inputs[0])).encode('utf-8')
+    #kaf_key = ("iloc_%d" % (origin.time.timestamp)).encode('utf-8')
     #kaf_key = ("iloc_%d" % (ot_epoch)).encode('utf-8')
 
     print("Sending Kafka interloc messsage. kaf_msg:%s key=[%s]" % (inputs, kaf_key))
