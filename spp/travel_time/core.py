@@ -1,6 +1,6 @@
-from IPython.core.debugger import Tracer
+# from IPython.core.debugger import Tracer
 from microquake.core import read_stations
-from spp.utils.log_handler import get_logger
+# from spp.utils.log_handler import get_logger
 from microquake.core.event import ResourceIdentifier
 
 
@@ -144,6 +144,23 @@ def __get_grid_value_single_station(station_phase, location, use_eikonal=False):
     return tt
 
 
+def get_travel_time_grid_raw(station, phase):
+    """
+    :param station:
+    :param phase:
+    :return:
+    """
+    import os
+    from io import BytesIO
+    common_dir = os.environ['SPP_COMMON']
+
+    f_tt = os.path.join(common_dir, 'NLL/time', 'OT.%s.%s.time.buf'
+                        % (phase.upper(), str(station)))
+
+    with open(f_tt, 'rb') as f:
+        return BytesIO(f.read())
+
+
 def get_travel_time_grid_point(station, location, phase, use_eikonal=False):
     """
     get the travel time
@@ -168,7 +185,6 @@ def get_travel_time_grid_point(station, location, phase, use_eikonal=False):
 
     station_phase = (station, phase)
     tt = __get_grid_value_single_station(station_phase, location, use_eikonal)
-
 
     return tt[0]
 
