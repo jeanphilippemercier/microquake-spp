@@ -374,7 +374,7 @@ def write_to_local(stream_object, location):
     stream_object.write(path, format='MSEED')
 
 
-def write_to_kafka(stream_object, brokers, kafka_topic):
+def write_to_kafka(stream_object):
     """
 
     :param stream_object: a microquake.stream.Stream object containing the
@@ -389,7 +389,10 @@ def write_to_kafka(stream_object, brokers, kafka_topic):
     from io import BytesIO
     import sys
 
-    kafka_handler_obj = KafkaHandler(brokers)
+    kafka_brokers = CONFIG.DATA_CONNECTOR['kafka']['brokers']
+    kafka_topic = CONFIG.DATA_CONNECTOR['kafka']['topic']
+
+    kafka_handler_obj = KafkaHandler(kafka_brokers)
     s_time = time.time()
     buf = BytesIO()
     stream_object.write(buf, format='MSEED')
@@ -407,10 +410,10 @@ def write_to_kafka(stream_object, brokers, kafka_topic):
 
     end_time_submission = time.time() - s_time
 
-    logger.info("Object Size:", "%.2f" % msg_size, "MB",
-                "Key:", msg_key,
-                ", Preparation took:", "%.2f" % end_time_preparation,
-                ", Submission took:", "%.2f" % end_time_submission)
+    logger.info("Object Size: %.2f MB" % msg_size,
+                ", Key: %s" % msg_key,
+                ", Preparation took: %.2f" % end_time_preparation,
+                ", Submission took: %.2f" % end_time_submission)
 
 
 def convert_stream_to_bytes(stream_object):
@@ -431,7 +434,7 @@ def write_data(stream_object):
 
     params = CONFIG.DATA_CONNECTOR
 
-    destination = params['data_destination']['type'].lower()
+    destination = params['data_destination']['type'].lower().split(",")
 
     # Temp Solution to convert stream object into bytes
     # will be enhanced in future
@@ -442,11 +445,8 @@ def write_data(stream_object):
     if 'mongo' in destination:
         write_mseed_chunk_to_mongo(stream_bytes)
 
-
-    # if 'kafka' in destination:
-    #     brokers = params['kafka']['brokers']
-    #     kafka_topic = params['kafka']['kafka_topic']
-    #     write_to_kafka(stream_object, brokers, kafka_topic)
+    if 'kafka_full_mseed' in destination:
+        write_to_kafka(stream_object)
 
 
 
@@ -460,8 +460,7 @@ def load_data():
         for st in request_handler():
             # print(st)
             write_data(st)
-            # write to Kafka
-            # write_to_kafka(kafka, kafka_topic, st)
+
 
     elif params['data_source']['type'] == 'local':
         location = params['data_source']['location']
