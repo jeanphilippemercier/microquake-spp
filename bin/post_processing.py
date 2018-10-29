@@ -1,4 +1,3 @@
-from spp.utils import log_handler
 from spp.utils.config import Configuration
 import numpy as np
 from datetime import datetime
@@ -7,7 +6,8 @@ from microquake.core import read_events
 from spp.post_processing.make_event import make_event
 
 
-logger = log_handler.get_logger("Post Processing", 'post_processing.log')
+#from spp.utils import log_handler
+#logger = log_handler.get_logger("Post Processing", 'post_processing.log')
 # To be used for loading configurations
 config = Configuration()
 
@@ -15,8 +15,9 @@ config = Configuration()
 def main():
 
     DATA_DIR = '/Users/mth/mth/Data/OT_data/'    # Move to env ?
+    DATA_DIR = '/Users/mth/mth/Data/OT_data_event_new/'    # Move to env ?
 
-    intensity = 1.0
+    intensity = -2.0
 
     # Small event
     # time = UTCDateTime( datetime(2018, 5, 23, 10, 51, 3, 765333) )
@@ -32,9 +33,16 @@ def main():
     y = 4767427
     z = -148
 
+# Put it around 10:50:00 on 5/23/18
+    timestamp = 1527072600.000
+
+    run_from_xml = False
     run_from_xml = True
     if run_from_xml:
-        event_files = glob(DATA_DIR + "20180706112101.xml")
+        #event_files = glob(DATA_DIR + "20180706112101.xml")
+        #event_files = glob(DATA_DIR + "20180523105102.xml")
+        #event_files = glob(DATA_DIR + "20180522053217.xml")
+        event_files = glob(DATA_DIR + "2018-09-24T10_55_49.759936Z.xml")
 
         for xmlfile in event_files:
             event = read_events(xmlfile, format='QUAKEML')[0]

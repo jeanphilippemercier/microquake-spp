@@ -16,10 +16,8 @@ reload(core)
 import time
 
 #from web_client import get_stream_from_mongo
-#from .web_client import *
-#from .helpers import *
-from web_client import *
-from helpers import *
+from .web_client import *
+from .helpers import *
 
 from microquake.core import read_events as micro_read_events
 from obspy.core.event import read_events
@@ -27,8 +25,7 @@ from microquake import nlloc
 
 config_dir = os.environ['SPP_CONFIG']
 
-#from .liblog import getLogger
-from liblog import getLogger
+from .liblog import getLogger
 import logging
 logger = getLogger()
 
