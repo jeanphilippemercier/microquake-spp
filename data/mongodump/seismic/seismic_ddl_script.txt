@@ -1,0 +1,11 @@
+# create DB
+use seismic
+db.createCollection('traces_json')
+db.createCollection('events')
+db.createCollection('events_inuse')
+
+## Adding Indexes
+db.traces_json.createIndex( { "stats.starttime": -1} )
+db.traces_json.createIndex( { "stats.endtime": -1} )
+db.traces_json.createIndex( { "stats.starttime": -1, "stats.endtime": ;1 } )
+db.traces_json.createIndex( { "stats.starttime" : -1, "stats.endtime" : -1, "stats.station" : 1, "stats.channel" : 1 } , "unique" : true, "name" : "full_record_unique_idx")
