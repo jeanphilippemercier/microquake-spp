@@ -10,8 +10,7 @@ url_opener = None
 url_base = 'http://40.76.192.141:5000'
 #url_base = 'http://localhost:5000'
 
-from liblog import getLogger
-#from .liblog import getLogger
+from .liblog import getLogger
 logger = getLogger()
 
 
