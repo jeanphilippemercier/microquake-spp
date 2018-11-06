@@ -28,7 +28,6 @@ requirements = [
     'pyyaml',
     'toolz',
     'kafka',
-    'apache-airflow',
     'flask-restful',
     'prometheus_client',
     'avro',

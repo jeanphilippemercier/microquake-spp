@@ -1,6 +1,6 @@
-# from IPython.core.debugger import Tracer
+from IPython.core.debugger import Tracer
 from microquake.core import read_stations
-# from spp.utils.log_handler import get_logger
+from spp.utils.log_handler import get_logger
 from microquake.core.event import ResourceIdentifier
 
 
@@ -50,6 +50,7 @@ def init_travel_time_microquake():
 
     import os
     from microquake.simul import eik
+    from microquake.core.data.grid import read_grid
 
     common_dir = os.environ['SPP_COMMON']
 
@@ -125,6 +126,7 @@ def __get_grid_value_single_station(station_phase, location, use_eikonal=False):
 
     import os
     from spp.utils import get_stations
+    from microquake.core.data.grid import read_grid
     common_dir = os.environ['SPP_COMMON']
 
     station = station_phase[0]
@@ -144,6 +146,35 @@ def __get_grid_value_single_station(station_phase, location, use_eikonal=False):
     return tt
 
 
+def get_travel_time_grid_server(station, phase, origin, spacing, shape):
+    """
+    Get the travel time grids from the server
+    :param station:
+    :param phase:
+    :return:
+    """
+    from requests import request
+    from numpy import ndarray
+    from microquake.core.data import GridData
+    from spp.utils import get_project_params  # will need to be changed to
+    # use the configuration server
+
+    url = 'http://localhost:5000/grid?st_id=%d&phase=%s' % (station, phase)
+    print(url)
+    req = request('get', url)
+    if req.status_code != 200:
+        # log error
+        pass
+        return
+
+    Tracer()()
+    content = req.content.read()
+    gdata = ndarray(shape, 'f4', content)
+    # gdata = fromfile(req.content, dtype='f4').reshape(shape)
+    return GridData(gdata, origin=origin, spacing=int(spacing), shape=shape)
+
+
+
 def get_travel_time_grid_raw(station, phase):
     """
     :param station:
@@ -158,7 +189,7 @@ def get_travel_time_grid_raw(station, phase):
                         % (phase.upper(), str(station)))
 
     with open(f_tt, 'rb') as f:
-        return BytesIO(f.read())
+        return f.read()
 
 
 def get_travel_time_grid_point(station, location, phase, use_eikonal=False):

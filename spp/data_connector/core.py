@@ -76,7 +76,7 @@ def write_mseed_chunk_to_mongo(mseed_byte_array):
 
 def write_mseed_chunk_to_kafka(mseed_byte_array):
     """
-
+    Decompose mseed into chunks of
     :param mseed_byte_array:
     :return:
     """
