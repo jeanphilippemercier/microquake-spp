@@ -4,7 +4,7 @@ from microquake.core import read
 from io import BytesIO
 
 kafka_brokers = ['localhost:9092']
-kafka_topic = 'test'
+kafka_topic = 'data_ingestion'
 
 kafka_handle = KafkaHandler(kafka_brokers)
 

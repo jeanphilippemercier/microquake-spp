@@ -15,11 +15,11 @@ class Configuration:
             params = yaml.load(cfg_file)
             self.DATA_CONNECTOR = params['data_connector']
 
-        db_config_file = os.path.join(config_dir, 'permanent_db.yaml')
-
-        with open(db_config_file, 'r') as cfg_file:
-            params = yaml.load(cfg_file)
-            self.DB = params['db']
+        # db_config_file = os.path.join(config_dir, 'permanent_db.yaml')
+        #
+        # with open(db_config_file, 'r') as cfg_file:
+        #     params = yaml.load(cfg_file)
+        #     self.DB = params['db']
 
 
 #CONFIG = Configuration()

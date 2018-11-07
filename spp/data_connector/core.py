@@ -74,14 +74,13 @@ def write_mseed_chunk_to_mongo(mseed_byte_array):
     logger.info("Inserted stream chunks into MongoDB in: %.2f" % etime)
 
 
-def write_mseed_chunk_to_kafka(mseed_byte_array):
+def write_decomposed_mseed_to_kafka(decomposed_mseed):
     """
     Decompose mseed into chunks of
     :param mseed_byte_array:
     :return:
     """
     from pandas import DataFrame
-    from struct import unpack, pack
     from spp.utils.kafka import KafkaHandler
     from datetime import datetime
 
@@ -90,32 +89,10 @@ def write_mseed_chunk_to_kafka(mseed_byte_array):
     kafka_brokers = CONFIG.DATA_CONNECTOR['kafka']['brokers']
     kafka_topic = CONFIG.DATA_CONNECTOR['kafka']['topic']
     kafka_handler = KafkaHandler(kafka_brokers)
-    mseed_chunk_size = 4096
-    keys = []
-    blobs = []
 
-    starts = np.arange(0, len(mseed_byte_array), mseed_chunk_size)
+    df = DataFrame(decomposed_mseed)
 
-    for start in starts:
-        end = start + mseed_chunk_size
-        chunk = mseed_byte_array[start:end]
-
-        y = unpack('>H',chunk[20:22])[0]
-        DoY = unpack('>H', chunk[22:24])[0]
-        H = unpack('>B', chunk[24:25])[0]
-        M = unpack('>B', chunk[25:26])[0]
-        S = unpack('>B', chunk[26:27])[0]
-        r = unpack('>B', chunk[27:28])[0]
-        ToMS = unpack('>H', chunk[28:30])[0]
-
-        dt = datetime.strptime('%s/%0.3d %0.2d:%0.2d:%0.2d.%0.3d'
-                               % (y, DoY, H, M, S, ToMS),
-                               '%Y/%j %H:%M:%S.%f')
-        keys.append(dt)
-        blobs.append(chunk)
-
-    df = DataFrame({'key': keys, 'blob': blobs})
-
+    # needs to be organized by key for the recomposer to work
     df_grouped = df.groupby(['key'])
 
     logger.debug("Grouped DF Stats:" + str(df_grouped.size()))

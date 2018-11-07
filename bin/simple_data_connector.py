@@ -7,11 +7,12 @@
 from microquake.IMS import web_client
 from microquake.core import UTCDateTime
 from spp.utils import get_data_connector_parameters, get_stations
-from spp.data_connector import write_mseed_chunk_to_kafka
+from spp.data_connector import write_decomposed_mseed_to_kafka
 from spp.time import get_time_zone
 from toolz.functoolz import curry
 from microquake.core import Stream
 from io import BytesIO
+from microquake.io.waveform import mseed_decomposer
 
 # request the data from the IMS system
 
@@ -35,22 +36,13 @@ for evt in cat:
     etime = evt.preferred_origin().time + 5
 
     tmp = web_client.get_continuous(base_url, stime, etime, stations)
-    sts = Stream()
+    st = Stream()
     for tr in tmp:
         if len(tr.data) == 0:
             continue
-        sts.traces.append(tr)
-        # if tr.data == nan:
-        #     continue
-        # sts.traces.append(tr)
-    # map_results = p.map(get_continuous(base_url, stime, etime), stations)
+        st.traces.append(tr)
 
-    out_bytes = BytesIO()
-    sts.write(out_bytes, format='MSEED')
+    decomposed_mseed = mseed_decomposer(st)
 
-    # write_mseed_chunk_to_kafka(sts)
-
-
-    # st = web_api.get_continuous(base_url, stime, etime, stations)
-
+    write_decomposed_mseed_to_kafka(decomposed_mseed)
 
