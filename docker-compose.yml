@@ -132,35 +132,35 @@ services:
       - ./data/mongodump:/dump
     command: mongorestore --host mongodb /dump
 
-  seismic-interloc:
-    image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
-    command: python bin/interloc_kafka.py
-    depends_on:
-      - broker
-    links:
-      - broker
-    volumes:
-      - ./:/app
-      - ./config:/config
-      - ./common:/common
-    environment:
-      PYTHONPATH: /app
-      SPP_CONFIG: /config
-      SPP_COMMON: /common
-
-  seismic-post-processing:
-    image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
-    command: python bin/post_processing.py
-    depends_on:
-      - broker
-    volumes:
-      - ./:/app
-      - ./config:/config
-      - ./common:/common
-    environment:
-      PYTHONPATH: /app
-      SPP_CONFIG: /config
-      SPP_COMMON: /common
-
+#  seismic-interloc:
+#    image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
+#    command: python bin/interloc_kafka.py
+#    depends_on:
+#      - broker
+#    links:
+#      - broker
+#    volumes:
+#      - ./:/app
+#      - ./config:/config
+#      - ./common:/common
+#    environment:
+#      PYTHONPATH: /app
+#      SPP_CONFIG: /config
+#      SPP_COMMON: /common
+#
+#  seismic-post-processing:
+#    image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
+#    command: python bin/post_processing.py
+#    depends_on:
+#      - broker
+#    volumes:
+#      - ./:/app
+#      - ./config:/config
+#      - ./common:/common
+#    environment:
+#      PYTHONPATH: /app
+#      SPP_CONFIG: /config
+#      SPP_COMMON: /common
+#
 volumes:
     mi2: {}
