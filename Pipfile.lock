@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "51254eb819551f3def1400dc07d41f2685da6d548e1b9ccd50de60746345ff77"
+            "sha256": "62b54898e120c31664aba93c33072ab742882ab1e70e18f92e39aed04c5a9947"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -423,6 +423,13 @@
             ],
             "version": "==2.20.0"
         },
+        "scikit-fmm": {
+            "hashes": [
+                "sha256:7e8ac7d9d90139758fe8cdf519cab95e62095eeecb6356f41b7f89017f264ea4"
+            ],
+            "index": "pypi",
+            "version": "==0.0.9"
+        },
         "scipy": {
             "hashes": [
                 "sha256:0611ee97296265af4a21164a5323f8c1b4e8e15c582d3dfa7610825900136bb7",
@@ -454,6 +461,7 @@
                 "sha256:f0521af1b722265d824d6ad055acfe9bd3341765735c44b5a4d0069e189a0f40",
                 "sha256:f25c281f12c0da726c6ed00535ca5d1622ec755c30a3f8eafef26cf43fede694"
             ],
+            "index": "pypi",
             "version": "==1.1.0"
         },
         "six": {

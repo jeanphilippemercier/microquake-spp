@@ -26,10 +26,10 @@ RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/id_rsa
 
 # make sure your domainccepted
 RUN touch /root/.ssh/known_hosts
-RUN ssh-keyscan seismic-gitlab.eastus.cloudapp.azure.com >> /root/.ssh/known_hosts
+RUN ssh-keyscan git.microquake.org >> /root/.ssh/known_hosts
 RUN chmod 0600 /root/.ssh/*
 
-RUN git clone git@seismic-gitlab.eastus.cloudapp.azure.com:rio-tinto/nlloc.git
+RUN git clone git@git.microquake.org:rio-tinto/nlloc.git
 RUN cd nlloc && make \
     ; mv fmm2grid fpfit2hyp Grid2GMT Grid2Time GridCascadingDecimate hypoe2hyp interface2fmm Loc2ddct LocSum Makefile NLDiffLoc NLLoc oct2grid PhsAssoc scat2latlon Time2Angles Time2EQ Vel2Grid Vel2Grid3D /usr/bin \
     ; cd .. && rm -rf nlloc
