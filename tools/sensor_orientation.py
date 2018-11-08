@@ -9,8 +9,6 @@ from microquake.core import UTCDateTime
 
 from microquake.simul import eik
 
-import numpy as np
-from IPython.core.debugger import Tracer
 from importlib import reload
 import numpy as np
 import pickle
