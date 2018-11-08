@@ -24,7 +24,7 @@ base_image:
     - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY")'
 
     - mkdir -p ~/.ssh
-    - ssh-keyscan git.microquake.org >> /root/.ssh/known_hosts¬
+    - ssh-keyscan git.microquake.org >> ~/.ssh/known_hosts¬
     - chmod -R 700 ~/.ssh
     - git submodule update --init --recursive
     - update-ca-certificates
