@@ -23,6 +23,7 @@ pathos = "*"
 pyyaml = "*"
 toolz = "*"
 pytz = "*"
+msgpack = "*"
 
 [dev-packages]
 
