@@ -25,7 +25,7 @@ base_image:
 
     - mkdir -p ~/.ssh
     - chmod -R 700 ~/.ssh
-    - ssh-keyscan -H git.microquake.org > ~/.ssh/known_hosts¬
+    - ssh-keyscan -H git.microquake.org >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
     - git submodule update --init --recursive
     - update-ca-certificates
