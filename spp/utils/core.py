@@ -10,7 +10,6 @@ def get_stations():
 def get_nll_dir():
     from microquake.core.ctl import parse_control_file
     import os
-    from IPython.core.debugger import Tracer
     common = os.environ['SPP_CONFIG']
     nll_config_file = os.path.join(common, 'project.xml')
     params = parse_control_file(nll_config_file)
@@ -36,7 +35,7 @@ def get_data_connector_parameters(config_file='data_connector_config.yaml'):
 
     config_dir = os.environ['SPP_CONFIG']
 
-    #fname = os.path.join(config_dir, 'data_connector_config.yaml')
+    # fname = os.path.join(config_dir, 'data_connector_config.yaml')
     fname = os.path.join(config_dir, config_file)
 
     tz = get_time_zone()
