@@ -27,6 +27,6 @@ base_image:
     - update-ca-certificates
 
     - docker login -u deploy -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build . -t $BASE_IMAGE_TAG -t $BASE_IMAGE:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY
+    - docker build . -t $BASE_IMAGE_TAG -t $BASE_IMAGE:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY -f Dockerfile.baseimage
     - docker push $BASE_IMAGE_TAG
     - docker push $BASE_IMAGE:$(echo $CI_COMMIT_SHA | cut -c1-8)
