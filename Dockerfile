@@ -1,4 +1,4 @@
-from python:3.6
+from registry.microquake.org/rio-tinto/seismic-processing-platform/base:latest
 
 RUN mkdir -p /app
 WORKDIR /app
