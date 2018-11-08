@@ -7,7 +7,6 @@ variables:
   DOCKER_DRIVER: overlay2
   CONTAINER_REPO: seismic-gitlab.eastus.cloudapp.azure.com:5005
   BASE_IMAGE: ${CI_REGISTRY_IMAGE}/base
-  BASE_IMAGE_TAG: $BASE_IMAGE:latest
   CI_APPLICATION_TAG: $(echo ${CI_COMMIT_SHA} | cut -c1-8)
 
 base_image:
@@ -35,6 +34,30 @@ base_image:
     - update-ca-certificates
 
     - docker login -u deploy -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build . -t $BASE_IMAGE_TAG -t $BASE_IMAGE:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY -f Dockerfile.baseimage
-    - docker push $BASE_IMAGE_TAG
+    - docker build . -t $BASE_IMAGE:latest -t $BASE_IMAGE:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY -f Dockerfile.baseimage
+    - docker push $BASE_IMAGE:latest
     - docker push $BASE_IMAGE:$(echo $CI_COMMIT_SHA | cut -c1-8)
+spp:
+  image: docker:stable
+  stage: build
+  services:
+    - name: docker:stable-dind
+      entrypoint:
+        - dockerd-entrypoint.sh
+  before_script:
+    - apk add --update openssh-client make ca-certificates openssl python git bash
+  script:
+    - eval $(ssh-agent -s)
+    - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY")'
+
+    - mkdir -p ~/.ssh
+    - chmod -R 700 ~/.ssh
+    - ssh-keyscan -H git.microquake.org >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - git submodule update --init --recursive
+    - update-ca-certificates
+
+    - docker login -u deploy -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build . -t $CI_REGISTRY_IMAGE:latest -t $CI_REGISTRY_IMAGE:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY
+    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:$(echo $CI_COMMIT_SHA | cut -c1-8)

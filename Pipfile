@@ -22,6 +22,7 @@ confluent-kafka = "*"
 pathos = "*"
 pyyaml = "*"
 toolz = "*"
+pytz = "*"
 
 [dev-packages]
 
