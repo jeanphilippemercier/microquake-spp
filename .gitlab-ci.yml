@@ -39,7 +39,7 @@ base_image:
     - docker push $BASE_IMAGE:$(echo $CI_COMMIT_SHA | cut -c1-8)
 spp:
   image: docker:stable
-  stage: base
+  stage: build
   services:
     - name: docker:stable-dind
       entrypoint:

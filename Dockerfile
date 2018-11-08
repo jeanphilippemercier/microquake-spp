@@ -4,7 +4,6 @@ COPY ./ /app
 RUN pip install libs/microquake
 RUN pip install libs/xseis
 
-RUN rm /root/.ssh/id_rsa
 RUN rm -rf /root/.cache
 RUN rm -rf /usr/local/lib/python3.6/site-packages/microquake/examples
 
