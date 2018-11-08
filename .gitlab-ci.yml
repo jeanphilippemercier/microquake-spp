@@ -8,7 +8,6 @@ variables:
   CONTAINER_REPO: seismic-gitlab.eastus.cloudapp.azure.com:5005
   BASE_IMAGE: $CI_REGISTRY_IMAGE/base
   BASE_IMAGE_TAG: $BASE_IMAGE:latest
-  GIT_SUBMODULE_STRATEGY: recursive
   CI_APPLICATION_TAG: $(echo $CI_COMMIT_SHA | cut -c1-8)
 
 base_image:
@@ -21,6 +20,13 @@ base_image:
   before_script:
     - apk add --update openssh-client make ca-certificates openssl python git bash
   script:
+    - eval $(ssh-agent -s)
+    - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY")'
+
+    - mkdir -p ~/.ssh
+    - ssh-keyscan git.microquake.org >> /root/.ssh/known_hosts¬
+    - chmod -R 700 ~/.ssh
+    - git submodules update --init --recursive
     - update-ca-certificates
 
     - docker login -u deploy -p $CI_JOB_TOKEN $CI_REGISTRY
