@@ -17,6 +17,8 @@ base_image:
     - name: docker:stable-dind
       entrypoint:
         - dockerd-entrypoint.sh
+  before_script:
+    - apk add --update openssh-client make ca-certificates openssl python git bash
   script:
     - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY")'
 
