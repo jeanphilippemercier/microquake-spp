@@ -9,9 +9,7 @@ from microquake.core import UTCDateTime
 from spp.utils import get_data_connector_parameters, get_stations
 from spp.data_connector import write_decomposed_mseed_to_kafka
 from spp.time import get_time_zone
-from toolz.functoolz import curry
 from microquake.core import Stream
-from io import BytesIO
 from microquake.io.waveform import mseed_decomposer
 
 # request the data from the IMS system

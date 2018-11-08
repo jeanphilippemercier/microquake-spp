@@ -1,0 +1,84 @@
+project_code = 'OT'
+[grids]
+	units = 'meter'
+	method = 'ODS'
+	origin = [650200, 4766170, -500]
+	dimensions = [100, 101, 68]
+	spacing = 25
+
+	[grids.velocities]
+		source = 'local'
+		homogeneous = false
+		vp = "velocities/vp"
+		vs = "velocities/vs"
+		format = 'NLLOC'
+
+# Not used, definition similar to velocity grids
+# 	[grids.density]
+#		homogeneous = false
+
+[time_zone]
+	type = 'UTC_offset'                # either 'UTC_offset or 'time_zone'
+	time_zone_code = 'ULN'             # time zone code. If type=time_zone, time_zone_code must be a valid pytz timezone
+	offset = 8                         # time offset in hours, ignored if type=time_zone
+
+[sensors]
+	source  = 'local'
+	units   = 'meter'
+	format  = 'csv'
+	path    = 'sensors.csv'
+
+
+[data_connector]
+	source  = 'remote'
+	path    = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
+
+
+[nlloc]
+	nll_base = 'NLL'
+	locsig = 'Oyu Tolgoi Geotechnical Monitoring Team'
+	loccom = 'Prototype'
+	locsearch = 'OCT 20 20 30 1e-6 50000 1000 0 1'
+	locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
+	kafka_consumer_topic = 'location'
+	kafka_producer_topic = 'magnitude'
+
+[magnitude]
+	ttpath = 'None'
+	only_triaxial = true
+	density = 2700
+    min_dist = 20
+    win_length = 0.02
+    # len_spectrum is specified in exponent of 2. For instance 14 is equal to 2 ** 14
+    len_spectrum_exponent = 14
+    # could instead specify <len_spectrum> directly
+    freq = 100
+    kafka_consumer_topic = 'magnitude'
+    kafka_producer_topic = 'event_database'
+
+[kafka]
+    brokers = ['localhost:9092']
+    threads = 3 
+
+[mongo]
+    uri = 'mongodb://localhost:27017/'
+    db_name = 'test_continuous'
+
+[airflow]
+    description = 'Data Loader'
+    catchup = false
+
+[logging]
+    log_directory = '/var/log/spp/'
+    log_level = 'INFO'
+
+[continuous db]
+  uri = 'mongodb://mongo-node-001:27017/'
+  db_name = 'seismic'
+  traces_collection = 'traces_json'
+  events_collection = 'events'
+  events_inuse_collection = 'events_inuse'
+  filestore_base_dir = '/Users/hanee/Rio_Tinto/data/'
+  inuse_ttl = 300
+
+

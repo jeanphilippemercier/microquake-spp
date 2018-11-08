@@ -1,9 +1,0 @@
-travel_time_grids:
-  data_source:
-    type: redis
-    server: localhost
-    port: 6379
-
-origin_time: add_parameters_here
-
-picker: add_parameters_here
