@@ -1,6 +1,6 @@
 [submodule "libs/xseis"]
 	path = libs/xseis
-	url = https://git.microquake.org/rio-tinto/xseis
+	url = git@git.microquake.org:rio-tinto/xseis
 [submodule "libs/microquake"]
 	path = libs/microquake
-	url = https://git.microquake.org/rio-tinto/microquake.git
+	url = git@git.microquake.org:rio-tinto/microquake.git
