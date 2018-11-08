@@ -20,12 +20,10 @@ base_image:
   before_script:
     - apk add --update openssh-client make ca-certificates openssl python git bash
   script:
-    - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY")'
-
     - mkdir -p ~/.ssh
     - ssh-keyscan git.microquake.org >> /root/.ssh/known_hosts¬
     - chmod -R 700 ~/.ssh
-    - git submodules update --init --recursive
+    - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY") && git submodules update --init --recursive'
     - update-ca-certificates
 
     - docker login -u deploy -p $CI_JOB_TOKEN $CI_REGISTRY
