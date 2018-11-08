@@ -26,7 +26,7 @@ base_image:
     - mkdir -p ~/.ssh
     - ssh-keyscan git.microquake.org >> /root/.ssh/known_hosts¬
     - chmod -R 700 ~/.ssh
-    - git submodules update --init --recursive
+    - git submodule update --init --recursive
     - update-ca-certificates
 
     - docker login -u deploy -p $CI_JOB_TOKEN $CI_REGISTRY
