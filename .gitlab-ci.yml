@@ -7,7 +7,6 @@ variables:
   DOCKER_DRIVER: overlay2
   CONTAINER_REPO: seismic-gitlab.eastus.cloudapp.azure.com:5005
   BASE_IMAGE: ${CI_REGISTRY_IMAGE}/base
-  BASE_IMAGE_TAG: $BASE_IMAGE:latest
   CI_APPLICATION_TAG: $(echo ${CI_COMMIT_SHA} | cut -c1-8)
 
 base_image:
@@ -35,6 +34,6 @@ base_image:
     - update-ca-certificates
 
     - docker login -u deploy -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build . -t $BASE_IMAGE_TAG -t $BASE_IMAGE:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY -f Dockerfile.baseimage
-    - docker push $BASE_IMAGE_TAG
+    - docker build . -t $BASE_IMAGE:latest -t $BASE_IMAGE:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY -f Dockerfile.baseimage
+    - docker push $BASE_IMAGE:latest
     - docker push $BASE_IMAGE:$(echo $CI_COMMIT_SHA | cut -c1-8)
