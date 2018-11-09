@@ -1,5 +1,5 @@
 from io import BytesIO
-from spp.utils.config import Configuration
+from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
 from microquake.core import read
 from microquake.db.mongo.mongo import MongoDBHandler
@@ -8,7 +8,7 @@ import sys
 
 if __name__ == "__main__":
 
-    config = Configuration()
+    config = Application()
 
     print("connecting to DB")
     mongo_conn = MongoDBHandler(uri=config.DB['uri'], db_name=config.DB['db_name'])

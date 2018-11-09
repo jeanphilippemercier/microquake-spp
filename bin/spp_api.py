@@ -12,7 +12,7 @@ import numpy as np
 from microquake.core import read_events
 from microquake.core.event import Event
 import base64
-from spp.utils.config import Configuration
+from spp.utils.application import Application
 from bson.objectid import ObjectId
 import json
 import zipfile
@@ -35,7 +35,7 @@ middleware.setup_metrics(app)
 CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
 
 # load configuration file
-config = Configuration()
+config = Application()
 
 mongo = MongoDBHandler(config.DB['uri'], config.DB['db_name'])
 

@@ -57,7 +57,7 @@ project_code = 'OT'
     kafka_producer_topic = 'event_database'
 
 [kafka]
-    brokers = ['localhost:9092']
+    brokers = ['broker:9092']
     threads = 3 
 
 [mongo]
@@ -71,8 +71,12 @@ project_code = 'OT'
 [logging]
     log_directory = '/var/log/spp/'
     log_level = 'INFO'
+    log_format = '%(asctime)s <%(name)s> <%(thread)d> [%(levelname)s] %(message)s'
+    log_filename = 'spp.log'
+    logger_name = 'spp'
+    log_destination = 'stdout'
 
-[continuous db]
+[continuous_db]
   uri = 'mongodb://mongo-node-001:27017/'
   db_name = 'seismic'
   traces_collection = 'traces_json'

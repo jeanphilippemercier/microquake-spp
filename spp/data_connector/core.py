@@ -9,12 +9,12 @@ import numpy as np
 import time
 from microquake.db.mongo.mongo import MongoDBHandler
 from glob import glob
-from spp.utils.config import Configuration
+from spp.utils.application import Application
 from spp.utils import log_handler
 
 
 logger = log_handler.get_logger("Data Connector", 'data_connector.log')
-CONFIG = Configuration()
+CONFIG = Application()
 
 
 # Create Local get_continous to load data from files:

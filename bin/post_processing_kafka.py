@@ -2,7 +2,7 @@
 # logger = log.get_logger("kafka_events_listener", 'kafka_events_listener.log')
 
 from spp.utils import log_handler
-from spp.utils.config import Configuration
+from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
 import numpy as np
 import os
@@ -12,7 +12,7 @@ from spp.post_processing.make_event import make_event
 
 logger = log_handler.get_logger("Post Processing Kafka", 'post_processing_kafka.log')
 # To be used for loading configurations
-config = Configuration()
+config = Application()
 
 
 def main():

@@ -1,8 +1,8 @@
-from spp.utils.config import Configuration
+from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
 from microquake.waveform.mag import moment_magnitude
 
-conf = Configuration()
+conf = Application()
 settings = conf.settings
 
 kafka_brokers = settings.kafka.brokers

@@ -1,4 +1,4 @@
-from spp.utils.config import Configuration
+from spp.utils.application import Application
 import numpy as np
 from datetime import datetime
 from glob import glob
@@ -9,7 +9,7 @@ from spp.post_processing.make_event import make_event
 #from spp.utils import log_handler
 #logger = log_handler.get_logger("Post Processing", 'post_processing.log')
 # To be used for loading configurations
-config = Configuration()
+config = Application()
 
 
 def main():

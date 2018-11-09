@@ -3,9 +3,13 @@ import os
 from microquake.core.util.attribdict import AttribDict
 from microquake.core.data.grid import create, read_grid
 from microquake.core.data.station import read_stations
+import logging
+import sys
+from logging.handlers import TimedRotatingFileHandler
+import os
 
 
-class Configuration:
+class Application(object):
 
     DATA_CONNECTOR = None
     DB = None
@@ -197,65 +201,40 @@ class Configuration:
         tt = self.get_travel_time_grid(station, phase)
         return tt.interpolate(location, grid_coordinate=grid_coordinates)
 
+    def get_console_handler(self):
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(self.settings.logging.log_format)
+        return console_handler
 
-    # def get_travel_time_grid_raw(station, phase):
-    # """
-    # :param station:
-    # :param phase:
-    # :return:
-    # """
-    # import os
-    # from io import BytesIO
-    # common_dir = os.environ['SPP_COMMON']
-    #
-    # f_tt = os.path.join(common_dir, 'NLL/time', 'OT.%s.%s.time.buf'
-    #                     % (phase.upper(), str(station)))
-    #
-    # with open(f_tt, 'rb') as f:
-    #     return f.read()
+    def get_file_handler(self):
+        log_dir = self.settings.logging.log_directory
+        formatter = logging.Formatter(self.settings.logging.log_format)
+        log_filename = self.settings.logging.log_filename
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        logger_file = os.path.join(log_dir, log_filename)
+        file_handler = TimedRotatingFileHandler(log_dir + log_filename,
+                                                when='midnight')
+        file_handler.setFormatter(formatter)
+        return file_handler
 
+    def get_logger(self):
+        logger_name = self.settings.logging.logger_name
+        logger = logging.getLogger(logger_name)
+        log_level = self.settings.logging.log_level
+        log_filename = self.settings.logging.log_filename
+        # MTH: added to stop adding duplicate handlers
+        if not len(logger.handlers):
 
+            # Set Log Level based on the way it was passed
+            final_log_level = "INFO"
+            if log_level is not None:
+                final_log_level = log_level
+            elif log_level is not None:
+                final_log_level = log_level
+            logger.setLevel(final_log_level)
 
-
-
-
-        # return out_dict
-
-    # params.sites()
-
-
-
-
-# def init_nlloc_from_params(params):
-#     """
-#
-#     """
-#     project_code = params.project_code
-#
-#     nll = NLL(project_code, base_folder=params.nll.NLL_BASE)
-#     nll.gridpar = params.velgrids
-#     nll.sensors = params.sensors
-#     nll.params = params.nll
-#
-#     nll.hdrfile.gridpar = nll.gridpar.grids.vp
-#     nll.init_control_file()
-#
-#     return nll
-
-
-
-        #data_conn_fname = os.path.join(config_dir,
-        # 'data_connector_config.yaml')
-
-        # with open(data_conn_fname, 'r') as cfg_file:
-        #     params = yaml.load(cfg_file)
-        #     self.DATA_CONNECTOR = params['data_connector']
-
-        # db_config_file = os.path.join(config_dir, 'permanent_db.yaml')
-        #
-        # with open(db_config_file, 'r') as cfg_file:
-        #     params = yaml.load(cfg_file)
-        #     self.DB = params['db']
-
-
-#CONFIG = Configuration()
+            logger.addHandler(self.get_console_handler())
+            logger.addHandler(self.get_file_handler())
+            logger.propagate = False
+        return logger

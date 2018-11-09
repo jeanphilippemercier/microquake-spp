@@ -1,5 +1,5 @@
 from io import BytesIO
-from spp.utils.config import Configuration
+from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
 from microquake.core import read
 from microquake.db.mongo.mongo import MongoDBHandler
@@ -16,7 +16,7 @@ from datamountaineer.schemaregistry.serializers import MessageSerializer, Util
 if __name__ == "__main__":
 
 
-    config = Configuration()
+    config = Application()
 
     # Create Kafka Object
     kafka_brokers = config.DATA_CONNECTOR['kafka']['brokers']

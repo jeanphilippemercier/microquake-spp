@@ -13,7 +13,7 @@ from io import BytesIO
 from obspy import read
 from spp.utils.kafka import KafkaHandler
 import yaml
-from spp.utils.config import Configuration
+from spp.utils.application import Application
 
 from xseis2 import xutil
 from xseis2 import xflow
@@ -40,7 +40,7 @@ ttP = (ttP * dsr).astype(np.uint16)
 # ttS, slocs, ndict, gdef = xutil.ttable_from_nll_grids(tts_dir, key="OT.S")
 # ttS = (ttS * dsr).astype(np.uint16)
 
-config = Configuration()
+config = Application()
 
 logdir = config.DATA_CONNECTOR['logging']['log_directory']
 # Create Kafka Object

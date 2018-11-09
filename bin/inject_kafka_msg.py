@@ -5,7 +5,7 @@ import struct
 import yaml
 from glob import glob
 from microquake.core import read_events
-from spp.utils.config import Configuration
+from spp.utils.application import Application
 
 def main():
 
@@ -24,7 +24,7 @@ def main():
     else:
         inputs = np.array( [ 1.53087606e+09, 6.51185000e+05, 4.76742700e+06, -1.48000000e+02, -2.00000000e+00])
 
-    config = Configuration()
+    config = Application()
 
     # Create Kafka Object
     kafka_brokers = config.DATA_CONNECTOR['kafka']['brokers']

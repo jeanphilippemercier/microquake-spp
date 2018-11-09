@@ -8,9 +8,11 @@ import numpy as np
 from pandas import DataFrame
 from spp.utils.kafka import KafkaHandler
 from logging import getLogger
+from microquake.io import msgpack
+from io import BytesIO
 
 kafka_brokers = ['localhost:9092']
-kafka_topic = 'test'
+kafka_topic = 'location'
 
 kafka_handler = KafkaHandler(kafka_brokers)
 
@@ -44,6 +46,13 @@ for name, group in df_grouped:
         data += g
     timestamp = int(name.timestamp() * 1e3)
     key = name.strftime('%Y-%d-%m %H:%M:%S.%f').encode('utf-8')
-    kafka_handler.send_to_kafka(kafka_topic, message=data, key=key,
-                                timestamp=int(timestamp))
+    pfle = 'pack.dat'
+    f = open(pfle, 'rb')
+    buf = f.read()
+    data = msgpack.unpack(buf)
+    buf_out = BytesIO()
+    data[1].write(buf_out, format='QUAKEML')
+    data_out = msgpack.pack([buf_out.getvalue()])
+    kafka_handler.send_to_kafka(kafka_topic, message=data_out,
+                                key=key, timestamp=int(timestamp))
 kafka_handler.producer.flush()
