@@ -9,30 +9,22 @@ def on_send_error(excp):
 
 class KafkaHandler:
 
-    def __init__(self, brokers_list):
+    def __init__(self, brokers_list, batch_size=20, msg_maxsize_mb=100):
         logger = logging.getLogger('kafka')
         logger.addHandler(logging.StreamHandler(sys.stdout))
         logger.setLevel(logging.ERROR)
-        self.producer = KafkaProducer(bootstrap_servers=brokers_list, buffer_memory=104857600,
-                                      max_request_size=104857600,  batch_size=20, request_timeout_ms=100000)
+        maxbytes = int(msg_maxsize_mb * 1024**2)
+        self.producer = KafkaProducer(bootstrap_servers=brokers_list, buffer_memory=maxbytes,
+                                      max_request_size=maxbytes,  batch_size=batch_size, request_timeout_ms=100000)
 
-    def send_to_kafka(self, topic_name, message, key=None, timestamp=None):
-        # if key is None:
-        #     return self.producer.send(topic=topic_name, value=message).add_errback(on_send_error)
-        # else:
-        #     return self.producer.send(topic=topic_name, key=key, value=message).add_errback(on_send_error)
-        return self.producer.send(topic=topic_name, key=key, value=message, timestamp_ms=timestamp).add_errback(on_send_error)
+    def send_to_kafka(self, topic, key, message=None, timestamp_ms=None):
+
+        return self.producer.send(topic=topic, key=key, value=message,
+                             timestamp_ms=timestamp_ms).add_errback(on_send_error)
 
     @staticmethod
     def consume_from_topic(topic_name, brokers_list, group_id=None):
-        logger = logging.getLogger('kafka')
-        logger.addHandler(logging.StreamHandler(sys.stdout))
-        logger.setLevel(logging.ERROR)
-        if group_id:
-            return KafkaConsumer(topic_name,
-                                 group_id=group_id,
-                                 bootstrap_servers=brokers_list)
-        else:
-            return KafkaConsumer(topic_name,
-                             # group_id='my-group',
+
+        return KafkaConsumer(topic_name,
+                             group_id=group_id,
                              bootstrap_servers=brokers_list)

@@ -1,32 +1,33 @@
-"""
-Consume kafka mseed messages
-Searches for seismic event in each mseed and outputs results into another queue
-"""
 
 from importlib import reload
 import numpy as np
 import os
-from io import BytesIO
-from microquake.core import read
-from spp.utils.kafka import KafkaHandler
-import yaml
+import glob
 
 from xseis2 import xutil
 from xseis2 import xflow
 from xseis2 import xspy
+from datetime import datetime, timedelta
+
+from spp.utils.kafka import KafkaHandler
+
 from microquake.io import msgpack
+from spp.utils.application import Application
 
 
-nthreads = int(4)
-debug = int(0)
-dsr = float(3000.)
-wlen_sec = float(1.0)
+app = Application()
+nthreads = app.settings.interloc.threads
+wlen_sec = app.settings.interloc.wlen_seconds
+dsr = app.settings.interloc.dsr
+debug = app.settings.interloc.debug
 
-common_dir = os.environ['SPP_COMMON']
-tts_dir = os.path.join(common_dir, 'NLL/time/')
-# tts_dir = '/mnt/seismic_shared_storage/time/'
-# tts_dir = '/home/phil/data/oyu/NLLOC_grids/'
+brokers = app.settings.kafka.brokers
+topic_in = app.settings.interloc.kafka_consumer_topic
+topic_out = app.settings.interloc.kafka_producer_topic
 
+kaf_handle = KafkaHandler(brokers)
+
+tts_dir = os.path.join(app.common_dir, "NLL/time")
 
 ttable, stalocs, namedict, gdef = xutil.ttable_from_nll_grids(tts_dir, key="OT.P")
 # ttable, stalocs, namedict, gdef = xutil.ttable_from_nll_grids(tts_path, key="OT.S")
@@ -34,41 +35,28 @@ ttable = (ttable * dsr).astype(np.uint16)
 ngrid = ttable.shape[1]
 tt_ptrs = np.array([row.__array_interface__['data'][0] for row in ttable])
 
-
-config_dir = os.environ['SPP_CONFIG']
-fname = os.path.join(config_dir, 'data_connector_config.yaml')
-
-with open(fname, 'r') as cfg_file:
-	params = yaml.load(cfg_file)
-
-logdir = params['data_connector']['logging']['log_directory']
-brokers = params['data_connector']['kafka']['brokers']
-
-# topic_in = 'mseed-blocks'
-topic_in = 'mseed-1sec'
 consumer = KafkaHandler.consume_from_topic(topic_in, brokers, group_id='group')
-topic_out = 'interloc'  # need to get this from a config file later
 
 print("Awaiting Kafka mseed messsages")
 for msg_in in consumer:
 	print("Received Key:", msg_in.key)
 
-	# st = msgpack.unpack(BytesIO(msg_in.value()))
 	st = msgpack.unpack(msg_in.value)
-	# st = read(BytesIO(msg_in.value))
-	# st = read(mseed_file)
-	# print(st)
 
 	print(st)
 	xflow.prep_stream(st)
 	data, t0, stations, chanmap = xflow.build_input_data(st, wlen_sec, dsr)
 	ikeep = np.array([namedict[k] for k in stations])
+	logdir = ''
 	npz_file = os.path.join(logdir, "iloc_" + str(t0) + ".npz")
 	out = xspy.pySearchOnePhase(data, dsr, chanmap, stalocs[ikeep], tt_ptrs[ikeep],
 								 ngrid, nthreads, debug, npz_file)
 	vmax, imax, iot = out
 	lmax = xutil.imax_to_xyz_gdef(imax, gdef)
-	ot_epoch = (t0 + iot / dsr).datetime.timestamp()
+	# ot_epoch = (t0 + iot / dsr).datetime.timestamp()
+
+	ot_epoch = ((t0 + iot / dsr).datetime - datetime(1970, 1, 1)) / timedelta(seconds=1)
+
 	print("power: %.3f, ix_grid: %d, ix_ot: %d" % (vmax, imax, iot))
 	print("utm_loc: ", lmax.astype(int))
 
