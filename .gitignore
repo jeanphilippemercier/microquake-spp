@@ -14,3 +14,4 @@ spp.egg-info
 tmp/
 data/NLLOC_grids/
 libs/microquake
+*.toml
