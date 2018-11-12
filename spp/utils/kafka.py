@@ -10,9 +10,11 @@ def on_send_error(excp):
 class KafkaHandler:
 
     def __init__(self, brokers_list, batch_size=20, msg_maxsize_mb=100):
+        # self.brokers = brokers_list
         logger = logging.getLogger('kafka')
         logger.addHandler(logging.StreamHandler(sys.stdout))
         logger.setLevel(logging.ERROR)
+
         maxbytes = int(msg_maxsize_mb * 1024**2)
         self.producer = KafkaProducer(bootstrap_servers=brokers_list,
                                       buffer_memory=maxbytes,
@@ -28,7 +30,6 @@ class KafkaHandler:
 
     @staticmethod
     def consume_from_topic(topic_name, brokers_list, group_id=None):
-
         return KafkaConsumer(topic_name,
                              group_id=group_id,
                              bootstrap_servers=brokers_list)
