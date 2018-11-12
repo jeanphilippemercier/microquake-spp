@@ -297,7 +297,7 @@ def put_event():
     else:
         raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context "
                            "must be specified in request body",
-                           status_code=400)
+                           status_code=400)\
 
     log.info('put_event: Call EventDB.flatten_event')
     ev_flat_dict = EventDB.flatten_event(Event(event))

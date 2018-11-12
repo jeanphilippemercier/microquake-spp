@@ -24,6 +24,7 @@ pyyaml = "*"
 toolz = "*"
 pytz = "*"
 msgpack = "*"
+dynaconf = "*"
 
 [dev-packages]
 

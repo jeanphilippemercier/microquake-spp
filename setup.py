@@ -28,7 +28,6 @@ requirements = [
     'pyyaml',
     'toolz',
     'kafka',
-    'flask-restful',
     'prometheus_client',
     'avro',
     'fastavro',

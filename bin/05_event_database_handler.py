@@ -3,8 +3,29 @@ from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
 from microquake.core import read
 from microquake.db.mongo.mongo import MongoDBHandler
-import time
+from time import time
 import sys
+import requests
+
+
+def construct_file(global_filename, file_bytes):
+    file_bytes.name = global_filename
+    file_bytes.seek(0)
+    return file_bytes
+
+
+def construct_event_files(global_filename, event_file_bytes, waveform_file_bytes, context_file_bytes):
+    data = dict()
+    data['event'] = construct_file(global_filename + ".xml", event_file_bytes)
+    data['waveform'] = construct_file(global_filename + ".mseed", waveform_file_bytes)
+    data['context'] = construct_file(global_filename + ".mseed", context_file_bytes)
+    return data
+
+
+def post_event_files_to_api(full_url, files_data):
+    result = requests.post(full_url, files=files_data)
+    print(result)
+
 
 if __name__ == "__main__":
 
@@ -15,10 +36,12 @@ if __name__ == "__main__":
 
     db_uri = settings.event_db.uri
     db_name = settings.event_db.name
+    EVENTS_API_URL = settings.seismic_api.events_url
 
-    logger.info("connecting to the event database")
-    mongo_conn = MongoDBHandler(uri=db_uri, db_name=db_name)
-    collection_name = settings.event_db.traces_collection
+    # I guess will not used here in that module
+    # logger.info("connecting to the event database")
+    # mongo_conn = MongoDBHandler(uri=db_uri, db_name=db_name)
+    # collection_name = settings.event_db.traces_collection
 
     # Create Kafka Object
     kafka_brokers = settings.kafka.brokers
@@ -31,8 +54,17 @@ if __name__ == "__main__":
                     % settings.magnitude.kafka_consumer_topic)
         t1 = time()
         data = msgpack.unpack(msg_in.value)
-        st = read(BytesIO(data[1]))
-        cat = read_events(BytesIO(data[0]))
+
+        # These might not be used as we will send the files bytes direct
+        # st = read(BytesIO(data[1]))
+        # cat = read_events(BytesIO(data[0]))
+
+        # We need to extract filename from event file as example:
+        global_filename = "test"
+        # Sending the context same as stream file, just for now as temp solution
+        files_dict = construct_event_files(global_filename, BytesIO(data[0]), BytesIO(data[1]), BytesIO(data[1]))
+        post_event_files_to_api(EVENTS_API_URL, files_dict)
+
         t2 = time()
         logger.info('done unpacking the data from Kafka topic <%s> in '
                     '%0.3f seconds'
