@@ -69,9 +69,8 @@ for msg_in in consumer:
 	if vmax > params.threshold:
 		print("Sending Kafka interloc messsage")
 
-		key_out = ("iloc_%d" % (ot_epoch)).encode('utf-8')
-		msg_out = msgpack.pack([ot_epoch, lmax[0], lmax[1], lmax[2], vmax])
-
+		key_out = ("iloc_%.4f" % (ot_epoch)).encode('utf-8')
+		msg_out = msgpack.pack([ot_epoch, lmax[0], lmax[1], lmax[2], vmax, st])
 		# msg_out, key_out = xflow.encode_for_kafka(ot_epoch, lmax, vmax)
 		kafka_handler_obj = KafkaHandler(brokers)
 		kafka_handler_obj.send_to_kafka(topic_out, key_out, msg_out)

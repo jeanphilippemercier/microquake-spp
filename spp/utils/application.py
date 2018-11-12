@@ -114,10 +114,7 @@ class Application(object):
     def get_stations(self):
         if self.settings.sensors.source == 'local':
             st_path = os.path.join(self.common_dir, self.settings.sensors.path)
-            try:
-                site = read_stations(st_path, has_header=False)
-            except:
-                site = read_stations(st_path, has_header=True)
+            site = read_stations(st_path)
 
         elif self.settings.sensors.source == 'remote':
             pass
