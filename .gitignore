@@ -9,6 +9,7 @@ spp.egg-info
 *.mseed
 *.dat
 *.xml
+*.pickle
 .mypy_cache/
 tmp/
 data/NLLOC_grids/

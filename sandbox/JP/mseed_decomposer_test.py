@@ -53,6 +53,5 @@ for name, group in df_grouped:
     buf_out = BytesIO()
     data[1].write(buf_out, format='QUAKEML')
     data_out = msgpack.pack([buf_out.getvalue()])
-    kafka_handler.send_to_kafka(kafka_topic, message=data_out,
-                                key=key, timestamp=int(timestamp))
+    kafka_handler.send_to_kafka(topic=data_out, key=key, message=data_out)
 kafka_handler.producer.flush()

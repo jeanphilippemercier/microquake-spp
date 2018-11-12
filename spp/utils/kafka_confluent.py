@@ -12,9 +12,9 @@ def on_send_error(excp):
 class ConfluentKafkaHandler:
 
     def __init__(self, brokers_list):
-        #logger = logging.getLogger('kafka')
-        #logger.addHandler(logging.StreamHandler(sys.stdout))
-        #logger.setLevel(logging.ERROR)
+        # logger = logging.getLogger('kafka')
+        # logger.addHandler(logging.StreamHandler(sys.stdout))
+        # logger.setLevel(logging.ERROR)
         self.schema_registry_url = "http://kafka-node-002:8081"
 
     @staticmethod

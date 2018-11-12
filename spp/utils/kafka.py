@@ -14,13 +14,17 @@ class KafkaHandler:
         logger.addHandler(logging.StreamHandler(sys.stdout))
         logger.setLevel(logging.ERROR)
         maxbytes = int(msg_maxsize_mb * 1024**2)
-        self.producer = KafkaProducer(bootstrap_servers=brokers_list, buffer_memory=maxbytes,
-                                      max_request_size=maxbytes,  batch_size=batch_size, request_timeout_ms=100000)
+        self.producer = KafkaProducer(bootstrap_servers=brokers_list,
+                                      buffer_memory=maxbytes,
+                                      max_request_size=maxbytes,
+                                      batch_size=batch_size,
+                                      request_timeout_ms=100000)
 
     def send_to_kafka(self, topic, key, message=None, timestamp_ms=None):
 
         return self.producer.send(topic=topic, key=key, value=message,
-                             timestamp_ms=timestamp_ms).add_errback(on_send_error)
+                                  timestamp_ms=timestamp_ms).add_errback(
+                                  on_send_error)
 
     @staticmethod
     def consume_from_topic(topic_name, brokers_list, group_id=None):

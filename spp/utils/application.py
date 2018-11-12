@@ -124,7 +124,6 @@ class Application(object):
 
         return site
 
-
     def get_time_zone(self):
         """
         returns a time zone compatible object Handling of time zone is essential
@@ -189,50 +188,59 @@ class Application(object):
         :return: a pandas DataFrame
         """
 
-        import os
-        from pandas import DataFrame
-        from spp.time import get_time_zone
-
-        # building spark keys
-        # need to be parallelized but for now running in loops
-
         tt = self.get_travel_time_grid(station, phase)
         return tt.interpolate(location, grid_coordinate=grid_coordinates)
 
-    def get_console_handler(self):
+    def __get_console_handler(self):
+        """
+        get logger console handler
+        Returns: console_handler
+
+        """
         console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setFormatter(self.settings.logging.log_format)
+        formatter = logging.Formatter(self.settings.logging.log_format)
+        console_handler.setFormatter(formatter)
         return console_handler
 
-    def get_file_handler(self):
+    def __get_file_handler(self, log_filename):
+        """
+        get logger file handler
+        Returns: file handler
+
+        """
         log_dir = self.settings.logging.log_directory
         formatter = logging.Formatter(self.settings.logging.log_format)
-        log_filename = self.settings.logging.log_filename
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
         logger_file = os.path.join(log_dir, log_filename)
-        file_handler = TimedRotatingFileHandler(log_dir + log_filename,
+        file_handler = TimedRotatingFileHandler(logger_file,
                                                 when='midnight')
         file_handler.setFormatter(formatter)
         return file_handler
 
-    def get_logger(self):
-        logger_name = self.settings.logging.logger_name
+    def get_logger(self, logger_name, log_filename):
+
+        BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
+
+        COLORS = {
+        'WARNING': YELLOW,
+        'INFO': WHITE,
+        'DEBUG': BLUE,
+        'CRITICAL': YELLOW,
+        'ERROR': RED}
+
         logger = logging.getLogger(logger_name)
         log_level = self.settings.logging.log_level
-        log_filename = self.settings.logging.log_filename
-        # MTH: added to stop adding duplicate handlers
+
         if not len(logger.handlers):
 
-            # Set Log Level based on the way it was passed
-            final_log_level = "INFO"
+            final_log_level = self.settings.logging.log_level
             if log_level is not None:
                 final_log_level = log_level
             elif log_level is not None:
                 final_log_level = log_level
             logger.setLevel(final_log_level)
 
-            logger.addHandler(self.get_console_handler())
-            logger.addHandler(self.get_file_handler())
-            logger.propagate = False
+            logger.addHandler(self.__get_console_handler())
+            logger.addHandler(self.__get_file_handler(log_filename))
         return logger

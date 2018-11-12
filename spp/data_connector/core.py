@@ -103,8 +103,7 @@ def write_decomposed_mseed_to_kafka(decomposed_mseed):
             data += g
         timestamp = int(name.timestamp() * 1e3)
         key = name.strftime('%Y-%d-%m %H:%M:%S.%f').encode('utf-8')
-        kafka_handler.send_to_kafka(kafka_topic, message=data, key=key,
-                                    timestamp=int(timestamp))
+        kafka_handler.send_to_kafka(topic=data, key=key, message=data)
     kafka_handler.producer.flush()
     etime = time.time() - stime
     logger.info("==> Inserted stream chunks into Kafka in: %.2f" % etime)
@@ -380,7 +379,7 @@ def write_to_kafka(stream_object):
     msg_size = (sys.getsizeof(kafka_msg) / 1024 / 1024)
 
     s_time = time.time()
-    kafka_handler_obj.send_to_kafka(kafka_topic, kafka_msg,
+    kafka_handler_obj.send_to_kafka(kafka_msg, kafka_topic,
                                     msg_key.encode('utf-8'))
 
     kafka_handler_obj.producer.flush()

@@ -7,7 +7,8 @@ from io import BytesIO
 
 app = Application()
 settings = app.settings
-logger = app.get_logger()
+
+logger = app.get_logger(settings.nlloc.log_topic, settings.nlloc.log_file_name)
 
 project_code = settings.project_code
 base_folder = settings.nlloc.nll_base
@@ -47,13 +48,12 @@ obj[0].write(ev_io, format='QUAKEML')
 
 data = msgpack.pack([ev_io.getvalue(), st_io.getvalue()])
 
-timestamp = cat[2].preferred_origin().time.timestamp * 1e3
+timestamp_ms = int(cat[2].preferred_origin().time.timestamp * 1e3)
 
 key = str(cat[2].preferred_origin().time).encode('utf-8')
 
-
-kafka_handler.send_to_kafka(kafka_topic, message=data,
-                            key=key, timestamp=int(timestamp))
+kafka_handler.send_to_kafka(kafka_topic, key, message=data,
+                            timestamp_ms=timestamp_ms)
 
 kafka_handler.producer.flush()
 

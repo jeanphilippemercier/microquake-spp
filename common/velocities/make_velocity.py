@@ -3,21 +3,25 @@ import os
 from microquake.core import ctl
 import numpy as np
 # import matplotlib.pyplot as plt
-from microquake.core.data.grid import read_grid
+from microquake.core.data.grid import read_grid, create
+from spp.utils.config import Configuration
+
+config = Configuration()
 
 config_dir = os.environ['SPP_CONFIG']
+
 config_file = config_dir + '/microquake.xml'
 
 z = [1168, 459, -300]
 Vp_z = [4533, 5337, 5836]
 Vs_z = [2306, 2885, 3524]
 
-params = ctl.parse_control_file(config_file)
+vp = create(**config.settings['grids'])
+vs = create(**config.settings['grids'])
 
-vp = params.velgrids.grids['vp']
-vs = params.velgrids.grids['vs']
+origin = config.settings['grids']['origin']
 
-zis = [int(vp.transform_to([params.origin[0], params.origin[1], z_])[2]) for z_ in z]
+zis = [int(vp.transform_to([origin[0], origin[1], z_])[2]) for z_ in z]
 
 vp.data[:,:,zis[0]:] = Vp_z[0]
 vs.data[:,:,zis[0]:] = Vs_z[0]
@@ -41,7 +45,7 @@ z = [vp.transform_from(np.array([0, 0, z_]))[2] for z_ in range(0, lz)]
 # plt.colorbar()
 # plt.show()
 
-vp.write('vp.pickle', format='PICKLE')
-vs.write('vs.pickle', format='PICKLE')
+vp.write('vp', format='NLLOC')
+vs.write('vs', format='NLLOC')
 
 

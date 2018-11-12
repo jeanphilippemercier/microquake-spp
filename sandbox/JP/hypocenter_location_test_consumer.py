@@ -48,8 +48,7 @@ for msg_in in consumer:
     data_out = msgpack.pack([ev_io.getvalue(), data[1]])
     # st = read(data[0])
 
-    kafka_handler.send_to_kafka(kafka_producer_topic, message=data_out,
-                                key=key, timestamp=int(timestamp))
+    kafka_handler.send_to_kafka(topic=data_out, key=key, message=data_out)
 
     # Tracer()()
     # cat = read_events(data[0])
