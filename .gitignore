@@ -6,6 +6,10 @@ spp.egg-info
 *.hdr
 *.obs*
 *.log
+*.mseed
+*.dat
+*.xml
 .mypy_cache/
 tmp/
 data/NLLOC_grids/
+libs/microquake

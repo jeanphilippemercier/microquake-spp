@@ -163,10 +163,8 @@ class Application(object):
         """
         from microquake.core.data.grid import read_grid
         import os
-        from spp.utils import get_stations
-        common_dir = os.environ['SPP_COMMON']
 
-        site = get_stations()
+        site = self.get_stations()
         station = site.select(station=station).stations()[0]
         common_dir = self.common_dir
         nll_dir = self.settings.nlloc.nll_base
