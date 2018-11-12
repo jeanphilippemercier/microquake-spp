@@ -1,49 +1,45 @@
 from flask import Flask, request, jsonify, send_file, Response
 import os
 import sys
-from microquake.db.mongo.mongo import MongoDBHandler, StreamDB, EventDB, MongoJSONEncoder
+from microquake.db.mongo.mongo import (MongoDBHandler, StreamDB, EventDB,
+                                       MongoJSONEncoder)
 from microquake.core.stream import Stream
 from microquake.core import read
 from io import BytesIO
 import time
-from obspy.core.utcdatetime import UTCDateTime
-import numpy as np
-#from obspy.core.event import read_events
-from microquake.core import read_events
-from microquake.core.event import Event
+from microquake.core import UTCDateTime
+from microquake.core.event import Event, read_events
 import base64
 from spp.utils.application import Application
 from bson.objectid import ObjectId
 import json
-import zipfile
 import tarfile
-from spp.utils import log_handler
 import datetime
 import re
 import helpers.middleware as middleware
 import prometheus_client
-from spp.time import core as time_util
+import spp.utils.time as time_util
 
 
+# initialize the application
+app = Application()
+config = app.settings
 
 app = Flask(__name__)
 
-log = log_handler.get_logger("SPP API", 'spp_api.log')
+log = app.get_logger("SPP API", 'spp_api.log')
 
 # Configure Prometheus wit the API
 middleware.setup_metrics(app)
 CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
 
-# load configuration file
-config = Application()
+mongo = MongoDBHandler(config.event_db.uri, config.event_db.name)
 
-mongo = MongoDBHandler(config.DB['uri'], config.DB['db_name'])
-
-TRACES_COLLECTION = config.DB['traces_collection']
-EVENTS_COLLECTION = config.DB['events_collection']
-EVENTS_INUSE_COLLECTION = config.DB['events_inuse_collection']
-INUSE_TTL = int(config.DB['inuse_ttl'])
-BASE_DIR = config.DB['filestore_base_dir']
+TRACES_COLLECTION = config.event_db.traces_collection
+EVENTS_COLLECTION = config.event_db.events_collection
+EVENTS_INUSE_COLLECTION = config.event_db.events_inuse_collection
+INUSE_TTL = int(config.event_db.in_use_ttl)
+BASE_DIR = config.event_db.filestore_base_dir
 
 OUTPUT_TYPES = {'MSEED': ".mseed",
                 'MSEED_CONTEXT': ".mseed_context",
@@ -59,7 +55,8 @@ def home():
 
 @app.route('/metrics')
 def metrics():
-    return Response(prometheus_client.generate_latest(), mimetype=CONTENT_TYPE_LATEST)
+    return Response(prometheus_client.generate_latest(),
+                    mimetype=CONTENT_TYPE_LATEST)
 
 
 def construct_output(stream_obj, requested_format='MSEED'):
@@ -74,7 +71,8 @@ def construct_output(stream_obj, requested_format='MSEED'):
         output.seek(0)
 
     end_time = time.time() - start_time
-    log.info("Formatting Output took: %.2f , Output Size: %.2f MB" % (end_time, (output_size/1024/1024)))
+    log.info("Formatting Output took: %.2f , Output Size: %.2f MB"
+             % (end_time, (output_size/1024/1024)))
     return output
 
 
@@ -82,14 +80,13 @@ def combine_json_to_stream_data(db_result):
     start_time = time.time()
     s = Stream.create_from_json_traces(db_result)
 
-    #for tr in s:
-        #log.info("combine_json_to_stream: id:%s st:%s et:%s (n:%d) sr:%f" % \
-                #(tr.get_id(), tr.stats.starttime, tr.stats.endtime, tr.stats.npts, tr.stats.sampling_rate)) 
     records_count = len(s.traces)
     merged_stream = s.merge(fill_value=0, method=1)
     end_time = time.time() - start_time
-    log.info("DB Fetching and Stream Creation took:%.2f , Records Count: %s, Merged Traces Count: %s" % \
-            (end_time, records_count, len(s.traces)))
+    log.info("DB Fetching and Stream Creation took:%.2f , Records Count: %s, "
+             "Merged Traces Count: %s" % (end_time,
+                                          records_count,
+                                          len(s.traces)))
     return merged_stream
 
 
@@ -97,7 +94,8 @@ def check_and_parse_datetime(dt_str):
     try:
         return time_util.convert_datetime_to_epoch_nanoseconds(dt_str)
     except ValueError:
-        error_msg = "Invalid datetime format, value should be in format: %Y-%m-%dT%H:%M:%S.%f"
+        error_msg = "Invalid datetime format, value should be in format: " \
+                    "%Y-%m-%dT%H:%M:%S.%f"
         log.exception(error_msg)
         raise InvalidUsage(error_msg, status_code=410)
 
@@ -116,7 +114,8 @@ def get_stream():
 
     # Validate Request Params
     # Check Date Ranges
-    if 'starttime' in request.args and ('endtime' in request.args or 'duration' in request.args):
+    if 'starttime' in request.args and ('endtime' in request.args or
+                                        'duration' in request.args):
 
         start_time = check_and_parse_datetime(request.args['starttime'])
         if 'endtime' in request.args:
@@ -129,7 +128,8 @@ def get_stream():
         log.info('get_stream: starttime:%s endtime:%s' % (st, et))
     else:
         raise InvalidUsage("date-range-options must be specified like:" +
-                           "(starttime=<time>) & ([endtime=<time>] | [duration=<seconds>])",
+                           "(starttime=<time>) & ([endtime=<time>] | ["
+                           "duration=<seconds>])",
                            status_code=400)
 
     # Other Optional
@@ -146,37 +146,43 @@ def get_stream():
         if request.args['output'] in output_formats:
             output_format = request.args['output']
         else:
-            raise InvalidUsage("Invalid output option, should be one of these:" +
-                               "MSEED, PLOT, BINARY",
+            raise InvalidUsage("Invalid output option, should be one of "
+                               "these: MSEED, PLOT, BINARY",
                                status_code=400)
 
-    criteria_filter = construct_filter_criteria(start_time, end_time, network, station, channel)
+    criteria_filter = construct_filter_criteria(start_time, end_time, network,
+                                                station, channel)
 
     result = mongo.db[TRACES_COLLECTION].find(criteria_filter, {"_id": 0})
 
     if result.count() >= 1:
         # combine traces together
         resulted_stream = combine_json_to_stream_data(result)
-        '''
-        log.info("MTH: get_stream: resulted_stream type=%s" % (type(resulted_stream)))
+        log.info("MTH: get_stream: resulted_stream type=%s" % (type(
+        resulted_stream)))
         for i,tr in enumerate(resulted_stream):
             stats = tr.stats
-            log.info("[%3d] sta:%3s ch:%s %s - %s sr:%f n:%d d:%s" % \
-                    (i,stats.station, stats.channel, stats.starttime, stats.endtime, \
-                     stats.sampling_rate, stats.npts, tr.data.dtype))
-        '''
+            log.info("[%3d] sta:%3s ch:%s %s - %s sr:%f n:%d d:%s" %
+                     (i, stats.station, stats.channel, stats.starttime,
+                      stats.endtime, stats.sampling_rate, stats.npts,
+                      tr.data.dtype))
 
-        resulted_stream.trim(UTCDateTime(start_time / 1e9), UTCDateTime(end_time / 1e9), pad=True, fill_value=0.0)
+        resulted_stream.trim(UTCDateTime(start_time / 1e9),
+                             UTCDateTime(end_time / 1e9),
+                             pad=True, fill_value=0.0)
 
         final_output = construct_output(resulted_stream, output_format)
 
         request_endtime = time.time() - request_starttime
-        log.info("Request Done Successfully. Total API Request took: %.2f seconds" % request_endtime)
+        log.info("Request Done Successfully. Total API Request took: "
+                 "%.2f seconds" % request_endtime)
 
-        return send_file(final_output, attachment_filename="testing.mseed", as_attachment=True)
+        return send_file(final_output, attachment_filename="testing.mseed",
+                         as_attachment=True)
     else:
         request_endtime = time.time() - request_starttime
-        log.info("Request Done Successfully but with no data found. Total API Request took: %.2f seconds" % request_endtime)
+        log.info("Request Done Successfully but with no data found. "
+                 "Total API Request took: %.2f seconds" % request_endtime)
 
         return build_success_response("No data found", {"no_data_found": True})
 
@@ -268,20 +274,29 @@ def check_event_existance(event_time_epoch):
 
 @app.route('/events/putEvent', methods=['POST'])
 def put_event():
+    """
+    Returns:
+
+    """
 
     log.info("put_event started.")
     request_starttime = time.time()
 
-    if 'event' in request.get_json() and 'waveform' in request.get_json() and 'context' in request.get_json():
+    if 'event' in request.get_json() and 'waveform' in request.get_json() and \
+                    'context' in request.get_json():
         conversion_starttime = time.time()
         log.info('put_event: call read_events')
-        event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
-        waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
-        waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])), format='MSEED')
+        event = read_events(BytesIO(base64.b64decode(request.get_json()[
+                                                         'event'])))[0]
+        waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])),
+                        format='MSEED')
+        waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])),
+                                format='MSEED')
         conversion_endtime = time.time() - conversion_starttime
         log.info("put_event: Conversion took: %.2f seconds" % conversion_endtime)
     else:
-        raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context must be specified in request body",
+        raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context "
+                           "must be specified in request body",
                            status_code=400)
 
     log.info('put_event: Call EventDB.flatten_event')
@@ -291,12 +306,16 @@ def put_event():
 
     if existed_event_id:
         #return build_success_response("Event already exists with ID " + existed_event_id)
-        log.info('put_event: id=[%s] already exists in db --> Dont try to insert/update xml' % existed_event_id)
-        return build_success_response("Event already exists with ID " + existed_event_id, {"event_id": str(existed_event_id)})
+        log.info('put_event: id=[%s] already exists in db --> Dont try to '
+                 'insert/update xml' % existed_event_id)
+        return build_success_response("Event already exists with ID "
+                                      + existed_event_id,
+                                      {"event_id": str(existed_event_id)})
     else:
         filename = generate_filename_from_date(ev_flat_dict['time'])
         filepath = generate_filepath_from_date(ev_flat_dict['time'])
-        log.info('put_event: create filestore: filepath + filename = [%s]' % (filepath + filename))
+        log.info('put_event: create filestore: filepath + filename = [%s]'
+                 % (filepath + filename))
 
         create_filestore_directories(BASE_DIR, filepath)
 
@@ -316,12 +335,15 @@ def put_event():
 
         inserted_event_id = mongo.db[EVENTS_COLLECTION].insert_one(ev_flat_dict).inserted_id
 
-        log.info("put_event: Inserted new event into mongoDB with ID:" + str(inserted_event_id))
+        log.info("put_event: Inserted new event into mongoDB with ID:"
+                 + str(inserted_event_id))
 
         request_endtime = time.time() - request_starttime
-        log.info("put_event ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
+        log.info("put_event ended Successfully. Total API Request took: %.2f "
+                 "seconds" % request_endtime)
 
-        return build_success_response("Event inserted successfully", {"event_id": str(inserted_event_id)})
+        return build_success_response("Event inserted successfully",
+                                      {"event_id": str(inserted_event_id)})
 
 
 def read_and_write_file_as_bytes(relative_filepath, format):
@@ -345,11 +367,14 @@ def construct_event_output(event_data, requested_format):
     start_time = time.time()
 
     if requested_format == "QUAKEML":
-        output = read_and_write_file_as_bytes(event_data['event_filepath'], requested_format)
+        output = read_and_write_file_as_bytes(event_data['event_filepath'],
+                                              requested_format)
     elif requested_format == "MSEED":
-        output = read_and_write_file_as_bytes(event_data['waveform_filepath'], requested_format)
+        output = read_and_write_file_as_bytes(event_data['waveform_filepath'],
+                                              requested_format)
     elif requested_format == "MSEED_CONTEXT":
-        output = read_and_write_file_as_bytes(event_data['waveform_context_filepath'], requested_format)
+        output = read_and_write_file_as_bytes(event_data['waveform_context_filepath'],
+                                              requested_format)
     elif requested_format == "ALL":
         tar_file_bytes = BytesIO()
         #with zipfile.ZipFile(zip_file_bytes, 'w') as myzip:
@@ -367,7 +392,8 @@ def construct_event_output(event_data, requested_format):
     output_size = sys.getsizeof(output.getvalue())
     output.seek(0)
     end_time = time.time() - start_time
-    log.info("Formatting Output took: %.2f , Output Size: %.2f MB" % (end_time, (output_size/1024/1024)))
+    log.info("Formatting Output took: %.2f , Output Size: %.2f MB"
+             % (end_time, (output_size/1024/1024)))
     return output
 
 
@@ -390,7 +416,7 @@ def get_event():
         if request.args['output'] in OUTPUT_TYPES.keys():
             output_format = request.args['output']
         else:
-            raise InvalidUsage("Invalid output option, should be one of these:" +
+            raise InvalidUsage("Invalid output option, should be one of these:"
                                "MSEED, MSEED_CONTEXT, QUAKEML or ALL",
                                status_code=400)
     else:
@@ -408,9 +434,11 @@ def get_event():
         output_filename = event_result[0]['filename'] + OUTPUT_TYPES[output_format]
 
         request_endtime = time.time() - request_starttime
-        log.info("getEvent ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
+        log.info("getEvent ended Successfully. Total API Request took: %.2f "
+                 "seconds" % request_endtime)
 
-        return send_file(output_file, attachment_filename=output_filename, as_attachment=True)
+        return send_file(output_file, attachment_filename=output_filename,
+                         as_attachment=True)
 
     else:
         log.info("getEvent ended Successfully with no data found")
@@ -437,15 +465,18 @@ def update_event():
         if 'event' in request.get_json():
             event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
         if 'waveform' in request.get_json():
-            waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])), format='MSEED')
+            waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])),
+                            format='MSEED')
         if 'context' in request.get_json():
-            waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])), format='MSEED')
+            waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])),
+                                    format='MSEED')
         conversion_endtime = time.time() - conversion_starttime
 
         log.info("Conversion took: %.2f seconds" % conversion_endtime)
     else:
-        raise InvalidUsage("Wrong data sent..!! Event ID must be specified and one of " +
-                           "(Event, Waveform or Context) must be specified in request body",
+        raise InvalidUsage("Wrong data sent..!! Event ID must be specified "
+                           "and one of (Event, Waveform or Context) must be "
+                           "specified in request body",
                            status_code=400)
 
     filter = {
@@ -461,7 +492,8 @@ def update_event():
         filename = generate_filename_from_date(event_document['time'])
         filepath = generate_filepath_from_date(event_document['time'])
 
-        log.info('update_event: create_filestore: BASE_DIR=%s filepath=%s' % (BASE_DIR, filepath))
+        log.info('update_event: create_filestore: BASE_DIR=%s filepath=%s'
+                 % (BASE_DIR, filepath))
 
         create_filestore_directories(BASE_DIR, filepath)
 
@@ -500,10 +532,12 @@ def update_event():
         log.info("Event  with ID:%s has been updated successfully" % event_id)
 
         request_endtime = time.time() - request_starttime
-        log.info("updateEvent ended Successfully. Total Update Request took: %.2f seconds" % request_endtime)
+        log.info("updateEvent ended Successfully. Total Update Request took: "
+                 "%.2f seconds" % request_endtime)
 
         #return build_success_response("Event updated successfully")
-        return build_success_response("Event update successfully", {"event_id": str(event_id)})
+        return build_success_response("Event update successfully",
+                                      {"event_id": str(event_id)})
     else:
         log.info("updateEvent ended Successfully. No data found to update.")
         return build_success_response("No data found")
@@ -533,7 +567,8 @@ def get_event_inuse():
 
     # Check Date Ranges
     if 'eventid' and 'userid' in request.args:
-        print('get_Event_InUse: eventid:%s userid:%s' % (request.args['eventid'], request.args['userid']))
+        print('get_Event_InUse: eventid:%s userid:%s'
+              % (request.args['eventid'], request.args['userid']))
         event_id = request.args['eventid']
         user_id = request.args['userid']
     else:
@@ -553,7 +588,8 @@ def get_event_inuse():
     inuse_result = mongo.db[EVENTS_INUSE_COLLECTION].find(query_filter)
 
     request_endtime = time.time() - request_starttime
-    log.info("getEventInUse ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
+    log.info("getEventInUse ended Successfully. Total API Request took: %.2f "
+             "seconds" % request_endtime)
 
     if inuse_result.count() >= 1:
         return MongoJSONEncoder().encode(inuse_result[0])
@@ -569,12 +605,13 @@ def put_event_inuse():
 
     # Check Date Ranges
     if 'eventid' and 'userid' in request.get_json():
-        log.info('put_Event_InUse: eventid:%s userid:%s' % (request.get_json()['eventid'], request.get_json()['userid']))
+        log.info('put_Event_InUse: eventid:%s userid:%s' %
+                 (request.get_json()['eventid'], request.get_json()['userid']))
         event_id = request.get_json()['eventid']
         user_id = request.get_json()['userid']
     else:
-        raise InvalidUsage("Event ID and User ID must be specified in request body",
-                           status_code=400)
+        raise InvalidUsage("Event ID and User ID must be specified "
+                           "in request body", status_code=400)
 
     # get current timestamp in order to calculate inuse TTL expiration time
     ttl_expiration = (time.time() + INUSE_TTL) * 10e9
@@ -588,9 +625,11 @@ def put_event_inuse():
     inserted_record_id = mongo.db[EVENTS_INUSE_COLLECTION].insert_one(inuse_data).inserted_id
 
     request_endtime = time.time() - request_starttime
-    log.info("putEventInUse ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
+    log.info("putEventInUse ended Successfully. Total API Request took: %.2f "
+             "seconds" % request_endtime)
 
-    return build_success_response("EventInUse added successfully", {"event_inuse_id": str(inserted_record_id)})
+    return build_success_response("EventInUse added successfully",
+                                  {"event_inuse_id": str(inserted_record_id)})
 
 
 @app.route('/events/getCatalog', methods=['GET'])
@@ -602,7 +641,8 @@ def get_catalog():
     if 'starttime' in request.args and 'endtime' in request.args:
         start_time = check_and_parse_datetime(request.args['starttime'])
         end_time = check_and_parse_datetime(request.args['endtime'])
-        log.info('get_catalog: starttime:%s endtime:%s' % (start_time, end_time))
+        log.info('get_catalog: starttime:%s endtime:%s'
+                 % (start_time, end_time))
     else:
         raise InvalidUsage("date-range-options must be specified like:" +
                            "(starttime=<time>) & ([endtime=<time>]) ",
@@ -619,12 +659,14 @@ def get_catalog():
 
     if events_catalog_result.count() >= 1:
         request_endtime = time.time() - request_starttime
-        log.info("getEvent ended Successfully. Total API Request took: %.2f seconds" % request_endtime)
+        log.info("getEvent ended Successfully. Total API Request took: %.2f "
+                 "seconds" % request_endtime)
         catalog_list = []
         for event in events_catalog_result:
             event['time'] = time_util.convert_epoch_nanoseconds_to_utc_datetime_string(event['time'])
             catalog_list.append(MongoJSONEncoder().encode(event))
-        return build_success_response("getCatalog ended successfully", {"catalog": catalog_list})
+        return build_success_response("getCatalog ended successfully",
+                                      {"catalog": catalog_list})
 
     else:
         log.info("getCatalog ended Successfully with no data found")
@@ -645,7 +687,8 @@ def build_success_response(message_text, extra_dict=None):
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return "<h1>404</h1><p>The URL is invalid, please check the URL requested</p>", 404
+    return "<h1>404</h1><p>The URL is invalid, please check the URL " \
+           "requested</p>", 404
 
 
 class InvalidUsage(Exception):

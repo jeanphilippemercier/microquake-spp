@@ -50,8 +50,26 @@ if __name__ == "__main__":
         logger.info('done calculating the moment magnitude in %0.3f' %
                     (t4 - t3))
 
-        logger.info('=========================================================')
+        logger.info('packing the data')
+        timestamp_ms = int(cat_out[0].preferred_origin().time.timestamp * 1e3)
+        key = str(cat_out[0].preferred_origin().time).encode('utf-8')
 
-        Tracer()()
+        ev_io = BytesIO()
+        cat_out.write(ev_io, format='QUAKEML')
+        data_out = pack([ev_io.getvalue(), data[1]])
+        t4 = time()
+        logger.info('done packing the data in %0.3f seconds' % (t4 - t3))
+
+        logger.info('sending the data Kafka topic <%s>'
+                    % app.settings.nlloc.kafka_producer_topic)
+        kafka_handler.send_to_kafka(kafka_producer_topic,
+                                    key,
+                                    message=data_out,
+                                    timestamp_ms=timestamp_ms)
+        t5 = time()
+        logger.info('done sending the data to Kafka topic <%s> in %0.3f '
+                    'seconds' % (app.settings.nlloc.kafka_producer_topic,
+                                 t5 - t4))
+        logger.info('=========================================================')
 
 
