@@ -1,8 +1,8 @@
 from registry.microquake.org/rio-tinto/seismic-processing-platform/base:latest
 
 COPY ./ /app
-RUN pip install --no-deps libs/microquake
-RUN pip install --no-deps libs/xseis
+RUN pip install --no-deps -e libs/microquake
+RUN pip install --no-deps -e libs/xseis
 RUN echo "helloworld"
 
 RUN rm -rf /root/.cache
