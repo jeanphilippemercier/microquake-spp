@@ -36,7 +36,6 @@ ttable = (ttable * dsr).astype(np.uint16)
 ngrid = ttable.shape[1]
 tt_ptrs = np.array([row.__array_interface__['data'][0] for row in ttable])
 
-# consumer = KafkaHandler.consume_from_topic(topic_in, brokers, group_id='group')
 consumer = KafkaHandler.consume_from_topic(topic_in, brokers, group_id=None)
 
 print("Awaiting Kafka mseed messsages")
