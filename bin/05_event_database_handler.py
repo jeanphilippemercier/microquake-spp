@@ -1,10 +1,9 @@
+#!/usr/bin/env python3
+
 from io import BytesIO
 from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
-from microquake.core import read
-from microquake.db.mongo.mongo import MongoDBHandler
 from time import time
-import sys
 import requests
 
 
@@ -49,14 +48,14 @@ if __name__ == "__main__":
     # Create Kafka Object
     kafka_brokers = settings.kafka.brokers
     kafka_topic = settings.event_db.kafka_topic
-    consumer = KafkaHandler.consume_from_topic(kafka_topic,kafka_brokers)
+    consumer = KafkaHandler.consume_from_topic(kafka_topic, kafka_brokers)
 
     logger.info('Consuming Streams from Kafka...')
     for message in consumer:
         logger.info('unpacking the data received from Kafka topic <%s>'
                     % settings.magnitude.kafka_consumer_topic)
         t1 = time()
-        data = msgpack.unpack(msg_in.value)
+        data = msgpack.unpack(message.value)
 
         # These might not be used as we will send the files bytes direct
         # st = read(BytesIO(data[1]))

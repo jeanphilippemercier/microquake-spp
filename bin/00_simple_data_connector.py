@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Simple data connector. This data connector does not superseeds the data
 # connector previously written. This data connector will be run on a local
 # machine on the Oyu Tolgoi site. It will simply get data around manually
@@ -12,10 +14,12 @@ from spp.time import get_time_zone
 from microquake.core import Stream
 from microquake.io.waveform import mseed_decomposer
 
+time_windows = 10 * 60 * 60 # window length for time request in hours
+
 # request the data from the IMS system
 
 end_time = UTCDateTime.now() - 2 * 60
-start_time = end_time - 10 * 60 * 60
+start_time = end_time - 10 * 60 * 60  # looking at the past 10 hours
 
 dc_params = get_data_connector_parameters()
 
