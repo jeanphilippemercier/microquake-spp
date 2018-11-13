@@ -59,7 +59,7 @@ class Application(object):
         params = self.settings.sensors
         if params.source == 'local':
             fpath = os.path.join(self.common_dir, params.path)
-            site = read_stations(fpath)
+            site = read_stations(fpath, format='CSV')
         elif self.settings.sensors.source == 'remote':
             pass
 

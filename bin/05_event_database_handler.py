@@ -14,7 +14,10 @@ def construct_file(global_filename, file_bytes):
     return file_bytes
 
 
-def construct_event_files(global_filename, event_file_bytes, waveform_file_bytes, context_file_bytes):
+def construct_event_files(global_filename,
+                          event_file_bytes,
+                          waveform_file_bytes,
+                          context_file_bytes):
     data = dict()
     data['event'] = construct_file(global_filename + ".xml", event_file_bytes)
     data['waveform'] = construct_file(global_filename + ".mseed", waveform_file_bytes)
@@ -62,7 +65,8 @@ if __name__ == "__main__":
         # We need to extract filename from event file as example:
         global_filename = "test"
         # Sending the context same as stream file, just for now as temp solution
-        files_dict = construct_event_files(global_filename, BytesIO(data[0]), BytesIO(data[1]), BytesIO(data[1]))
+        files_dict = construct_event_files(global_filename, BytesIO(data[0]),
+                                           BytesIO(data[1]), BytesIO(data[1]))
         post_event_files_to_api(EVENTS_API_URL, files_dict)
 
         t2 = time()
