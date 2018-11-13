@@ -1,4 +1,8 @@
-version: "3.2"
+version: "3.5"
+
+networks:
+  default:
+    name: spp-network
 
 services:
   zookeeper:
@@ -89,6 +93,8 @@ services:
 
   prometheus:
     image: prom/prometheus
+    hostname: prometheus
+    container_name: prometheus
     ports:
       - 9090:9090/tcp
     volumes:
@@ -98,6 +104,8 @@ services:
 
   node-exporter:
     image: prom/node-exporter
+    hostname: node-exporter
+    container_name: node-exporter
     links:
       - prometheus
     ports:
@@ -105,6 +113,8 @@ services:
 
   grafana:
     image: grafana/grafana
+    hostname: grafana
+    container_name: grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     links:
@@ -112,10 +122,10 @@ services:
     ports:
       - "3000:3000"
 
-
   mongodb:
     image: mongo:4
-    container_name: "mongodb"
+    hostname: mongodb
+    container_name: mongodb
     environment:
       - MONGO_DATA_DIR=/data/db
       - MONGO_LOG_DIR=/dev/null
