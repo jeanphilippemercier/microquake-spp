@@ -240,15 +240,6 @@ class Application(object):
 
     def get_logger(self, logger_name, log_filename):
 
-        BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
-
-        COLORS = {
-        'WARNING': YELLOW,
-        'INFO': WHITE,
-        'DEBUG': BLUE,
-        'CRITICAL': YELLOW,
-        'ERROR': RED}
-
         logger = logging.getLogger(logger_name)
         log_level = self.settings.logging.log_level
 
