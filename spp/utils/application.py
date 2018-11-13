@@ -11,15 +11,16 @@ import os
 
 class Application(object):
 
-    DATA_CONNECTOR = None
-    DB = None
+    def __init__(self, toml_file=None):
 
-    def __init__(self):
         self.config_dir = os.environ['SPP_CONFIG']
         self.common_dir = os.environ['SPP_COMMON']
 
-        self.settings = AttribDict(toml.load(os.path.join(self.config_dir,
-                                                          'settings.toml')))
+        if toml_file is None:
+            toml_file = os.path.join(self.config_dir, 'settings.toml')
+        self.toml_file = toml_file
+
+        self.settings = AttribDict(toml.load(self.toml_file))
 
         # Appending the SPP_COMMON directory to nll_base
 
@@ -33,9 +34,36 @@ class Application(object):
                 self.settings.magnitude.len_spectrum = 2 ** \
                 self.settings.magnitude.len_spectrum_exponent
 
-        # legacy for compatibility with NLLOC
+    @property
+    def nll_tts_dir(self):
+        return os.path.join(self.common_dir,
+                         self.settings.nlloc.nll_base, 'time')
 
-        # reading the velocity grids
+    def get_ttable_h5(self):
+        from microquake.core.data import ttable
+        fname = os.path.join(self.common_dir, self.settings.grids.hfile)
+        return ttable.H5TTable(fname)
+
+    def write_ttable_h5(self, fname=None):
+        from microquake.core.data import ttable
+
+        if fname is None:
+            fname = self.settings.grids.hfile
+
+        ttp = ttable.array_from_nll_grids(self.nll_tts_dir, 'P', prefix='OT')
+        tts = ttable.array_from_nll_grids(self.nll_tts_dir, 'S', prefix='OT')
+        fpath = os.path.join(self.common_dir, fname)
+        ttable.write_h5(fpath, ttp, tdict2=tts)
+
+    def get_stations(self):
+        params = self.settings.sensors
+        if params.source == 'local':
+            fpath = os.path.join(self.common_dir, params.path)
+            site = read_stations(fpath)
+        elif self.settings.sensors.source == 'remote':
+            pass
+
+        return site
 
     def nll_velgrids(self):
         """
@@ -111,16 +139,6 @@ class Application(object):
 
         return vp, vs
 
-    def get_stations(self):
-        if self.settings.sensors.source == 'local':
-            st_path = os.path.join(self.common_dir, self.settings.sensors.path)
-            site = read_stations(st_path)
-
-        elif self.settings.sensors.source == 'remote':
-            pass
-
-        return site
-
     def get_time_zone(self):
         """
         returns a time zone compatible object Handling of time zone is essential
@@ -147,7 +165,7 @@ class Application(object):
 
         return tz
 
-    def get_travel_time_grid(self, station, phase):
+    def get_travel_time_grid(self, sta_code, phase):
         """
         get a travel time grid for a given station and a given phase
         Args:
@@ -159,15 +177,13 @@ class Application(object):
         """
         from microquake.core.data.grid import read_grid
         import os
-
-        site = self.get_stations()
-        station = site.select(station=station).stations()[0]
+        
         common_dir = self.common_dir
         nll_dir = self.settings.nlloc.nll_base
         f_tt = os.path.join(common_dir, nll_dir, 'time', 'OT.%s.%s.time.buf'
-                            % (phase.upper(), station.code))
+                            % (phase.upper(), sta_code))
         tt_grid = read_grid(f_tt, format='NLLOC')
-        tt_grid.seed = station.loc
+        # tt_grid.seed = station.loc
 
         return tt_grid
 
@@ -185,59 +201,50 @@ class Application(object):
         :return: a pandas DataFrame
         """
 
+        # import os
+        # from pandas import DataFrame
+        # from spp.time import get_time_zone
+
+        # building spark keys
+        # need to be parallelized but for now running in loops
+
         tt = self.get_travel_time_grid(station, phase)
         return tt.interpolate(location, grid_coordinate=grid_coordinates)
 
-    def __get_console_handler(self):
-        """
-        get logger console handler
-        Returns: console_handler
-
-        """
+    def get_console_handler(self):
         console_handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter(self.settings.logging.log_format)
-        console_handler.setFormatter(formatter)
+        console_handler.setFormatter(self.settings.logging.log_format)
         return console_handler
 
-    def __get_file_handler(self, log_filename):
-        """
-        get logger file handler
-        Returns: file handler
-
-        """
+    def get_file_handler(self):
         log_dir = self.settings.logging.log_directory
         formatter = logging.Formatter(self.settings.logging.log_format)
+        log_filename = self.settings.logging.log_filename
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
         logger_file = os.path.join(log_dir, log_filename)
-        file_handler = TimedRotatingFileHandler(logger_file,
+        file_handler = TimedRotatingFileHandler(log_dir + log_filename,
                                                 when='midnight')
         file_handler.setFormatter(formatter)
         return file_handler
 
-    def get_logger(self, logger_name, log_filename):
-
-        BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
-
-        COLORS = {
-        'WARNING': YELLOW,
-        'INFO': WHITE,
-        'DEBUG': BLUE,
-        'CRITICAL': YELLOW,
-        'ERROR': RED}
-
+    def get_logger(self):
+        logger_name = self.settings.logging.logger_name
         logger = logging.getLogger(logger_name)
         log_level = self.settings.logging.log_level
-
+        log_filename = self.settings.logging.log_filename
+        # MTH: added to stop adding duplicate handlers
         if not len(logger.handlers):
 
-            final_log_level = self.settings.logging.log_level
+            # Set Log Level based on the way it was passed
+            final_log_level = "INFO"
             if log_level is not None:
                 final_log_level = log_level
             elif log_level is not None:
                 final_log_level = log_level
             logger.setLevel(final_log_level)
 
-            logger.addHandler(self.__get_console_handler())
-            logger.addHandler(self.__get_file_handler(log_filename))
+            logger.addHandler(self.get_console_handler())
+            logger.addHandler(self.get_file_handler())
+            logger.propagate = False
         return logger

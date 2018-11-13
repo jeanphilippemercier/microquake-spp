@@ -1,56 +1,72 @@
 project_code = 'OT'
 [grids]
-	units = 'meter'
-	method = 'ODS'
-	origin = [650200, 4766170, -500]
-	dimensions = [100, 101, 68]
-	spacing = 25
+    units = 'meter'
+    method = 'ODS'
+    origin = [650200, 4766170, -500]
+    dimensions = [100, 101, 68]
+    spacing = 25
+    hfile = 'ttable.h5' 
 
-	[grids.velocities]
-		source = 'local'
-		homogeneous = false
-		vp = "velocities/vp"
-		vs = "velocities/vs"
-		format = 'NLLOC'
+    [grids.velocities]
+        source = 'local'
+        homogeneous = false
+        vp = "velocities/vp"
+        vs = "velocities/vs"
+        format = 'NLLOC'
 
 # Not used, definition similar to velocity grids
-# 	[grids.density]
-#		homogeneous = false
+#   [grids.density]
+#   homogeneous = false
 
 [time_zone]
-	type = 'UTC_offset'                # either 'UTC_offset or 'time_zone'
-	time_zone_code = 'ULN'             # time zone code. If type=time_zone, time_zone_code must be a valid pytz timezone
-	offset = 8                         # time offset in hours, ignored if type=time_zone
+    type = 'UTC_offset'                # either 'UTC_offset or 'time_zone'
+    time_zone_code = 'ULN'             # time zone code. If type=time_zone, time_zone_code must be a valid pytz timezone
+    offset = 8                         # time offset in hours, ignored if type=time_zone
 
 [sensors]
-	source  = 'local'
-	units   = 'meter'
-	format  = 'csv'
-	path    = 'sensors.csv'
+    source  = 'local'
+    units   = 'meter'
+    format  = 'csv'
+    path    = 'sensors.csv'
 
 
 [data_connector]
-	source  = 'remote'
-	path    = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
+    source  = 'remote'
+    path    = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
 
+[interloc]
+    threads = 4
+    debug = 0
+    wlen_seconds = 1.0
+    dsr = 3000.0
+    threshold = 0.2
+    kafka_consumer_topic = 'mseed_1sec'
+    kafka_producer_topic = 'iloc_out'
+
+[picker]
+    snr_wlens = [15e-3, 10e-3]
+    wlen_search = 50e-3
+    stepsize = 1e-3
+    kafka_consumer_topic = 'iloc_out'
+    kafka_producer_topic = 'picker_out'
 
 [nlloc]
-	nll_base = 'NLL'
-	locsig = 'Oyu Tolgoi Geotechnical Monitoring Team'
-	loccom = 'Prototype'
-	# locsearch = 'OCT 20 20 30 1e-6 50000 1000 0 1'
-	# locsearch = 'OCT 10 10 10 1e-6 20000 1000 0 1'
-	locsearch = 'OCT 5 5 5 1e-6 5000 1000 0 1'
-	locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
-	kafka_consumer_topic = 'location'
-	kafka_producer_topic = 'magnitude'
-	log_file_name = 'hypocenter_location_nlloc.log'
-	log_topic = 'hypocenter Location NonLinLoc'
+    nll_base = 'NLL'
+    locsig = 'Oyu Tolgoi Geotechnical Monitoring Team'
+    loccom = 'Prototype'
+    # locsearch = 'OCT 20 20 30 1e-6 50000 1000 0 1'
+    # locsearch = 'OCT 10 10 10 1e-6 20000 1000 0 1'
+    locsearch = 'OCT 5 5 5 1e-6 5000 1000 0 1'
+    locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
+    kafka_consumer_topic = 'location'
+    kafka_producer_topic = 'magnitude'
+    log_file_name = 'hypocenter_location_nlloc.log'
+    log_topic = 'hypocenter Location NonLinLoc'
 
 [magnitude]
-	ttpath = 'None'
-	only_triaxial = true
-	density = 2700
+    ttpath = 'None'
+    only_triaxial = true
+    density = 2700
     min_dist = 20
     win_length = 0.02
     # len_spectrum is specified in exponent of 2. For instance 14 is equal to 2 ** 14
@@ -91,15 +107,15 @@ project_code = 'OT'
     log_topic = 'insertion and update into event DB'
 
 [continuous_db]
-  uri = 'mongodb://mongo-node-001:27017/'
-  db_name = 'seismic'
-  traces_collection = 'traces_json'
-  events_collection = 'events'
-  events_inuse_collection = 'events_inuse'
-  filestore_base_dir = '/Users/hanee/Rio_Tinto/data/'
-  inuse_ttl = 300
+    uri = 'mongodb://mongo-node-001:27017/'
+    db_name = 'seismic'
+    traces_collection = 'traces_json'
+    events_collection = 'events'
+    events_inuse_collection = 'events_inuse'
+    filestore_base_dir = '/Users/hanee/Rio_Tinto/data/'
+    inuse_ttl = 300
 
 [seismic_api]
-  events_url = 'http://localhost:8000/api/v1/events'
+    events_url = 'http://localhost:8000/api/v1/events'
 
 
