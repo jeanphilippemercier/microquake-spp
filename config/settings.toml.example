@@ -29,10 +29,21 @@ project_code = 'OT'
     format  = 'csv'
     path    = 'sensors.csv'
 
+[data_local]
+    ms_chunks    = '/home/phil/data/oyu/spp_common/synthetic/chunks/*.mseed'
+    ms_10s = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.mseed'
+    xml_10s   = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.xml'
 
 [data_connector]
     source  = 'remote'
     path    = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
+
+[mseed_decomposer]  
+    kafka_producer_topic = 'mseed_blocks'
+
+[transformer]
+    kafka_consumer_topic = 'mseed_blocks'
+    kafka_producer_topic = 'mseed_1sec'
 
 [interloc]
     threads = 4

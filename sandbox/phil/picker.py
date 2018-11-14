@@ -2,8 +2,7 @@ from importlib import reload
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-from xseis2 import xutil
+# from xseis2 import xutil
 from microquake.core.event import Arrival, Event, Origin, Pick
 from microquake.core.event import ResourceIdentifier
 # from microquake.core import Stream
@@ -16,54 +15,45 @@ from microquake.core.util import tools
 from microquake.core.util import plotting as qplot
 from microquake.io import msgpack
 from spp.utils.kafka import KafkaHandler
-
 import os
 plt.ion()
 
 
 app = Application()
-# nthreads = app.settings.interloc.threads
-# wlen_sec = app.settings.interloc.wlen_seconds
-# dsr = app.settings.interloc.dsr
-# debug = app.settings.interloc.debug
+params = app.settings.picker
 
-# brokers = app.settings.kafka.brokers
-# topic_in = app.settings.interloc.kafka_consumer_topic
-# topic_out = app.settings.interloc.kafka_producer_topic
-# kaf_handle = KafkaHandler(brokers)
-
-# mseed_file = '/home/phil/data/oyu/mseed_new/20180523_185101_float.mseed'
-# ix_grid = 298669
-# ix_ot = 1860
-# ot_epoch = 1527072662.21
-# sloc = np.array([651275, 4767395, -175])
-
-mseed_file = app.common_dir + '/synthetic/sim_dat_noise.mseed'
 ix_grid = 388036
 ix_ot = 1062
 ot_epoch = 0.177
 sloc = np.array([651600, 4767420, 200])
 ot_dtime = UTCDateTime(ot_epoch)
 
+
+mseed_file = os.path.join(app.common_dir, 'synthetic', 'sim_dat_noise.mseed')
 st = read(mseed_file)
+
 # st.filter('bandpass', freqmin=50, freqmax=300)
 stcomp = st.composite()
+keys = stcomp.unique_stations()
 
-tts_dir = os.path.join(app.common_dir, "NLL/time")
-ttP, locs, ndict, gdef = xutil.ttable_from_nll_grids(tts_dir, key="OT.P")
-ttS, locs, ndict, gdef = xutil.ttable_from_nll_grids(tts_dir, key="OT.S")
-ikeep = np.array([ndict[k] for k in st.unique_stations()])
-ttP = ttP[ikeep, ix_grid]
-ttS = ttS[ikeep, ix_grid]
+htt = app.get_ttable_h5()
+
+ix_grid2 = htt.xyz_to_icol(sloc)
+
+ista = htt.index_sta(stcomp.unique_stations())
+ttP = htt.hf['ttp'][ista, ix_grid]
+ttS = htt.hf['tts'][ista, ix_grid]
 
 ptimes_p = np.array([ot_dtime + tt for tt in ttP])
 ptimes_s = np.array([ot_dtime + tt for tt in ttS])
 
-params = app.settings.picker
 picks = tools.make_picks(stcomp, ptimes_p, 'P', params)
 picks += tools.make_picks(stcomp, ptimes_s, 'S', params)
 
-qplot.stream_and_picks(stcomp, picks=picks, color='black', alpha=0.6)
+# snrs = np.array([pick.snr for pick in picks])
+# plt.plot(snrs)
+
+qplot.stream(stcomp, picks=picks, color='black', alpha=0.6)
 
 arrivals = [Arrival(phase=p.phase_hint, pick_id=p.resource_id) for p in picks]
 
@@ -71,9 +61,11 @@ og = Origin(time=ot_dtime, x=sloc[0], y=sloc[1], z=sloc[2], arrivals=arrivals)
 event = Event(origins=[og], picks=picks)
 event.preferred_origin_id = og.resource_id
 
-data = [event, st]
 
-pack = msgpack.pack(data)
+pack = msgpack.pack([event, st])
+
+
+
 
 
 t0 = st[0].stats.starttime
@@ -136,6 +128,15 @@ def picks_to_dict(picks):
 		pd[key].append(p.time)
 	return pd
 
+
+
+# tts_dir = os.path.join(app.common_dir, "NLL/time")
+# ttP1, locs, ndict, gdef = xutil.ttable_from_nll_grids(tts_dir, key="OT.P")
+# ttS1, locs, ndict, gdef = xutil.ttable_from_nll_grids(tts_dir, key="OT.S")
+# ikeep = np.array([ndict[k] for k in st.unique_stations()])
+# ttP1 = ttP1[ikeep, ix_grid]
+
+# ttS = ttS[ikeep, ix_grid]
 
 # pd = picks_to_dict(picks)
 
