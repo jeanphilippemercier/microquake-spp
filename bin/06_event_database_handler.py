@@ -57,7 +57,6 @@ if __name__ == "__main__":
                     % settings.magnitude.kafka_consumer_topic)
         t1 = time()
         data = msgpack.unpack(message.value)
-        st_bytes =
 
         # These might not be used as we will send the files bytes direct
         # st = read(BytesIO(data[1]))

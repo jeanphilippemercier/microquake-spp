@@ -9,10 +9,8 @@
 from microquake.IMS import web_client
 from microquake.core import UTCDateTime
 from spp.utils import get_data_connector_parameters, get_stations
-from spp.data_connector import write_decomposed_mseed_to_kafka
-from spp.time import get_time_zone
 from microquake.core import Stream
-from microquake.io.waveform import mseed_decomposer
+from spp.utils.application import Application
 
 time_windows = 10 * 60 * 60 # window length for time request in hours
 
@@ -21,17 +19,14 @@ time_windows = 10 * 60 * 60 # window length for time request in hours
 end_time = UTCDateTime.now() - 2 * 60
 start_time = end_time - 10 * 60 * 60  # looking at the past 10 hours
 
-dc_params = get_data_connector_parameters()
-
-base_url = dc_params['data_source']['location']
-site = get_stations()
-tz = get_time_zone()
+app = Application()
+base_url = app.settings.data_connector.path
+site = app.get_stations()
+tz = app.get_time_zone()
 
 cat = web_client.get_catalogue(base_url, start_time, end_time, site, tz)
 
 stations = [station.code for station in site.stations()]
-
-workers = dc_params['multiprocessing']['workers']
 
 for evt in cat:
     stime = evt.preferred_origin().time - 5
@@ -44,7 +39,16 @@ for evt in cat:
             continue
         st.traces.append(tr)
 
-    decomposed_mseed = mseed_decomposer(st)
+    st_io = BytesIO()
+    st.write(st_io, format='MSEED')
+    # send the data to the seismic-api endpoint on Azure @Hanee, could you
+    # please complete the code required to push the mseed to the server
 
-    write_decomposed_mseed_to_kafka(decomposed_mseed)
+    # CODE TO SEND THE DATA TO THE END POINT HERE
+
+
+
+    # decomposed_mseed = mseed_decomposer(st)
+    #
+    # write_decomposed_mseed_to_kafka(decomposed_mseed)
 
