@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 
 # from xseis2 import xutil
 from microquake.core.event import Arrival, Event, Origin, Pick
-from microquake.core.event import ResourceIdentifier
+# from microquake.core.event import ResourceIdentifier
 # from microquake.core import Stream
 # from microquake.core import Trace
-from microquake.core import read
+# from microquake.core import read
 from microquake.core import UTCDateTime
 from spp.utils.application import Application
 
@@ -17,7 +17,7 @@ from microquake.io import msgpack
 from spp.utils.kafka import KafkaHandler
 
 from microquake.core.util import tools
-from microquake.core.event import read_events
+# from microquake.core.event import read_events
 import os
 
 plt.ion()
@@ -56,13 +56,15 @@ for msg_in in consumer:
 	picks = tools.make_picks(stcomp, ptimes_p, 'P', params)
 	picks += tools.make_picks(stcomp, ptimes_s, 'S', params)
 	# snrs = np.array([pick.snr for pick in picks])
-	# qplot.stream(stcomp, picks=picks, color='black', alpha=0.6)
 
 	arrivals = [Arrival(phase=p.phase_hint, pick_id=p.resource_id) for p in picks]
 
 	og = Origin(time=ot_utc, x=loc[0], y=loc[1], z=loc[2], arrivals=arrivals)
 	event = Event(origins=[og], picks=picks)
 	event.preferred_origin_id = og.resource_id
+	print(event)
+
+# qplot.stream(stcomp, picks=picks, color='black', alpha=0.6)
 
 	# key_out = msg_in.key
 	# msg_out = msgpack.pack([event, st])

@@ -19,6 +19,7 @@ kaf_handle = KafkaHandler(brokers)
 params = app.settings.chunk_injector
 # topic_out = params.kafka_producer_topic
 topic_out = app.settings.transformer.kafka_consumer_topic
+
 st = read(params.path_mseed)
 dchunks = waveform.decompose_mseed(st.write_bytes())
 
