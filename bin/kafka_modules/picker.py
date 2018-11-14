@@ -22,21 +22,8 @@ plt.ion()
 
 
 app = Application()
-# nthreads = app.settings.interloc.threads
-# wlen_sec = app.settings.interloc.wlen_seconds
-# dsr = app.settings.interloc.dsr
-# debug = app.settings.interloc.debug
 
-# brokers = app.settings.kafka.brokers
-# topic_in = app.settings.interloc.kafka_consumer_topic
-# topic_out = app.settings.interloc.kafka_producer_topic
-# kaf_handle = KafkaHandler(brokers)
-
-# mseed_file = '/home/phil/data/oyu/mseed_new/20180523_185101_float.mseed'
-# ix_grid = 298669
-# ix_ot = 1860
-# ot_epoch = 1527072662.21
-# sloc = np.array([651275, 4767395, -175])
+params = app.settings.picker
 
 mseed_file = app.common_dir + '/synthetic/sim_dat_noise.mseed'
 ix_grid = 388036
@@ -59,7 +46,6 @@ ttS = ttS[ikeep, ix_grid]
 ptimes_p = np.array([ot_dtime + tt for tt in ttP])
 ptimes_s = np.array([ot_dtime + tt for tt in ttS])
 
-params = app.settings.picker
 picks = tools.make_picks(stcomp, ptimes_p, 'P', params)
 picks += tools.make_picks(stcomp, ptimes_s, 'S', params)
 

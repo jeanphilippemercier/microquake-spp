@@ -13,6 +13,9 @@ from spp.utils.kafka import KafkaHandler
 
 from microquake.io import msgpack
 from microquake.core.util import tools
+from microquake.core import read
+from io import BytesIO
+
 from spp.utils.application import Application
 
 
@@ -42,7 +45,8 @@ print("Awaiting Kafka mseed messsages")
 for msg_in in consumer:
 	print("Received Key:", msg_in.key)
 
-	st = msgpack.unpack(msg_in.value)
+	# st = msgpack.unpack(msg_in.value)
+	st = read(BytesIO(msg_in.value))
 
 	# print(st)
 	xflow.prep_stream(st)
@@ -54,19 +58,13 @@ for msg_in in consumer:
 								 ngrid, nthreads, debug, npz_file)
 	vmax, imax, iot = out
 	lmax = xutil.imax_to_xyz_gdef(imax, gdef)
-	# ot_epoch = (t0 + iot / dsr).datetime.timestamp()
-	# ot_epoch = ((t0 + iot / dsr).datetime - datetime(1970, 1, 1)) / timedelta(seconds=1)
 	ot_epoch = tools.datetime_to_epoch_sec((t0 + iot / dsr).datetime)
 
 	print("power: %.3f, ix_grid: %d, ix_ot: %d" % (vmax, imax, iot))
 	print("utm_loc: ", lmax.astype(int))
 
-	true_loc = np.array([651600, 4767420, 200])
-	print('correct loc: ', np.allclose(lmax, true_loc))
-	print('---------------------------------')
-
 	if vmax > params.threshold:
-		print("Sending Kafka interloc messsage")
+		print("VMAX over threshold, sending message")
 
 		key_out = ("iloc_%.4f" % (ot_epoch)).encode('utf-8')
 		msg_out = msgpack.pack([ot_epoch, lmax[0], lmax[1], lmax[2], vmax, st])
@@ -74,5 +72,5 @@ for msg_in in consumer:
 		kafka_handler_obj = KafkaHandler(brokers)
 		kafka_handler_obj.send_to_kafka(topic_out, key_out, msg_out)
 		kafka_handler_obj.producer.flush()
-		print("==================================================================")
+	print("=============================================\n")
 
