@@ -35,10 +35,8 @@ if __name__ == '__main__':
     kafka_brokers = settings.kafka.brokers
     kafka_topic = settings.nlloc.kafka_consumer_topic
     kafka_producer_topic = settings.nlloc.kafka_producer_topic
-
     kafka_handler = KafkaHandler(kafka_brokers)
     consumer = KafkaHandler.consume_from_topic(kafka_topic, kafka_brokers)
-
     logger.info('awaiting Kafka mseed messsages')
     for message in consumer:
         # logger.info("Received message with key:", msg_in.key)
@@ -46,9 +44,8 @@ if __name__ == '__main__':
                     % settings.nlloc.kafka_consumer_topic)
         t1 = time()
         data = unpack(message.value)
-        ev_id = data[0]
-        st = read(BytesIO(data[2]))
-        cat = read_events(BytesIO(data[1]))
+        st = read(BytesIO(data[1]))
+        cat = read_events(BytesIO(data[0]))
         t2 = time()
         logger.info('done unpacking the data from Kafka topic <%s> in '
                     '%0.3f seconds'
