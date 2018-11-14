@@ -1,10 +1,9 @@
+#!/usr/bin/env python3
+
 from io import BytesIO
 from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
-from microquake.core import read
-from microquake.db.mongo.mongo import MongoDBHandler
 from time import time
-import sys
 import requests
 
 
@@ -14,7 +13,10 @@ def construct_file(global_filename, file_bytes):
     return file_bytes
 
 
-def construct_event_files(global_filename, event_file_bytes, waveform_file_bytes, context_file_bytes):
+def construct_event_files(global_filename,
+                          event_file_bytes,
+                          waveform_file_bytes,
+                          context_file_bytes):
     data = dict()
     data['event'] = construct_file(global_filename + ".xml", event_file_bytes)
     data['waveform'] = construct_file(global_filename + ".mseed", waveform_file_bytes)
@@ -46,14 +48,14 @@ if __name__ == "__main__":
     # Create Kafka Object
     kafka_brokers = settings.kafka.brokers
     kafka_topic = settings.event_db.kafka_topic
-    consumer = KafkaHandler.consume_from_topic(kafka_topic,kafka_brokers)
+    consumer = KafkaHandler.consume_from_topic(kafka_topic, kafka_brokers)
 
     logger.info('Consuming Streams from Kafka...')
     for message in consumer:
         logger.info('unpacking the data received from Kafka topic <%s>'
                     % settings.magnitude.kafka_consumer_topic)
         t1 = time()
-        data = msgpack.unpack(msg_in.value)
+        data = msgpack.unpack(message.value)
 
         # These might not be used as we will send the files bytes direct
         # st = read(BytesIO(data[1]))
@@ -62,7 +64,8 @@ if __name__ == "__main__":
         # We need to extract filename from event file as example:
         global_filename = "test"
         # Sending the context same as stream file, just for now as temp solution
-        files_dict = construct_event_files(global_filename, BytesIO(data[0]), BytesIO(data[1]), BytesIO(data[1]))
+        files_dict = construct_event_files(global_filename, BytesIO(data[0]),
+                                           BytesIO(data[1]), BytesIO(data[1]))
         post_event_files_to_api(EVENTS_API_URL, files_dict)
 
         t2 = time()
