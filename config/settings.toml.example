@@ -31,8 +31,8 @@ project_code = 'OT'
 
 [data_local]
     ms_chunks    = '/home/phil/data/oyu/spp_common/synthetic/chunks/*.mseed'
-    ms_10s = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.mseed'
-    xml_10s   = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.xml'
+    ms_long = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.mseed'
+    xml_long   = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.xml'
 
 [data_connector]
     source  = 'remote'

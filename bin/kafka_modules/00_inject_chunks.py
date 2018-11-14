@@ -16,11 +16,11 @@ app = Application()
 brokers = app.settings.kafka.brokers
 kaf_handle = KafkaHandler(brokers)
 
-params = app.settings.chunk_injector
+params = app.settings.mseed_decomposer
 # topic_out = params.kafka_producer_topic
 topic_out = app.settings.transformer.kafka_consumer_topic
 
-st = read(params.path_mseed)
+st = read(app.settings.data_local.ms_10s)
 dchunks = waveform.decompose_mseed(st.write_bytes())
 
 print("Sending kafka mseed messsages")
