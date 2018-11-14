@@ -26,18 +26,19 @@ wlen_sec = params.wlen_seconds
 debug = params.debug
 dsr = params.dsr
 
+logdir = os.path.join(app.common_dir, "dump")
+
 brokers = app.settings.kafka.brokers
 topic_in = params.kafka_consumer_topic
 topic_out = params.kafka_producer_topic
 kaf_handle = KafkaHandler(brokers)
 
-tts_dir = os.path.join(app.common_dir, "NLL/time")
-
-ttable, stalocs, namedict, gdef = xutil.ttable_from_nll_grids(tts_dir, key="OT.P")
-# ttable, stalocs, namedict, gdef = xutil.ttable_from_nll_grids(tts_path, key="OT.S")
-ttable = (ttable * dsr).astype(np.uint16)
+htt = app.get_ttable_h5()
+stalocs = htt.locations
+ttable = (htt.hf['ttp'][:] * dsr).astype(np.uint16)
 ngrid = ttable.shape[1]
 tt_ptrs = np.array([row.__array_interface__['data'][0] for row in ttable])
+
 
 consumer = KafkaHandler.consume_from_topic(topic_in, brokers, group_id=None)
 
@@ -50,14 +51,17 @@ for msg_in in consumer:
 
 	# print(st)
 	xflow.prep_stream(st)
+	chanmap = st.chanmap().astype(np.uint16)
+
+	ikeep = htt.index_sta(st.unique_stations())
 	data, t0, stations, chanmap = xflow.build_input_data(st, wlen_sec, dsr)
-	ikeep = np.array([namedict[k] for k in stations])
-	logdir = ''
+
 	npz_file = os.path.join(logdir, "iloc_" + str(t0) + ".npz")
 	out = xspy.pySearchOnePhase(data, dsr, chanmap, stalocs[ikeep], tt_ptrs[ikeep],
 								 ngrid, nthreads, debug, npz_file)
 	vmax, imax, iot = out
-	lmax = xutil.imax_to_xyz_gdef(imax, gdef)
+	lmax = htt.icol_to_xyz(imax)
+
 	ot_epoch = tools.datetime_to_epoch_sec((t0 + iot / dsr).datetime)
 
 	print("power: %.3f, ix_grid: %d, ix_ot: %d" % (vmax, imax, iot))
