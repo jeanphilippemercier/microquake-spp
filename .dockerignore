@@ -1,0 +1,10 @@
+tags
+
+common/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+git/
