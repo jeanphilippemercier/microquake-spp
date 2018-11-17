@@ -27,7 +27,7 @@ requirements = [
     'pathos',
     'pyyaml',
     'toolz',
-    'kafka',
+    'kafka-python',
     'prometheus_client',
     'avro',
     'fastavro',
