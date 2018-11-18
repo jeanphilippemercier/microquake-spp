@@ -47,6 +47,8 @@ for msg_in in consumer:
 
 	# st = msgpack.unpack(msg_in.value)
 	st = read(BytesIO(msg_in.value))
+	tr = st[0]
+	print(tr.stats.starttime, tr.stats.endtime, len(tr))
 
 	st.zpad_names()
 	data, sr, t0 = st.as_array(wlen_sec)
@@ -72,7 +74,6 @@ for msg_in in consumer:
 
 		key_out = ("iloc_%.4f" % (ot_epoch)).encode('utf-8')
 		msg_out = msgpack.pack([ot_epoch, lmax[0], lmax[1], lmax[2], vmax, st])
-		# msg_out, key_out = xflow.encode_for_kafka(ot_epoch, lmax, vmax)
 		kafka_handler_obj = KafkaHandler(brokers)
 		kafka_handler_obj.send_to_kafka(topic_out, key_out, msg_out)
 		kafka_handler_obj.producer.flush()

@@ -36,7 +36,8 @@ kaf_handle = KafkaHandler(brokers)
 # consumer = KafkaHandler.consume_from_topic(topic_in, brokers, group_id='group')
 consumer = KafkaHandler.consume_from_topic(topic_in, brokers, group_id=None)
 
-cat = read_events(app.settings.chunk_injector.path_xml)
+cat = read_events(app.settings.data_local.xml_ot)
+# cat = read_events(app.settings.data_local.xml_long)
 epochs = np.array([tools.datetime_to_epoch_sec(ev.origins[0].time.datetime) for ev in cat])
 
 print("Awaiting Kafka mseed messsages")
