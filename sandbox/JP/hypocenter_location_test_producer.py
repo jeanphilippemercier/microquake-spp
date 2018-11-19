@@ -21,30 +21,31 @@ kafka_handler = KafkaHandler(kafka_brokers)
 logger.info('reading the catalog and waveform')
 
 st = read('2018-11-08T11:16:48.030167Z.mseed')
+st = read('2018-11-08T10:21:49.898496Z.mseed')
 cat = read_events('test.xml')
 
 st_io = BytesIO()
 st.write(st_io, format='MSEED')
 ev_io = BytesIO()
-cat[2].write(ev_io, format='QUAKEML')
+cat[0].write(ev_io, format='QUAKEML')
 
 logger.info('packaging the event and stream')
 
-with open('pack.dat', 'rb') as tmp:
-    data = tmp.read()
-
-obj = msgpack.unpack(data)
-
-# st = obj[0]
-# cat = obj[1]
-
-for pk in obj[0][0].picks:
-    pk.waveform_id.station_code = str(int(pk.waveform_id.station_code))
-
-st_io = BytesIO()
-obj[1].write(st_io, format='MSEED')
-ev_io = BytesIO()
-obj[0].write(ev_io, format='QUAKEML')
+# with open('pack.dat', 'rb') as tmp:
+#     data = tmp.read()
+#
+# obj = msgpack.unpack(data)
+#
+# # st = obj[0]
+# # cat = obj[1]
+#
+# for pk in obj[0][0].picks:
+#     pk.waveform_id.station_code = str(int(pk.waveform_id.station_code))
+#
+# st_io = BytesIO()
+# obj[1].write(st_io, format='MSEED')
+# ev_io = BytesIO()
+# obj[0].write(ev_io, format='QUAKEML')
 
 data = msgpack.pack([ev_io.getvalue(), st_io.getvalue()])
 

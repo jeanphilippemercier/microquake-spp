@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
         ev_io = BytesIO()
         cat_out.write(ev_io, format='QUAKEML')
-        data_out = pack([ev_id, ev_io.getvalue(), data[1]])
+        data_out = pack([ev_io.getvalue(), data[1]])
         t4 = time()
         logger.info('done packing the data in %0.3f seconds' % (t4 - t3))
 
