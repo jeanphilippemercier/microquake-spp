@@ -44,7 +44,7 @@ class Application(object):
         fname = os.path.join(self.common_dir, self.settings.grids.hfile)
         return ttable.H5TTable(fname)
 
-    def write_tttable_h5(self, fname=None):
+    def write_ttable_h5(self, fname=None):
         from microquake.core.data import ttable
 
         if fname is None:

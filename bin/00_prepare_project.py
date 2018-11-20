@@ -32,4 +32,4 @@ if __name__ == '__main__':
 
     # creating H5 grid from NLL grids
     logger.info('writing h5 travel time table')
-    app.write_tttable_h5()
+    app.write_ttable_h5()
