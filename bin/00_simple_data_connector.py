@@ -6,13 +6,12 @@
 # processed events. This script will be scheduled to run every few minutes
 # and will send data both the the seismic processing platform.
 
+from microquake.core import Stream, UTCDateTime
 from microquake.IMS import web_client
-from microquake.core import UTCDateTime
 from spp.utils import get_data_connector_parameters, get_stations
-from microquake.core import Stream
 from spp.utils.application import Application
 
-time_windows = 10 * 60 * 60 # window length for time request in hours
+time_windows = 10 * 60 * 60  # window length for time request in hours
 
 # request the data from the IMS system
 
@@ -46,9 +45,6 @@ for evt in cat:
 
     # CODE TO SEND THE DATA TO THE END POINT HERE
 
-
-
     # decomposed_mseed = mseed_decomposer(st)
     #
     # write_decomposed_mseed_to_kafka(decomposed_mseed)
-
