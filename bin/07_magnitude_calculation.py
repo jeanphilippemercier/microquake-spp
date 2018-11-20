@@ -30,9 +30,8 @@ if __name__ == "__main__":
                     % settings.magnitude.kafka_consumer_topic)
         t1 = time()
         data = msgpack.unpack(message.value)
-        ev_id = data[0]
-        st = read(BytesIO(data[2]))
-        cat = read_events(BytesIO(data[1]))
+        st = read(BytesIO(data[1]))
+        cat = read_events(BytesIO(data[0]))
         t2 = time()
         logger.info('done unpacking the data from Kafka topic <%s> in '
                     '%0.3f seconds'
@@ -56,7 +55,7 @@ if __name__ == "__main__":
 
         ev_io = BytesIO()
         cat_out.write(ev_io, format='QUAKEML')
-        data_out = msgpack.pack([ev_id, ev_io.getvalue(), data[1]])
+        data_out = msgpack.pack([ev_io.getvalue(), data[1]])
         t4 = time()
         logger.info('done packing the data in %0.3f seconds' % (t4 - t3))
 
