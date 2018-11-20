@@ -44,11 +44,11 @@ class Application(object):
         fname = os.path.join(self.common_dir, self.settings.grids.hfile)
         return ttable.H5TTable(fname)
 
-    def write_ttable_h5(self, fname=None):
+    def write_tttable_h5(self, fname=None):
         from microquake.core.data import ttable
 
         if fname is None:
-            fname = self.settings.grids.hfile
+            fname = self.settings.grids.travel_time_h5.fname
 
         ttp = ttable.array_from_nll_grids(self.nll_tts_dir, 'P', prefix='OT')
         tts = ttable.array_from_nll_grids(self.nll_tts_dir, 'S', prefix='OT')
