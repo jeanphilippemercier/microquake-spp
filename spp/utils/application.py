@@ -41,7 +41,8 @@ class Application(object):
 
     def get_ttable_h5(self):
         from microquake.core.data import ttable
-        fname = os.path.join(self.common_dir, self.settings.grids.hfile)
+        fname = os.path.join(self.common_dir,
+                             self.settings.grids.travel_time_h5.fname)
         return ttable.H5TTable(fname)
 
     def write_ttable_h5(self, fname=None):
@@ -209,7 +210,7 @@ class Application(object):
         # need to be parallelized but for now running in loops
 
         tt = self.get_travel_time_grid(station, phase)
-        return tt.interpolate(location, grid_coordinate=grid_coordinates)
+        return tt.interpolate(location, grid_coordinate=grid_coordinates)[0]
 
     def __get_console_handler(self):
         """
