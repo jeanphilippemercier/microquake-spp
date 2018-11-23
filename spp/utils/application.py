@@ -122,8 +122,10 @@ class Application(object):
         if self.settings.grids.velocities.homogeneous:
             vp = create(**self.settings.grids)
             vp.data *= self.settings.grids.velocities.vp
+            vp.resource_id = self.get_current_velocity_model_id('P')
             vs = create(**self.settings.grids)
             vs.data *= self.settings.grid.velocities.vs
+            vs.resource_id = self.get_current_velocity_model_id('S')
 
         else:
             if self.settings.grids.velocities.source == 'local':
@@ -131,9 +133,11 @@ class Application(object):
                 vp_path = os.path.join(self.common_dir,
                                        self.settings.grids.velocities.vp)
                 vp = read_grid(vp_path, format=format)
+                vp.resource_id = self.get_current_velocity_model_id('P')
                 vs_path = os.path.join(self.common_dir,
                                        self.settings.grids.velocities.vs)
                 vs = read_grid(vs_path, format=format)
+                vs.resource_id = self.get_current_velocity_model_id('S')
             elif self.settings['grids.velocities.local']:
                 # TODO: read the velocity grids from the server
                 pass
@@ -166,51 +170,78 @@ class Application(object):
 
         return tz
 
-    def get_travel_time_grid(self, sta_code, phase):
+    def get_grid(self, station_code, phase, type='time'):
         """
         get a travel time grid for a given station and a given phase
-        Args:
-            station: station code
-            phase: phase either "P" or "S"
-
-        Returns:
-
+        :param station_code: station code
+        :param phase: Phase ('P' or 'S')
+        :param type: type of grid ('time', 'take_off', 'azimuth')
+        :return:
         """
         from microquake.core.data.grid import read_grid
         import os
         
         common_dir = self.common_dir
         nll_dir = self.settings.nlloc.nll_base
-        f_tt = os.path.join(common_dir, nll_dir, 'time', 'OT.%s.%s.time.buf'
-                            % (phase.upper(), sta_code))
+        f_tt = os.path.join(common_dir, nll_dir, 'time', 'OT.%s.%s.%s.buf'
+                            % (phase.upper(), station_code, type))
         tt_grid = read_grid(f_tt, format='NLLOC')
-        # tt_grid.seed = station.loc
 
         return tt_grid
 
-    def get_travel_time_grid_point(self, station, phase, location,
-                                   grid_coordinates=True):
+    def get_grid_point(self, station_code, phase, location,
+                       grid_coordinates=False, type='time'):
         """
-        get the travel time
-        :param stations: list of stations
-        :param locations: event location triplet with (X, Y, Z) that
-        can be converted to a numpy array, locations can be a vector of coordinates
-        :param phase: Phase either P or S, if None both P and S travel time are
-        extracted
-        :param use_eikonal: If True read eikonal time grids; If False read NLLOC station time grids directly
-        :param spark_context: a spark context for parallelization purpose
-        :return: a pandas DataFrame
+        get value on a grid at a given point inside the grid
+        :param station_code: Station code
+        :param phase: Phase ('P' or 'S')
+        :param location: point where the value is interpolated
+        :param grid_coordinates: whether the location is expressed in grid
+        coordinates or in model coordinates (default True)
+        :param type: type of grid ('time', 'take_off', 'azimuth')
+        :return:
         """
 
-        # import os
-        # from pandas import DataFrame
-        # from spp.time import get_time_zone
-
-        # building spark keys
-        # need to be parallelized but for now running in loops
-
-        tt = self.get_travel_time_grid(station, phase)
+        tt = self.get_grid(station_code, phase, type=type)
         return tt.interpolate(location, grid_coordinate=grid_coordinates)[0]
+
+    def get_ray(self, station_code, phase, location, grid_coordinate=False):
+        """
+        return a ray for a given location - station pair for a given phase
+        :param station_code: station code
+        :param phase: phase ('P', 'S')
+        :param location: start of the ray
+        :param grid_coordinate: whether start is expressed in  grid
+        coordinates or model coordinates (default False)
+        :return:
+        """
+        from microquake.simul.eik import ray_tracer
+
+        travel_time = self.get_grid(station_code, phase, type='time')
+
+        return ray_tracer(travel_time, location,
+                         grid_coordinates=grid_coordinate)
+
+    def get_current_velocity_model_id(self, phase='P'):
+        """
+        Return the velocity model ID for a specificed phase
+        :param phase: phase (possible values 'P', 'S'
+        :return: resource_identifier
+
+        """
+        common_dir = self.common_dir
+        velocity_dir = self.settings.grids.velocities
+        if phase.upper() == 'P':
+            v_path = os.path.join(self.common_dir,
+                                  self.settings.grids.velocities.vp) + '.rid'
+
+        elif phase.upper() == 'S':
+             v_path = os.path.join(self.common_dir,
+                                  self.settings.grids.velocities.vs) + '.rid'
+
+        with open(v_path) as ris:
+            return ris.read()
+
 
     def __get_console_handler(self):
         """
@@ -256,3 +287,146 @@ class Application(object):
             logger.addHandler(self.__get_console_handler())
             logger.addHandler(self.__get_file_handler(log_filename))
         return logger
+
+    def synthetic_arrival_times(self, event_location, origin_time):
+        """
+        calculate synthetic arrival time for all the station and returns a
+        list of microquake.core.event.Pick object
+        :param event_location: event location
+        :param origin_time: event origin time
+        :return: list of microquake.core.event.Pick
+        """
+
+        from microquake.core.event import WaveformStreamID, Pick
+
+        picks = []
+        for phase in ['P', 'S']:
+            for station in self.get_stations().stations():
+                station = station.code
+                at = origin_time + self.get_grid_point(station, phase,
+                                                       event_location,
+                                                       grid_coordinates=False)
+
+                wf_id = WaveformStreamID(
+                    network_code=self.settings.project_code,
+                    station_code=station)
+                pk = Pick(time=at, method='predicted', phase_hint=phase,
+                          evaluation_mode='automatic',
+                          evaluation_status='preliminary', waveform_id=wf_id)
+
+                picks.append(pk)
+
+        return picks
+
+    def estimate_origin_time(self, stream, event_location):
+        """
+        estimate the origin time given an estimate of the event location and
+        a set of traces
+        :param stream: a microquake.core.Stream object containing a series
+        of traces
+        :param event_location: event location (list, tuple or numpy array)
+        :return: estimate of the origin time
+        """
+        from microquake.core import UTCDateTime
+        from microquake.core import Trace
+        from scipy.interpolate import interp1d
+        from obspy.realtime.signal import kurtosis
+        import numpy as np
+
+        start_times = []
+        end_times = []
+        sampling_rates = []
+        for trace in stream:
+            start_times.append(trace.stats.starttime.datetime)
+            end_times.append(trace.stats.endtime.datetime)
+            sampling_rates.append(trace.stats.sampling_rate)
+
+        min_starttime = UTCDateTime(np.min(start_times)) - 1.0
+        max_endtime = UTCDateTime(np.max(end_times))
+        max_sampling_rate = np.max(sampling_rates)
+
+        shifted_traces = []
+        npts = np.int((max_endtime - min_starttime) * max_sampling_rate)
+        t_i = np.arange(0, npts) / max_sampling_rate
+
+        for phase in ['P', 'S']:
+            for trace in stream.composite():
+                station = trace.stats.station
+                tt = self.get_grid_point(station, phase, event_location)
+                trace.stats.starttime = trace.stats.starttime - tt
+                data = trace.data
+                data /= np.max(np.abs(data))
+                sr = trace.stats.sampling_rate
+                startsamp = int((trace.stats.starttime - min_starttime) *
+                            trace.stats.sampling_rate)
+                endsamp = startsamp + trace.stats.npts
+                t = np.arange(startsamp, endsamp) / sr
+                try:
+                    f = interp1d(t, data, bounds_error=False, fill_value=0)
+                except:
+                    continue
+
+
+                shifted_traces.append(f(t_i))
+
+        shifted_traces = np.array(shifted_traces)
+        w_len_sec = 50e-3
+        w_len_samp = int(w_len_sec * max_sampling_rate)
+
+        stacked_trace = np.sum(np.array(shifted_traces) ** 2, axis=0)
+        stacked_trace /= np.max(np.abs(stacked_trace))
+        #
+        i_max = np.argmax(np.sum(np.array(shifted_traces) ** 2, axis=0))
+
+        if i_max - w_len_samp < 0:
+            pass
+
+        stacked_tr = Trace()
+        stacked_tr.data = stacked_trace
+        stacked_tr.stats.starttime = min_starttime
+        stacked_tr.stats.sampling_rate = max_sampling_rate
+
+        k = kurtosis(stacked_tr, win=30e-3)
+        diff_k = np.diff(k)
+
+        o_i = np.argmax(np.abs(diff_k[i_max - w_len_samp: i_max + w_len_samp])) + \
+              i_max - w_len_samp
+
+        origin_time = min_starttime + o_i / max_sampling_rate
+        return origin_time
+
+    def create_arrivals_from_picks(self, picks, event_location, origin_time):
+        """
+        create a set of arrivals from a list of picks
+        :param picks: list of microquake.core.event.Pick
+        :param event_location: event location list, tuple or numpy array
+        :param origin_time: event origin_time
+        :return: list of microquake.core.event.Arrival
+        """
+        from microquake.core.event import Arrival
+        from IPython.core.debugger import Tracer
+
+        arrivals = []
+        for pick in picks:
+            station_code = pick.waveform_id.station_code
+
+            arrival = Arrival()
+            arrival.phase = pick.phase_hint
+            phase = pick.phase_hint
+
+            ray = self.get_ray(station_code, phase, event_location)
+            arrival.distance = ray.length()
+            arrival.ray = list(ray.nodes)
+            predicted_tt = self.get_grid_point(station_code, phase,
+                                               event_location)
+            predicted_at = origin_time + predicted_tt
+            arrival.time_residual = pick.time - predicted_at
+            arrival.takeoff_angle = self.get_grid_point(station_code, phase,
+                                           event_location, type='take_off')
+            arrival.azimuth = self.get_grid_point(station_code, phase,
+                                          event_location, type='azimuth')
+            arrival.pick_id = pick.resource_id.id
+            arrival.earth_model_id = self.get_current_velocity_model_id(phase)
+            arrivals.append(arrival)
+
+        return arrivals

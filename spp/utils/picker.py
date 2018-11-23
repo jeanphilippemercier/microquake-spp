@@ -37,8 +37,7 @@ def create_event(stream, event_location):
     for phase in ["p", "s"]:
         for trace in stream.composite():
             station = trace.stats.station
-            tt = app.get_travel_time_grid_point(station, event_location,
-                                                phase=phase)
+            tt = app.get_grid_point(station, phase=phase, location=phase)
             trace.stats.starttime = trace.stats.starttime - tt
             data = trace.data
             data /= np.max(np.abs(data))
@@ -92,8 +91,7 @@ def create_event(stream, event_location):
     for phase in ['p', 's']:
         for station in stations:
             pk = Pick()
-            tt = app.get_travel_time_grid_point(station, event_location,
-                                                phase=phase)
+            tt = app.get_grid_point(station, phase=phase, location=phase)
             pk.phase_hint = phase.upper()
             pk.time = origin_time + tt
             pk.evaluation_mode = "automatic"
