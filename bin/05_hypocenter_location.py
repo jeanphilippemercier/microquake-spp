@@ -2,7 +2,7 @@
 
 from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
-from microquake.nlloc import NLL
+from microquake.nlloc import NLL, calculate_uncertainty
 from microquake.io.msgpack import pack, unpack
 from microquake.core import read
 from microquake.core.event import read_events
@@ -55,6 +55,13 @@ if __name__ == '__main__':
         cat_out = nll.run_event(cat[0].copy())
         t3 = time()
         logger.info('done running NonLinLoc in %0.3f seconds' % (t3 - t2))
+
+        origin_uncertainty = calculate_uncertainty(cat_out[0], base_folder,
+                                                   project_code,
+                                                   perturbation=5,
+                                                   pick_uncertainty=1e-3)
+
+        cat_out[0].preferred_origin().origin_uncertainty = origin_uncertainty
 
         logger.info('packing the data')
         timestamp_ms = int(cat_out[0].preferred_origin().time.timestamp * 1e3)

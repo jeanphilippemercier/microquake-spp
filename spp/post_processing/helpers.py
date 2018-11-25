@@ -1,8 +1,8 @@
-from spp.travel_time import core
+# from spp.travel_time import core
 from spp.utils import get_stations
 #from microquake.core import read, UTCDateTime
-from obspy.core.event.base import ResourceIdentifier
-from microquake.waveform.pick import SNR_picker, calculate_snr, kurtosis_picker
+from microquake.core.event import ResourceIdentifier
+from microquake.waveform.pick import snr_picker, calculate_snr, kurtosis_picker
 from microquake.core.event import Pick, make_pick, Arrival
 import numpy as np
 import os
@@ -156,8 +156,8 @@ def get_predicted_picks(stream, origin):
     predicted_picks = []
     for tr in stream:
         station = tr.stats.station
-        ptime = core.get_travel_time_grid_point(station, origin.loc, phase='P', use_eikonal=False)
-        stime = core.get_travel_time_grid_point(station, origin.loc, phase='S', use_eikonal=False)
+        ptime = core.get_grid_point(station, phase='P', location='P')
+        stime = core.get_grid_point(station, phase='S', location='S')
         #ptime = core.get_travel_time_grid(station, origin.loc, phase='P', use_eikonal=False)
         #stime = core.get_travel_time_grid(station, origin.loc, phase='S', use_eikonal=False)
         predicted_picks.append( make_pick(origin.time + ptime, phase='P', wave_data=tr) )
@@ -214,6 +214,7 @@ def plot_channels_with_picks(stream, station, picks, title=None):
 
     waveform = wp(stream=st3, color='k', xlabel='Seconds',number_of_ticks=8, tick_rotation=0, title=title, addOverlay=False, extras=extras, outfile=None)
     waveform.plot_waveform()
+
 
 def calc_avg_snr(stream, picks, preWl=.03, postWl=.03):
     fname = 'calc_avg_snr'
@@ -434,6 +435,7 @@ def clean_picks(st, picks, preWl=.03, postWl=.03, thresh_P=5.9, thresh_S=3.7, de
         station_distance[station.code] = dist
         #print(station.code, station_distance)
     '''
+
 
 def nan_helper(y):
     """Helper to handle indices and logical indices of NaNs.

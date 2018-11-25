@@ -14,7 +14,7 @@ project_code = settings.project_code
 base_folder = settings.nlloc.nll_base
 
 kafka_brokers = settings.kafka.brokers
-kafka_topic = settings.nlloc.kafka_consumer_topic
+kafka_topic = settings.picker.kafka_consumer_topic
 
 kafka_handler = KafkaHandler(kafka_brokers)
 

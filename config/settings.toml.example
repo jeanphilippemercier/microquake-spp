@@ -56,12 +56,43 @@ project_code = 'OT'
     kafka_consumer_topic = 'mseed_1sec'
     kafka_producer_topic = 'iloc_out'
 
+[create_event]
+    log_topic = 'create_event'
+    log_file_name = 'create_event.log'
+
 [picker]
     snr_wlens = [15e-3, 10e-3]
     wlen_search = 50e-3
     stepsize = 1e-3
+    snr_threshold = 6
     kafka_consumer_topic = 'iloc_out'
     kafka_producer_topic = 'picker_out'
+    log_topic = 'automatic picker'
+    log_file_name = 'automatic_picker.log'
+
+    [picker.waveform_filter]
+        frequency_min = 60
+        frequency_max = 600
+
+    [picker.p_wave]
+        [picker.p_wave.search_window]
+            start = -0.005         # start of search window relative to predicted arrival time (s)
+            end = 0.005            # end of the search window relative to predicted arrival time (s)
+            resolution = 0.0001    # time resolution of search window (s)
+
+        [picker.p_wave.snr_window]
+            noise = 0.003         # length of the window for noise energy measurement
+            signal = 0.003        # length of the window for signal energy measurement
+
+    [picker.s_wave]
+        [picker.s_wave.search_window]
+            start = -0.005         # start of search window relative to predicted arrival time (s)
+            end = 0.005            # end of the search window relative to predicted arrival time (s)
+            resolution = 0.0001    # time resolution of search window (s)
+
+        [picker.s_wave.snr_window]
+            noise = 0.003         # length of the window for noise energy measurement
+            signal = 0.003        # length of the window for signal energy measurement
 
 [nlloc]
     nll_base = 'NLL'
