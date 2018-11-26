@@ -332,10 +332,12 @@ class Application(object):
         from scipy.interpolate import interp1d
         from obspy.realtime.signal import kurtosis
         import numpy as np
+        # from IPython.core.debugger import Tracer
 
         start_times = []
         end_times = []
         sampling_rates = []
+        stream = stream.detrend('demean')
         for trace in stream:
             start_times.append(trace.stats.starttime.datetime)
             end_times.append(trace.stats.endtime.datetime)
@@ -354,8 +356,12 @@ class Application(object):
                 station = trace.stats.station
                 tt = self.get_grid_point(station, phase, event_location)
                 trace.stats.starttime = trace.stats.starttime - tt
-                data = trace.data
-                data /= np.max(np.abs(data))
+                data = np.nan_to_num(trace.data)
+
+                # dividing by the signal std yield stronger signal then
+                # dividing by the max. Dividing by the max amplifies the
+                # noisy traces as signal is more homogeneous on these traces
+                data /= np.std(data)
                 sr = trace.stats.sampling_rate
                 startsamp = int((trace.stats.starttime - min_starttime) *
                             trace.stats.sampling_rate)
@@ -365,11 +371,10 @@ class Application(object):
                     f = interp1d(t, data, bounds_error=False, fill_value=0)
                 except:
                     continue
-
-
                 shifted_traces.append(f(t_i))
 
         shifted_traces = np.array(shifted_traces)
+
         w_len_sec = 50e-3
         w_len_samp = int(w_len_sec * max_sampling_rate)
 
@@ -393,6 +398,7 @@ class Application(object):
               i_max - w_len_samp
 
         origin_time = min_starttime + o_i / max_sampling_rate
+        # Tracer()()
         return origin_time
 
     def create_arrivals_from_picks(self, picks, event_location, origin_time):
