@@ -10,8 +10,10 @@ The package can be installed by simply executing the following command from this
 
 The following environment variable need to be set for the package to work properly
 ```
->> export spp_config="[...]/config"
+>> export SPP_CONFIG="[SPP_HOME]/config"
+>> export SPP_COMMON="[SPP_HOME]/common"
 ```
+make sure there is settings.toml config file in the $SPP_CONFIG directory 
 
 ## run the initialization script 
 
