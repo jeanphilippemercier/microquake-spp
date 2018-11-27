@@ -69,6 +69,10 @@ if __name__ == "__main__":
         logger.info('done sending the data to Kafka topic <%s> in %0.3f '
                     'seconds' % (app.settings.nlloc.kafka_producer_topic,
                                  t5 - t4))
+
+        fname = str(cat_out[0].preferred_origin().time) + '.xml'
+        cat_out.write(fname, format='QUAKEML')
+        st.write(fname.replace('xml', 'mseed'), format='MSEED')
         logger.info('=========================================================')
 
 

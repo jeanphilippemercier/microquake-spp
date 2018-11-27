@@ -333,6 +333,7 @@ class Application(object):
         from obspy.realtime.signal import kurtosis
         import numpy as np
         # from IPython.core.debugger import Tracer
+        # import matplotlib.pyplot as plt
 
         start_times = []
         end_times = []
@@ -362,6 +363,7 @@ class Application(object):
                 # dividing by the max. Dividing by the max amplifies the
                 # noisy traces as signal is more homogeneous on these traces
                 data /= np.std(data)
+                # data /= np.max(np.abs(data))
                 sr = trace.stats.sampling_rate
                 startsamp = int((trace.stats.starttime - min_starttime) *
                             trace.stats.sampling_rate)
@@ -371,7 +373,8 @@ class Application(object):
                     f = interp1d(t, data, bounds_error=False, fill_value=0)
                 except:
                     continue
-                shifted_traces.append(f(t_i))
+
+                shifted_traces.append(np.nan_to_num(f(t_i)))
 
         shifted_traces = np.array(shifted_traces)
 

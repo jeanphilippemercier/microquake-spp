@@ -56,10 +56,13 @@ if __name__ == '__main__':
         t3 = time()
         logger.info('done running NonLinLoc in %0.3f seconds' % (t3 - t2))
 
+        # try:
         origin_uncertainty = calculate_uncertainty(cat_out[0], base_folder,
                                                    project_code,
                                                    perturbation=5,
                                                    pick_uncertainty=1e-3)
+        # except:
+        #    logger.error('failed to locate the event')
 
         cat_out[0].preferred_origin().origin_uncertainty = origin_uncertainty
 
@@ -80,6 +83,7 @@ if __name__ == '__main__':
                                     message=data_out,
                                     timestamp_ms=timestamp_ms)
         t5 = time()
+
         logger.info('done sending the data to Kafka topic <%s> in %0.3f '
                     'seconds' % (app.settings.nlloc.kafka_producer_topic,
                                  t5 - t4))

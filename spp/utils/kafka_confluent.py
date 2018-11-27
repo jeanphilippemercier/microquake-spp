@@ -18,7 +18,8 @@ class ConfluentKafkaHandler:
         self.schema_registry_url = "http://kafka-node-002:8081"
 
     @staticmethod
-    def get_avro_producer(brokers_list, schema_registry_url, key_schema, value_schema):
+    def get_avro_producer(brokers_list, schema_registry_url, key_schema,
+                          value_schema):
         avroProducer = AvroProducer({
             'bootstrap.servers': brokers_list,
             'schema.registry.url': schema_registry_url

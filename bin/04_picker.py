@@ -99,7 +99,7 @@ if __name__ == '__main__':
                                        snr_dt=search_window,
                                        snr_window=snr_window, filter='S')
         t7 = time()
-        logger.info('done picking P-wave in %0.3f seconds' % (t7 - t6))
+        logger.info('done picking S-wave in %0.3f seconds' % (t7 - t6))
 
         snr_picks = p_snr_picks + s_snr_picks
         snrs = snrs_p + snrs_s
@@ -119,6 +119,10 @@ if __name__ == '__main__':
         t10 = time()
 
         t11 = time()
+
+        logger.info('Origin time: %s' % ot_utc)
+        logger.info('Total number of picks: %d' %
+                    len(cat[0].preferred_origin().arrivals))
 
         logger.info('done creating new event or appending to existing event '
                     'in %0.3f seconds' % (t11 - t10))
