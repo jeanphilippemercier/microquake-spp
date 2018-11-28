@@ -6,61 +6,122 @@
 # processed events. This script will be scheduled to run every few minutes
 # and will send data both the the seismic processing platform.
 
-from microquake.core import Stream, UTCDateTime
-from microquake.IMS import web_client
-from spp.utils import get_data_connector_parameters, get_stations
+from microquake.core import Stream, UTCDateTime, read_events, read
+# from microquake.IMS import web_client
 from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
+from glob import glob
+from microquake.io import msgpack
+from spp.utils import seismic_client
+import os
 
-time_windows = 10 * 60 * 60  # window length for time request in hours
-
-# request the data from the IMS system
-
-end_time = UTCDateTime.now()
-start_time = end_time - 10 * 60 * 60  # looking at the past 10 hours
+ # looking at the past 10 hours
 
 app = Application()
 params = app.settings.data_connector
 site = app.get_stations()
 tz = app.get_time_zone()
+settings = app.settings
 
-base_url = params.path
-topic_in = params.kafka_consumer_topic
-topic_feedback = params.kafka_feedback_topic
-topic_out = params.kafka_producer_topic
-brokers = app.settings.kafka.brokers
-kaf_handle = KafkaHandler(brokers)
-consumer = KafkaHandler.consume_from_topic(topic_in, brokers, group_id=None)
+logger = app.get_logger(settings.data_connector.log_topic,
+                        settings.data_connector.log_file_name)
 
-logger = app.get_logger(params.log_topic,
-                        params.log_file_name)
+kafka_brokers = settings.kafka.brokers
+kafka_topic = settings.data_connector.kafka_consumer_topic
+kafka_producer_topics = settings.data_connector.kafka_producer_topic
+kafka_handler = KafkaHandler(kafka_brokers)
 
-cat = web_client.get_catalogue(base_url, start_time, end_time, site, tz)
+base_dir = params.path
 
-stations = [station.code for station in site.stations()]
+api_base_url = app.settings.seismic_api.base_url
 
 logger.info('awaiting Kafka mseed messsages')
-for message in consumer:
+# for input_file in glob(os.path.join(base_dir, '*20s.xml')):
 
-for evt in cat:
-    stime = evt.preferred_origin().time - 5
-    etime = evt.preferred_origin().time + 15
+    # getting the event data to the event database endpoint
+input_file = os.path.join(base_dir, '2018_11_23T11_41_03.347319Z.xml')
+event_file = input_file
+mseed_file = input_file.replace('xml', 'mseed')
+cmseed_file = input_file.replace('.xml', '_20s.mseed')
 
-    for station in stations:
-        tmp = web_client.get_continuous(base_url, stime, etime, stations)
-        st = Stream()
-        for tr in tmp:
-            if len(tr.data) == 0:
-                continue
-            st.traces.append(tr)
+cat = read_events(event_file)
+st = read(mseed_file)
+st_c = read(cmseed_file)
+for cmseed_file in glob()
+for tr in st_c:
+    tr.stats.starttime -= 8 * 3600
 
-        st_io = BytesIO()
-        st.write(st_io, format='MSEED')
-    # send the data to the seismic-api endpoint on Azure @Hanee, could you
-    # please complete the code required to push the mseed to the server
 
-    # CODE TO SEND THE DATA TO THE END POINT HERE
 
-    # decomposed_mseed = mseed_decomposer(st)
-    #
-    # write_decomposed_mseed_to_kafka(decomposed_mseed)
+event_time = cat[0].preferred_origin().time
+
+st_c_trimmed = st_c.trim(starttime=event_time-0.6, endtime=event_time+0.6)
+
+# data, files = seismic_client.build_request_data_from_bytes(None,
+#                                                            event_file,
+#                                                            mseed_file,
+#                                                            None)
+
+
+
+cat = read_events(event_file, format='QUAKEML')
+event_id = cat[0].resource_id.id
+
+cat_bytes = open(event_file, 'rb').read()
+st_bytes = open(mseed_file, 'rb').read()
+
+data_out = msgpack.pack([event_id, cat_bytes, st_bytes, None])
+
+timestamp_ms = int(cat[0].preferred_origin().time.timestamp * 1e3)
+key = str(cat[0].preferred_origin().time).encode('utf-8')
+
+for kptopic in kafka_producer_topics:
+    kafka_handler.send_to_kafka(kptopic,
+                                key,
+                                message=data_out,
+                                timestamp_ms=timestamp_ms)
+
+
+
+
+
+# base_url = params.path
+# topic_in = params.kafka_consumer_topic
+# topic_feedback = params.kafka_feedback_topic
+# topic_out = params.kafka_producer_topic
+# brokers = app.settings.kafka.brokers
+# kaf_handle = KafkaHandler(brokers)
+# consumer = KafkaHandler.consume_from_topic(topic_in, brokers, group_id=None)
+#
+# logger = app.get_logger(params.log_topic,
+#                         params.log_file_name)
+#
+# cat = web_client.get_catalogue(base_url, start_time, end_time, site, tz)
+#
+# stations = [station.code for station in site.stations()]
+#
+# logger.info('awaiting Kafka mseed messsages')
+# for message in consumer:
+#
+# for evt in cat:
+#     stime = evt.preferred_origin().time - 5
+#     etime = evt.preferred_origin().time + 15
+#
+#     for station in stations:
+#         tmp = web_client.get_continuous(base_url, stime, etime, stations)
+#         st = Stream()
+#         for tr in tmp:
+#             if len(tr.data) == 0:
+#                 continue
+#             st.traces.append(tr)
+#
+#         st_io = BytesIO()
+#         st.write(st_io, format='MSEED')
+#     # send the data to the seismic-api endpoint on Azure @Hanee, could you
+#     # please complete the code required to push the mseed to the server
+#
+#     # CODE TO SEND THE DATA TO THE END POINT HERE
+#
+#     # decomposed_mseed = mseed_decomposer(st)
+#     #
+#     # write_decomposed_mseed_to_kafka(decomposed_mseed)

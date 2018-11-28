@@ -1,19 +1,34 @@
-import urllib.request as urllib_request
-import io
-import os
-from microquake.core import read_events
+from microquake.core import read_events, read
 from microquake.core.stream import *
 from io import BytesIO
-import base64
-import urllib
-import json
 import requests
 from spp.utils.application import Application
 
-# config_dir = os.environ['SPP_CONFIG']
 
+class RequestEvent():
+    def __init__(self, ev_dict):
+        for key in ev_dict.keys():
+            setattr(self, key, ev_dict[key])
 
-# url_base = 'http://localhost:5000/events/'
+    def get_event(self):
+        event_file = requests.request('GET', self.event_file)
+        return read_events(event_file.content, format='QUAKEML')
+
+    def get_waveform(self):
+        waveform_file = requests.request('GET', self.waveform_file)
+        byte_stream = BytesIO(waveform_file.content)
+        return read(byte_stream, format='MSEED')
+
+    def get_context(self):
+        waveform_context_file = requests.request('GET',
+                                                 self.context_waveform_file)
+        byte_stream = BytesIO(waveform_context_file)
+        return read(byte_stream)
+
+    def select(self):
+        # select by different attributes
+        # TODO write this function :-)
+        pass
 
 
 def build_request_data_from_files(event_id, event_file, mseed_file, mseed_context_file):
@@ -101,13 +116,19 @@ def post_event_data(api_base_url, request_data, request_files):
 
 
 def get_events_catalog(api_base_url, start_time, end_time):
+    from IPython.core.debugger import Tracer
+    from microquake.core import AttribDict
     url = api_base_url + "catalog"
 
     querystring = {"start_time": start_time, "end_time": end_time}
 
-    response = requests.request("GET", url,  params=querystring)
-    print(response.text)
-    return response.text
+    response = requests.request("GET", url,  params=querystring).json()
+
+    events = []
+    for event in response:
+        events.append(RequestEvent(event))
+
+    return events
 
 
 if __name__ == "__main__":
@@ -117,11 +138,12 @@ if __name__ == "__main__":
     API_BASE_URL = app.settings.API.base_url
 
     data, files = build_request_data_from_files( None
-                                                , 'data/2018-11-08T11-16-47.968400Z.xml'
+                                                ,'data/2018-11-08T11-16-47.968400Z.xml'
                                                 ,'data/2018-11-08T11-16-47.968400Z.mseed'
                                                 , None #'20180523_125102207781.mseed_context'
                                                 )
 
     post_event_data(API_BASE_URL, data, files)
 
-    get_events_catalog(API_BASE_URL, "2018-11-08T10:21:48.898496Z", "2018-11-08T11:21:49.898496Z")
+    get_events_catalog(API_BASE_URL, "2018-11-08T10:21:48.898496Z",
+                       "2018-11-08T11:21:49.898496Z")
