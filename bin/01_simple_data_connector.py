@@ -13,6 +13,7 @@ from spp.utils.kafka import KafkaHandler
 from glob import glob
 from microquake.io import msgpack
 from spp.utils import seismic_client
+from io import BytesIO
 import os
 
  # looking at the past 10 hours
@@ -47,15 +48,28 @@ cmseed_file = input_file.replace('.xml', '_20s.mseed')
 cat = read_events(event_file)
 st = read(mseed_file)
 st_c = read(cmseed_file)
-for cmseed_file in glob()
-for tr in st_c:
-    tr.stats.starttime -= 8 * 3600
-
-
 
 event_time = cat[0].preferred_origin().time
 
-st_c_trimmed = st_c.trim(starttime=event_time-0.6, endtime=event_time+0.6)
+st_c_trimmed = st_c.copy().trim(starttime=event_time-0.2,
+                                endtime=event_time+1).taper(
+    max_percentage=0.01).filter('highpass', freq=60)
+
+st_io = BytesIO()
+st_c_trimmed.write(st_io, format='mseed')
+ev_io = BytesIO()
+cat.write(ev_io, format='QUAKEML')
+
+# st_c_trimmed.traces = st_c_trimmed.traces
+
+data_out = msgpack.pack([ev_io.getvalue(), st_io.getvalue()])
+timestamp_ms = int(cat[0].preferred_origin().time.timestamp * 1e3)
+key = str(cat[0].preferred_origin().time).encode('utf-8')
+
+kafka_handler.send_to_kafka(kafka_producer_topics, key,
+                                message=data_out,
+                                timestamp_ms=timestamp_ms)
+
 
 # data, files = seismic_client.build_request_data_from_bytes(None,
 #                                                            event_file,
@@ -64,26 +78,30 @@ st_c_trimmed = st_c.trim(starttime=event_time-0.6, endtime=event_time+0.6)
 
 
 
-cat = read_events(event_file, format='QUAKEML')
-event_id = cat[0].resource_id.id
-
-cat_bytes = open(event_file, 'rb').read()
-st_bytes = open(mseed_file, 'rb').read()
-
-data_out = msgpack.pack([event_id, cat_bytes, st_bytes, None])
-
-timestamp_ms = int(cat[0].preferred_origin().time.timestamp * 1e3)
-key = str(cat[0].preferred_origin().time).encode('utf-8')
-
-for kptopic in kafka_producer_topics:
-    kafka_handler.send_to_kafka(kptopic,
-                                key,
-                                message=data_out,
-                                timestamp_ms=timestamp_ms)
-
-
+# cat = read_events(event_file, format='QUAKEML')
+# event_id = cat[0].resource_id.id
+#
+# cat_bytes = open(event_file, 'rb').read()
+# st_bytes = open(mseed_file, 'rb').read()
+#
+# data_out = msgpack.pack([event_id, cat_bytes, st_bytes, None])
+#
+# timestamp_ms = int(cat[0].preferred_origin().time.timestamp * 1e3)
+# key = str(cat[0].preferred_origin().time).encode('utf-8')
+#
+# for kptopic in kafka_producer_topics:
+#     kafka_handler.send_to_kafka(kptopic,
+#                                 key,
+#                                 message=data_out,
+#                                 timestamp_ms=timestamp_ms)
 
 
+
+# for cmseed_file in glob(os.path.join(base_dir, '*_20s.mseed')):
+#     st_c = read(cmseed_file)
+#     for tr in st_c:
+#         tr.stats.starttime -= 8 * 3600
+#     st_c.write(cmseed_file, format='MSEED')
 
 # base_url = params.path
 # topic_in = params.kafka_consumer_topic

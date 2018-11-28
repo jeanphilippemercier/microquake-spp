@@ -12,7 +12,7 @@ from spp.utils.kafka import KafkaHandler
 
 from microquake.io import msgpack
 from microquake.core.util import tools
-from microquake.core import read
+from microquake.core import read, read_events
 from io import BytesIO
 
 from spp.utils.application import Application
@@ -25,7 +25,7 @@ wlen_sec = params.wlen_seconds
 debug = params.debug
 dsr = params.dsr
 
-logger = app.logger(params.log_topic, params.log_file_name)
+logger = app.get_logger(params.log_topic, params.log_file_name)
 
 brokers = app.settings.kafka.brokers
 topic_in = params.kafka_consumer_topic
@@ -40,12 +40,15 @@ tt_ptrs = np.array([row.__array_interface__['data'][0] for row in ttable])
 
 consumer = KafkaHandler.consume_from_topic(topic_in, brokers, group_id=None)
 
+log_dir = '/app/common'
+
 print("Awaiting Kafka mseed messsages")
 for msg_in in consumer:
     print("Received Key:", msg_in.key)
 
-    # st = msgpack.unpack(msg_in.value)
-    st = read(BytesIO(msg_in.value))
+    data = msgpack.unpack(msg_in.value)
+    st = read(BytesIO(data[1]), format='MSEED')
+    cat = read_events(BytesIO(data[0]), format='QUAKEML')
     tr = st[0]
     print(tr.stats.starttime, tr.stats.endtime, len(tr))
 
@@ -55,7 +58,7 @@ for msg_in in consumer:
     chanmap = st.chanmap().astype(np.uint16)
     ikeep = htt.index_sta(st.unique_stations())
 
-    npz_file = os.path.join(logdir, "iloc_" + str(t0) + ".npz")
+    npz_file = os.path.join(log_dir, "iloc_" + str(t0) + ".npz")
     out = xspy.pySearchOnePhase(data, dsr, chanmap, stalocs[ikeep], tt_ptrs[ikeep],
                                  ngrid, nthreads, debug, npz_file)
     vmax, imax, iot = out
@@ -69,7 +72,7 @@ for msg_in in consumer:
     if vmax > params.threshold:
         logger.info("=======================================\n")
         logger.info("VMAX over threshold (%.3f > %.3f)" %
-					(vmax, params.threshold))
+                    (vmax, params.threshold))
         logger.info("====== sending message ================\n")
 
         key_out = ("iloc_%.4f" % (ot_epoch)).encode('utf-8')
