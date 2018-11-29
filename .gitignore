@@ -16,3 +16,5 @@ data/NLLOC_grids/
 libs/microquake
 *.toml
 *.s
+*.txt
+*.pdf
