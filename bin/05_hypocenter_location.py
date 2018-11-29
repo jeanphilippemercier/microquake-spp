@@ -44,7 +44,7 @@ if __name__ == '__main__':
                     % settings.nlloc.kafka_consumer_topic)
         t1 = time()
         data = unpack(message.value)
-        st = read(BytesIO(data[1]))
+        st = data[1] #read(BytesIO(data[1]))
         cat = read_events(BytesIO(data[0]))
         t2 = time()
         logger.info('done unpacking the data from Kafka topic <%s> in '
@@ -82,6 +82,7 @@ if __name__ == '__main__':
                                     key,
                                     message=data_out,
                                     timestamp_ms=timestamp_ms)
+        kafka_handler.producer.flush()
         t5 = time()
 
         logger.info('done sending the data to Kafka topic <%s> in %0.3f '

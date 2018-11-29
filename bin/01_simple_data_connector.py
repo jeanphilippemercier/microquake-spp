@@ -15,6 +15,7 @@ from microquake.io import msgpack
 from spp.utils import seismic_client
 from io import BytesIO
 import os
+import numpy as np
 
  # looking at the past 10 hours
 
@@ -32,6 +33,8 @@ kafka_topic = settings.data_connector.kafka_consumer_topic
 kafka_producer_topics = settings.data_connector.kafka_producer_topic
 kafka_handler = KafkaHandler(kafka_brokers)
 
+black_list = ['23', '31', '32', '100', '102', '107', '88', '90', '77']
+
 base_dir = params.path
 
 api_base_url = app.settings.seismic_api.base_url
@@ -40,20 +43,51 @@ logger.info('awaiting Kafka mseed messsages')
 # for input_file in glob(os.path.join(base_dir, '*20s.xml')):
 
     # getting the event data to the event database endpoint
+logger.info('reading files')
 input_file = os.path.join(base_dir, '2018_11_23T11_41_03.347319Z.xml')
 event_file = input_file
 mseed_file = input_file.replace('xml', 'mseed')
 cmseed_file = input_file.replace('.xml', '_20s.mseed')
 
 cat = read_events(event_file)
+logger.info(cat[0].preferred_origin().loc)
 st = read(mseed_file)
 st_c = read(cmseed_file)
+logger.info('done reading files')
 
+logger.info('preparing data')
 event_time = cat[0].preferred_origin().time
 
-st_c_trimmed = st_c.copy().trim(starttime=event_time-0.2,
-                                endtime=event_time+1).taper(
-    max_percentage=0.01).filter('highpass', freq=60)
+st_c_trimmed = st_c.copy().taper(max_percentage=0.1).trim(
+                           starttime=event_time-0.2,
+                           endtime=event_time+1, pad=True,
+                           fill_value=0).taper(
+    max_percentage=0.1).filter('bandpass', freqmin=100, freqmax=1000)
+
+# Trying to better prepare the data for Interloc
+from obspy.signal.trigger import recursive_sta_lta
+from IPython.core.debugger import Tracer
+import matplotlib.pyplot as plt
+trs = []
+for tr in st_c_trimmed:
+    station = site.select(station=tr.stats.station).stations()[0]
+    if station.code in black_list:
+        continue
+    if station.motion_type == 'acceleration':
+        continue
+    if np.max(tr.data) < 10 * np.std(tr.data):
+        continue
+    tr.data = np.nan_to_num(tr.data)
+    trs.append(tr)
+
+# new_st = Stream(traces=trs)
+
+# Tracer()()
+# black_list =
+
+st_c_trimmed = Stream(traces=trs)
+
+#
 
 st_io = BytesIO()
 st_c_trimmed.write(st_io, format='mseed')
@@ -62,15 +96,19 @@ cat.write(ev_io, format='QUAKEML')
 
 # st_c_trimmed.traces = st_c_trimmed.traces
 
-data_out = msgpack.pack([ev_io.getvalue(), st_io.getvalue()])
+data_out = msgpack.pack([ev_io.getvalue(), st_c_trimmed])
 timestamp_ms = int(cat[0].preferred_origin().time.timestamp * 1e3)
 key = str(cat[0].preferred_origin().time).encode('utf-8')
+logger.info('done preparing data')
+
+logger.info('sending message')
 
 kafka_handler.send_to_kafka(kafka_producer_topics, key,
                                 message=data_out,
                                 timestamp_ms=timestamp_ms)
+kafka_handler.producer.flush()
 
-
+logger.info('done sending message')
 # data, files = seismic_client.build_request_data_from_bytes(None,
 #                                                            event_file,
 #                                                            mseed_file,

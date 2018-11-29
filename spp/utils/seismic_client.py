@@ -1,4 +1,4 @@
-from microquake.core import read_events, read
+from microquake.core import read_events, read, AttribDict
 from microquake.core.stream import *
 from io import BytesIO
 import requests
@@ -29,6 +29,9 @@ class RequestEvent():
         # select by different attributes
         # TODO write this function :-)
         pass
+
+    def keys(self):
+        return self.__dict__.keys()
 
 
 def build_request_data_from_files(event_id, event_file, mseed_file, mseed_context_file):

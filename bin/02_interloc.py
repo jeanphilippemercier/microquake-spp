@@ -6,7 +6,10 @@ import os
 # from xseis2 import xutil
 # from xseis2 import xflow
 from xseis2 import xspy
+from microquake.core import Stream, UTCDateTime
+from microquake.core.event import Origin
 # from datetime import datetime, timedelta
+from datetime import datetime
 
 from spp.utils.kafka import KafkaHandler
 
@@ -47,13 +50,20 @@ for msg_in in consumer:
     print("Received Key:", msg_in.key)
 
     data = msgpack.unpack(msg_in.value)
-    st = read(BytesIO(data[1]), format='MSEED')
+    st = data[1]# read(BytesIO(data[1]), format='MSEED')
     cat = read_events(BytesIO(data[0]), format='QUAKEML')
     tr = st[0]
     print(tr.stats.starttime, tr.stats.endtime, len(tr))
 
-    st.zpad_names()
+    # will need to change that eventually
+    st_out = st.copy()
+    # st.zpad_names()
+    # trs = [tr for tr in st if not np.any(tr.data == np.nan)]
+    # st2 = Stream(traces=trs)
+    # for tr in st2:
+    #     tr.data = tr.data
     data, sr, t0 = st.as_array(wlen_sec)
+    data = np.nan_to_num(data)
     data = tools.decimate(data, sr, int(sr / dsr))
     chanmap = st.chanmap().astype(np.uint16)
     ikeep = htt.index_sta(st.unique_stations())
@@ -65,19 +75,25 @@ for msg_in in consumer:
     lmax = htt.icol_to_xyz(imax)
 
     ot_epoch = tools.datetime_to_epoch_sec((t0 + iot / dsr).datetime)
+    time = UTCDateTime(datetime.fromtimestamp((ot_epoch)))
+    cat[0].origins.append(Origin(x=lmax[0], y=lmax[1], z=lmax[2], time=time))
+    cat[0].preferred_origin_id = cat[0].origins[-1].resource_id.id
 
     logger.info("power: %.3f, ix_grid: %d, ix_ot: %d" % (vmax, imax, iot))
     logger.info("utm_loc: ", lmax.astype(int))
 
-    if vmax > params.threshold:
-        logger.info("=======================================\n")
-        logger.info("VMAX over threshold (%.3f > %.3f)" %
-                    (vmax, params.threshold))
-        logger.info("====== sending message ================\n")
+    # if vmax > params.threshold:
+    logger.info("=======================================\n")
+    logger.info("VMAX over threshold (%.3f > %.3f)" %
+                (vmax, params.threshold))
+    logger.info("====== sending message ================\n")
 
-        key_out = ("iloc_%.4f" % (ot_epoch)).encode('utf-8')
-        msg_out = msgpack.pack([ot_epoch, lmax[0], lmax[1], lmax[2], vmax, st])
-        kafka_handler_obj = KafkaHandler(brokers)
-        kafka_handler_obj.send_to_kafka(topic_out, key_out, msg_out)
-        kafka_handler_obj.producer.flush()
+    key_out = ("iloc_%.4f" % (ot_epoch)).encode('utf-8')
+    # msg_out = msgpack.pack([ot_epoch, lmax[0], lmax[1], lmax[2], vmax, st])
+    ev_io = BytesIO()
+    cat.write(ev_io, format='QUAKEML')
+    msg_out = msgpack.pack([ev_io.getvalue(), st_out])
+    kafka_handler_obj = KafkaHandler(brokers)
+    kafka_handler_obj.send_to_kafka(topic_out, key_out, msg_out)
+    kafka_handler_obj.producer.flush()
     logger.info("\n")

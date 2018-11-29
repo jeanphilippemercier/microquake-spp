@@ -65,6 +65,7 @@ if __name__ == "__main__":
                                     key,
                                     message=data_out,
                                     timestamp_ms=timestamp_ms)
+        kafka_handler.producer.flush()
         t5 = time()
         logger.info('done sending the data to Kafka topic <%s> in %0.3f '
                     'seconds' % (app.settings.nlloc.kafka_producer_topic,

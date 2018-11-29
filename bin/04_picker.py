@@ -38,7 +38,8 @@ if __name__ == '__main__':
         # is below is for testing purpose
         data = msgpack.unpack(message.value)
         # ot_epoch_or_event, loc, vmax, st = dat[0], dat[1:4], dat[4], dat[5]
-        st = read(BytesIO(data[1]))
+        # st = read(BytesIO(data[1]))
+        st = data[1]
         cat = read_events(BytesIO(data[0]))
 
         loc = cat[0].preferred_origin().loc
@@ -162,6 +163,7 @@ if __name__ == '__main__':
                                     key,
                                     message=data_out,
                                     timestamp_ms=timestamp_ms)
+        kafka_handler.producer.flush()
         t13 = time()
         logger.info('done sending data to Kafka in %0.3f seconds' % (t13 - t12))
         logger.info('completed automatic picking in %0.3f seconds' % (t13 - t0))
