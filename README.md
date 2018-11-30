@@ -35,12 +35,18 @@ docker-compose exec broker kafka-console-producer --broker-list localhost:9092 -
 docker-compose exec broker kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning
 ```
 
+## Deleting topic and clearing message queues
+
+Could we add some information on how to delete a topic and how to clean the message queue? 
+
 ## Importing the Grafana dashboard
 
 Configure a datasource with http://prometheus:9090
+This does not work for me (JP)?
 
 Then, go to http://localhost:3000/dashboard/import and enter 721
 
+What is the Graphana Username and Password? 
 
 ## Creating a deployment user
 
