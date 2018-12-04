@@ -442,3 +442,14 @@ class Application(object):
             arrivals.append(arrival)
 
         return arrivals
+
+    def get_kafka_producer(self):
+        from confluent_kafka import Producer
+        producer = Producer({
+            'bootstrap.servers': self.settings.kafka.brokers})
+        return producer
+
+    def get_kafka_consumer(self, group_id=None):
+        from confluent_kafka import Consumer
+        consumer = Consumer({'bootstrap.servers': self.settings.brokers})
+        return consumer
