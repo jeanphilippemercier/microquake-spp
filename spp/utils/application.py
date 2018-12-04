@@ -445,11 +445,12 @@ class Application(object):
 
     def get_kafka_producer(self):
         from confluent_kafka import Producer
-        producer = Producer({
-            'bootstrap.servers': self.settings.kafka.brokers})
+        producer = Producer({'bootstrap.servers':
+                                 self.settings.kafka.brokers[0]})
         return producer
 
     def get_kafka_consumer(self, group_id=None):
         from confluent_kafka import Consumer
-        consumer = Consumer({'bootstrap.servers': self.settings.kafka.brokers})
+        consumer = Consumer({'bootstrap.servers':
+                                 self.settings.kafka.brokers[0]})
         return consumer
