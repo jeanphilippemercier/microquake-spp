@@ -35,6 +35,10 @@ topic_in = params.kafka_consumer_topic
 topic_out = params.kafka_producer_topic
 kaf_handle = KafkaHandler(brokers)
 
+logger.info('init connection to redis')
+redis_conn = app.init_redis()
+logger.info('connectiong to redis database successfully initated')
+
 htt = app.get_ttable_h5()
 stalocs = htt.locations
 ttable = (htt.hf['ttp'][:] * dsr).astype(np.uint16)
@@ -49,7 +53,11 @@ print("Awaiting Kafka mseed messsages")
 for msg_in in consumer:
     print("Received Key:", msg_in.key)
 
-    data = msgpack.unpack(msg_in.value)
+    redis_key = msgpack.unpack(msg_in.value)
+    logger.info('getting data from Redis (key:%s)' % redis_key)
+    data = redis_conn.get(redis_key)
+    logger.info('done getting data from Redis')
+
     st = data[1]# read(BytesIO(data[1]), format='MSEED')
     cat = read_events(BytesIO(data[0]), format='QUAKEML')
     tr = st[0]

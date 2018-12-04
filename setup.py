@@ -33,7 +33,8 @@ requirements = [
     'fastavro',
     'confluent-kafka',
     'toml',
-    'h5py'
+    'h5py',
+    'redis'
 ]
 
 # http://blog.prabeeshk.com/blog/2014/10/31/install-apache-spark-on-ubuntu-14-dot-04/

@@ -242,6 +242,9 @@ class Application(object):
         with open(v_path) as ris:
             return ris.read()
 
+    def init_redis(self):
+        from redis import StrictRedis
+        return StrictRedis(**self.settings.redis_db)
 
     def __get_console_handler(self):
         """

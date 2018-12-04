@@ -55,19 +55,22 @@ st = read(mseed_file)
 st_c = read(cmseed_file)
 logger.info('done reading files')
 
+logger.info('init connection to redis')
+redis_conn = app.init_redis()
+logger.info('connectiong to redis database successfully initated')
+
 logger.info('preparing data')
 event_time = cat[0].preferred_origin().time
 
+logger.info('trimming stream')
 st_c_trimmed = st_c.copy().taper(max_percentage=0.1).trim(
                            starttime=event_time-0.2,
                            endtime=event_time+1, pad=True,
                            fill_value=0).taper(
     max_percentage=0.1).filter('bandpass', freqmin=100, freqmax=1000)
+logger.info('done trimming stream')
 
-# Trying to better prepare the data for Interloc
-from obspy.signal.trigger import recursive_sta_lta
-from IPython.core.debugger import Tracer
-import matplotlib.pyplot as plt
+
 trs = []
 for tr in st_c_trimmed:
     station = site.select(station=tr.stats.station).stations()[0]
@@ -80,14 +83,7 @@ for tr in st_c_trimmed:
     tr.data = np.nan_to_num(tr.data)
     trs.append(tr)
 
-# new_st = Stream(traces=trs)
-
-# Tracer()()
-# black_list =
-
 st_c_trimmed = Stream(traces=trs)
-
-#
 
 st_io = BytesIO()
 st_c_trimmed.write(st_io, format='mseed')
@@ -101,14 +97,18 @@ timestamp_ms = int(cat[0].preferred_origin().time.timestamp * 1e3)
 key = str(cat[0].preferred_origin().time).encode('utf-8')
 logger.info('done preparing data')
 
-logger.info('sending message')
+logger.info('sending the data to Redis')
+redis_conn.set(key, data_out, ex=settings.redis_extra.ttl)
+logger.info('done sending the data to redis')
+
+logger.info('sending message to kafka')
 
 kafka_handler.send_to_kafka(kafka_producer_topics, key,
-                                message=data_out,
+                                message=key,
                                 timestamp_ms=timestamp_ms)
 kafka_handler.producer.flush()
 
-logger.info('done sending message')
+logger.info('done sending message to kafka')
 # data, files = seismic_client.build_request_data_from_bytes(None,
 #                                                            event_file,
 #                                                            mseed_file,
