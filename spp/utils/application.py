@@ -451,5 +451,5 @@ class Application(object):
 
     def get_kafka_consumer(self, group_id=None):
         from confluent_kafka import Consumer
-        consumer = Consumer({'bootstrap.servers': self.settings.brokers})
+        consumer = Consumer({'bootstrap.servers': self.settings.kafka.brokers})
         return consumer
