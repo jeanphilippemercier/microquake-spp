@@ -1,29 +1,17 @@
-
-from importlib import reload
 import numpy as np
 import os
-# import glob
-# from xseis2 import xutil
-# from xseis2 import xflow
-from xseis2 import xspy
 from microquake.core import Stream, UTCDateTime
 from microquake.core.event import Origin
-# from datetime import datetime, timedelta
 from datetime import datetime
-import uuid
-
-from microquake.io import msgpack
 from microquake.core.util import tools
-from microquake.core import read, read_events
-from io import BytesIO
-from time import time
-
 from spp.utils.application import Application
 
-def callback(cat=None, stream=None, extra_msg=None, logger=None,
+
+def callback(cat=None, stream=None, extra_msgs=None, logger=None,
              wlen_sec=None, log_dir=None, dsr=None):
 
     from time import time
+    from xseis2 import xspy
 
     logger.info('preparing data for Interloc')
     t4 = time()
@@ -59,10 +47,9 @@ def callback(cat=None, stream=None, extra_msg=None, logger=None,
 
     logger.info("=======================================\n")
     logger.info("VMAX over threshold (%.3f > %.3f)" %
-                (vmax, params.threshold))
+                (vmax, threshold))
 
-    return cat, stream, vmax
-
+    return cat, st_out, vmax
 
 
 __module_name__ = 'interloc'
@@ -76,7 +63,8 @@ wlen_sec = params.wlen_seconds
 debug = params.debug
 dsr = params.dsr
 
-conf = {'wlen_sec': wlen_sec, 'log_dir': '/app/common', 'dsr': dsr}
+conf = {'wlen_sec': wlen_sec, 'log_dir': '/app/common', 'dsr': dsr,
+        'threshold': params.threshold}
 
 htt = app.get_ttable_h5()
 stalocs = htt.locations
@@ -84,6 +72,14 @@ ttable = (htt.hf['ttp'][:] * dsr).astype(np.uint16)
 ngrid = ttable.shape[1]
 tt_ptrs = np.array([row.__array_interface__['data'][0] for row in ttable])
 
-cat, st, vmax = app.receive_message(callback=callback, **conf)
+app.logger.info('awaiting message from Kafka')
+while True:
+    msg_in = app.consumer.poll(timeout=1)
+    if msg_in is None:
+        continue
+    if msg_in.value() == b'Broker: No more messages':
+        continue
+    cat, st, extra_msgs = app.receive_message(msg_in, callback, **conf)
 
-app.send_message(cat=cat, stream=st, extra_msgs=[vmax])
+    app.send_message(cat=cat, stream=st, extra_msgs=extra_msgs)
+    app.logger.info('awaiting message from Kafka')

@@ -506,21 +506,23 @@ class Application(object):
         data_out = []
         if cat is not None:
             ev_io = BytesIO()
-            data_out.append(cat[0].write(ev_io, format='QUAKEML'))
+            cat[0].write(ev_io, format='QUAKEML')
+            data_out.append(ev_io.getvalue())
 
         if stream is not None:
             data_out.append(stream)
 
         # this is not optimal need to have a proper schema
-        for msg in extra_msgs:
-            data_out.append(msg)
+        if extra_msgs is not None:
+            for msg in extra_msgs:
+                data_out.append(msg)
 
         msg_out = msgpack.pack(data_out)
         # timestamp_ms = int(cat[0].preferred_origin().time.timestamp * 1e3)
         redis_key = str(uuid.uuid4())
         self.logger.info('done preparing data')
 
-        self.logger.info('sending data to Redis')
+        self.logger.info('sending data to Redis with redis key = %s' %redis_key)
         self.redis_conn.set(redis_key, msg_out)
         self.logger.info('done sending data to Redis')
 
@@ -539,7 +541,7 @@ class Application(object):
 
         self.logger.info('done sending message to kafka')
 
-    def receive_message(self, callback, **kwargs):
+    def receive_message(self, msg_in, callback, **kwargs):
         """
         receive message
         :param callback: callback function signature must be as follows:
@@ -553,37 +555,31 @@ class Application(object):
         from io import BytesIO
 
         self.logger.info('awaiting for message')
-        while True:
-            msg_in = self.consumer.poll(timeout=1)
-            if msg_in is None:
-                continue
-            if msg_in.value() == b'Broker: No more messages':
-                continue
 
-            redis_key = msg_in.value()
-            self.logger.info('getting data from Redis (key:%s)' % redis_key)
-            t0 = time()
-            data = msgpack.unpack(self.redis_conn.get(redis_key))
-            t1 = time()
-            self.logger.info('done getting data from Redis in %0.3f seconds' % (
-                t1 - t0))
+        redis_key = msg_in.value()
+        self.logger.info('getting data from Redis (key: %s)' % redis_key)
+        t0 = time()
+        data = msgpack.unpack(self.redis_conn.get(redis_key))
+        t1 = time()
+        self.logger.info('done getting data from Redis in %0.3f seconds' % (
+            t1 - t0))
 
-            self.logger.info('unpacking data')
-            t2 = time()
-            st = data[1]
-            cat = read_events(BytesIO(data[0]), format='QUAKEML')
-            tr = st[0]
-            t3 = time()
-            self.logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
+        self.logger.info('unpacking data')
+        t2 = time()
+        st = data[1]
+        cat = read_events(BytesIO(data[0]), format='QUAKEML')
+        t3 = time()
+        self.logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
 
-            extra_msgs = None
-            if len(data) > 2:
-                extra_msgs = data[2:]
+        extra_msgs = None
+        if len(data) > 2:
+            extra_msgs = data[2:]
 
-            return callback(cat=cat, stream=st, extra_msgs=extra_msgs,
-                            logger=self.logger, **kwargs)
+        callback(cat=cat, stream=st, extra_msgs=extra_msgs,
+                        logger=self.logger, **kwargs)
 
-            self.logger.info('awaiting for message')
+        self.logger.info('awaiting for message')
+        return cat, st, extra_msgs
 
 
 
