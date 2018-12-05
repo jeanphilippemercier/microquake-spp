@@ -8,7 +8,7 @@ from spp.utils.application import Application
 
 
 def callback(cat=None, stream=None, extra_msgs=None, logger=None,
-             wlen_sec=None, log_dir=None, dsr=None):
+             wlen_sec=None, log_dir=None, dsr=None, threshold=None):
 
     from time import time
     from xseis2 import xspy

@@ -9,14 +9,8 @@
 from microquake.core import Stream, UTCDateTime, read_events, read
 # from microquake.IMS import web_client
 from spp.utils.application import Application
-from spp.utils.kafka import KafkaHandler
-from glob import glob
-from microquake.io import msgpack
-from spp.utils import seismic_client
-from io import BytesIO
 import os
 import numpy as np
-import uuid
 
  # looking at the past 10 hours
 

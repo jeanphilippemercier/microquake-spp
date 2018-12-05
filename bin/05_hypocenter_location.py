@@ -1,95 +1,70 @@
 #!/usr/bin/env python3
 
 from spp.utils.application import Application
-from spp.utils.kafka import KafkaHandler
 from microquake.nlloc import NLL, calculate_uncertainty
-from microquake.io.msgpack import pack, unpack
-from microquake.core import read
-from microquake.core.event import read_events
-from io import BytesIO
-from time import time
-
-if __name__ == '__main__':
-
-    # reading application data
-    app = Application()
-    settings = app.settings
-    logger = app.get_logger(settings.nlloc.log_topic,
-                            settings.nlloc.log_file_name)
-
-    # TODO NEED TO CHECK IF VELOCITY MODEL IS CURRENT. THIS WILL BE DONE
-    # THROUGH A CALL TO THE API. IF THE VELOCITY IS NOT CONSTANT, VELOCITY
-    # MODEL WILL NEED TO BE DOWNLOADED AND TRAVEL TIME RECALCULATED
-
-    project_code = settings.project_code
-    base_folder = settings.nlloc.nll_base
-    gridpar = app.nll_velgrids()
-    sensors = app.nll_sensors()
-    params = app.settings.nlloc
-
-    # Preparing NonLinLoc
-    logger.info('preparing NonLinLoc')
-    nll = NLL(project_code, base_folder=base_folder, gridpar=gridpar,
-              sensors=sensors, params=params)
-
-    kafka_brokers = settings.kafka.brokers
-    kafka_topic = settings.nlloc.kafka_consumer_topic
-    kafka_producer_topic = settings.nlloc.kafka_producer_topic
-    kafka_handler = KafkaHandler(kafka_brokers)
-    consumer = KafkaHandler.consume_from_topic(kafka_topic, kafka_brokers)
-    logger.info('awaiting Kafka mseed messsages')
-    for message in consumer:
-        # logger.info("Received message with key:", msg_in.key)
-        logger.info('unpacking the data received from Kafka topic <%s>'
-                    % settings.nlloc.kafka_consumer_topic)
-        t1 = time()
-        data = unpack(message.value)
-        st = data[1] #read(BytesIO(data[1]))
-        cat = read_events(BytesIO(data[0]))
-        t2 = time()
-        logger.info('done unpacking the data from Kafka topic <%s> in '
-                    '%0.3f seconds'
-                    % (settings.nlloc.kafka_consumer_topic, t2 - t1))
-
-        logger.info('done NonLinLoc')
-        cat_out = nll.run_event(cat[0].copy())
-        t3 = time()
-        logger.info('done running NonLinLoc in %0.3f seconds' % (t3 - t2))
-
-        # try:
-        origin_uncertainty = calculate_uncertainty(cat_out[0], base_folder,
-                                                   project_code,
-                                                   perturbation=5,
-                                                   pick_uncertainty=1e-3)
-        # except:
-        #    logger.error('failed to locate the event')
-
-        cat_out[0].preferred_origin().origin_uncertainty = origin_uncertainty
-
-        logger.info('packing the data')
-        timestamp_ms = int(cat_out[0].preferred_origin().time.timestamp * 1e3)
-        key = str(cat_out[0].preferred_origin().time).encode('utf-8')
-
-        ev_io = BytesIO()
-        cat_out.write(ev_io, format='QUAKEML')
-        data_out = pack([ev_io.getvalue(), data[1]])
-        t4 = time()
-        logger.info('done packing the data in %0.3f seconds' % (t4 - t3))
-
-        logger.info('sending the data Kafka topic <%s>'
-                    % app.settings.nlloc.kafka_producer_topic)
-        kafka_handler.send_to_kafka(kafka_producer_topic,
-                                    key,
-                                    message=data_out,
-                                    timestamp_ms=timestamp_ms)
-        kafka_handler.producer.flush()
-        t5 = time()
-
-        logger.info('done sending the data to Kafka topic <%s> in %0.3f '
-                    'seconds' % (app.settings.nlloc.kafka_producer_topic,
-                                 t5 - t4))
-        logger.info('=========================================================')
 
 
+def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
+             params=None, project_code=None):
+
+    from time import time
+    from IPython.core.debugger import Tracer
+
+    logger.info('unpacking the data received from Kafka topic <%s>'
+                % settings.nlloc.kafka_consumer_topic)
+
+    logger.info('running NonLinLoc')
+    t0 = time()
+    cat_out = nll.run_event(cat[0].copy())
+    t1 = time()
+    logger.info('done running NonLinLoc in %0.3f seconds' % (t1 - t0))
+
+    base_folder = params.nll_base
+
+    logger.info('calculating Uncertainty')
+    t2 = time()
+    origin_uncertainty = calculate_uncertainty(cat_out[0], base_folder,
+                                               project_code,
+                                               perturbation=5,
+                                               pick_uncertainty=1e-3)
+
+    cat_out[0].preferred_origin().origin_uncertainty = origin_uncertainty
+    t3 = time()
+    logger.info('done calculating uncertainty in %0.3f seconds' % (t3 - t2))
+
+    return cat_out, stream, extra_msgs
+
+__module_name__ = 'nlloc'
+
+app = Application(module_name=__module_name__)
+app.init_module()
+
+# reading application data
+settings = app.settings
+
+project_code = settings.project_code
+base_folder = settings.nlloc.nll_base
+gridpar = app.nll_velgrids()
+sensors = app.nll_sensors()
+params = app.settings.nlloc
+
+# Preparing NonLinLoc
+app.logger.info('preparing NonLinLoc')
+nll = NLL(project_code, base_folder=base_folder, gridpar=gridpar,
+          sensors=sensors, params=params)
+app.logger.info('done preparing NonLinLoc')
 
 
+app.logger.info('awaiting message from Kafka')
+while True:
+    msg_in = app.consumer.poll(timeout=1)
+    if msg_in is None:
+        continue
+    if msg_in.value() == b'Broker: No more messages':
+        continue
+    cat_out, st, extra_msgs = app.receive_message(msg_in, location, nll=nll,
+                                              params=params,
+                                              project_code=project_code)
+
+    app.send_message(cat=cat_out, stream=st, extra_msgs=extra_msgs)
+    app.logger.info('awaiting message from Kafka')

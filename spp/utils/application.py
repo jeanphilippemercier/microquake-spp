@@ -575,8 +575,9 @@ class Application(object):
         if len(data) > 2:
             extra_msgs = data[2:]
 
-        callback(cat=cat, stream=st, extra_msgs=extra_msgs,
-                        logger=self.logger, **kwargs)
+        cat, st, extra_msgs = callback(cat=cat, stream=st,
+                                       extra_msgs=extra_msgs,
+                                       logger=self.logger, **kwargs)
 
         self.logger.info('awaiting for message')
         return cat, st, extra_msgs
