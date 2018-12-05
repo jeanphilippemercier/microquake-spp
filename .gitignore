@@ -18,3 +18,4 @@ libs/microquake
 *.s
 *.txt
 *.pdf
+common/*

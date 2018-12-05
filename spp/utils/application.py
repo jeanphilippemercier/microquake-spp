@@ -443,14 +443,17 @@ class Application(object):
 
         return arrivals
 
-    def get_kafka_producer(self):
+    def get_kafka_producer(self, logger=None):
         from confluent_kafka import Producer
         producer = Producer({'bootstrap.servers':
-                                 self.settings.kafka.brokers[0]})
+                                 self.settings.kafka.brokers},
+                            logger=logger)
         return producer
 
-    def get_kafka_consumer(self, group_id=None):
+    def get_kafka_consumer(self, logger=None):
         from confluent_kafka import Consumer
         consumer = Consumer({'bootstrap.servers':
-                                 self.settings.kafka.brokers[0]})
+                                 self.settings.kafka.brokers,
+                             'group.id': self.settings.kafka.group_id},
+                            logger=logger)
         return consumer
