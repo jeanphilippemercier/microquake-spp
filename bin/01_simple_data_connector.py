@@ -11,6 +11,7 @@ from microquake.core import Stream, UTCDateTime, read_events, read
 from spp.utils.application import Application
 import os
 import numpy as np
+from glob import glob
 
  # looking at the past 10 hours
 
@@ -27,46 +28,46 @@ base_dir = app.settings.data_connector.path
 
 api_base_url = app.settings.seismic_api.base_url
 
-# for input_file in glob(os.path.join(base_dir, '*20s.xml')):
+for input_file in glob(os.path.join(base_dir, '*20s.xml')):
 
     # getting the event data to the event database endpoint
-app.logger.info('reading files')
-input_file = os.path.join(base_dir, '2018_11_23T11_41_03.347319Z.xml')
-event_file = input_file
-mseed_file = input_file.replace('xml', 'mseed')
-cmseed_file = input_file.replace('.xml', '_20s.mseed')
+    app.logger.info('reading files')
+    input_file = os.path.join(base_dir, '2018_11_23T11_41_03.347319Z.xml')
+    event_file = input_file
+    mseed_file = input_file.replace('xml', 'mseed')
+    cmseed_file = input_file.replace('.xml', '_20s.mseed')
 
-cat = read_events(event_file)
-app.logger.info(cat[0].preferred_origin().loc)
-st = read(mseed_file)
-st_c = read(cmseed_file)
-app.logger.info('done reading files')
-
-
-app.logger.info('preparing data')
-event_time = cat[0].preferred_origin().time
-
-app.logger.info('trimming stream')
-st_c_trimmed = st_c.copy().taper(max_percentage=0.1).trim(
-                           starttime=event_time-0.2,
-                           endtime=event_time+1, pad=True,
-                           fill_value=0).taper(
-    max_percentage=0.1).filter('bandpass', freqmin=100, freqmax=1000)
-app.logger.info('done trimming stream')
+    cat = read_events(event_file)
+    app.logger.info(cat[0].preferred_origin().loc)
+    st = read(mseed_file)
+    st_c = read(cmseed_file)
+    app.logger.info('done reading files')
 
 
-trs = []
-for tr in st_c_trimmed:
-    station = site.select(station=tr.stats.station).stations()[0]
-    if station.code in black_list:
-        continue
-    if station.motion_type == 'acceleration':
-        continue
-    if np.max(tr.data) < 10 * np.std(tr.data):
-        continue
-    tr.data = np.nan_to_num(tr.data)
-    trs.append(tr)
+    app.logger.info('preparing data')
+    event_time = cat[0].preferred_origin().time
 
-st_c_trimmed = Stream(traces=trs)
+    app.logger.info('trimming stream')
+    st_c_trimmed = st_c.copy().taper(max_percentage=0.1).trim(
+                               starttime=event_time-0.2,
+                               endtime=event_time+1, pad=True,
+                               fill_value=0).taper(
+        max_percentage=0.1).filter('bandpass', freqmin=100, freqmax=1000)
+    app.logger.info('done trimming stream')
 
-app.send_message(cat, st_c_trimmed)
+
+    trs = []
+    for tr in st_c_trimmed:
+        station = site.select(station=tr.stats.station).stations()[0]
+        if station.code in black_list:
+            continue
+        if station.motion_type == 'acceleration':
+            continue
+        if np.max(tr.data) < 10 * np.std(tr.data):
+            continue
+        tr.data = np.nan_to_num(tr.data)
+        trs.append(tr)
+
+    st_c_trimmed = Stream(traces=trs)
+
+    app.send_message(cat, st_c_trimmed)
