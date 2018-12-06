@@ -32,10 +32,10 @@ for input_file in glob(os.path.join(base_dir, '*20s.mseed')):
 
     # getting the event data to the event database endpoint
     app.logger.info('reading files')
-    input_file = os.path.join(base_dir, '2018_11_23T11_41_03.347319Z.xml')
-    event_file = input_file
-    mseed_file = input_file.replace('xml', 'mseed')
-    cmseed_file = input_file.replace('.xml', '_20s.mseed')
+    # input_file = os.path.join(base_dir, '2018_11_23T11_41_03.347319Z.xml')
+    event_file = input_file.replace('_20s.mseed', '.xml')
+    mseed_file = input_file.replace('_20s.mseed', '.mseed')
+    cmseed_file = input_file
 
     cat = read_events(event_file)
     app.logger.info(cat[0].preferred_origin().loc)
