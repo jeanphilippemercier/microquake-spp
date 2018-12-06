@@ -565,8 +565,12 @@ class Application(object):
         t3 = time()
         self.logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
 
-        cat, st = callback(cat=cat, stream=st, logger=self.logger,
-                           **kwargs)
+        if not kwargs:
+            cat, st = callback(cat=cat, stream=st, logger=self.logger)
+
+        else:
+            cat, st = callback(cat=cat, stream=st, logger=self.logger,
+                               **kwargs)
 
         self.logger.info('awaiting for message')
         return cat, st
