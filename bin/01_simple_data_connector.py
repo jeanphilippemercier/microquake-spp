@@ -28,7 +28,7 @@ base_dir = app.settings.data_connector.path
 
 api_base_url = app.settings.seismic_api.base_url
 
-for input_file in glob(os.path.join(base_dir, '*20s.xml')):
+for input_file in glob(os.path.join(base_dir, '*20s.mseed')):
 
     # getting the event data to the event database endpoint
     app.logger.info('reading files')

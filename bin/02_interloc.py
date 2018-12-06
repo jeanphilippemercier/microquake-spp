@@ -79,7 +79,11 @@ while True:
         continue
     if msg_in.value() == b'Broker: No more messages':
         continue
-    cat, st = app.receive_message(msg_in, callback, **conf)
+    try:
+        cat, st = app.receive_message(msg_in, callback, **conf)
+    except Exception as e:
+        app.logger.error(e)
+
 
     app.send_message(cat, st)
     app.logger.info('awaiting message from Kafka')

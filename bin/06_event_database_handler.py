@@ -42,5 +42,9 @@ while True:
         continue
     if msg_in.value() == b'Broker: No more messages':
         continue
-    cat, stream = app.receive_message(msg_in, event_database_handler)
+
+    try:
+        cat, stream = app.receive_message(msg_in, event_database_handler)
+    except Exception as e:
+        logger.error(e)
 
