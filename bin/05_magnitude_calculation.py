@@ -26,7 +26,7 @@ def magnitude(cat=None, stream=None, extra_msgs=None, logger=None, vp=None,
         logger.info('done calculating the moment magnitude in %0.3f' %
                     (t4 - t3))
 
-        return cat_out, stream, extra_msgs
+        return cat_out, stream
 
 
 __module_name__ = 'magnitude'
@@ -43,10 +43,8 @@ while True:
         continue
     if msg_in.value() == b'Broker: No more messages':
         continue
-    cat_out, st, extra_msgs = app.receive_message(msg_in, magnitude,
-                                                  vp=vp_grid,
-                                                  vs=vs_grid,
-                                                  site=site)
+    cat_out, st = app.receive_message(msg_in, magnitude, vp=vp_grid,
+                                      vs=vs_grid, site=site)
 
-    app.send_message(cat_out, st, extra_msgs=extra_msgs)
+    app.send_message(cat_out, st)
     app.logger.info('awaiting message from Kafka')

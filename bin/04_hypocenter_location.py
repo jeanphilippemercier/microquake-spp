@@ -32,7 +32,7 @@ def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
     t3 = time()
     logger.info('done calculating uncertainty in %0.3f seconds' % (t3 - t2))
 
-    return cat_out, stream, extra_msgs
+    return cat_out, stream
 
 __module_name__ = 'nlloc'
 
@@ -62,9 +62,8 @@ while True:
         continue
     if msg_in.value() == b'Broker: No more messages':
         continue
-    cat_out, st, extra_msgs = app.receive_message(msg_in, location, nll=nll,
-                                              params=params,
-                                              project_code=project_code)
+    cat_out, st = app.receive_message(msg_in, location, nll=nll, params=params,
+                                      project_code=project_code)
 
-    app.send_message(cat_out, st, extra_msgs=extra_msgs)
+    app.send_message(cat_out, st)
     app.logger.info('awaiting message from Kafka')

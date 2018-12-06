@@ -490,7 +490,7 @@ class Application(object):
         self.redis_conn = self.init_redis()
         self.logger.info('connection to redis database successfully initated')
 
-    def send_message(self, cat, stream, extra_msgs=[]):
+    def send_message(self, cat, stream):
         """
         send message to the next module
         :param cat: a microquake.core.event.Catalog object
@@ -512,11 +512,6 @@ class Application(object):
         if stream is not None:
             data_out.append(stream)
 
-        # this is not optimal need to have a proper schema
-        if extra_msgs is not None:
-            for msg in extra_msgs:
-                data_out.append(msg)
-
         msg_out = msgpack.pack(data_out)
         # timestamp_ms = int(cat[0].preferred_origin().time.timestamp * 1e3)
         redis_key = str(uuid.uuid4())
@@ -537,7 +532,6 @@ class Application(object):
         else:
             topic = topics
             self.producer.produce(topic, redis_key)
-
 
         self.logger.info('done sending message to kafka')
 
@@ -571,16 +565,11 @@ class Application(object):
         t3 = time()
         self.logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
 
-        extra_msgs = None
-        if len(data) > 2:
-            extra_msgs = data[2:]
-
-        cat, st, extra_msgs = callback(cat=cat, stream=st,
-                                       extra_msgs=extra_msgs,
-                                       logger=self.logger, **kwargs)
+        cat, st = callback(cat=cat, stream=st, logger=self.logger,
+                           **kwargs)
 
         self.logger.info('awaiting for message')
-        return cat, st, extra_msgs
+        return cat, st
 
 
 

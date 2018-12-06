@@ -11,7 +11,7 @@ from spp.utils import seismic_client
 from spp.utils.seismic_client import (build_request_data_from_object,
                                           post_event_data)
 
-def event_database_handler(cat=None, stream=None, extra_msgs=None, logger=None):
+def event_database_handler(cat=None, stream=None, logger=None):
     logger.info('creating request from seismic data')
     request_data, request_files = build_request_data_from_object(
         event_id=None, event=cat, stream=stream, context_stream=None)
@@ -25,7 +25,9 @@ def event_database_handler(cat=None, stream=None, extra_msgs=None, logger=None):
         logger.info('successfully posting data to the API')
     else:
         logger.error('Error in postion data to the API. Returned with '
-                         'error code %d' % result.status_code)
+                     'error code %d' % result.status_code)
+
+    return cat, stream
 
 
 __module_name__ = 'event_database_handler'
@@ -40,6 +42,5 @@ while True:
         continue
     if msg_in.value() == b'Broker: No more messages':
         continue
-    cat, stream, extra_msgs = app.receive_message(msg_in,
-                                                  event_database_handler)
+    cat, stream = app.receive_message(msg_in, event_database_handler)
 

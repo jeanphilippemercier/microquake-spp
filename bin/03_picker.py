@@ -111,7 +111,7 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
     cat[0].origins += [origin]
     cat[0].preferred_origin_id = origin.resource_id.id
 
-    return cat, stream, extra_msgs
+    return cat, stream
 
 
 __module_name__ = 'picker'
@@ -132,10 +132,9 @@ while True:
         continue
     if msg_in.value() == b'Broker: No more messages':
         continue
-    cat, st, extra_msgs = app.receive_message(msg_in, picker, params=params,
-                                              app=app)
+    cat, st = app.receive_message(msg_in, picker, params=params, app=app)
 
-    app.send_message(cat, st, extra_msgs=extra_msgs)
+    app.send_message(cat, st)
     app.logger.info('awaiting message from Kafka')
 
     logger.info('awaiting Kafka messsages')
