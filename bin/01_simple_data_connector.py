@@ -69,4 +69,4 @@ for tr in st_c_trimmed:
 
 st_c_trimmed = Stream(traces=trs)
 
-app.send_message(cat=cat, stream=st_c_trimmed)
+app.send_message(cat, st_c_trimmed)

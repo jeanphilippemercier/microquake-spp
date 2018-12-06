@@ -21,7 +21,7 @@ def magnitude(cat=None, stream=None, extra_msgs=None, logger=None, vp=None,
                                        ttpath=None, only_triaxial=True,
                                        density=2700, min_dist=20,
                                        win_length=0.02, len_spectrum=2 ** 14,
-                                       freq=100) 
+                                       freq=100)
         t4 = time()
         logger.info('done calculating the moment magnitude in %0.3f' %
                     (t4 - t3))
@@ -48,5 +48,5 @@ while True:
                                                   vs=vs_grid,
                                                   site=site)
 
-    app.send_message(cat=cat_out, stream=st, extra_msgs=extra_msgs)
+    app.send_message(cat_out, st, extra_msgs=extra_msgs)
     app.logger.info('awaiting message from Kafka')

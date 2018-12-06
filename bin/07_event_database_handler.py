@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# This modules expect to receive a message containing the following:
+# [catalog, stream, context_stream, event_id]
 
 from io import BytesIO
 from microquake.io import msgpack
@@ -6,42 +8,34 @@ from time import time
 from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
 from spp.utils import seismic_client
+from spp.utils.seismic_client import (build_request_data_from_object,
+                                          post_event_data)
 
-app = Application()
-settings = app.settings.data_connector
-site = app.get_stations()
-tz = app.get_time_zone()
+__module_name__ = 'event_database_handler'
 
-logger = app.get_logger(settings.logger_name, settings.log_filename)
+app = Application(module_name=__module_name__)
+app.init_module()
 
-kafka_brokers = settings.kafka.brokers
-kafka_topic = settings.event_db.kafka_topic
-consumer = KafkaHandler.consume_from_topic(kafka_topic, kafka_brokers)
+app.logger.info('awaiting message from Kafka')
+while True:
+    msg_in = app.consumer.poll(timeout=1)
+    if msg_in is None:
+        continue
+    if msg_in.value() == b'Broker: No more messages':
+        continue
+    cat, stream, extra_msgs = app.receive_message(msg_in)
 
-api_base_url = app.settings.seismic_api.base_url
+    app.logger.info('creating request from seismic data')
+    request_data, request_files = build_request_data_from_object(
+        event_id=None, event=cat, stream=stream, context_stream=None)
+    app.logger.info('done creating request from seismic data')
 
-logger.info('listening for new messages on Kafka topic %s' % kafka_topic)
-for message in consumer:
-    logger.info('received a message from kafka')
-    t0 = time()
-    logger.info('unpacking message')
-    event_id, event_file, mseed_file, cmseed_file = \
-        msgpack.unpack(message.value)
-    t1 = time()
-    logger.info('done unpacking message in %0.3f seconds' %(t1 - t0))
+    api_base_url = app.settings.seismic_api.base_url
 
-    logger.info('uploading the data to the database')
-    data, files = seismic_client.build_request_data_from_bytes(event_id,
-                                                               event_file,
-                                                               mseed_file,
-                                                               cmseed_file)
-
-    seismic_client.post_event_data(api_base_url, data, files)
-    t2 = time()
-    logger.info('done uploading the event to the database in %0.3f seconds'
-                 % (t2 - t1))
-    logger.info('=========================================================')
-    logger.info('listening for new messages on Kafka topic %s' % kafka_topic)
-
-
-
+    app.logger.info('posting data to the API')
+    result = post_event_data(api_base_url, request_data, request_files)
+    if result.code == 200:
+        app.logger.info('successfully posting data to the API')
+    else:
+        app.logger.error('Error in postion data to the API. Returned with '
+                         'error code %d' % result.code)

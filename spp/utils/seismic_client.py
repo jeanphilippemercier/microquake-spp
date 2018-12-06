@@ -1,9 +1,7 @@
-from microquake.core import read_events, read, AttribDict
+from microquake.core import read_events
 from microquake.core.stream import *
 from io import BytesIO
 import requests
-from spp.utils.application import Application
-
 
 class RequestEvent():
     def __init__(self, ev_dict):
@@ -76,7 +74,44 @@ def build_request_data_from_files(event_id, event_file, mseed_file, mseed_contex
     return data, files
 
 
-def build_request_data_from_bytes(event_id, event_bytes, mseed_bytes, mseed_context_bytes):
+def build_request_data_from_object(event_id=None, event=None, stream=None,
+                                   context_stream=None):
+    """
+    Build request directly from object
+    :param event_id: event_id (not required if an event is provided)
+    :param event: microquake.core.Event.event
+    :param stream: event seismogram (microquake.core.Stream.stream)
+    :param context_stream: context seismogram trace (
+    microquake.core.Stream.stream)
+    :return: same as build_request_data_from_bytes
+    """
+
+    event_id=None
+    event_bytes=None
+    mseed_bytes=None
+    mseed_context_bytes=None
+
+    if event is not None:
+        ev_io = BytesIO()
+        event.write(ev_io, format='QUAKEML')
+        event_bytes = ev_io.getvalue()
+
+    if stream is not None:
+        st_io = BytesIO()
+        stream.write(st_io, format='MSEED')
+        mseed_bytes = st_io.getvalue()
+
+    if context_stream is not None:
+        st_c_io = BytesIO()
+        context_stream.write(st_c_io, format='MSEED')
+        mseed_context_bytes = st_c_io.getvalue()
+
+    return build_request_data_from_bytes(event_id, event_bytes, mseed_bytes,
+                                         mseed_context_bytes)
+
+
+def build_request_data_from_bytes(event_id, event_bytes, mseed_bytes,
+                                  mseed_context_bytes):
     files = dict()
 
     # prepare event
@@ -134,19 +169,58 @@ def get_events_catalog(api_base_url, start_time, end_time):
     return events
 
 
-if __name__ == "__main__":
+def get_continous_stream(api_base_url, start_time, end_time):
+    url = api_base_url + "continuous_waveform"
 
-    app = Application()
+    querystring = {"start_time": start_time, "end_time": end_time}
 
-    API_BASE_URL = app.settings.API.base_url
+    response = requests.request("GET", url,  params=querystring)
+    file = BytesIO(response.content)
+    wf = read(file, format='MSEED')
+    print(wf)
+    return wf
 
-    data, files = build_request_data_from_files( None
-                                                ,'data/2018-11-08T11-16-47.968400Z.xml'
-                                                ,'data/2018-11-08T11-16-47.968400Z.mseed'
-                                                , None #'20180523_125102207781.mseed_context'
-                                                )
 
-    post_event_data(API_BASE_URL, data, files)
+def post_continuous_stream(api_base_url, stream, post_to_kafka=True,
+                           stream_id=None):
+    url = api_base_url + "continuous_waveform_upload"
 
-    get_events_catalog(API_BASE_URL, "2018-11-08T10:21:48.898496Z",
-                       "2018-11-08T11:21:49.898496Z")
+    request_files = {}
+    wf_bytes = BytesIO()
+    stream.write(wf_bytes, format='MSEED')
+    wf_bytes.name = stream_id
+    wf_bytes.seek(0)
+    request_files['continuous_waveform_file'] = wf_bytes
+
+    request_data = {}
+    if post_to_kafka:
+        request_data['destination'] = 'kafka'
+    else:
+        request_data['destination'] = 'db'
+
+    if stream_id is not None:
+        request_data['stream_id'] = stream_id
+    else:
+        from uuid import uuid4
+        request_data['stream_id'] = uuid4()
+
+    result = requests.post(url, data=request_data, files=request_files)
+    print(result)
+
+
+# if __name__ == "__main__":
+#
+#     app = Application()
+#
+#     API_BASE_URL = app.settings.API.base_url
+#
+#     data, files = build_request_data_from_files( None
+#                                                 ,'data/2018-11-08T11-16-47.968400Z.xml'
+#                                                 ,'data/2018-11-08T11-16-47.968400Z.mseed'
+#                                                 , None #'20180523_125102207781.mseed_context'
+#                                                 )
+#
+#     post_event_data(API_BASE_URL, data, files)
+#
+#     get_events_catalog(API_BASE_URL, "2018-11-08T10:21:48.898496Z",
+#                        "2018-11-08T11:21:49.898496Z")

@@ -490,7 +490,7 @@ class Application(object):
         self.redis_conn = self.init_redis()
         self.logger.info('connection to redis database successfully initated')
 
-    def send_message(self, cat=None, stream=None, extra_msgs=[]):
+    def send_message(self, cat, stream, extra_msgs=[]):
         """
         send message to the next module
         :param cat: a microquake.core.event.Catalog object

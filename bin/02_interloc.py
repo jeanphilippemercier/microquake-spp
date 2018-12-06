@@ -49,7 +49,7 @@ def callback(cat=None, stream=None, extra_msgs=None, logger=None,
     logger.info("VMAX over threshold (%.3f > %.3f)" %
                 (vmax, threshold))
 
-    return cat, st_out, vmax
+    return cat, st_out, [vmax]
 
 
 __module_name__ = 'interloc'
@@ -81,5 +81,5 @@ while True:
         continue
     cat, st, extra_msgs = app.receive_message(msg_in, callback, **conf)
 
-    app.send_message(cat=cat, stream=st, extra_msgs=extra_msgs)
+    app.send_message(cat, st, extra_msgs=extra_msgs)
     app.logger.info('awaiting message from Kafka')

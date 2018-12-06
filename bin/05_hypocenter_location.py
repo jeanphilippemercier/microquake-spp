@@ -66,5 +66,5 @@ while True:
                                               params=params,
                                               project_code=project_code)
 
-    app.send_message(cat=cat_out, stream=st, extra_msgs=extra_msgs)
+    app.send_message(cat_out, st, extra_msgs=extra_msgs)
     app.logger.info('awaiting message from Kafka')

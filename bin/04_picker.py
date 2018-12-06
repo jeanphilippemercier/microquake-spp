@@ -135,7 +135,7 @@ while True:
     cat, st, extra_msgs = app.receive_message(msg_in, picker, params=params,
                                               app=app)
 
-    app.send_message(cat=cat, stream=st, extra_msgs=extra_msgs)
+    app.send_message(cat, st, extra_msgs=extra_msgs)
     app.logger.info('awaiting message from Kafka')
 
     logger.info('awaiting Kafka messsages')
