@@ -1,26 +1,29 @@
+import colorama
+colorama.init(convert=True)
+
 from microquake.IMS import web_client
 from microquake.core import UTCDateTime
 from spp.utils.application import Application
 import pytz
 import os
-import colorama
 from io import BytesIO
 from spp.utils import seismic_client
+from datetime import datetime
 
-colorama.init()
 
 app = Application()
 site = app.get_stations()
 base_url = app.settings.data_connector.path
 endtime = UTCDateTime.now()
 starttime = endtime - 2.5 * 3600 * 24
-starttime = UTCDateTime(2018, 4, 5)# UTCDateTime.now()
+starttime = UTCDateTime(2018, 5, 17, 13, 45) # UTCDateTime(2018, 5, 1)# UTCDateTime.now()
 tz = app.get_time_zone()
 
 endtime = endtime.datetime.replace(tzinfo=pytz.utc)
 starttime = starttime.datetime.replace(tzinfo=pytz.utc)
 
-cat = web_client.get_catalogue(base_url, starttime, endtime, site, tz, blast=False)
+cat = web_client.get_catalogue(base_url, starttime, endtime, site, tz,
+                               blast=False)
 site_ids = [int(station.code) for station in site.stations()]
 
 print(cat)

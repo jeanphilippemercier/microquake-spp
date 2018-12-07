@@ -3,7 +3,8 @@ from microquake.core.stream import *
 from io import BytesIO
 import requests
 
-class RequestEvent():
+
+class RequestEvent:
     def __init__(self, ev_dict):
         for key in ev_dict.keys():
             setattr(self, key, ev_dict[key])
@@ -32,7 +33,8 @@ class RequestEvent():
         return self.__dict__.keys()
 
 
-def build_request_data_from_files(event_id, event_file, mseed_file, mseed_context_file):
+def build_request_data_from_files(event_id, event_file, mseed_file,
+                                  mseed_context_file):
     files = dict()
 
     # prepare event
@@ -169,7 +171,7 @@ def get_events_catalog(api_base_url, start_time, end_time):
     return events
 
 
-def get_continous_stream(api_base_url, start_time, end_time):
+def get_continuous_stream(api_base_url, start_time, end_time):
     url = api_base_url + "continuous_waveform"
 
     querystring = {"start_time": start_time, "end_time": end_time}
