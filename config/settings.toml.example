@@ -1,44 +1,57 @@
 project_code = 'OT'
-[grids]
-    units = 'meter'
-    method = 'ODS'
-    origin = [650200, 4766170, -500]
-    dimensions = [100, 101, 68]
-    spacing = 25
 
-    [grids.velocities]
-        source = 'local'
-        homogeneous = false
-        vp = "velocities/vp"
-        vs = "velocities/vs"
-        format = 'NLLOC'
+[grids]
+	units = 'meter'
+	method = 'ODS'
+	origin = [650200, 4766170, -500]
+	dimensions = [100, 101, 68]
+	spacing = 25
+
+	[grids.velocities]
+		source = 'local'
+		homogeneous = false
+		vp = 'velocities/vp'
+		vs = 'velocities/vs'
+		format = 'NLLOC'
 
     [grids.travel_time_h5]
-        fname = 'travel_time_tables.h5'
+        fname = 'travel_time_tables.h5f'
+
 
 # Not used, definition similar to velocity grids
-#   [grids.density]
-#   homogeneous = false
+# 	[grids.density]
+#		homogeneous = false
 
 [time_zone]
-    type = 'UTC_offset'                # either 'UTC_offset or 'time_zone'
-    time_zone_code = 'ULN'             # time zone code. If type=time_zone, time_zone_code must be a valid pytz timezone
-    offset = 8                         # time offset in hours, ignored if type=time_zone
+	type = 'UTC_offset'                # either 'UTC_offset or 'time_zone'
+	time_zone_code = 'ULN'             # time zone code. If type=time_zone, time_zone_code must be a valid pytz timezone
+	offset = 8                         # time offset in hours, ignored if type=time_zone
 
 [sensors]
-    source  = 'local'
-    units   = 'meter'
-    format  = 'csv'
-    path    = 'sensors.csv'
+	source  = 'local'
+	units   = 'meter'
+	format  = 'csv'
+	path    = 'sensors.csv'
 
 [data_local]
-    ms_chunks    = '/home/phil/data/oyu/spp_common/synthetic/chunks/*.mseed'
-    ms_long = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.mseed'
-    xml_long   = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.xml'
+    ms_chunks = '/home/phil/data/oyu/spp_common/synthetic/chunks/*.mseed'
+    ms_10s    = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.mseed'
+    xml_10s   = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.xml'
 
 [data_connector]
-    source  = 'remote'
-    path    = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
+    # source  = 'remote'
+    # path    = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
+    source = 'local'
+    path = '/Users/jpmercier/.spp/data/'
+    kafka_consumer_topic = 'data_connector'
+    kafka_feedback_topic = 'data_connector'
+    # kafka_producer_topic = ['continuous_db_handler', 'mseed_1sec']
+    # kafka_producer_topic = 'mseed_1sec'
+    kafka_producer_topic =  'picker'
+    log_topic = 'data_connector'
+    log_file_name = 'data_connector.log'
+
+
 
 [mseed_decomposer]  
     kafka_producer_topic = 'mseed_blocks'
@@ -54,7 +67,9 @@ project_code = 'OT'
     dsr = 3000.0
     threshold = 0.2
     kafka_consumer_topic = 'mseed_1sec'
-    kafka_producer_topic = 'iloc_out'
+    kafka_producer_topic = 'picker'
+    log_topic = 'interloc'
+    log_file_name = 'interloc.log'
 
 [create_event]
     log_topic = 'create_event'
@@ -62,55 +77,55 @@ project_code = 'OT'
 
 [picker]
     snr_wlens = [15e-3, 10e-3]
-    wlen_search = 50e-3
+    wlen_search = 10e-3
     stepsize = 1e-3
-    snr_threshold = 6
-    kafka_consumer_topic = 'iloc_out'
-    kafka_producer_topic = 'picker_out'
+    snr_threshold = 9
+    kafka_consumer_topic = 'picker'
+    kafka_producer_topic = 'location'
     log_topic = 'automatic picker'
     log_file_name = 'automatic_picker.log'
 
     [picker.waveform_filter]
-        frequency_min = 60
-        frequency_max = 600
+        frequency_min = 100
+        frequency_max = 1000
 
     [picker.p_wave]
         [picker.p_wave.search_window]
-            start = -0.005         # start of search window relative to predicted arrival time (s)
-            end = 0.005            # end of the search window relative to predicted arrival time (s)
-            resolution = 0.0001    # time resolution of search window (s)
+            start = -0.010        # start of search window relative to predicted arrival time (s)
+            end = 0.010           # end of the search window relative to predicted arrival time (s)
+            resolution = 0.0001   # time resolution of search window (s)
 
         [picker.p_wave.snr_window]
-            noise = 0.003         # length of the window for noise energy measurement
-            signal = 0.003        # length of the window for signal energy measurement
+            noise = 0.010         # length of the window for noise energy measurement
+            signal = 0.010        # length of the window for signal energy measurement
 
-    [picker.s_wave]
         [picker.s_wave.search_window]
-            start = -0.005         # start of search window relative to predicted arrival time (s)
-            end = 0.005            # end of the search window relative to predicted arrival time (s)
-            resolution = 0.0001    # time resolution of search window (s)
+            start = -0.010        # start of search window relative to predicted arrival time (s)
+            end = 0.010           # end of the search window relative to predicted arrival time (s)
+            resolution = 0.0001   # time resolution of search window (s)
 
         [picker.s_wave.snr_window]
-            noise = 0.003         # length of the window for noise energy measurement
-            signal = 0.003        # length of the window for signal energy measurement
+            noise = 0.020         # length of the window for noise energy measurement
+            signal = 0.010        # length of the window for signal energy measurement
 
 [nlloc]
-    nll_base = 'NLL'
-    locsig = 'Oyu Tolgoi Geotechnical Monitoring Team'
-    loccom = 'Prototype'
-    # locsearch = 'OCT 20 20 30 1e-6 50000 1000 0 1'
-    # locsearch = 'OCT 10 10 10 1e-6 20000 1000 0 1'
-    locsearch = 'OCT 5 5 5 1e-6 5000 1000 0 1'
-    locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
-    kafka_consumer_topic = 'location'
-    kafka_producer_topic = 'magnitude'
-    log_file_name = 'hypocenter_location_nlloc.log'
-    log_topic = 'hypocenter Location NonLinLoc'
+	nll_base = 'NLL'
+	locsig = 'Oyu Tolgoi Geotechnical Monitoring Team'
+	loccom = 'Prototype'
+	# locsearch = 'OCT 20 20 30 1e-6 50000 1000 0 1'
+	# locsearch = 'OCT 10 10 10 1e-6 20000 1000 0 1'
+	locsearch = 'OCT 5 5 5 1e-6 5000 500 0 1'
+	locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
+    locgau = ''
+	kafka_consumer_topic = 'location'
+	kafka_producer_topic = 'magnitude'
+	log_file_name = 'hypocenter_location_nlloc.log'
+	log_topic = 'hypocenter Location NonLinLoc'
 
 [magnitude]
-    ttpath = 'None'
-    only_triaxial = true
-    density = 2700
+	ttpath = 'None'
+	only_triaxial = true
+	density = 2700
     min_dist = 20
     win_length = 0.02
     # len_spectrum is specified in exponent of 2. For instance 14 is equal to 2 ** 14
@@ -123,7 +138,8 @@ project_code = 'OT'
     log_topic = 'moment magnitude calculation'
 
 [kafka]
-    brokers = ['broker:9092']
+    brokers = 'broker:9092'
+    group_id = 'seismic_processing_platform'
     threads = 3 
 
 [airflow]
@@ -138,6 +154,11 @@ project_code = 'OT'
     logger_name = 'spp'
     log_destination = 'stdout'
 
+[event_database_handler]
+	kafka_consumer_topic = 'event_database'
+    log_file_name = 'event_database_handler.log'
+    log_topic = 'event database handler'
+
 [event_db]
     uri = 'mongodb://localhost:27017/'
     name = 'OT'
@@ -151,15 +172,23 @@ project_code = 'OT'
     log_topic = 'insertion and update into event DB'
 
 [continuous_db]
-    uri = 'mongodb://mongo-node-001:27017/'
-    db_name = 'seismic'
-    traces_collection = 'traces_json'
-    events_collection = 'events'
-    events_inuse_collection = 'events_inuse'
-    filestore_base_dir = '/Users/hanee/Rio_Tinto/data/'
-    inuse_ttl = 300
+  	uri = 'mongodb://mongo-node-001:27017/'
+  	db_name = 'seismic'
+  	traces_collection = 'traces_json'
+  	events_collection = 'events'
+  	events_inuse_collection = 'events_inuse'
+  	filestore_base_dir = '/Users/hanee/Rio_Tinto/data/'
+  	inuse_ttl = 300
 
 [seismic_api]
-    events_url = 'http://localhost:8000/api/v1/events'
+	base_url = 'http://sppkube.eastus.cloudapp.azure.com/api/v1/'
 
+[redis_db]
+	host = 'localhost'
+	password = ''
+	port = 6379
+	db = 0
+
+[redis_extra]
+	ttl=600
 
