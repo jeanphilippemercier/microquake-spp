@@ -37,7 +37,7 @@ docker-compose exec broker kafka-console-consumer --bootstrap-server localhost:9
 
 ## Deleting topic and clearing message queues
 
-Could we add some information on how to delete a topic and how to clean the message queue? 
+docker-compose exec broker kafka-topics --zookeeper zookeeper:2181 --delete --topic
 
 ## Importing the Grafana dashboard
 
