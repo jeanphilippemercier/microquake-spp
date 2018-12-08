@@ -2,12 +2,18 @@ from microquake.core import read_events
 from microquake.core.stream import *
 from io import BytesIO
 import requests
+from dateutil import parser
 
 
 class RequestEvent:
     def __init__(self, ev_dict):
         for key in ev_dict.keys():
-            setattr(self, key, ev_dict[key])
+            if 'time' in key:
+                if type(ev_dict[key]) is not str:
+                    continue
+                setattr(self, key, parser.parse(ev_dict[key]))
+            else:
+                setattr(self, key, ev_dict[key])
 
     def get_event(self):
         event_file = requests.request('GET', self.event_file)
@@ -156,9 +162,19 @@ def post_event_data(api_base_url, request_data, request_files):
 
 
 def get_events_catalog(api_base_url, start_time, end_time):
+    """
+    return a list of events
+    :param api_base_url:
+    :param start_time:
+    :param end_time:
+    :return:
+    """
     from IPython.core.debugger import Tracer
     from microquake.core import AttribDict
     url = api_base_url + "catalog"
+
+    # request work in UTC, time will need to be converted from whatever
+    # timezone to UTC before the request is built.
 
     querystring = {"start_time": start_time, "end_time": end_time}
 

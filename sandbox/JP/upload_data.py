@@ -16,14 +16,15 @@ site = app.get_stations()
 base_url = app.settings.data_connector.path
 endtime = UTCDateTime.now()
 starttime = endtime - 2.5 * 3600 * 24
-starttime = UTCDateTime(2018, 5, 17, 13, 45) # UTCDateTime(2018, 5, 1)# UTCDateTime.now()
+starttime = UTCDateTime(2018, 5, 17, 13, 45)
 tz = app.get_time_zone()
 
 endtime = endtime.datetime.replace(tzinfo=pytz.utc)
 starttime = starttime.datetime.replace(tzinfo=pytz.utc)
 
 cat = web_client.get_catalogue(base_url, starttime, endtime, site, tz,
-                               blast=False)
+                               blast=True, event=False, accepted=True)
+
 site_ids = [int(station.code) for station in site.stations()]
 
 print(cat)

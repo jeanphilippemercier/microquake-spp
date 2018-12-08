@@ -448,14 +448,14 @@ class Application(object):
     def get_kafka_producer(self, logger=None):
         from confluent_kafka import Producer
         producer = Producer({'bootstrap.servers':
-                                 self.settings.kafka.brokers},
+                             self.settings.kafka.brokers},
                             logger=logger)
         return producer
 
     def get_kafka_consumer(self, logger=None):
         from confluent_kafka import Consumer
         consumer = Consumer({'bootstrap.servers':
-                                 self.settings.kafka.brokers,
+                              self.settings.kafka.brokers,
                              'group.id': self.settings.kafka.group_id},
                             logger=logger)
 
@@ -541,6 +541,7 @@ class Application(object):
         :param callback: callback function signature must be as follows:
         def callback(cat=None, stream=None, extra_msg=None, logger=None,
         **kwargs)
+        :param msg_in: message read from kafka
         :return: what callback function returns
         """
         from microquake.io import msgpack
