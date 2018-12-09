@@ -1,25 +1,24 @@
-from flask import Flask, request, jsonify, send_file, Response
-import os
-import sys
-from microquake.db.mongo.mongo import (MongoDBHandler, StreamDB, EventDB,
-                                       MongoJSONEncoder)
-from microquake.core.stream import Stream
-from microquake.core import read
-from io import BytesIO
-import time
-from microquake.core import UTCDateTime
-from microquake.core.event import Event, read_events
 import base64
-from spp.utils.application import Application
-from bson.objectid import ObjectId
-import json
-import tarfile
 import datetime
+import json
+import os
 import re
+import sys
+import tarfile
+import time
+from io import BytesIO
+
 import helpers.middleware as middleware
 import prometheus_client
 import spp.utils.time as time_util
-
+from bson.objectid import ObjectId
+from flask import Flask, Response, jsonify, request, send_file
+from microquake.core import UTCDateTime, read
+from microquake.core.event import Event, read_events
+from microquake.core.stream import Stream
+from microquake.db.mongo.mongo import (EventDB, MongoDBHandler,
+                                       MongoJSONEncoder)
+from spp.utils.application import Application
 
 # initialize the application
 app = Application()
@@ -121,7 +120,8 @@ def get_stream():
         if 'endtime' in request.args:
             end_time = check_and_parse_datetime(request.args['endtime'])
         else:
-            end_time = start_time + (int(request.args['duration']) * 1000000000)
+            end_time = start_time + \
+                (int(request.args['duration']) * 1000000000)
 
         st = UTCDateTime(start_time / 1e9)
         et = UTCDateTime(end_time / 1e9)
@@ -159,8 +159,8 @@ def get_stream():
         # combine traces together
         resulted_stream = combine_json_to_stream_data(result)
         log.info("MTH: get_stream: resulted_stream type=%s" % (type(
-        resulted_stream)))
-        for i,tr in enumerate(resulted_stream):
+            resulted_stream)))
+        for i, tr in enumerate(resulted_stream):
             stats = tr.stats
             log.info("[%3d] sta:%3s ch:%s %s - %s sr:%f n:%d d:%s" %
                      (i, stats.station, stats.channel, stats.starttime,
@@ -187,16 +187,15 @@ def get_stream():
         return build_success_response("No data found", {"no_data_found": True})
 
 
-
 def construct_filter_criteria(start_time, end_time, network, station, channel):
 
     filter = {
         'stats.starttime': {
             '$gte': start_time
-         },
+        },
         'stats.endtime': {
             '$lte': end_time
-         }
+        }
     }
 
     if network is not None:
@@ -208,7 +207,7 @@ def construct_filter_criteria(start_time, end_time, network, station, channel):
     if channel is not None and channel != 'ALL':
         filter['stats.channel'] = channel
 
-    #log.info("Filter: %s" % filter)
+    # log.info("Filter: %s" % filter)
     return filter
 
 
@@ -252,7 +251,7 @@ def construct_relative_files_paths(filepath, filename):
     # events
     event_filepath = filepath + filename + "_v000.xml"
     waveform_filepath = filepath + filename + "_v000.mseed"
-    waveform_context_filepath= filepath + filename + "_v000.mseed_context"
+    waveform_context_filepath = filepath + filename + "_v000.mseed_context"
     return event_filepath, waveform_filepath, waveform_context_filepath
 
 
@@ -283,17 +282,18 @@ def put_event():
     request_starttime = time.time()
 
     if 'event' in request.get_json() and 'waveform' in request.get_json() and \
-                    'context' in request.get_json():
+            'context' in request.get_json():
         conversion_starttime = time.time()
         log.info('put_event: call read_events')
         event = read_events(BytesIO(base64.b64decode(request.get_json()[
-                                                         'event'])))[0]
+            'event'])))[0]
         waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])),
                         format='MSEED')
         waveform_context = read(BytesIO(base64.b64decode(request.get_json()['context'])),
                                 format='MSEED')
         conversion_endtime = time.time() - conversion_starttime
-        log.info("put_event: Conversion took: %.2f seconds" % conversion_endtime)
+        log.info("put_event: Conversion took: %.2f seconds" %
+                 conversion_endtime)
     else:
         raise InvalidUsage("Wrong data sent..!! Event, Waveform and Context "
                            "must be specified in request body",
@@ -305,7 +305,8 @@ def put_event():
     existed_event_id = check_event_existance(ev_flat_dict['time'])
 
     if existed_event_id:
-        #return build_success_response("Event already exists with ID " + existed_event_id)
+        # return build_success_response("Event already exists with ID " +
+        # existed_event_id)
         log.info('put_event: id=[%s] already exists in db --> Dont try to '
                  'insert/update xml' % existed_event_id)
         return build_success_response("Event already exists with ID "
@@ -319,21 +320,25 @@ def put_event():
 
         create_filestore_directories(BASE_DIR, filepath)
 
-        event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(filepath, filename)
+        event_filepath, waveform_filepath, waveform_context_filepath = construct_relative_files_paths(
+            filepath, filename)
 
         ev_flat_dict['filename'] = filename
         ev_flat_dict['event_filepath'] = event_filepath
         ev_flat_dict['waveform_filepath'] = waveform_filepath
         ev_flat_dict['waveform_context_filepath'] = waveform_context_filepath
-        ev_flat_dict['insertion_time'] = int(datetime.datetime.utcnow().timestamp() * 1e9)
+        ev_flat_dict['insertion_time'] = int(
+            datetime.datetime.utcnow().timestamp() * 1e9)
         ev_flat_dict['modification_time'] = None
 
         # write files in filestore
         event.write(BASE_DIR + event_filepath, format="QUAKEML")
         waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
-        waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
+        waveform_context.write(
+            BASE_DIR + waveform_context_filepath, format="MSEED")
 
-        inserted_event_id = mongo.db[EVENTS_COLLECTION].insert_one(ev_flat_dict).inserted_id
+        inserted_event_id = mongo.db[EVENTS_COLLECTION].insert_one(
+            ev_flat_dict).inserted_id
 
         log.info("put_event: Inserted new event into mongoDB with ID:"
                  + str(inserted_event_id))
@@ -377,7 +382,7 @@ def construct_event_output(event_data, requested_format):
                                               requested_format)
     elif requested_format == "ALL":
         tar_file_bytes = BytesIO()
-        #with zipfile.ZipFile(zip_file_bytes, 'w') as myzip:
+        # with zipfile.ZipFile(zip_file_bytes, 'w') as myzip:
         with tarfile.open(fileobj=tar_file_bytes, mode='w:gz') as mytar:
             for out_type in OUTPUT_TYPES.keys():
                 if out_type != 'ALL':
@@ -431,7 +436,8 @@ def get_event():
         output_file = construct_event_output(event_result[0], output_format)
 
         # construct downloaded filename
-        output_filename = event_result[0]['filename'] + OUTPUT_TYPES[output_format]
+        output_filename = event_result[0]['filename'] + \
+            OUTPUT_TYPES[output_format]
 
         request_endtime = time.time() - request_starttime
         log.info("getEvent ended Successfully. Total API Request took: %.2f "
@@ -463,7 +469,8 @@ def update_event():
         event_id = request.get_json()['event_id']
         log.info("update_event: request to update event_id:%s" % event_id)
         if 'event' in request.get_json():
-            event = read_events(BytesIO(base64.b64decode(request.get_json()['event'])))[0]
+            event = read_events(
+                BytesIO(base64.b64decode(request.get_json()['event'])))[0]
         if 'waveform' in request.get_json():
             waveform = read(BytesIO(base64.b64decode(request.get_json()['waveform'])),
                             format='MSEED')
@@ -507,27 +514,34 @@ def update_event():
             # update event db object with the new data in QUAKEML file
             for key in ev_flat_dict.keys():
                 event_document[key] = ev_flat_dict[key]
-            event_filepath = update_file_version(event_document['event_filepath'])
+            event_filepath = update_file_version(
+                event_document['event_filepath'])
             event_document['event_filepath'] = event_filepath
             event.write(BASE_DIR + event_filepath, format="QUAKEML")
             log.info('update_event: event_filepath=%s' % (event_filepath))
 
         if waveform:
-            waveform_filepath = update_file_version(event_document['waveform_filepath'])
+            waveform_filepath = update_file_version(
+                event_document['waveform_filepath'])
             event_document['waveform_filepath'] = waveform_filepath
             waveform.write(BASE_DIR + waveform_filepath, format="MSEED")
-            log.info('update_event: waveform_filepath=%s' % (waveform_filepath))
+            log.info('update_event: waveform_filepath=%s' %
+                     (waveform_filepath))
 
         if waveform_context:
-            waveform_context_filepath = update_file_version(event_document['waveform_context_filepath'])
+            waveform_context_filepath = update_file_version(
+                event_document['waveform_context_filepath'])
             event_document['waveform_context_filepath'] = waveform_context_filepath
-            waveform_context.write(BASE_DIR + waveform_context_filepath, format="MSEED")
-            log.info('update_event: waveform_context_filepath=%s' % (waveform_context_filepath))
+            waveform_context.write(
+                BASE_DIR + waveform_context_filepath, format="MSEED")
+            log.info('update_event: waveform_context_filepath=%s' %
+                     (waveform_context_filepath))
 
+        event_document['modification_time'] = int(
+            datetime.datetime.utcnow().timestamp() * 1e9)
 
-        event_document['modification_time'] = int(datetime.datetime.utcnow().timestamp() * 1e9)
-
-        mongo.db[EVENTS_COLLECTION].update(filter, event_document, upsert=False)
+        mongo.db[EVENTS_COLLECTION].update(
+            filter, event_document, upsert=False)
 
         log.info("Event  with ID:%s has been updated successfully" % event_id)
 
@@ -535,7 +549,7 @@ def update_event():
         log.info("updateEvent ended Successfully. Total Update Request took: "
                  "%.2f seconds" % request_endtime)
 
-        #return build_success_response("Event updated successfully")
+        # return build_success_response("Event updated successfully")
         return build_success_response("Event update successfully",
                                       {"event_id": str(event_id)})
     else:
@@ -583,7 +597,7 @@ def get_event_inuse():
         "event_id": ObjectId(event_id),
         "user_id": ObjectId(user_id),
         "ttl_expiration": {'$gte': current_timestamp}
-        }
+    }
 
     inuse_result = mongo.db[EVENTS_INUSE_COLLECTION].find(query_filter)
 
@@ -620,9 +634,10 @@ def put_event_inuse():
         "event_id": ObjectId(event_id),
         "user_id": ObjectId(user_id),
         "ttl_expiration": ttl_expiration
-        }
+    }
 
-    inserted_record_id = mongo.db[EVENTS_INUSE_COLLECTION].insert_one(inuse_data).inserted_id
+    inserted_record_id = mongo.db[EVENTS_INUSE_COLLECTION].insert_one(
+        inuse_data).inserted_id
 
     request_endtime = time.time() - request_starttime
     log.info("putEventInUse ended Successfully. Total API Request took: %.2f "
@@ -663,7 +678,8 @@ def get_catalog():
                  "seconds" % request_endtime)
         catalog_list = []
         for event in events_catalog_result:
-            event['time'] = time_util.convert_epoch_nanoseconds_to_utc_datetime_string(event['time'])
+            event['time'] = time_util.convert_epoch_nanoseconds_to_utc_datetime_string(
+                event['time'])
             catalog_list.append(MongoJSONEncoder().encode(event))
         return build_success_response("getCatalog ended successfully",
                                       {"catalog": catalog_list})
@@ -671,7 +687,6 @@ def get_catalog():
     else:
         log.info("getCatalog ended Successfully with no data found")
         return build_success_response("No data found")
-
 
 
 def build_success_response(message_text, extra_dict=None):
@@ -707,6 +722,10 @@ class InvalidUsage(Exception):
         return rv
 
 
+def foo() -> int:
+    return "hello"
+
+
 @app.errorhandler(InvalidUsage)
 def handle_invalid_usage(error):
     response = jsonify(error.to_dict())
@@ -729,9 +748,9 @@ def handle_error(error):
     log.exception(response)
     return json.dumps(response), status_code
 
+
 if __name__ == '__main__':
     # launch API
     log.info("API is starting")
-    #app.run(debug=True)
+    # app.run(debug=True)
     app.run(host='0.0.0.0', threaded=True)
-

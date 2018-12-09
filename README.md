@@ -6,15 +6,22 @@ The package can be installed by simply executing the following command from this
 >> pip install -e .
 ```
 
-# Set-up of environment variables
+## Set-up of environment variables
 
-The following environment variables need to be set for the package to work
+The following environment variable need to be set for the package to work properly
 ```
->> export spp_config="[...]/config"
->> export spp_temp="[???]/.spp"
+>> export SPP_CONFIG="[SPP_HOME]/config"
+>> export SPP_COMMON="[SPP_HOME]/common"
 ```
-where [...] represents the directory in which the spp source code is located and [???]/.spp refers to any directory of
-your choice where you want to store temporary files.
+make sure there is settings.toml config file in the $SPP_CONFIG directory 
+
+## run the initialization script 
+
+The initialization script can be found in bin/00_prepare_project.py
+
+Note that for the script to run, NonLinLoc binaries (http://alomax.free.fr/nlloc/) 
+must be in the path.
+
 
 ## Starting kafka
 
@@ -28,12 +35,18 @@ docker-compose exec broker kafka-console-producer --broker-list localhost:9092 -
 docker-compose exec broker kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning
 ```
 
+## Deleting topic and clearing message queues
+
+docker-compose exec broker kafka-topics --zookeeper zookeeper:2181 --delete --topic
+
 ## Importing the Grafana dashboard
 
 Configure a datasource with http://prometheus:9090
+This does not work for me (JP)?
 
 Then, go to http://localhost:3000/dashboard/import and enter 721
 
+What is the Graphana Username and Password? 
 
 ## Creating a deployment user
 

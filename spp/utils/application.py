@@ -11,7 +11,9 @@ import os
 
 class Application(object):
 
-    def __init__(self, toml_file=None):
+    def __init__(self, toml_file=None, module_name=None):
+
+        self.__module_name__ = module_name
 
         self.config_dir = os.environ['SPP_CONFIG']
         self.common_dir = os.environ['SPP_COMMON']
@@ -242,6 +244,9 @@ class Application(object):
         with open(v_path) as ris:
             return ris.read()
 
+    def init_redis(self):
+        from redis import StrictRedis
+        return StrictRedis(**self.settings.redis_db)
 
     def __get_console_handler(self):
         """
@@ -332,10 +337,13 @@ class Application(object):
         from scipy.interpolate import interp1d
         from obspy.realtime.signal import kurtosis
         import numpy as np
+        # from IPython.core.debugger import Tracer
+        # import matplotlib.pyplot as plt
 
         start_times = []
         end_times = []
         sampling_rates = []
+        stream = stream.detrend('demean')
         for trace in stream:
             start_times.append(trace.stats.starttime.datetime)
             end_times.append(trace.stats.endtime.datetime)
@@ -354,8 +362,13 @@ class Application(object):
                 station = trace.stats.station
                 tt = self.get_grid_point(station, phase, event_location)
                 trace.stats.starttime = trace.stats.starttime - tt
-                data = trace.data
-                data /= np.max(np.abs(data))
+                data = np.nan_to_num(trace.data)
+
+                # dividing by the signal std yield stronger signal then
+                # dividing by the max. Dividing by the max amplifies the
+                # noisy traces as signal is more homogeneous on these traces
+                data /= np.std(data)
+                # data /= np.max(np.abs(data))
                 sr = trace.stats.sampling_rate
                 startsamp = int((trace.stats.starttime - min_starttime) *
                             trace.stats.sampling_rate)
@@ -366,10 +379,10 @@ class Application(object):
                 except:
                     continue
 
-
-                shifted_traces.append(f(t_i))
+                shifted_traces.append(np.nan_to_num(f(t_i)))
 
         shifted_traces = np.array(shifted_traces)
+
         w_len_sec = 50e-3
         w_len_samp = int(w_len_sec * max_sampling_rate)
 
@@ -393,6 +406,7 @@ class Application(object):
               i_max - w_len_samp
 
         origin_time = min_starttime + o_i / max_sampling_rate
+        # Tracer()()
         return origin_time
 
     def create_arrivals_from_picks(self, picks, event_location, origin_time):
@@ -430,3 +444,139 @@ class Application(object):
             arrivals.append(arrival)
 
         return arrivals
+
+    def get_kafka_producer(self, logger=None):
+        from confluent_kafka import Producer
+        producer = Producer({'bootstrap.servers':
+                             self.settings.kafka.brokers},
+                            logger=logger)
+        return producer
+
+    def get_kafka_consumer(self, logger=None):
+        from confluent_kafka import Consumer
+        consumer = Consumer({'bootstrap.servers':
+                              self.settings.kafka.brokers,
+                             'group.id': self.settings.kafka.group_id},
+                            logger=logger)
+
+        return consumer
+
+    def init_module(self):
+        """
+        Initialize processing module
+        :return: None
+        """
+        if self.__module_name__ is None:
+            return
+
+        self.logger = self.get_logger(self.settings[
+                                          self.__module_name__].log_topic,
+                        self.settings[self.__module_name__].log_file_name)
+
+        self.logger.info('setting up Kafka')
+        self.producer = self.get_kafka_producer(logger=self.logger)
+        self.consumer = self.get_kafka_consumer(logger=self.logger)
+
+        consumer_topics = self.settings[
+            self.__module_name__].kafka_consumer_topic
+        if type(consumer_topics) is list:
+            self.consumer.subscribe(consumer_topics)
+        else:
+            self.consumer.subscribe([consumer_topics])
+
+        self.logger.info('done setting up Kafka')
+
+        self.logger.info('init connection to redis')
+        self.redis_conn = self.init_redis()
+        self.logger.info('connection to redis database successfully initated')
+
+    def send_message(self, cat, stream):
+        """
+        send message to the next module
+        :param cat: a microquake.core.event.Catalog object
+        :param stream: a microquake.core.Stream object
+        :param extra_msgs: additional filed to send
+        :return: None
+        """
+        from io import BytesIO
+        from microquake.io import msgpack
+        import uuid
+
+        self.logger.info('Preparing data')
+        data_out = []
+        if cat is not None:
+            ev_io = BytesIO()
+            cat[0].write(ev_io, format='QUAKEML')
+            data_out.append(ev_io.getvalue())
+
+        if stream is not None:
+            data_out.append(stream)
+
+        msg_out = msgpack.pack(data_out)
+        # timestamp_ms = int(cat[0].preferred_origin().time.timestamp * 1e3)
+        redis_key = str(uuid.uuid4())
+        self.logger.info('done preparing data')
+
+        self.logger.info('sending data to Redis with redis key = %s' %redis_key)
+        self.redis_conn.set(redis_key, msg_out)
+        self.logger.info('done sending data to Redis')
+
+        self.logger.info('sending message to kafka')
+
+        topics = self.settings[self.__module_name__].kafka_producer_topic
+
+        if type(topics) is list:
+            for topic in topics:
+                self.producer.produce(topic, redis_key)
+
+        else:
+            topic = topics
+            self.producer.produce(topic, redis_key)
+
+        self.logger.info('done sending message to kafka')
+
+    def receive_message(self, msg_in, callback, **kwargs):
+        """
+        receive message
+        :param callback: callback function signature must be as follows:
+        def callback(cat=None, stream=None, extra_msg=None, logger=None,
+        **kwargs)
+        :param msg_in: message read from kafka
+        :return: what callback function returns
+        """
+        from microquake.io import msgpack
+        from time import time
+        from microquake.core import read_events
+        from io import BytesIO
+
+        self.logger.info('awaiting for message')
+
+        redis_key = msg_in.value()
+        self.logger.info('getting data from Redis (key: %s)' % redis_key)
+        t0 = time()
+        data = msgpack.unpack(self.redis_conn.get(redis_key))
+        t1 = time()
+        self.logger.info('done getting data from Redis in %0.3f seconds' % (
+            t1 - t0))
+
+        self.logger.info('unpacking data')
+        t2 = time()
+        st = data[1]
+        cat = read_events(BytesIO(data[0]), format='QUAKEML')
+        t3 = time()
+        self.logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
+
+        if not kwargs:
+            cat, st = callback(cat=cat, stream=st, logger=self.logger)
+
+        else:
+            cat, st = callback(cat=cat, stream=st, logger=self.logger,
+                               **kwargs)
+
+        self.logger.info('awaiting for message')
+        return cat, st
+
+
+
+
+
