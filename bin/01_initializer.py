@@ -8,6 +8,8 @@
 
 from spp.utils.application import Application
 from spp.utils import seismic_client
+from io import BytesIO
+from microquake.core import read
 import json
 
 __module_name__ = 'initializer'
@@ -23,6 +25,8 @@ site = app.get_stations()
 consumer = app.get_kafka_consumer(logger=app.logger)
 consumer.subscribe([app.settings.initializer.kafka_consumer_topic])
 
+logger.info('awaiting for messages on channe %s'
+            % app.settings.initializer.kafka_consumer_topic)
 while True:
     msg_in = app.consumer.poll(timeout=1)
     if msg_in is None:
@@ -30,14 +34,16 @@ while True:
     if msg_in.value() == b'Broker: No more messages':
         continue
 
-    msg_dict = json.loads(msg_in)
+    msg_dict = json.loads(msg_in.value())
     logger.info(msg_in)
     redis_key = msg_dict['redis_key']
     event_id = msg_dict['waveform_id']
 
-    continuous_data = redis_conn.get(redis_key)
+    continuous_data_io = BytesIO(redis_conn.get(redis_key))
+    continuous_data = read(continuous_data_io, format='MSEED')
 
-    cat = seismic_client.get_event_by_id(api_base_url, event_id)
+    request_event = seismic_client.get_event_by_id(api_base_url, event_id)
+    cat = request_event.get_event()
     event_time = cat[0].preferred_origin().time
 
     start = params.window_size.start
@@ -55,3 +61,5 @@ while True:
             tr.integrate()
 
     app.send_message(cat, continuous_data)
+    logger.info('awaiting for message on channe %s'
+                % app.settings.initializer.kafka_consumer_topic)
