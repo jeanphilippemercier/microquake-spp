@@ -12,12 +12,18 @@ from spp.utils.application import Application
 import os
 import numpy as np
 from glob import glob
-import redis
+from spp.utils import seismic_client
+import json
 
 __module_name__ = 'initializer'
 
 app = Application(module_name=__module_name__)
 app.init_module()
+redis_conn = app.init_redis()
+logger = app.get_logger()
+api_base_url = app.settings.seismic_api.base_url
+params = app.settings.initializer
+site = app.get_stations()
 
 consumer = app.get_kafka_consumer(logger=app.logger)
 consumer.subscribe([app.settings.initializer.kafka_consumer_topic])
@@ -29,64 +35,28 @@ while True:
     if msg_in.value() == b'Broker: No more messages':
         continue
 
-    redis_key = msg_in
+    msg_dict = json.loads(msg_in)
     logger.info(msg_in)
-    # mseed_bytes = app.redis_conn.get(redis_key)
+    redis_key = msg_dict['redis_key']
+    event_id = msg_dict['waveform_id']
 
+    continuous_data = redis_conn.get(redis_key)
 
+    cat = seismic_client.get_event_by_id(api_base_url, event_id)
+    event_time = cat[0].preferred_origin().time
 
+    start = params.window_size.start
+    end = params.window_size.end
 
+    for tr in continuous_data:
+        if tr.stats.station in app.settings.black_list.stations:
+            continue
+        station = site.select(station=tr.stats.station).stations()[0]
+        tr.taper(max_percentage=0.01)
+        tr.trim(starttime=event_time+start, endtime=event_time+end, pad=True,
+                fill_value=0)
+        tr.filter('bandpass', **app.settings.initializer.filter)
+        if station.motion_type == 'acceleration':
+            tr.integrate()
 
-# site = app.get_stations()
-#
-#
-#
-# black_list = ['23', '31', '32', '100', '102', '107', '88', '90', '77']
-#
-# base_dir = app.settings.data_connector.path
-#
-# api_base_url = app.settings.seismic_api.base_url
-#
-# for input_file in glob(os.path.join(base_dir, '*20s.mseed')):
-#
-#     # getting the event data to the event database endpoint
-#     app.logger.info('reading files')
-#     # input_file = os.path.join(base_dir, '2018_11_23T11_41_03.347319Z.xml')
-#     event_file = input_file.replace('_20s.mseed', '.xml')
-#     mseed_file = input_file.replace('_20s.mseed', '.mseed')
-#     cmseed_file = input_file
-#
-#     cat = read_events(event_file)
-#     app.logger.info(cat[0].preferred_origin().loc)
-#     st = read(mseed_file)
-#     st_c = read(cmseed_file)
-#     app.logger.info('done reading files')
-#
-#
-#     app.logger.info('preparing data')
-#     event_time = cat[0].preferred_origin().time
-#
-#     app.logger.info('trimming stream')
-#     st_c_trimmed = st_c.copy().taper(max_percentage=0.1).trim(
-#                                starttime=event_time-0.2,
-#                                endtime=event_time+1, pad=True,
-#                                fill_value=0).taper(
-#         max_percentage=0.1).filter('bandpass', freqmin=100, freqmax=1000)
-#     app.logger.info('done trimming stream')
-#
-#
-#     trs = []
-#     for tr in st_c_trimmed:
-#         station = site.select(station=tr.stats.station).stations()[0]
-#         if station.code in black_list:
-#             continue
-#         if station.motion_type == 'acceleration':
-#             continue
-#         if np.max(tr.data) < 10 * np.std(tr.data):
-#             continue
-#         tr.data = np.nan_to_num(tr.data)
-#         trs.append(tr)
-#
-#     st_c_trimmed = Stream(traces=trs)
-#
-#     app.send_message(cat, st_c_trimmed)
+    app.send_message(cat, continuous_data)
