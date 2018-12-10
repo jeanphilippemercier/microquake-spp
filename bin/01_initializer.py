@@ -6,12 +6,7 @@
 # processed events. This script will be scheduled to run every few minutes
 # and will send data both the the seismic processing platform.
 
-from microquake.core import Stream, UTCDateTime, read_events, read
-# from microquake.IMS import web_client
 from spp.utils.application import Application
-import os
-import numpy as np
-from glob import glob
 from spp.utils import seismic_client
 import json
 
@@ -20,7 +15,7 @@ __module_name__ = 'initializer'
 app = Application(module_name=__module_name__)
 app.init_module()
 redis_conn = app.init_redis()
-logger = app.get_logger()
+logger = app.logger
 api_base_url = app.settings.seismic_api.base_url
 params = app.settings.initializer
 site = app.get_stations()
