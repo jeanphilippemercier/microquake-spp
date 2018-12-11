@@ -557,7 +557,7 @@ class Application(object):
 
         self.logger.info('awaiting for message')
 
-        redis_key = msg_in.value()
+        redis_key = msg_in.value
         self.logger.info('getting data from Redis (key: %s)' % redis_key)
         t0 = time()
         data = msgpack.unpack(self.redis_conn.get(redis_key))
