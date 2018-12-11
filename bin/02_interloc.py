@@ -75,12 +75,7 @@ tt_ptrs = np.array([row.__array_interface__['data'][0] for row in ttable])
 app.logger.info('awaiting message from Kafka')
 
 try:
-    while True:
-        msg_in = app.consumer.poll(timeout=1)
-        if msg_in is None:
-            continue
-        if msg_in.value() == b'Broker: No more messages':
-            continue
+    for msg_in in app.consumer:
         try:
             cat, st = app.receive_message(msg_in, callback, **conf)
         except Exception as e:
