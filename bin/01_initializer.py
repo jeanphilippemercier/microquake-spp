@@ -23,13 +23,13 @@ params = app.settings.initializer
 site = app.get_stations()
 
 consumer = app.get_kafka_consumer(logger=app.logger)
-consumer.subscribe([app.settings.initializer.kafka_consumer_topic])
+# consumer.subscribe([app.settings.initializer.kafka_consumer_topic])
 
 logger.info('awaiting for messages on channel %s'
             % app.settings.initializer.kafka_consumer_topic)
 
 try:
-    while True:
+    for msg_in in consumer:
         msg_in = app.consumer.poll(timeout=1)
         if msg_in is None:
             continue
