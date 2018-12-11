@@ -52,7 +52,7 @@ try:
         end = params.window_size.end
 
         for tr in continuous_data:
-            if tr.stats.station in app.settings.black_list.stations:
+            if tr.stats.station in app.settings.sensors.black_list:
                 continue
             station = site.select(station=tr.stats.station).stations()[0]
             tr.taper(max_percentage=0.01)

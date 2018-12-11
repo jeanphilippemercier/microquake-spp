@@ -28,15 +28,17 @@ project_code = 'OT'
 	offset = 8                         # time offset in hours, ignored if type=time_zone
 
 [sensors]
-	source  = 'local'
-	units   = 'meter'
-	format  = 'csv'
-	path    = 'sensors.csv'
+	source     = 'local'
+	units      = 'meter'
+	format     = 'csv'
+	path       = 'sensors.csv'
+    black_list = ['23', '31', '32', '100', '102', '107', '88', '90', '77']
 
 [data_local]
     ms_chunks = '/home/phil/data/oyu/spp_common/synthetic/chunks/*.mseed'
     ms_10s    = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.mseed'
     xml_10s   = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.xml'
+
 
 [data_connector]
     # source  = 'remote'
@@ -51,7 +53,17 @@ project_code = 'OT'
     log_topic = 'data_connector'
     log_file_name = 'data_connector.log'
 
-
+[initializer]
+    kafka_consumer_topic = 'initializer'
+    kafka_producer_topic = 'mseed_1sec'
+    log_topic = 'initializer'
+    log_file_name = 'initializer.log'
+    [initializer.filter]
+        freqmin=100
+        freqmax=1000
+    [initializer.window_size]
+        start=-0.3    # seconds before event time
+        end=0.9       # seconds after event time
 
 [mseed_decomposer]  
     kafka_producer_topic = 'mseed_blocks'
