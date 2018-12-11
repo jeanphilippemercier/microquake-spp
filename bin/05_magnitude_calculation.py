@@ -56,7 +56,9 @@ try:
         app.logger.info('awaiting message from Kafka')
 
 except KeyboardInterrupt:
-    pass
+    app.logger.info('received keyboard interrupt')
 
 finally:
+    app.logger.info('closing Kafka connection')
     app.consumer.close()
+    app.logger.info('connection to Kafka closed')

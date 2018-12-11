@@ -67,10 +67,12 @@ try:
                     % app.settings.initializer.kafka_consumer_topic)
 
 except KeyboardInterrupt:
-    pass
+    logger.info('received keyboard interrupt')
 
 finally:
+    logger.info('closing Kafka connection')
     consumer.close()
+    logger.info('connection to Kafka closed')
 
 
 

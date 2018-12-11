@@ -145,7 +145,9 @@ try:
         logger.info('awaiting Kafka messsages')
 
 except KeyboardInterrupt:
-    pass
+    logger.info('received keyboard interrupt')
 
 finally:
+    logger.info('closing Kafka connection')
     app.consumer.close()
+    logger.info('connection to Kafka closed')
