@@ -65,6 +65,7 @@ try:
                                               project_code=project_code)
         except Exception as e:
             app.logger.error(e)
+            continue
 
         app.send_message(cat_out, st)
         app.logger.info('awaiting message from Kafka')

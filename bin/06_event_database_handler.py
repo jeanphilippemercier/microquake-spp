@@ -8,19 +8,15 @@ from time import time
 from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
 from spp.utils import seismic_client
-from spp.utils.seismic_client import (build_request_data_from_object,
-                                          post_event_data)
+from spp.utils.seismic_client import (post_data_from_objects)
 
-def event_database_handler(cat=None, stream=None, logger=None):
-    logger.info('creating request from seismic data')
-    request_data, request_files = build_request_data_from_object(
-        event_id=None, event=cat, stream=stream, context_stream=None)
-    logger.info('done creating request from seismic data')
-
-    api_base_url = app.settings.seismic_api.base_url
-
+def event_database_handler(cat=None, stream=None, logger=None,
+                           api_base_url=None):
     logger.info('posting data to the API')
-    result = post_event_data(api_base_url, request_data, request_files)
+    request_data, request_files = post_data_from_objects(api_base_url,
+        event_id=None, event=cat, stream=stream, context_stream=None)
+    logger.info('posting seismic data')
+
     if result.status_code == 200:
         logger.info('successfully posting data to the API')
     else:
@@ -34,13 +30,16 @@ __module_name__ = 'event_database_handler'
 
 app = Application(module_name=__module_name__)
 app.init_module()
+api_base_url = app.setting.seismic_api.base_url
 
 app.logger.info('awaiting message from Kafka')
 
 try:
     for msg_in in app.consumer:
         try:
-            cat, stream = app.receive_message(msg_in, event_database_handler)
+            cat, stream = app.receive_message(msg_in,
+                                              event_database_handler,
+                                              api_base_url=api_base_url)
         except Exception as e:
             app.logger.error(e)
 
