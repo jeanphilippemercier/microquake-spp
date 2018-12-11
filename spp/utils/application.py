@@ -453,7 +453,7 @@ class Application(object):
         return producer
 
     def get_kafka_consumer(self, logger=None):
-        from kafka import KafkaConsumer()
+        from kafka import KafkaConsumer
         return KafkaConsumer(self.settings[
                                  self.__module_name__].kafka_consumer_topic,
                              group_id=self.settings.kafka.group_id,
