@@ -449,15 +449,16 @@ class Application(object):
         from confluent_kafka import Producer
         producer = Producer({'bootstrap.servers':
                              self.settings.kafka.brokers},
-                            logger=logger)
+                             logger=logger)
         return producer
 
     def get_kafka_consumer(self, logger=None):
         from confluent_kafka import Consumer
         consumer = Consumer({'bootstrap.servers':
                               self.settings.kafka.brokers,
-                             'group.id': self.settings.kafka.group_id},
-                            logger=logger)
+                             'group.id': self.settings.kafka.group_id,
+                             'auto.offset.reset': 'earliest'},
+                             logger=logger)
 
         return consumer
 
