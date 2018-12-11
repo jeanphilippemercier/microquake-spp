@@ -67,7 +67,7 @@ try:
                 tr.integrate()
 
         app.send_message(cat, continuous_data)
-        logger.info('awaiting for message on channe %s'
+        logger.info('awaiting for message on channel %s'
                     % app.settings.initializer.kafka_consumer_topic)
 
 except KeyboardInterrupt:

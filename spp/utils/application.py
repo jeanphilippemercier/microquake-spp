@@ -456,7 +456,7 @@ class Application(object):
         from kafka import KafkaConsumer
         return KafkaConsumer(self.settings[
                                  self.__module_name__].kafka_consumer_topic,
-                             group_id=self.settings.kafka.group_id,
+                             # group_id=self.settings.kafka.group_id,
                              bootstrap_servers=self.settings.kafka.brokers)
         # from confluent_kafka import Consumer
         # consumer = Consumer({'bootstrap.servers':
