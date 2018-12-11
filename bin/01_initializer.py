@@ -30,13 +30,7 @@ logger.info('awaiting for messages on channel %s'
 
 try:
     for msg_in in consumer:
-        # msg_in = app.consumer.poll(timeout=1)
-        if msg_in is None:
-            continue
-        if msg_in.value() == b'Broker: No more messages':
-            continue
-
-        msg_dict = json.loads(msg_in.value())
+        msg_dict = json.loads(msg_in.value)
         logger.info(msg_in)
         redis_key = msg_dict['redis_key']
         event_id = msg_dict['waveform_id']
