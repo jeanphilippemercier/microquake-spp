@@ -30,7 +30,7 @@ logger.info('awaiting for messages on channel %s'
 
 try:
     for msg_in in consumer:
-        msg_in = app.consumer.poll(timeout=1)
+        # msg_in = app.consumer.poll(timeout=1)
         if msg_in is None:
             continue
         if msg_in.value() == b'Broker: No more messages':
