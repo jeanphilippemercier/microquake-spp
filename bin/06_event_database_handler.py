@@ -36,15 +36,23 @@ app = Application(module_name=__module_name__)
 app.init_module()
 
 app.logger.info('awaiting message from Kafka')
-while True:
-    msg_in = app.consumer.poll(timeout=1)
-    if msg_in is None:
-        continue
-    if msg_in.value() == b'Broker: No more messages':
-        continue
 
-    try:
-        cat, stream = app.receive_message(msg_in, event_database_handler)
-    except Exception as e:
-        logger.error(e)
+try:
+    while True:
+        msg_in = app.consumer.poll(timeout=1)
+        if msg_in is None:
+            continue
+        if msg_in.value() == b'Broker: No more messages':
+            continue
+
+        try:
+            cat, stream = app.receive_message(msg_in, event_database_handler)
+        except Exception as e:
+            app.logger.error(e)
+
+except KeyboardInterrupt:
+    pass
+
+finally:
+    app.consumer.close()
 

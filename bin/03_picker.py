@@ -126,19 +126,26 @@ logger = app.get_logger(settings.create_event.log_topic,
                         settings.create_event.log_file_name)
 
 app.logger.info('awaiting message from Kafka')
-while True:
-    msg_in = app.consumer.poll(timeout=1)
-    if msg_in is None:
-        continue
-    if msg_in.value() == b'Broker: No more messages':
-        continue
-    try:
-        cat, st = app.receive_message(msg_in, picker, params=params, app=app)
-    except Exception as e:
-        logger.error(e)
+try:
+    while True:
+        msg_in = app.consumer.poll(timeout=1)
+        if msg_in is None:
+            continue
+        if msg_in.value() == b'Broker: No more messages':
+            continue
+        try:
+            cat, st = app.receive_message(msg_in, picker, params=params, app=app)
+        except Exception as e:
+            logger.error(e)
 
 
-    app.send_message(cat, st)
-    app.logger.info('awaiting message from Kafka')
+        app.send_message(cat, st)
+        app.logger.info('awaiting message from Kafka')
 
-    logger.info('awaiting Kafka messsages')
+        logger.info('awaiting Kafka messsages')
+
+except KeyboardInterrupt:
+    pass
+
+finally:
+    app.consumer.close()

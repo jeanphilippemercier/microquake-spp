@@ -25,41 +25,52 @@ site = app.get_stations()
 consumer = app.get_kafka_consumer(logger=app.logger)
 consumer.subscribe([app.settings.initializer.kafka_consumer_topic])
 
-logger.info('awaiting for messages on channe %s'
+logger.info('awaiting for messages on channel %s'
             % app.settings.initializer.kafka_consumer_topic)
-while True:
-    msg_in = app.consumer.poll(timeout=1)
-    if msg_in is None:
-        continue
-    if msg_in.value() == b'Broker: No more messages':
-        continue
 
-    msg_dict = json.loads(msg_in.value())
-    logger.info(msg_in)
-    redis_key = msg_dict['redis_key']
-    event_id = msg_dict['waveform_id']
-
-    continuous_data_io = BytesIO(redis_conn.get(redis_key))
-    continuous_data = read(continuous_data_io, format='MSEED')
-
-    request_event = seismic_client.get_event_by_id(api_base_url, event_id)
-    cat = request_event.get_event()
-    event_time = cat[0].preferred_origin().time
-
-    start = params.window_size.start
-    end = params.window_size.end
-
-    for tr in continuous_data:
-        if tr.stats.station in app.settings.black_list.stations:
+try:
+    while True:
+        msg_in = app.consumer.poll(timeout=1)
+        if msg_in is None:
             continue
-        station = site.select(station=tr.stats.station).stations()[0]
-        tr.taper(max_percentage=0.01)
-        tr.trim(starttime=event_time+start, endtime=event_time+end, pad=True,
-                fill_value=0)
-        tr.filter('bandpass', **app.settings.initializer.filter)
-        if station.motion_type == 'acceleration':
-            tr.integrate()
+        if msg_in.value() == b'Broker: No more messages':
+            continue
 
-    app.send_message(cat, continuous_data)
-    logger.info('awaiting for message on channe %s'
-                % app.settings.initializer.kafka_consumer_topic)
+        msg_dict = json.loads(msg_in.value())
+        logger.info(msg_in)
+        redis_key = msg_dict['redis_key']
+        event_id = msg_dict['waveform_id']
+
+        continuous_data_io = BytesIO(redis_conn.get(redis_key))
+        continuous_data = read(continuous_data_io, format='MSEED')
+
+        request_event = seismic_client.get_event_by_id(api_base_url, event_id)
+        cat = request_event.get_event()
+        event_time = cat[0].preferred_origin().time
+
+        start = params.window_size.start
+        end = params.window_size.end
+
+        for tr in continuous_data:
+            if tr.stats.station in app.settings.black_list.stations:
+                continue
+            station = site.select(station=tr.stats.station).stations()[0]
+            tr.taper(max_percentage=0.01)
+            tr.trim(starttime=event_time+start, endtime=event_time+end, pad=True,
+                    fill_value=0)
+            tr.filter('bandpass', **app.settings.initializer.filter)
+            if station.motion_type == 'acceleration':
+                tr.integrate()
+
+        app.send_message(cat, continuous_data)
+        logger.info('awaiting for message on channe %s'
+                    % app.settings.initializer.kafka_consumer_topic)
+
+except KeyboardInterrupt:
+    pass
+
+finally:
+    consumer.close()
+
+
+

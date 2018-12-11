@@ -73,17 +73,25 @@ ngrid = ttable.shape[1]
 tt_ptrs = np.array([row.__array_interface__['data'][0] for row in ttable])
 
 app.logger.info('awaiting message from Kafka')
-while True:
-    msg_in = app.consumer.poll(timeout=1)
-    if msg_in is None:
-        continue
-    if msg_in.value() == b'Broker: No more messages':
-        continue
-    try:
-        cat, st = app.receive_message(msg_in, callback, **conf)
-    except Exception as e:
-        app.logger.error(e)
+
+try:
+    while True:
+        msg_in = app.consumer.poll(timeout=1)
+        if msg_in is None:
+            continue
+        if msg_in.value() == b'Broker: No more messages':
+            continue
+        try:
+            cat, st = app.receive_message(msg_in, callback, **conf)
+        except Exception as e:
+            app.logger.error(e)
 
 
-    app.send_message(cat, st)
-    app.logger.info('awaiting message from Kafka')
+        app.send_message(cat, st)
+        app.logger.info('awaiting message from Kafka')
+
+except KeyboardInterrupt:
+    pass
+
+finally:
+    app.consumer.close()

@@ -56,18 +56,26 @@ app.logger.info('done preparing NonLinLoc')
 
 
 app.logger.info('awaiting message from Kafka')
-while True:
-    msg_in = app.consumer.poll(timeout=1)
-    if msg_in is None:
-        continue
-    if msg_in.value() == b'Broker: No more messages':
-        continue
 
-    try:
-        cat_out, st = app.receive_message(msg_in, location, nll=nll, params=params,
-                                          project_code=project_code)
-    except Exception as e:
-        app.logger.error(e)
+try:
+    while True:
+        msg_in = app.consumer.poll(timeout=1)
+        if msg_in is None:
+            continue
+        if msg_in.value() == b'Broker: No more messages':
+            continue
 
-    app.send_message(cat_out, st)
-    app.logger.info('awaiting message from Kafka')
+        try:
+            cat_out, st = app.receive_message(msg_in, location, nll=nll, params=params,
+                                              project_code=project_code)
+        except Exception as e:
+            app.logger.error(e)
+
+        app.send_message(cat_out, st)
+        app.logger.info('awaiting message from Kafka')
+
+except KeyboardInterrupt:
+    pass
+
+finally:
+    app.consumer.close()
