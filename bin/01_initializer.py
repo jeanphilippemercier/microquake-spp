@@ -35,11 +35,21 @@ try:
         redis_key = msg_dict['redis_key']
         event_id = msg_dict['waveform_id']
 
-        continuous_data_io = BytesIO(redis_conn.get(redis_key))
-        continuous_data = read(continuous_data_io, format='MSEED')
+        try:
+            continuous_data_io = BytesIO(redis_conn.get(redis_key))
+            continuous_data = read(continuous_data_io, format='MSEED')
+        except:
+            logger.error('the data for key %key has probably expired. Old '
+                         'message that had not been consumed?' % redis_key)
 
         request_event = seismic_client.get_event_by_id(api_base_url, event_id)
-        cat = request_event.get_event()
+
+        try:
+            cat = request_event.get_event()
+        except:
+            logger.error('not able to get the catalog... aborting')
+            continue
+
         event_time = cat[0].preferred_origin().time
 
         start = params.window_size.start
