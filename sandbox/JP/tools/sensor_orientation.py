@@ -24,7 +24,6 @@ def get_event_information(request_event, output_dir='data/'):
                         (event.time_utc, (t1 - t0)))
     dict_seismo = {}
     for sta in st.unique_stations():
-        sta = seismo.stats.station
         seismo = st.select(station=sta)
         filename = output_dir + '%s_%s.mseed' % (sta, event.time_utc)
         filename = filename.replace(r':', '_').replace('-', '_')
