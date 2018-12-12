@@ -10,7 +10,7 @@ import numpy as np
 import pickle
 import h5py
 import logging
-import tqdm
+from tqdm import tqdm
 ev_info_logger = logging.getLogger('get_event_information')
 
 def get_event_information(request_event, output_dir='data/'):
