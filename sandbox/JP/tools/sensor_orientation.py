@@ -308,8 +308,7 @@ def calculate_orientation_station(station, pick_dict, site, logger):
     x = X[i, :]
     y = Y[i, :]
 
-
-    return (x, y, z)
+    return x, y, z, station, len(pick)
 
 
 from time import time
@@ -358,31 +357,22 @@ except:
 
 
 # p = Pool(16)
-pool = ProcessingPool(nodes=10)
+pool = ProcessingPool(nodes=16)
 
 fun = lambda x: calculate_orientation_station(x, pick_dict, site, logger)
 res = pool.map(fun, pick_dict.keys())
 
-input('acqui')
 
-for key in tqdm(pick_dict.keys()):
-    # if key in orientation.keys():
-    #     continue
-    print('Processing %s' % key)
-    try:
-        x, y, z = calculate_orientation_station(key, pick_dict, site, logger)
-    # if x == 0:
-    #     continue
-    except:
-        continue
-    orientation[key] = {}
-    orientation[key]['x'] = x
-    orientation[key]['y'] = y
-    orientation[key]['z'] = z
-    orientation[key]['measurements'] = len(pick_dict[key])
+for r in res:
+    sta = r[3]
+    orientation[sta] = {}
+    orientation[sta]['x'] = r[0]
+    orientation[sta]['y'] = r[1]
+    orientation[sta]['z'] = r[2]
+    orientation[sta]['measurements'] = r[4]
 
-    with open('orientation.pickle', 'wb') as fo:
-        pickle.dump(orientation, fo)
+with open('orientation.pickle', 'wb') as fo:
+    pickle.dump(orientation, fo)
 
 st_ids = np.arange(1, 110)
 
