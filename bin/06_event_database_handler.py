@@ -13,8 +13,8 @@ from spp.utils.seismic_client import (post_data_from_objects)
 def event_database_handler(cat=None, stream=None, logger=None,
                            api_base_url=None):
     logger.info('posting data to the API')
-    request_data, request_files = post_data_from_objects(api_base_url,
-        event_id=None, event=cat, stream=stream, context_stream=None)
+    result = post_data_from_objects(api_base_url, event_id=None, event=cat,
+                                    stream=stream, context_stream=None)
     logger.info('posting seismic data')
 
     if result.status_code == 200:
@@ -23,22 +23,21 @@ def event_database_handler(cat=None, stream=None, logger=None,
         logger.error('Error in postion data to the API. Returned with '
                      'error code %d' % result.status_code)
 
-    return cat, stream
+    return result
 
 
 __module_name__ = 'event_database_handler'
 
 app = Application(module_name=__module_name__)
 app.init_module()
-api_base_url = app.setting.seismic_api.base_url
+api_base_url = app.settings.seismic_api.base_url
 
 app.logger.info('awaiting message from Kafka')
 
 try:
     for msg_in in app.consumer:
         try:
-            cat, stream = app.receive_message(msg_in,
-                                              event_database_handler,
+            result = app.receive_message(msg_in, event_database_handler,
                                               api_base_url=api_base_url)
         except Exception as e:
             app.logger.error(e)

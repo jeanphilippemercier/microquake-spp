@@ -1,40 +1,42 @@
-from spp.utils import get_stations, get_project_params
-from spp.time import get_time_zone
 from datetime import datetime
-
-from microquake.IMS import web_api
+from microquake.IMS import web_client
 from microquake.core import read_events
-from microquake.spark import mq_map
 from microquake.core import UTCDateTime
-
+from spp.utils import seismic_client
+from spp.utils.application import Application
 from microquake.simul import eik
-
 from importlib import reload
 import numpy as np
 import pickle
+import h5py
 import logging
+import tqdm
+ev_info_logger = logging.getLogger('get_event_information')
 
-logger = logging.getLogger()
-
-# from multiprocessing import pool
-
-# from pyspark import SparkContext
-
-
-def get_event_information(event):
-    tmp = event.ASSOC_SEISMOGRAM_NAMES[1:-1].split(';')
+def get_event_information(request_event, output_dir='data/'):
+    event = request_event
+    t0 = time()
+    ev_info_logger.info('requesting data for event %s' % event.time_utc)
+    cat = event.get_event()
+    st = event.get_waveform()
+    t1 = time()
+    ev_info_logger.info('done requesting data for event %s in %0.3f seconds' %
+                        (event.time_utc, (t1 - t0)))
     dict_seismo = {}
-    for seismo in tmp:
-        sta = seismo.split('_')[2]
-        dict_seismo[sta] = seismo
-    for pick in event.picks:
+    for seismo in st:
+        sta = seismo.stats.station
+        filename = output_dir + '%s_%s.mseed' % (sta, event.time_utc)
+        filename = filename.replace(r':', '_').replace('-', '_')
+        dict_seismo[sta] = filename
+        seismo.write(filename)
+    for arrival in cat[0].preferred_origin().arrivals:
+        pick = arrival.get_pick()
         if pick.phase_hint == 'S':
             continue
         key = pick.waveform_id.station_code
-        key_s = str.zfill(key, 4)
-        seismogram_name = dict_seismo[key_s]
+        seismogram_name = dict_seismo[key]
         p_time = pick.time
-        yield (key, (seismogram_name, p_time, event.preferred_origin().loc))
+        yield (key, (seismogram_name, p_time, cat[0].preferred_origin().loc))
 
 
 def get_traveltime_grid_station(station, phase='P'):
@@ -104,8 +106,7 @@ def sv_sh_orientation(P):
 
     return (SV_vect, SH_vect)
 
-
-def calculate_orientation_station(station, pick_dict, site):
+def calculate_orientation_station(station, pick_dict, site, logger):
 
     base_url = "http://10.95.64.12:8002/ims-database-server/databases/mgl"
     network_code = 'OT'
@@ -119,15 +120,6 @@ def calculate_orientation_station(station, pick_dict, site):
         return (0, 0, 0)
     stloc = sta.loc
 
-    # X_vects = []
-    # Y_vects = []
-    # Z_vects = []
-    # S_in_P = []
-    #
-    # Res = []
-    #
-    # tt_grid = get_traveltime_grid_station(station)
-
     N = 100
 
     Res = np.zeros(N**2)
@@ -138,7 +130,8 @@ def calculate_orientation_station(station, pick_dict, site):
         evloc = pick[2]
         sgram_name = pick[0]
         pk_time = UTCDateTime(pick[1])
-        st = web_api.get_seismogram(base_url, sgram_name, network_code, station)
+        # st = web_api.get_seismogram(base_url, sgram_name, network_code, station)
+        st = pick_array['']
         st.detrend('demean').detrend('linear')
         st.filter('bandpass', freqmin=60, freqmax=1000)
         st2 = st.copy()
@@ -174,7 +167,7 @@ def calculate_orientation_station(station, pick_dict, site):
         X_Xz = Xx * zorientation[0]
         Y_Yz = Yx * zorientation[1]
 
-        Zx = -(X_Xz + Y_Yz)/zorientation[2]
+        Zx = - (X_Xz + Y_Yz) / zorientation[2]
 
         Nx = np.sqrt(Xx ** 2 + Yx ** 2 + Zx ** 2)
 
@@ -190,7 +183,8 @@ def calculate_orientation_station(station, pick_dict, site):
         X = np.array([([x_x, y_x, z_x] ) for (x_x, y_x, z_x) in zip(Xx, Yx,
                                                                     Zx)])
         z = zorientation
-        Y = - np.array([np.cross(x, z) for x in X])
+        # The sensors are right handed coordinate system
+        Y = - np.array([np.cross(x, -z) for x in X])
 
         # reload(eik)
         #
@@ -316,26 +310,50 @@ def calculate_orientation_station(station, pick_dict, site):
     return (x, y, z)
 
 
-base_url = "http://10.95.74.35:8002/ims-database-server/databases/mgl"
+from time import time
+app = Application()
 
-site = get_stations()
-tz = get_time_zone()
-endtime = datetime.now().replace(tzinfo=tz)
+
+site = app.get_stations()
+tz = app.get_time_zone()
 starttime = datetime(2018, 4, 1, tzinfo=tz)
-endtime = datetime(2018, 7, 10, tzinfo=tz)
+endtime = datetime(2018, 11, 30, tzinfo=tz)
+base_url = app.settings.seismic_api.base_url
 
 # cat = web_api.get_catalogue(base_url, starttime, endtime, site, blast=True,
 #                             get_arrivals=True)
-
+logger = app.get_logger('sensor_orientation', 'sensor_orientation.log')
+logger.info('requesting event list from the API')
+t0 = time()
+event_list = seismic_client.get_events_catalog(base_url, starttime, endtime)
+t1 = time()
+logger.info('done requesting event list. The API returned %d events in %0.3f seconds' % (len(event_list), (t1 - t0)))
 # cat.write('events.xml', format='QUAKEML')
 
-print('reading quakeml')
-cat = read_events('events.xml')
+# read event data and write into H5 file
+
+# for request_event in event_list:
+#     logger.info('getting data for event: %s' % request_event.time_utc)
+#     t0 = time()
+#     st = request_event.get_waveform()
+#     cat = request_event.get_event()
+#     t1 = time()
+#     logger.info('done getting data for event: %s in %0.3f' % (
+#         request_event.time_utc, (t1 - t0)))
+#     for tr in st:
+#         group = f['/%s' % tr.stats.station].create_group(str(
+#                 request_event.time_utc))
+#
+#         input('bubu')
+
+
+# print('reading quakeml')
+# cat = read_events('events.xml')
 # cat = pickle.load(open('events.pickle', 'rb'))
-print('done with reading teh data')
+print('done with reading the data')
 
 pick_dict = {}
-for tmp1 in map(get_event_information, cat):
+for tmp1 in map(get_event_information, tqdm(event_list)):
     for tmp2 in tmp1:
         if tmp2[0] in pick_dict.keys():
             pick_dict[tmp2[0]].append(np.array(tmp2[1]))
@@ -344,9 +362,10 @@ for tmp1 in map(get_event_information, cat):
 
 pickle.dump(pick_dict, open('pick_dict.pickle', 'wb'))
 
-pick_dict = pickle.load(open('pick_dict.pickle', 'rb'))
+# pick_dict = pickle.load(open('pick_dict.pickle', 'rb'))
 
-#'59'
+input('aqui')
+
 try:
     orientation = pickle.load(open('orientation.pickle', 'rb'))
 
