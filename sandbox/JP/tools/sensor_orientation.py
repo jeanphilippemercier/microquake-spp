@@ -357,7 +357,7 @@ except:
 
 
 # p = Pool(16)
-pool = ProcessingPool(nodes=16)
+pool = ProcessingPool(nodes=10)
 
 fun = lambda x: calculate_orientation_station(x, pick_dict, site, logger)
 res = pool.map(fun, pick_dict.keys())
