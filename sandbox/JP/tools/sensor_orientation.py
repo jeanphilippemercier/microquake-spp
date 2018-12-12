@@ -11,7 +11,9 @@ import pickle
 import h5py
 import logging
 from tqdm import tqdm
+from pathos.multiprocessing import ProcessingPool
 ev_info_logger = logging.getLogger('get_event_information')
+
 
 def get_event_information(request_event, output_dir='data/'):
     event = request_event
@@ -354,6 +356,14 @@ try:
 except:
     orientation = {}
 
+
+# p = Pool(16)
+pool = ProcessingPool(nodes=10)
+
+fun = lambda x: calculate_orientation_station(x, pick_dict, site, logger)
+res = pool.map(fun, pick_dict.keys())
+
+input('acqui')
 
 for key in tqdm(pick_dict.keys()):
     # if key in orientation.keys():
