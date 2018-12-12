@@ -186,7 +186,7 @@ def calculate_orientation_station(station, pick_dict, site, logger):
                                                                     Zx)])
         z = zorientation
         # The sensors are right handed coordinate system
-        Y = - np.array([np.cross(x, -z) for x in X])
+        Y = - np.array([np.cross(x, z) for x in X])
 
         # reload(eik)
         #
@@ -308,7 +308,7 @@ def calculate_orientation_station(station, pick_dict, site, logger):
     x = X[i, :]
     y = Y[i, :]
 
-    return x, y, z, station, len(pick)
+    return x, y, z, station, len(pick_array)
 
 
 from time import time
@@ -364,42 +364,47 @@ res = pool.map(fun, pick_dict.keys())
 
 
 for r in res:
-    sta = r[3]
-    orientation[sta] = {}
-    orientation[sta]['x'] = r[0]
-    orientation[sta]['y'] = r[1]
-    orientation[sta]['z'] = r[2]
-    orientation[sta]['measurements'] = r[4]
+    try:
+        sta = r[3]
+        orientation[sta] = {}
+        orientation[sta]['x'] = r[0]
+        orientation[sta]['y'] = r[1]
+        orientation[sta]['z'] = r[2]
+        orientation[sta]['measurements'] = r[4]
+    except:
+        continue
 
 with open('orientation.pickle', 'wb') as fo:
     pickle.dump(orientation, fo)
 
-st_ids = np.arange(1, 110)
+
+st_ids = np.sort([int(station.code) for station in app.get_stations(
+                  ).stations()])
 
 with open('orientation.csv', 'w') as fo:
     for st_id in st_ids:
         key = str(st_id)
         if not key in orientation.keys():
-            fo.write("%s,z,0,90\n" % st_id)
+            fo.write("%s,z,0,0,1\n" % st_id)
             continue
         print(key)
         for k, station in enumerate(site.networks[0].stations):
             if site.networks[0].stations[k].code == key:
                 if len(site.networks[0].stations[k].channels) == 1:
                     z = site.networks[0].stations[k].channels[0]
-                    fo.write("%s,z,%f,%f\n" % (st_id, z.azimuth,
-                                          z.dip))
+                    fo.write("%s,z,%f,%f,%f\n" % (st_id, z.orientation[0],
+                                          z.orientation[1], z.orientation[2]))
                 else:
                     site.networks[0].stations[k].channels[0].orientation =  \
                         orientation[key]['x']
                     site.networks[0].stations[k].channels[1].orientation = \
                         orientation[key]['y']
-                    x = site.networks[0].stations[k].channels[0]
-                    y = site.networks[0].stations[k].channels[1]
-                    z = site.networks[0].stations[k].channels[2]
-                    fo.write("%s,x,%f,%f,y,%f,%f,z,%f,%f\n" \
-                             % (st_id, x.azimuth, x.dip,
-                                y.azimuth, y.dip, z.azimuth, z.dip))
+                    x = site.networks[0].stations[k].channels[0].orientation
+                    y = site.networks[0].stations[k].channels[1].orientation
+                    z = site.networks[0].stations[k].channels[2].orientation
+                    fo.write("%s,x,%f,%f,%f,y,%f,%f,%f,z,%f,%f,%f\n" \
+                             % (st_id, x[0], x[1], x[2],
+                                y[0], y[1], y[2], z[0], z[1], z[2]))
 
 
 
