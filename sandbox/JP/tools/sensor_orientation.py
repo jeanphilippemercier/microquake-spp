@@ -1,7 +1,7 @@
 from datetime import datetime
 from microquake.IMS import web_client
 from microquake.core import read_events
-from microquake.core import UTCDateTime
+from microquake.core import UTCDateTime, read
 from spp.utils import seismic_client
 from spp.utils.application import Application
 from microquake.simul import eik
@@ -131,9 +131,9 @@ def calculate_orientation_station(station, pick_dict, site, logger):
         sgram_name = pick[0]
         pk_time = UTCDateTime(pick[1])
         # st = web_api.get_seismogram(base_url, sgram_name, network_code, station)
-        st = pick_array['']
+        st = read(pick[0], format='MSEED')
         st.detrend('demean').detrend('linear')
-        st.filter('bandpass', freqmin=60, freqmax=1000)
+        st.filter('bandpass', freqmin=100, freqmax=1000)
         st2 = st.copy()
         starttime = pk_time
         endtime = pk_time + 0.015
@@ -377,7 +377,7 @@ for key in pick_dict.keys():
     #     continue
     print('Processing %s' % key)
     try:
-        x, y, z = calculate_orientation_station(key, pick_dict, site)
+        x, y, z = calculate_orientation_station(key, pick_dict, site, logger)
     # if x == 0:
     #     continue
     except:
