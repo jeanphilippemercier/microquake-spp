@@ -23,8 +23,9 @@ def get_event_information(request_event, output_dir='data/'):
     ev_info_logger.info('done requesting data for event %s in %0.3f seconds' %
                         (event.time_utc, (t1 - t0)))
     dict_seismo = {}
-    for seismo in st:
+    for sta in st.unique_station():
         sta = seismo.stats.station
+        seismo = st.select(station=sta)
         filename = output_dir + '%s_%s.mseed' % (sta, event.time_utc)
         filename = filename.replace(r':', '_').replace('-', '_')
         dict_seismo[sta] = filename
@@ -151,6 +152,8 @@ def calculate_orientation_station(station, pick_dict, site, logger):
         # A_y = st[1].data[i_mx_y]
         # A_z = st[2].data[i_mx_z]
 
+        print('ici')
+
         A_x = np.std(st[0].data)
         A_y = np.std(st[1].data)
         cc_x_z = np.sign(np.corrcoef(st[0].data, st[2].data)[0, 1])
@@ -163,6 +166,8 @@ def calculate_orientation_station(station, pick_dict, site, logger):
 
         Xx = X.reshape(N ** 2)
         Yx = Y.reshape(N ** 2)
+
+        print('ici')
 
         X_Xz = Xx * zorientation[0]
         Y_Yz = Yx * zorientation[1]
@@ -185,6 +190,8 @@ def calculate_orientation_station(station, pick_dict, site, logger):
         z = zorientation
         # The sensors are right handed coordinate system
         Y = - np.array([np.cross(x, -z) for x in X])
+
+        print('ici')
 
         # reload(eik)
         #
@@ -332,35 +339,18 @@ logger.info('done requesting event list. The API returned %d events in %0.3f sec
 
 # read event data and write into H5 file
 
-# for request_event in event_list:
-#     logger.info('getting data for event: %s' % request_event.time_utc)
-#     t0 = time()
-#     st = request_event.get_waveform()
-#     cat = request_event.get_event()
-#     t1 = time()
-#     logger.info('done getting data for event: %s in %0.3f' % (
-#         request_event.time_utc, (t1 - t0)))
-#     for tr in st:
-#         group = f['/%s' % tr.stats.station].create_group(str(
-#                 request_event.time_utc))
-#
-#         input('bubu')
 
-
-# print('reading quakeml')
-# cat = read_events('events.xml')
-# cat = pickle.load(open('events.pickle', 'rb'))
 print('done with reading the data')
 
-# pick_dict = {}
-# for tmp1 in map(get_event_information, tqdm(event_list)):
-#     for tmp2 in tmp1:
-#         if tmp2[0] in pick_dict.keys():
-#             pick_dict[tmp2[0]].append(np.array(tmp2[1]))
-#         else:
-#             pick_dict[tmp2[0]] = [np.array(tmp2[1])]
-#
-# pickle.dump(pick_dict, open('pick_dict.pickle', 'wb'))
+pick_dict = {}
+for tmp1 in map(get_event_information, tqdm(event_list)):
+    for tmp2 in tmp1:
+        if tmp2[0] in pick_dict.keys():
+            pick_dict[tmp2[0]].append(np.array(tmp2[1]))
+        else:
+            pick_dict[tmp2[0]] = [np.array(tmp2[1])]
+
+pickle.dump(pick_dict, open('pick_dict.pickle', 'wb'))
 
 pick_dict = pickle.load(open('pick_dict.pickle', 'rb'))
 # input('aqui')
