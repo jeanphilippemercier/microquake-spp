@@ -124,7 +124,7 @@ def calculate_orientation_station(station, pick_dict, site, logger):
 
     Res = np.zeros(N**2)
 
-    for kk, pick in enumerate(pick_array):
+    for kk, pick in enumerate(tqdm(pick_array)):
         logger.debug("processing station %s, event %d of %d, "
                      "" % (station, kk, len(pick_array)))
         evloc = pick[2]
@@ -151,8 +151,6 @@ def calculate_orientation_station(station, pick_dict, site, logger):
         # A_y = st[1].data[i_mx_y]
         # A_z = st[2].data[i_mx_z]
 
-        print('ici')
-
         A_x = np.std(st[0].data)
         A_y = np.std(st[1].data)
         cc_x_z = np.sign(np.corrcoef(st[0].data, st[2].data)[0, 1])
@@ -165,8 +163,6 @@ def calculate_orientation_station(station, pick_dict, site, logger):
 
         Xx = X.reshape(N ** 2)
         Yx = Y.reshape(N ** 2)
-
-        print('ici')
 
         X_Xz = Xx * zorientation[0]
         Y_Yz = Yx * zorientation[1]
@@ -189,8 +185,6 @@ def calculate_orientation_station(station, pick_dict, site, logger):
         z = zorientation
         # The sensors are right handed coordinate system
         Y = - np.array([np.cross(x, -z) for x in X])
-
-        print('ici')
 
         # reload(eik)
         #
@@ -361,7 +355,7 @@ except:
     orientation = {}
 
 
-for key in pick_dict.keys():
+for key in tqdm(pick_dict.keys()):
     # if key in orientation.keys():
     #     continue
     print('Processing %s' % key)
