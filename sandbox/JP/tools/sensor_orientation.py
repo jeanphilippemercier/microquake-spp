@@ -23,7 +23,7 @@ def get_event_information(request_event, output_dir='data/'):
     ev_info_logger.info('done requesting data for event %s in %0.3f seconds' %
                         (event.time_utc, (t1 - t0)))
     dict_seismo = {}
-    for sta in st.unique_station():
+    for sta in st.unique_stations():
         sta = seismo.stats.station
         seismo = st.select(station=sta)
         filename = output_dir + '%s_%s.mseed' % (sta, event.time_utc)
