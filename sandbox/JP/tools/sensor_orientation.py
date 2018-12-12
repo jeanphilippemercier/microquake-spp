@@ -352,19 +352,18 @@ logger.info('done requesting event list. The API returned %d events in %0.3f sec
 # cat = pickle.load(open('events.pickle', 'rb'))
 print('done with reading the data')
 
-pick_dict = {}
-for tmp1 in map(get_event_information, tqdm(event_list)):
-    for tmp2 in tmp1:
-        if tmp2[0] in pick_dict.keys():
-            pick_dict[tmp2[0]].append(np.array(tmp2[1]))
-        else:
-            pick_dict[tmp2[0]] = [np.array(tmp2[1])]
+# pick_dict = {}
+# for tmp1 in map(get_event_information, tqdm(event_list)):
+#     for tmp2 in tmp1:
+#         if tmp2[0] in pick_dict.keys():
+#             pick_dict[tmp2[0]].append(np.array(tmp2[1]))
+#         else:
+#             pick_dict[tmp2[0]] = [np.array(tmp2[1])]
+#
+# pickle.dump(pick_dict, open('pick_dict.pickle', 'wb'))
 
-pickle.dump(pick_dict, open('pick_dict.pickle', 'wb'))
-
-# pick_dict = pickle.load(open('pick_dict.pickle', 'rb'))
-
-input('aqui')
+pick_dict = pickle.load(open('pick_dict.pickle', 'rb'))
+# input('aqui')
 
 try:
     orientation = pickle.load(open('orientation.pickle', 'rb'))
