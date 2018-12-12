@@ -29,17 +29,17 @@ end_time = end_time.datetime.replace(tzinfo=tz)
 start_time = start_time.datetime.replace(tzinfo=tz)
 
 cat_ims = web_client.get_catalogue(ims_base_url, start_time, end_time,
-                                   site, tz)
+                                   site, tz, blast=False)
 
 api_base_url = app.settings.seismic_api.base_url
 cat_mq = seismic_client.get_events_catalog(api_base_url, start_time, end_time)
 
 # check if event is already in the database
 
-
 events_mq = [request_event.get_event() for request_event in cat_mq]
 
 event_to_upload = [evt_ims for evt_ims in cat_ims]
+
 for event_ims in cat_ims:
     event_time = event_ims.preferred_origin().time
     to_db = True
@@ -52,28 +52,21 @@ for event_ims in cat_ims:
         event_to_upload.append(event_ims)
 
 site_ids = [int(station.code) for station in site.stations()]
+
 for event in event_to_upload:
     event = web_client.get_picks_event(ims_base_url, event, site, tz)
 
     logger.info('extracting data for event %s' % str(event))
     event_time = event.preferred_origin().time - 10
-    st = event_time - 10
-    et = event_time + 10
+    st = event_time - 1
+    et = event_time + 1
     c_wf = web_client.get_continuous(ims_base_url, st, et, site_ids, tz)
-
-    logger.info('uploading continuous data to the server (url:%s'
-                % api_base_url)
-    t2 = time()
-    seismic_client.post_continuous_stream(api_base_url, c_wf,
-                                          stream_id=event.resource_id)
-    t3 = time()
-    logger.info('done uploading continuous data in %0.3f seconds' % (t3 - t2))
 
     if not c_wf:
         wf = web_client.get_seismogram_event(ims_base_url, event, 'OT', tz)
         context = None
     else:
-        wf = c_wf.trim(starttime=event_time-0.2, endtime=event_time+1.)
+        wf = c_wf.copy().trim(starttime=event_time-0.2, endtime=event_time+1.)
         index = np.argmin([arrival.distance for arrival in
                            event.preferred_origin().arrivals])
 
@@ -82,21 +75,26 @@ for event in event_to_upload:
 
         context = c_wf.select(station=station_code).composite()
 
-    data, files = seismic_client.build_request_data_from_object(event_id=None,
-                                                                event=event,
-                                                                stream=wf,
-                                                                context_stream=context)
-
     logger.info('uploading the data to the server (url:%s)' % api_base_url)
     t0 = time()
-    seismic_client.post_event_data(api_base_url, data, files)
+    seismic_client.post_data_from_objects(api_base_url, event_id=None,
+                                          event=event, stream=wf,
+                                          context_stream=context)
     t1 = time()
     logger.info('done uploading the data to the server in %0.3f seconds'
-                 % (t1 - t0))
+                % (t1 - t0))
+
+    logger.info('uploading continuous data to the server (url:%s'
+                % api_base_url)
+    t2 = time()
+    seismic_client.post_continuous_stream(api_base_url, c_wf,
+                                          post_to_kafka=True,
+                                          stream_id=event.resource_id)
+    t3 = time()
+    logger.info('done uploading continuous data in %0.3f seconds' % (t3 - t2))
 
 
-    # Tracer()()
-    # input('bubu')
+
 
 
 

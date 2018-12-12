@@ -4,6 +4,7 @@ from io import BytesIO
 import requests
 from dateutil import parser
 from microquake.core import UTCDateTime
+from IPython.core.debugger import Tracer
 
 
 class RequestEvent:
@@ -112,6 +113,8 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
 
     from microquake.core.event import Catalog
 
+    api_url = api_base_url + "events"
+
     __name__ = 'spp.utils.post_data_from_objects'
 
     if logger is None:
@@ -164,13 +167,18 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
     if tolerance is not None:
         start_time = event_time - tolerance
         end_time = event_time + tolerance
-        get_events_catalog(api_base_url, start_time, end_time)
+        re_list = get_events_catalog(api_base_url, start_time, end_time)
+        if re_list:
+            logger.warning('Event found within % seconds of current event'
+                           % tolerance)
+            logger.warning('The current event will not be inserted into the'
+                           ' data base')
+            return
 
     if event is not None:
         logger.info('preparing event data')
-        ev_io = BytesIO()
-        event.write(ev_io, format='QUAKEML')
-        event_bytes = ev_io
+        event_bytes = BytesIO()
+        event.write(event_bytes, format='QUAKEML')
         event_file_name = base_event_file_name + '.xml'
         event_bytes.name = event_file_name
         event_bytes.seek(0)
@@ -179,27 +187,25 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
 
     if stream is not None:
         logger.info('preparing waveform data')
-        st_io = BytesIO()
-        stream.write(st_io, format='MSEED')
-        mseed_bytes = st_io
+        mseed_bytes = BytesIO()
+        stream.write(mseed_bytes, format='MSEED')
         mseed_file_name = base_event_file_name + '.mseed'
         mseed_bytes.name = mseed_file_name
-        mseed_bytes.seek[0]
+        mseed_bytes.seek(0)
         files['waveform'] = mseed_bytes
         logger.info('done preparing waveform data')
 
     if context_stream is not None:
-        logger.info('preparind context waveform data')
-        st_c_io = BytesIO()
-        context_stream.write(st_c_io, format='MSEED')
-        mseed_context_bytes = st_c_io
+        logger.info('preparing context waveform data')
+        mseed_context_bytes = BytesIO()
+        context_stream.write(mseed_context_bytes, format='MSEED')
         mseed_context_file_name = base_event_file_name + '.context_mseed'
         mseed_context_bytes.name = mseed_context_file_name
         mseed_context_bytes.seek(0)
         files['context'] = mseed_context_bytes
-        logger.info('done preparind context waveform data')
+        logger.info('done preparing context waveform data')
 
-    return post_event_data(api_base_url, data, files)
+    return post_event_data(api_url, data, files)
 
 
 def post_event_data(api_base_url, request_data, request_files):
@@ -207,7 +213,7 @@ def post_event_data(api_base_url, request_data, request_files):
 
     headers = {'Content-Type': 'multipart/form-data'}
 
-    result = requests.post(url, data=request_data, files=request_files)
+    result = requests.post(api_base_url, data=request_data, files=request_files)
     print(result)
 
     '''
