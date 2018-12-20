@@ -187,18 +187,25 @@ def get_predicted_picks(stream, origin):
     return predicted_picks
 
 
-def plot_channels_with_picks(stream, station, picks, title=None):
+def plot_channels_with_picks(stream, station, picks, channel=None, title=None):
 
     fname = 'plot_channels_with_picks'
 
     extras = {}
-    st = stream.select(station=station)
 
-    st2 = st.composite().select(station=station)
-    st3 = st + st2
+    st = stream.select(station=station)
 
     for tr in st:
         check_for_dead_trace(tr)
+
+    if channel is None:
+        st2 = st.composite().select(station=station)
+        st3 = st + st2
+    else:
+        for tr in st:
+            if tr.stats.channel == channel:
+                st3 = Stream(traces=[tr])
+                break
 
     if len(st3) == 0:
         print('%s: sta:%s st3 is empty --> nothing to plot!' % (fname, station))
@@ -210,6 +217,7 @@ def plot_channels_with_picks(stream, station, picks, title=None):
     pFound = sFound = 0
     if station in picks:
         if 'P' in picks[station]:
+            print("plot_channel: found p_pick:%s" % picks[station]['P'].time)
             extras['ptime'] = picks[station]['P'].time
             pFound = 1
         if 'S' in picks[station]:
