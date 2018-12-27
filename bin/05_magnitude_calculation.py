@@ -37,18 +37,22 @@ vp_grid, vs_grid = app.get_velocities()
 site = app.get_stations()
 
 app.logger.info('awaiting message from Kafka')
-while True:
-    msg_in = app.consumer.poll(timeout=1)
-    if msg_in is None:
-        continue
-    if msg_in.value() == b'Broker: No more messages':
-        continue
 
-    try:
-        cat_out, st = app.receive_message(msg_in, magnitude, vp=vp_grid,
-                                          vs=vs_grid, site=site)
-    except Exception as e:
-        app.logger.error(e)
+try:
+    for msg_in in app.consumer:
+        try:
+            cat_out, st = app.receive_message(msg_in, magnitude, vp=vp_grid,
+                                              vs=vs_grid, site=site)
+        except Exception as e:
+            app.logger.error(e)
 
-    app.send_message(cat_out, st)
-    app.logger.info('awaiting message from Kafka')
+        app.send_message(cat_out, st)
+        app.logger.info('awaiting message from Kafka')
+
+except KeyboardInterrupt:
+    app.logger.info('received keyboard interrupt')
+
+finally:
+    app.logger.info('closing Kafka connection')
+    app.consumer.close()
+    app.logger.info('connection to Kafka closed')
