@@ -11,6 +11,7 @@ import os
 from obspy.core.utcdatetime import UTCDateTime
 
 from microquake.core.stream import Trace, Stream
+from microquake.core.util.tools import copy_picks_to_dict
 #from obspy.core.stream import Stream
 #from microquake.waveform.pick import SNR_picker, calculate_snr
 import matplotlib.pyplot as plt
@@ -55,6 +56,33 @@ def check_for_dead_trace(tr):
     else:
         return 0
 
+def arrivals_from_picks(arrivals):
+    d = {}
+    for arr in arrivals:
+        print("arr resource_id=%s pick_id=%s" % (arr.resource_id, arr.pick_id))
+        pick = arr.pick_id.get_referred_object()
+        if pick is None:
+            print("returned None pick!")
+        else:
+            print("returned pick resource_id:%s" % pick.resource_id)
+
+        d[pick.resource_id] = arr
+        print("d[pick.resource_id:%s] --> arr_resource_id:%s" % (pick.resource_id, arr.resource_id))
+
+    return d
+
+def get_pick_from_arrival(picks, arrival):
+    for pick in picks:
+        if pick.resource_id == arrival.pick_id:
+            return pick
+    return None
+
+def get_arrival_from_pick(arrivals, pick):
+    for arr in arrivals:
+        if arr.pick_id == pick.resource_id:
+            return arr
+    return None
+
 def picks_to_arrivals(picks):
     arrivals = []
     for pick in picks:
@@ -68,16 +96,6 @@ def picks_to_arrivals(picks):
         arrivals.append(arrival)
     return arrivals
 
-def copy_picks_to_dict(picks):
-    pick_dict = {}
-    for pick in picks:
-        station = pick.waveform_id.station_code
-        phase   = pick.phase_hint
-
-        if station not in pick_dict:
-            pick_dict[station]={}
-        pick_dict[station][phase]=copy.deepcopy(pick)
-    return pick_dict
 
 from spp.utils.application import Application
 def plot_profile_with_picks(st, picks=None, origin=None, title=None):
@@ -255,101 +273,50 @@ def calc_avg_snr(stream, picks, preWl=.03, postWl=.03):
     return np.mean(np.array(snrs))
 
 
-def check_trace_channels_with_picks(stream, picks, return_snr=False):
+#def check_trace_channels_with_picks(stream, picks, return_snr=False):
 
-    fname = 'check_trace_channels_with_picks'
+def remove_noisy_traces(stream, picks, pre_wl=.03, post_wl=.03, snr_thresh=1.6):
+
+    #fname = 'check_trace_channels_with_picks'
+    fname = 'remove_noisy_traces'
 
     noisy_chans = []
 
-    for station in stream.unique_stations():
+    pick_dict = copy_picks_to_dict(picks)
 
-        check = False
-        if station in picks and 'P' in picks[station]:
-            check = True
-        if not check:
-            logger.info("%s: Skip station:%s - has no P pick" % (fname,station))
+    for tr in stream:
+        sta = tr.stats.station
+        if sta in pick_dict and 'P' in pick_dict[sta]:
+            p_time = pick_dict[sta]['P'].time
+        else:
+            print("No P pick for sta:%s --> Skip tr:%s" % (sta, tr.get_id()))
             continue
 
-        p_time = picks[station]['P'].time
-        #s_time = picks[station]['S'].time
+        noise_end   = p_time - .005
+        noise_start = noise_end - pre_wl
+        if noise_start < tr.stats.starttime:
+            print("noise_start < trace starttime!")
 
-        win1_start = p_time - .15
-        win1_end   = p_time - .05
-        win2_start = p_time - .05
-        win2_end   = p_time + .05
+        signal_start = p_time + .005
+        signal_end   = signal_start + post_wl
 
-        st = stream.select(station=station)
+        if signal_end >= tr.stats.endtime:
+            print("signal_end >= trace endtime!")
 
-        win1_start = p_time - .2
-        win1_end   = p_time - .05
-        win2_start = p_time - .05
-        win2_end   = p_time + .4
+        noise  = tr.copy().trim(noise_start, noise_end, pad=False, fill_value=0.0)
+        signal = tr.copy().trim(signal_start, signal_end, pad=False, fill_value=0.0)
 
-        min_start  = st[0].stats.starttime + .05
-        win1_start = win1_start if win1_start > min_start else min_start
+        snr = np.var(signal.data) / np.var(noise.data)
+        #print("tr:%s snr:%f" % (tr.get_id(), snr))
 
-        max_end  = st[0].stats.endtime - .05
-        win2_end = win2_end if win2_end < max_end else max_end
+        if snr < snr_thresh:
+            #print("*** SNR too low --> Remove")
+            #tr.plot()
+            noisy_chans.append(tr)
 
-        if win1_end < win1_start:
-            win1_end = p_time
-            logger.warn('%s: sta:%s win1_end < win1_start ==> set win1_end=p_time' % (fname, station))
-        if win1_end < win1_start:
-            logger.warn('%s: sta:%s win1_start > p_time! --> Skip' % (fname, station))
-            continue
-
-        #logger.info("sta:%s starttime:%s P_time:%s win1_start:%s win2_end:%s endtime:%s" % \
-                   #(station, st[0].stats.starttime,p_time,win1_start,win2_end,st[0].stats.endtime))
-        #logger.info("sta:%s trace: [%s - %s] P:%s" % (station, st[0].stats.starttime, st[0].stats.endtime, p_time))
-        #logger.info("sta:%s win1:[%s - %s] win2:[%s - %s]" % (station, win1_start, win1_end, win2_start, win2_end))
-
-        st1 = st.copy()
-        st1.trim(win1_start, win1_end, pad=False, fill_value=0.0)
-        st2 = st.copy()
-        st2.trim(win2_start, win2_end, pad=False, fill_value=0.0)
-
-        '''
-        if station == '8':
-            print(p_time)
-            print(stream.select(station=station)[0].stats)
-            print(win1_start, win1_end)
-            print(win2_start, win2_end)
-            exit()
-        '''
-
-        for tr in st:
-            ch = tr.stats.channel
-            d1 = st1.select(channel=ch)[0].data
-            d2 = st2.select(channel=ch)[0].data
-            m1 = np.mean(d1)
-            m2 = np.mean(d2)
-            med1 = np.median(d1)
-            med2 = np.median(d2)
-            max1 = np.fabs(d1.max())
-            max2 = np.fabs(d2.max())
-
-            std1 = np.sqrt(np.var(d1))
-            std2 = np.sqrt(np.var(d2))
-
-            snr = np.fabs(max2/max1)
-            r1 = np.fabs(max2/max1)
-            r2 = std2/std1
-            r3 = med2/med1
-
-            station = tr.stats.station
-            logger.debug('check_trace: sta:%s ch:%s m1:%12.8g med1:%12.8g max1:%12.8g m2:%12.8g med2:%12.8g max2:%12.8g (%12.8g, %12.8g) [%12.8g]' % \
-                (station, ch,m1,med1,max1,m2,med2,max2, max1/med1, max2/med2, snr))
-
-            if snr < 1.5 :
-            #if snr < 4 :
-                #logger.info('%s: Remove channel=[%s] snr=%f' % (fname, tr.get_id(), snr))
-                logger.info('%s: Remove channel=[%s] r1=%.3f r2=%.3f r3=%.3f' % (fname, tr.get_id(), r1,r2,r3))
-                logger.info('%s: Remove channel=[%s] max1=%.10f max2=%.10f' % (fname, tr.get_id(), max1,max2))
-#MTH
-                if get_log_level(logger.getEffectiveLevel()) == 'DEBUG':
-                    plot_channels_with_picks(st, station, picks, title="check_trace: remove chan=[%s] snr=%f" % (tr.get_id(),snr))
-                noisy_chans.append(tr)
-                #stream.remove(tr)
+    for tr in noisy_chans:
+        #print("Remove tr:%s from st" % tr.get_id())
+        stream.remove(tr)
 
     return noisy_chans
 

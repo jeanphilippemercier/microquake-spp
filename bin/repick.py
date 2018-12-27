@@ -6,12 +6,15 @@ import numpy as np
 from microquake.core.event import (Origin, CreationInfo)
 from microquake.core import UTCDateTime
 
+import copy
+
 def picker(stream, event, extra_msgs=None, logger=None, params=None, app=None):
 
     from time import time
 
     #picks = app.synthetic_arrival_times(o_loc, ot_utc)
-    picks = event.picks
+    #picks = event.picks
+    picks = [pick for pick in event.picks]
 
     freq_min = params.waveform_filter.frequency_min
     freq_max = params.waveform_filter.frequency_max
@@ -33,6 +36,7 @@ def picker(stream, event, extra_msgs=None, logger=None, params=None, app=None):
                                      snr_dt=search_window,
                                      snr_window=snr_window,  filter='P')
 
+
     search_window = np.arange(params.s_wave.search_window.start,
                               params.s_wave.search_window.end,
                               params.s_wave.search_window.resolution)
@@ -50,23 +54,6 @@ def picker(stream, event, extra_msgs=None, logger=None, params=None, app=None):
                           in zip(snr_picks, snrs)
                           if snr > params.snr_threshold]
 
-    #from helpers import plot_profile_with_picks, plot_channels_with_picks
-
-    #print("snr_thresh:%f" % params.snr_threshold)
-    #snr_picks_removed = [snr_pick for (snr_pick, snr) in zip(snr_picks, snrs)
-                          #if snr <= params.snr_threshold]
-    #for pick in snr_picks_removed:
-        #sta = pick.waveform_id.station_code
-        #print("Remove pick: sta:%s pha:%s time:%s" % (pick.waveform_id.station_code, pick.phase_hint,\
-        #                                                      pick.time))
-        #plot_channels_with_picks(st, sta, snr_picks, title="sta:%s Bad pick" % (sta))
-
-    #for pick in snr_picks_filtered:
-        #sta = pick.waveform_id.station_code
-        #print("Pick sta:%s [%s] polarity:%s time:%s" % (sta, pick.phase_hint, pick.polarity, pick.time))
-        #print(pick.comments[0])
-
-    #plot_profile_with_picks(st, picks=snr_picks_filtered, origin=event.preferred_origin(), title="SNR picks")
 
     return snr_picks_filtered
 
