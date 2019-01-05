@@ -22,7 +22,7 @@ logger = app.get_logger('data_connector', 'data_connector.log')
 site = app.get_stations()
 ims_base_url = app.settings.data_connector.path
 end_time = UTCDateTime.now() - 3600
-start_time = end_time - 4 * 24 * 3600 # 4 days
+start_time = end_time - 4 * 24 * 3600  # 4 days
 tz = app.get_time_zone()
 
 end_time = end_time.datetime.replace(tzinfo=tz)
