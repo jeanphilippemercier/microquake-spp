@@ -124,7 +124,7 @@ def calculate_orientation_station(station, pick_dict, site, logger):
 
     N = 100
 
-    Res = np.zeros(N**2)
+    Res = np.zeros(N ** 2)
 
     for kk, pick in enumerate(tqdm(pick_array)):
         logger.debug("processing station %s, event %d of %d, "
