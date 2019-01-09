@@ -13,6 +13,22 @@ def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
     logger.info('unpacking the data received from Kafka topic <%s>'
                 % settings.nlloc.kafka_consumer_topic)
 
+
+    # removing arrivals that have a residual higher than residual_tolerance
+    # (see config file)
+
+    logger.info('removing picks with large time residual')
+    new_arrivals = []
+    # from IPython.core.debugger import Tracer
+    # Tracer()()
+    for arrival in cat[0].preferred_origin().arrivals:
+        if arrival.time_residual is None:
+            new_arrivals.append(arrival)
+        elif arrival.time_residual < params.residual_tolerance:
+            new_arrivals.append(arrival)
+    cat[0].preferred_origin().arrivals = new_arrivals
+    logger.info('done removing picks with large time residual')
+
     logger.info('running NonLinLoc')
     t0 = time()
     cat_out = nll.run_event(cat[0].copy())
@@ -61,7 +77,8 @@ try:
     for msg_in in app.consumer:
 
         try:
-            cat_out, st = app.receive_message(msg_in, location, nll=nll, params=params,
+            cat_out, st = app.receive_message(msg_in, location, nll=nll,
+                                              params=params,
                                               project_code=project_code)
         except Exception as e:
             app.logger.error(e)

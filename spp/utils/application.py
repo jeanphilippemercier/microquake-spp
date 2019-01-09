@@ -11,7 +11,21 @@ import os
 
 class Application(object):
 
-    def __init__(self, toml_file=None, module_name=None):
+    def __init__(self, toml_file=None, module_name=None,
+                 processing_flow=None, init_processing_flow=False):
+        """
+
+        :param toml_file: path to the TOML file containing the project
+        parameter. If not set, the function will look for a file named
+        settings.toml in the $SPP_CONFIG directory
+        :param module_name: name of the module, the name must be coherent
+        with a section in the config file.
+        :param processing_flow: Name of the processing flow. This must
+        correspond to a section in the config file
+        :param init_processing_flow: initialize the processing flow by
+        setting the processing step to 0.
+        :return: None
+        """
 
         self.__module_name__ = module_name
 
@@ -21,6 +35,11 @@ class Application(object):
         if toml_file is None:
             toml_file = os.path.join(self.config_dir, 'settings.toml')
         self.toml_file = toml_file
+        self.processing_flow = processing_flow
+        if init_processing_flow:
+            self.processing_step = 0
+        else:
+            self.processing_step = None
 
         self.settings = AttribDict(toml.load(self.toml_file))
 
@@ -38,6 +57,10 @@ class Application(object):
 
     @property
     def nll_tts_dir(self):
+        """
+        returns the path where the travel time grids are stored
+        :return: path
+        """
         return os.path.join(self.common_dir,
                          self.settings.nlloc.nll_base, 'time')
 
@@ -496,27 +519,39 @@ class Application(object):
         self.redis_conn = self.init_redis()
         self.logger.info('connection to redis database successfully initated')
 
-    def send_message(self, cat, stream):
+    def send_message(self, cat, stream, topic=None):
         """
         send message to the next module
         :param cat: a microquake.core.event.Catalog object
         :param stream: a microquake.core.Stream object
-        :param extra_msgs: additional filed to send
+        :param topic: Kafka topic to which the message will be sent
         :return: None
+
+        Note that for this to work the processing_flow must be defined
         """
         from io import BytesIO
         from microquake.io import msgpack
         import uuid
 
+        steps = self.settings['processing_flow'][self.processing_flow].steps
+        if self.processing_step == len(steps):
+            self.info('End of processing flow! No more processing step, '
+                      'exiting')
+            return
+
+        step_topics = steps[self.processing_step]
+
         self.logger.info('Preparing data')
         data_out = []
         if cat is not None:
             ev_io = BytesIO()
+            data_out.append(self.processing_flow)
+            data_out.append(self.processing_step + 1)
             cat[0].write(ev_io, format='QUAKEML')
             data_out.append(ev_io.getvalue())
 
-        if stream is not None:
-            data_out.append(stream)
+        # if stream is not None:
+        data_out.append(stream)
 
         msg_out = msgpack.pack(data_out)
         # timestamp_ms = int(cat[0].preferred_origin().time.timestamp * 1e3)
@@ -524,22 +559,29 @@ class Application(object):
         self.logger.info('done preparing data')
 
         self.logger.info('sending data to Redis with redis key = %s' %redis_key)
-        self.redis_conn.set(redis_key, msg_out)
+        self.redis_conn.set(redis_key, msg_out,
+                            ex=self.settings.redis_extra.ttl)
         self.logger.info('done sending data to Redis')
 
         self.logger.info('sending message to kafka')
 
-        topics = self.settings[self.__module_name__].kafka_producer_topic
+        if (self.processing_flow is None) and (topic is None):
+            self.logger.error('self.processing_flow is not set and topic is '
+                              'not defined... exiting')
+            raise AttributeError('either self.processing_flow or topic have '
+                                 'to be defined')
 
-        if type(topics) is list:
-            for topic in topics:
+        # from IPython.core.debugger import Tracer
+        # Tracer()()
+        if type(step_topics) is list:
+            for topic in step_topics:
                 self.producer.produce(topic, redis_key)
 
         else:
-            topic = topics
+            topic = step_topics
             self.producer.produce(topic, redis_key)
 
-        self.logger.info('done sending message to kafka')
+        self.logger.info('done sending message to kafka on topic %s' % topic)
 
     def receive_message(self, msg_in, callback, **kwargs):
         """
@@ -555,7 +597,12 @@ class Application(object):
         from microquake.core import read_events
         from io import BytesIO
 
-        self.logger.info('awaiting for message')
+        # reload settings allows for settings to be changed dynamically.
+        self.settings = AttribDict(toml.load(self.toml_file))
+
+        topic = self.settings[self.__module_name__].kafka_consumer_topic
+
+        self.logger.info('awaiting for message on topic %s' % topic)
 
         redis_key = msg_in.value
         self.logger.info('getting data from Redis (key: %s)' % redis_key)
@@ -567,10 +614,15 @@ class Application(object):
 
         self.logger.info('unpacking data')
         t2 = time()
-        st = data[1]
-        cat = read_events(BytesIO(data[0]), format='QUAKEML')
+        st = data[3]
+        cat = read_events(BytesIO(data[2]), format='QUAKEML')
+        self.processing_flow = data[0]
+        self.processing_step = data[1]
         t3 = time()
         self.logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
+
+        self.logger.info('on %s processing flow, step %d'
+                         % (self.processing_flow, self.processing_step))
 
         if not kwargs:
             cat, st = callback(cat=cat, stream=st, logger=self.logger)
@@ -579,7 +631,7 @@ class Application(object):
             cat, st = callback(cat=cat, stream=st, logger=self.logger,
                                **kwargs)
 
-        self.logger.info('awaiting for message')
+        self.logger.info('awaiting for message on topic %s' % topic)
         return cat, st
 
 

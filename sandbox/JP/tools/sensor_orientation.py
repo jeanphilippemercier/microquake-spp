@@ -20,7 +20,7 @@ def get_event_information(request_event, output_dir='data/'):
     t0 = time()
     ev_info_logger.info('requesting data for event %s' % event.time_utc)
     cat = event.get_event()
-    st = event.get_waveform()
+    st = event.get_waveforms()
     t1 = time()
     ev_info_logger.info('done requesting data for event %s in %0.3f seconds' %
                         (event.time_utc, (t1 - t0)))

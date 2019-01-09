@@ -25,8 +25,8 @@ toolz = "*"
 pytz = "*"
 msgpack = "*"
 dynaconf = "*"
-redis = "*"
 ipython = "*"
+redis = "*"
 
 [dev-packages]
 

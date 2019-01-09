@@ -21,7 +21,7 @@ class RequestEvent:
         event_file = requests.request('GET', self.event_file)
         return read_events(event_file.content, format='QUAKEML')
 
-    def get_waveform(self):
+    def get_waveforms(self):
         waveform_file = requests.request('GET', self.waveform_file)
         byte_stream = BytesIO(waveform_file.content)
         return read(byte_stream, format='MSEED')

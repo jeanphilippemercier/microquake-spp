@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 
 from spp.utils.application import Application
-from microquake.waveform.pick import snr_picker
+from microquake.waveform.pick import snr_picker, sta_lta_picker
+from microquake.waveform import pick as pppp
 import numpy as np
 from microquake.core.event import (Origin, CreationInfo)
 from microquake.core import UTCDateTime
+from IPython.core.debugger import Tracer
+from importlib import reload
+reload(pppp)
 
 def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
            app=None):
@@ -23,6 +27,9 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
     t2 = time()
     o_loc = cat[0].preferred_origin().loc
     picks = app.synthetic_arrival_times(o_loc, ot_utc)
+    phase = np.array([pick.phase_hint for pick in picks])
+    station = np.array([pick.waveform_id.station_code for pick in picks])
+    pick_dict = {'phase':phase, 'station':station}
     t3 = time()
     logger.info('done predicting picks in %0.3f seconds' % (t3 - t2))
 
@@ -43,9 +50,34 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
     snr_window = (params.p_wave.snr_window.noise,
                   params.p_wave.snr_window.signal)
 
-    snrs_p, p_snr_picks = snr_picker(st, picks,
+    snrs_p, p_snr_picks = pppp.snr_picker(st, picks,
                                      snr_dt=search_window,
                                      snr_window=snr_window,  filter='P')
+
+    # Measuring the difference between the predicted and picked arrival time
+
+    residuals = []
+    for p_snr_pick in p_snr_picks:
+        index = np.nonzero((pick_dict['station'] ==
+                     p_snr_pick.waveform_id.station_code) &
+                     (pick_dict['phase'] == p_snr_pick.phase_hint))[0]
+        if not index:
+            continue
+        pick = picks[index[0]]
+        residuals.append(p_snr_pick.time - pick.time)
+
+    dt = np.median(residuals)
+    logger.info("median travel time residual %0.3f" % dt)
+
+    # correcting for bias in the origin time estimation as captured by the
+    # bias in the p-picks
+    picks_2 = []
+    for pick in picks:
+        pick.time += dt
+        picks_2.append(pick)
+
+    picks = picks_2
+
     t5 = time()
     logger.info('done picking P-wave in %0.3f seconds' % (t5 - t4))
 
@@ -60,8 +92,9 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
                   params.s_wave.snr_window.signal)
 
     snrs_s, s_snr_picks = snr_picker(st, picks,
-                                   snr_dt=search_window,
-                                   snr_window=snr_window, filter='S')
+                                     snr_dt=search_window,
+                                     snr_window=snr_window,
+                                     filter='S')
     t7 = time()
     logger.info('done picking S-wave in %0.3f seconds' % (t7 - t6))
 
@@ -72,10 +105,63 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
                           in zip(snr_picks, snrs)
                           if snr > params.snr_threshold]
 
+    phases_snr = np.array([pick.phase_hint for pick in snr_picks_filtered])
+    stations_snr = np.array([pick.waveform_id.station_code for pick in
+                             snr_picks_filtered])
+
+    # check for incorrect phase
+    snr_picks_tmp = []
+    for station in np.unique(stations_snr):
+        if station not in stations_snr:
+            continue
+        index = np.nonzero((stations_snr == station) &
+                            (phases_snr == 'S'))[0]
+        if not index:
+            continue
+        pick_s = snr_picks_filtered[index[0]]
+
+        index = np.nonzero((stations_snr == station) &
+                            (phases_snr == 'P'))[0]
+        if not index:
+            # setting up the pick to something (value not important)
+            p_time = 0
+        else:
+            pick_p = snr_picks_filtered[index[0]]
+            p_time = pick_p.time
+
+        pred_p = picks[np.nonzero((pick_dict['station'] == station) &
+                                  (pick_dict['phase'] == 'P'))[0][0]]
+        pred_s = picks[np.nonzero((pick_dict['station'] == station) &
+                                   (pick_dict['phase'] == 'S'))[0][0]]
+
+        dt_p = np.abs(pick_s.time - pred_p.time)
+        dt_s = np.abs(pick_s.time - pred_s.time)
+        if (dt_p < dt_s) and (dt_p < params.residual_tolerance):
+            pick_s.phase_hint = 'P'
+            snr_picks_tmp.append(pick_s)
+        elif np.abs(pick_s.time - p_time) < params.p_s_tolerance:
+            snr_picks_tmp.append(pick_p)
+        elif not isinstance(p_time, UTCDateTime):
+            snr_picks_tmp.append(pick_s)
+        else:
+            snr_picks_tmp.append(pick_s)
+            snr_picks_tmp.append(pick_p)
+
+    # snr_picks_out = []
+    # for snr_pick in snr_picks_tmp:
+    #     for pick in picks:
+    #         if ((snr_pick.phase_hint == pick.phase_hint) &
+    #             (snr_pick.waveform_id.station_code ==
+    #              pick.waveform_id.station_code)):
+    #
+    #             residuals.append(snr_pick.time - pick.time)
+    #             residual = snr_pick.time - pick.time
+    #             if residual < params.residual_tolerance:
+    #                 snr_picks_out.append(snr_pick)
+
     logger.info('creating arrivals')
     t8 = time()
-    arrivals = app.create_arrivals_from_picks(snr_picks_filtered, loc,
-                                              ot_utc)
+    arrivals = app.create_arrivals_from_picks(snr_picks_tmp, loc, ot_utc)
     t9 = time()
     logger.info('done creating arrivals in %0.3f seconds' % (t9 - t8))
 
@@ -85,11 +171,6 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
     t11 = time()
 
     logger.info('Origin time: %s' % ot_utc)
-    logger.info('Total number of picks: %d' %
-                len(cat[0].preferred_origin().arrivals))
-
-    logger.info('done creating new event or appending to existing event '
-                'in %0.3f seconds' % (t11 - t10))
 
 
     # TODO: Need to check the event database for IMS event.
@@ -110,6 +191,11 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
     cat[0].picks += snr_picks_filtered
     cat[0].origins += [origin]
     cat[0].preferred_origin_id = origin.resource_id.id
+    logger.info('Total number of picks: %d' %
+                len(cat[0].preferred_origin().arrivals))
+
+    logger.info('done creating new event or appending to existing event '
+                'in %0.3f seconds' % (t11 - t10))
 
     return cat, stream
 
@@ -128,10 +214,10 @@ logger = app.get_logger(settings.create_event.log_topic,
 app.logger.info('awaiting message from Kafka')
 try:
     for msg_in in app.consumer:
-        try:
-            cat, st = app.receive_message(msg_in, picker, params=params, app=app)
-        except Exception as e:
-            logger.error(e)
+        # try:
+        cat, st = app.receive_message(msg_in, picker, params=params, app=app)
+        # except Exception as e:
+        #     logger.error(e)
 
 
         app.send_message(cat, st)
