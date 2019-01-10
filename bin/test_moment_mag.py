@@ -1,6 +1,5 @@
 
-from helpers import *
-import matplotlib.pyplot as plt
+import os
 
 import warnings
 warnings.simplefilter("ignore", UserWarning)
@@ -19,6 +18,8 @@ from microquake.waveform.mag_new import calc_magnitudes_from_lambda, set_new_eve
 from microquake.waveform.smom_mag import measure_pick_smom
 
 from obspy.core.event.base import ResourceIdentifier
+
+from helpers import *
 
 def main():
 
