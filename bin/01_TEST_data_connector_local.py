@@ -28,7 +28,8 @@ logger = app.get_logger('data_connector', 'data_connector.log')
 site = app.get_stations()
 ims_base_url = app.settings.data_connector.path
 end_time = UTCDateTime.now() - 3600
-start_time = end_time - 5 * 24 * 3600  # 4 days
+start_time = UTCDateTime(2019, 1, 5)
+# start_time = end_time - 5 * 24 * 3600  # 4 days
 tz = app.get_time_zone()
 
 end_time = end_time.datetime.replace(tzinfo=tz)
@@ -55,14 +56,52 @@ for request_event in catalog:
     t1 = time()
     logger.info('Done retrieving event in %0.3f seconds' % (t1 - t0))
 
-    logger.info('Retrieving waveforms from seismic API')
-    t0 = time()
-    wf = request_event.get_waveforms()
-    t1 = time()
-    logger.info('Done retrieving waveform from seismic API in %0.3f' % (t1 -
-                                                                        t0))
+    # origin[0] is used here to ensure that the filename is consistent
+    # throughout.
 
-    app.send_message(cat, wf)
+    fname = str(cat[0].origins[0].time) + '.mseed'
+
+    fpath = os.path.join(spp_home, 'results', fname)
+
+    if glob(fpath):
+        wf = read(fpath)
+    else:
+        logger.info('Retrieving waveforms from seismic API')
+        t0 = time()
+        wf = request_event.get_waveforms()
+        t1 = time()
+        logger.info('Done retrieving waveform from seismic API in %0.3f' % (t1 -
+                                                                            t0))
+
+        wf = request_event.get_waveforms()
+        wf.write(fpath)
+
+    trs = []
+    for tr in wf:
+        if tr.stats.station in app.settings.sensors.black_list:
+            continue
+        trs.append(tr)
+    wf.traces = trs
+
+    starttime = wf.traces[0].stats.starttime
+    endtime = wf.traces[0].stats.endtime
+
+    # wf.trim(starttime=starttime, endtime=endtime)
+    import matplotlib.pyplot as plt
+
+    wf_out = wf.copy()
+    app.send_message(cat, wf_out)
+
+    plt.figure(1)
+    plt.clf()
+    residuals = []
+    # for arrival in cat[0].preferred_origin().arrivals:
+    #     residuals.append(arrival.time_residual)
+    #
+    # wf.distance_time_plot(cat[0], app.get_stations(), scale=15)
+    # plt.title('Manual (median residual: %0.3f)' % np.median(np.abs(residuals)))
+    # plt.tight_layout()
+    # plt.savefig('%s_manual.png' % str(cat[0].origins[0].time))
 
 
 # for event in cat_ims:

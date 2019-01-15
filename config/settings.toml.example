@@ -39,12 +39,20 @@ project_code = 'OT'
     ms_10s    = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.mseed'
     xml_10s   = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.xml'
 
+[processing_flow]
+    # this describes the kafka channel to which the message should be routed
+    [processing_flow.automatic]
+        steps=[['location'], ['interloc'], ['picker'], ['location'], 
+               ['magnitude'], ['event_database']]
+    [processing_flow.interactive]
+        steps=[['location'], ['magnitude'], ['event_database', 'ui_notification']]
+
 
 [data_connector]
-    # source  = 'remote'
-    # path    = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
-    source = 'local'
-    path = '/Users/jpmercier/.spp/data/'
+    source  = 'remote'
+    path    = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
+    # source = 'local'
+    # path = '/Users/jpmercier/.spp/data/'
     kafka_consumer_topic = 'data_connector'
     kafka_feedback_topic = 'data_connector'
     # kafka_producer_topic = ['continuous_db_handler', 'mseed_1sec']
@@ -55,7 +63,7 @@ project_code = 'OT'
 
 [initializer]
     kafka_consumer_topic = 'initializer'
-    kafka_producer_topic = 'mseed_1sec'
+    # kafka_producer_topic = 'interloc'
     log_topic = 'initializer'
     log_file_name = 'initializer.log'
     [initializer.filter]
@@ -78,8 +86,8 @@ project_code = 'OT'
     wlen_seconds = 1.0
     dsr = 3000.0
     threshold = 0.2
-    kafka_consumer_topic = 'mseed_1sec'
-    kafka_producer_topic = 'picker'
+    kafka_consumer_topic = 'interloc'
+    # kafka_producer_topic = 'picker'
     log_topic = 'interloc'
     log_file_name = 'interloc.log'
 
@@ -88,12 +96,11 @@ project_code = 'OT'
     log_file_name = 'create_event.log'
 
 [picker]
-    snr_wlens = [15e-3, 10e-3]
-    wlen_search = 10e-3
-    stepsize = 1e-3
-    snr_threshold = 9
+    snr_threshold = 6
+    residual_tolerance = 10e-3
+    p_s_tolerance = 5e-3  # P and S must be at least separated by p_s_tolerance
     kafka_consumer_topic = 'picker'
-    kafka_producer_topic = 'location'
+    # kafka_producer_topic = 'location'
     log_topic = 'automatic picker'
     log_file_name = 'automatic_picker.log'
 
@@ -103,34 +110,35 @@ project_code = 'OT'
 
     [picker.p_wave]
         [picker.p_wave.search_window]
-            start = -0.010        # start of search window relative to predicted arrival time (s)
-            end = 0.010           # end of the search window relative to predicted arrival time (s)
-            resolution = 0.0001   # time resolution of search window (s)
+            start = -70e-3        # start of search window relative to predicted arrival time (s)
+            end = 20e-3           # end of the search window relative to predicted arrival time (s)
+            resolution = 0.001   # time resolution of search window (s)
 
         [picker.p_wave.snr_window]
-            noise = 0.010         # length of the window for noise energy measurement
-            signal = 0.010        # length of the window for signal energy measurement
+            noise = 0.005         # length of the window for noise energy measurement
+            signal = 0.01        # length of the window for signal energy measurement
 
         [picker.s_wave.search_window]
-            start = -0.010        # start of search window relative to predicted arrival time (s)
-            end = 0.010           # end of the search window relative to predicted arrival time (s)
-            resolution = 0.0001   # time resolution of search window (s)
+            start = -70e-3        # start of search window relative to predicted arrival time (s)
+            end = 20e-3           # end of the search window relative to predicted arrival time (s)
+            resolution = 0.001   # time resolution of search window (s)
 
         [picker.s_wave.snr_window]
-            noise = 0.020         # length of the window for noise energy measurement
-            signal = 0.010        # length of the window for signal energy measurement
+            noise = 0.005         # length of the window for noise energy measurement
+            signal = 0.01        # length of the window for signal energy measurement
 
 [nlloc]
 	nll_base = 'NLL'
 	locsig = 'Oyu Tolgoi Geotechnical Monitoring Team'
 	loccom = 'Prototype'
+    residual_tolerance = 10e-3
 	# locsearch = 'OCT 20 20 30 1e-6 50000 1000 0 1'
 	# locsearch = 'OCT 10 10 10 1e-6 20000 1000 0 1'
 	locsearch = 'OCT 5 5 5 1e-6 5000 500 0 1'
 	locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
     locgau = ''
 	kafka_consumer_topic = 'location'
-	kafka_producer_topic = 'magnitude'
+	# kafka_producer_topic = 'magnitude'
 	log_file_name = 'hypocenter_location_nlloc.log'
 	log_topic = 'hypocenter Location NonLinLoc'
 
@@ -145,7 +153,7 @@ project_code = 'OT'
     # could instead specify <len_spectrum> directly
     freq = 100
     kafka_consumer_topic = 'magnitude'
-    kafka_producer_topic = 'event_database'
+    # kafka_producer_topic = 'event_database'
     log_file_name = 'magnitude_calculation.log'
     log_topic = 'moment magnitude calculation'
 

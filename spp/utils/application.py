@@ -326,11 +326,19 @@ class Application(object):
         """
 
         from microquake.core.event import WaveformStreamID, Pick
+        from numpy.linalg import norm
 
         picks = []
+        stations = self.get_stations().stations()
+        site = self.get_stations()
         for phase in ['P', 'S']:
-            for station in self.get_stations().stations():
+            for station in stations:
                 station = station.code
+                st_loc = site.select(station=station).stations()[0].loc
+                dist = norm(st_loc - event_location)
+                if (phase == 'S') and (dist < 100):
+                    continue
+
                 at = origin_time + self.get_grid_point(station, phase,
                                                        event_location,
                                                        grid_coordinates=False)
@@ -422,11 +430,12 @@ class Application(object):
         stacked_tr.stats.starttime = min_starttime
         stacked_tr.stats.sampling_rate = max_sampling_rate
 
-        k = kurtosis(stacked_tr, win=30e-3)
-        diff_k = np.diff(k)
+        o_i = np.argmax(stacked_tr)
+        #k = kurtosis(stacked_tr, win=30e-3)
+        #diff_k = np.diff(k)
 
-        o_i = np.argmax(np.abs(diff_k[i_max - w_len_samp: i_max + w_len_samp])) + \
-              i_max - w_len_samp
+        # o_i = np.argmax(np.abs(diff_k[i_max - w_len_samp: i_max + w_len_samp])) + \
+        #       i_max - w_len_samp
 
         origin_time = min_starttime + o_i / max_sampling_rate
         # Tracer()()
@@ -533,7 +542,7 @@ class Application(object):
         from microquake.io import msgpack
         import uuid
 
-        steps = self.settings['processing_flow'][self.processing_flow].steps
+        steps = self.settings.processing_flow[self.processing_flow].steps
         if self.processing_step == len(steps):
             self.info('End of processing flow! No more processing step, '
                       'exiting')

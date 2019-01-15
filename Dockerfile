@@ -6,11 +6,11 @@ RUN apt install vim -y
 
 ADD ./ /app
 
-ADD $SPP_COMMON/ /app/common
-COPY $SPP_CONFIG /app/config
+#ADD $SPP_COMMON/ /app/common
+#COPY $SPP_CONFIG /app/config
 
-#RUN pip install --no-deps -e libs/microquake
-RUN pip install -e libs/microquake/
+RUN pip install --no-deps -e libs/microquake
+#RUN pip install -e libs/microquake/
 RUN pip install --no-deps libs/xseis
 RUN pip install ipython
 RUN pip install -e .

@@ -48,7 +48,8 @@ for event_ims in cat_ims:
     if to_db:
         event_to_upload.append(event_ims)
 
-site_ids = [int(station.code) for station in site.stations()]
+site_ids = [int(station.code) for station in site.stations() if station.code
+            not in app.settings.sensors.blacklist]
 
 for event in event_to_upload:
     event = web_client.get_picks_event(ims_base_url, event, site, tz)
