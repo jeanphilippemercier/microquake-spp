@@ -12,6 +12,7 @@ class RequestEvent:
         for key in ev_dict.keys():
             if 'time' in key:
                 if type(ev_dict[key]) is not str:
+                    setattr(self, key, ev_dict[key])
                     continue
                 setattr(self, key, UTCDateTime(parser.parse(ev_dict[key])))
             else:
