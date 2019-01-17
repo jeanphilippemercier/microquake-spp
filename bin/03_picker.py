@@ -11,21 +11,6 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
 
     from time import time
 
-    logger.info('calculating origin time')
-    t0 = time()
-    loc = cat[0].preferred_origin().loc
-    ot_utc = app.estimate_origin_time(stream, loc)
-    t1 = time()
-    logger.info('done calculating origin time in %0.3f seconds' % (t1 - t0))
-
-
-    logger.info('predicting picks')
-    t2 = time()
-    o_loc = cat[0].preferred_origin().loc
-    picks = app.synthetic_arrival_times(o_loc, ot_utc)
-    t3 = time()
-    logger.info('done predicting picks in %0.3f seconds' % (t3 - t2))
-
     freq_min = params.waveform_filter.frequency_min
     freq_max = params.waveform_filter.frequency_max
 
@@ -33,6 +18,19 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
     st = st.taper(max_percentage=0.1, max_length=0.01)
     st = st.filter('bandpass', freqmin=freq_min, freqmax=freq_max)
 
+    logger.info('calculating origin time')
+    t0 = time()
+    loc = cat[0].preferred_origin().loc
+    ot_utc = app.estimate_origin_time(stream, loc)
+    t1 = time()
+    logger.info('done calculating origin time in %0.3f seconds' % (t1 - t0))
+
+    logger.info('predicting picks')
+    t2 = time()
+    o_loc = cat[0].preferred_origin().loc
+    picks = app.synthetic_arrival_times(o_loc, ot_utc)
+    t3 = time()
+    logger.info('done predicting picks in %0.3f seconds' % (t3 - t2))
 
     logger.info('picking P-waves')
     t4 = time()
@@ -43,7 +41,8 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
     snr_window = (params.p_wave.snr_window.noise,
                   params.p_wave.snr_window.signal)
 
-    snrs_p, p_snr_picks = snr_picker(st, picks,
+    st_c = st.copy().composite()
+    snrs_p, p_snr_picks = snr_picker(st_c, picks,
                                      snr_dt=search_window,
                                      snr_window=snr_window,  filter='P')
     t5 = time()
@@ -59,10 +58,11 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
     snr_window = (params.s_wave.snr_window.noise,
                   params.s_wave.snr_window.signal)
 
-    snrs_s, s_snr_picks = snr_picker(st, picks,
+    snrs_s, s_snr_picks = snr_picker(st_c, picks,
                                    snr_dt=search_window,
                                    snr_window=snr_window, filter='S')
     t7 = time()
+
     logger.info('done picking S-wave in %0.3f seconds' % (t7 - t6))
 
     snr_picks = p_snr_picks + s_snr_picks
@@ -71,6 +71,27 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
     snr_picks_filtered = [snr_pick for (snr_pick, snr)
                           in zip(snr_picks, snrs)
                           if snr > params.snr_threshold]
+
+    logger.info('correcting bias in origin time')
+    t0 = time()
+    residuals = []
+    for snr_pk in snr_picks_filtered:
+        for pk in picks:
+            if (pk.phase_hint == snr_pk.phase_hint) and \
+               (pk.waveform_id.station_code == \
+                snr_pk.waveform_id.station_code):
+                residuals.append(pk.time - snr_pk.time)
+
+    ot_utc -= np.mean(residuals)
+
+    biais = np.mean(residuals)
+    residuals -= biais
+    indices = np.nonzero(np.abs(residuals) < 0.01)[0]
+    snr_picks_filtered = [snr_picks_filtered[i] for i in indices]
+
+    t1 = time()
+    logger.info('done correcting bias in origin time in %0.3f' % (t1 - t0))
+    logger.info('bias in origin time was %0.3f seconds' % biais)
 
     logger.info('creating arrivals')
     t8 = time()
@@ -86,7 +107,7 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
 
     logger.info('Origin time: %s' % ot_utc)
     logger.info('Total number of picks: %d' %
-                len(cat[0].preferred_origin().arrivals))
+                len(arrivals))
 
     logger.info('done creating new event or appending to existing event '
                 'in %0.3f seconds' % (t11 - t10))

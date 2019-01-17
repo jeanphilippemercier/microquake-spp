@@ -10,7 +10,7 @@ from spp.utils.kafka import KafkaHandler
 from spp.utils import seismic_client
 from spp.utils.seismic_client import (post_data_from_objects)
 
-def event_database_handler(cat=None, stream=None, logger=None,
+def event_database_handler(cat=None, stream=None, extra_msgs=None, logger=None,
                            api_base_url=None):
     logger.info('posting data to the API')
     result = post_data_from_objects(api_base_url, event_id=None, event=cat,

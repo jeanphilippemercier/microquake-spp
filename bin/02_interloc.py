@@ -16,6 +16,8 @@ def callback(cat=None, stream=None, extra_msgs=None, logger=None,
     logger.info('preparing data for Interloc')
     t4 = time()
     st_out = stream.copy()
+    stream.filter('highpass', freq=100)
+
     data, sr, t0 = stream.as_array(wlen_sec)
     data = np.nan_to_num(data)
     data = tools.decimate(data, sr, int(sr / dsr))
@@ -83,7 +85,12 @@ try:
 
 
         app.send_message(cat, st)
+        app.logger.info('IMS location %s' % cat[0].origins[0].loc)
+        app.logger.info('Interloc location %s' % cat[0].origins[1].loc)
+        dist = np.linalg.norm(cat[0].origins[0].loc - cat[0].origins[1].loc)
+        app.logger.info('distance between two location %0.2f m' % dist )
         app.logger.info('awaiting message from Kafka')
+
 
 except KeyboardInterrupt:
     app.logger.info('received keyboard interrupt')

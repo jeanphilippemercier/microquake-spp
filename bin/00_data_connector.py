@@ -3,14 +3,11 @@ from microquake.core import UTCDateTime
 from spp.utils.application import Application
 import pytz
 import os
-import colorama
 from io import BytesIO
 from spp.utils import seismic_client
 import numpy as np
 from time import time
 from IPython.core.debugger import Tracer
-
-colorama.init()
 
 __module_name__ = 'data_connector'
 
@@ -22,7 +19,7 @@ logger = app.get_logger('data_connector', 'data_connector.log')
 site = app.get_stations()
 ims_base_url = app.settings.data_connector.path
 end_time = UTCDateTime.now() - 3600
-start_time = end_time - 4 * 24 * 3600 # 4 days
+start_time = end_time - 4 * 24 * 3600  # 4 days
 tz = app.get_time_zone()
 
 end_time = end_time.datetime.replace(tzinfo=tz)
@@ -51,13 +48,14 @@ for event_ims in cat_ims:
     if to_db:
         event_to_upload.append(event_ims)
 
-site_ids = [int(station.code) for station in site.stations()]
+site_ids = [int(station.code) for station in site.stations() if station.code
+            not in app.settings.sensors.blacklist]
 
 for event in event_to_upload:
     event = web_client.get_picks_event(ims_base_url, event, site, tz)
 
     logger.info('extracting data for event %s' % str(event))
-    event_time = event.preferred_origin().time - 10
+    event_time = event.preferred_origin().time
     st = event_time - 1
     et = event_time + 1
     c_wf = web_client.get_continuous(ims_base_url, st, et, site_ids, tz)

@@ -15,7 +15,7 @@ end_time =UTCDateTime(2018, 12, 1)
 request_events = get_events_catalog(api_base_url, start_time, end_time)
 
 for request_event in request_events:
-    st = request_event.get_waveform()
+    st = request_event.get_waveforms()
     cat = request_event.get_event()
     print(cat[0].preferred_origin())
 

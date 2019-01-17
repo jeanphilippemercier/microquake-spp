@@ -38,7 +38,6 @@ services:
       CONFLUENT_METRICS_ENABLE: 'true'
       CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
 
-
   schema-registry:
     image: confluentinc/cp-schema-registry:5.0.0
     hostname: schema-registry
@@ -132,7 +131,7 @@ services:
     volumes:
       - ./tmp/mongodb:/data/db
     ports:
-      - 27017:27017
+      - "27017:27017"
     command: mongod --smallfiles --logpath=/dev/null # --quiet
 
   mongosetup:
@@ -143,9 +142,22 @@ services:
       - ./data/mongodump:/dump
     command: mongorestore --host mongodb /dump
 
+  redisdb:
+    image: redis:4
+    hostname: redisdb
+    container_name: redisdb
+    volumes:
+      - ./tmp/redisdb:/data/redisdb
+    ports:
+      - "6379:6379"
+    environment:
+      - HOSTNAME=redisdb
+    command: redis-server
+
+
 #  seismic-interloc:
 #    image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
-#    command: python bin/interloc_kafka.py
+#    # command: python bin/interloc_kafka.py
 #    depends_on:
 #      - broker
 #    links:
@@ -158,6 +170,8 @@ services:
 #      PYTHONPATH: /app
 #      SPP_CONFIG: /config
 #      SPP_COMMON: /common
+#    ports:
+#      - 6379:6379
 #
 #  seismic-post-processing:
 #    image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
