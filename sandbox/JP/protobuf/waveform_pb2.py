@@ -19,71 +19,151 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='waveform',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x0ewaveform.proto\x12\x08waveform\"\x99\x01\n\x08Waveform\x12\x15\n\rsampling_rate\x18\x01 \x01(\x05\x12\x11\n\tstarttime\x18\x02 \x01(\t\x12\x0c\n\x04npts\x18\x03 \x01(\x05\x12\x11\n\tnchannels\x18\x04 \x01(\x05\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\t\x12\x14\n\x0cstation_code\x18\x06 \x01(\t\x12\x0e\n\x06p_pick\x18\x07 \x01(\t\x12\x0e\n\x06s_pick\x18\x08 \x01(\tb\x06proto3')
+  serialized_pb=_b('\n\x0ewaveform.proto\x12\x08waveform\"7\n\x06Stream\x12\x0c\n\x04time\x18\x01 \x01(\t\x12\x1f\n\x06traces\x18\x02 \x03(\x0b\x32\x0f.waveform.Trace\"\x8a\x02\n\x05Trace\x12\x15\n\rsampling_rate\x18\x01 \x01(\x05\x12\x11\n\tstarttime\x18\x02 \x01(\t\x12\x0c\n\x04npts\x18\x03 \x01(\x05\x12\x0f\n\x07\x63hannel\x18\x04 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\t\x12\x14\n\x0cstation_code\x18\x06 \x01(\t\x12\x0e\n\x06p_pick\x18\x07 \x01(\t\x12\x0e\n\x06s_pick\x18\x08 \x01(\t\x12\x12\n\np_residual\x18\t \x01(\x02\x12\x12\n\ns_residual\x18\n \x01(\x02\x12\x14\n\x0c\x65_s_distance\x18\x0b \x01(\x02\x12\x0f\n\x07network\x18\x0c \x01(\t\x12\x11\n\tcomponent\x18\r \x01(\t\x12\x12\n\ndata_dtype\x18\x0e \x01(\tb\x06proto3')
 )
 
 
 
 
-_WAVEFORM = _descriptor.Descriptor(
-  name='Waveform',
-  full_name='waveform.Waveform',
+_STREAM = _descriptor.Descriptor(
+  name='Stream',
+  full_name='waveform.Stream',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='sampling_rate', full_name='waveform.Waveform.sampling_rate', index=0,
+      name='time', full_name='waveform.Stream.time', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='traces', full_name='waveform.Stream.traces', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=28,
+  serialized_end=83,
+)
+
+
+_TRACE = _descriptor.Descriptor(
+  name='Trace',
+  full_name='waveform.Trace',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='sampling_rate', full_name='waveform.Trace.sampling_rate', index=0,
       number=1, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='starttime', full_name='waveform.Waveform.starttime', index=1,
+      name='starttime', full_name='waveform.Trace.starttime', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='npts', full_name='waveform.Waveform.npts', index=2,
+      name='npts', full_name='waveform.Trace.npts', index=2,
       number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='nchannels', full_name='waveform.Waveform.nchannels', index=3,
-      number=4, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
+      name='channel', full_name='waveform.Trace.channel', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='data', full_name='waveform.Waveform.data', index=4,
+      name='data', full_name='waveform.Trace.data', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='station_code', full_name='waveform.Waveform.station_code', index=5,
+      name='station_code', full_name='waveform.Trace.station_code', index=5,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='p_pick', full_name='waveform.Waveform.p_pick', index=6,
+      name='p_pick', full_name='waveform.Trace.p_pick', index=6,
       number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='s_pick', full_name='waveform.Waveform.s_pick', index=7,
+      name='s_pick', full_name='waveform.Trace.s_pick', index=7,
       number=8, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='p_residual', full_name='waveform.Trace.p_residual', index=8,
+      number=9, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='s_residual', full_name='waveform.Trace.s_residual', index=9,
+      number=10, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='e_s_distance', full_name='waveform.Trace.e_s_distance', index=10,
+      number=11, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='network', full_name='waveform.Trace.network', index=11,
+      number=12, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='component', full_name='waveform.Trace.component', index=12,
+      number=13, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='data_dtype', full_name='waveform.Trace.data_dtype', index=13,
+      number=14, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -100,19 +180,28 @@ _WAVEFORM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=29,
-  serialized_end=182,
+  serialized_start=86,
+  serialized_end=352,
 )
 
-DESCRIPTOR.message_types_by_name['Waveform'] = _WAVEFORM
+_STREAM.fields_by_name['traces'].message_type = _TRACE
+DESCRIPTOR.message_types_by_name['Stream'] = _STREAM
+DESCRIPTOR.message_types_by_name['Trace'] = _TRACE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-Waveform = _reflection.GeneratedProtocolMessageType('Waveform', (_message.Message,), dict(
-  DESCRIPTOR = _WAVEFORM,
+Stream = _reflection.GeneratedProtocolMessageType('Stream', (_message.Message,), dict(
+  DESCRIPTOR = _STREAM,
   __module__ = 'waveform_pb2'
-  # @@protoc_insertion_point(class_scope:waveform.Waveform)
+  # @@protoc_insertion_point(class_scope:waveform.Stream)
   ))
-_sym_db.RegisterMessage(Waveform)
+_sym_db.RegisterMessage(Stream)
+
+Trace = _reflection.GeneratedProtocolMessageType('Trace', (_message.Message,), dict(
+  DESCRIPTOR = _TRACE,
+  __module__ = 'waveform_pb2'
+  # @@protoc_insertion_point(class_scope:waveform.Trace)
+  ))
+_sym_db.RegisterMessage(Trace)
 
 
 # @@protoc_insertion_point(module_scope)
