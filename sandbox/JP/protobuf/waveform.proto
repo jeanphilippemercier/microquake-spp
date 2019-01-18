@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package waveform;
+
+message Waveform {
+    int32 sampling_rate = 1;
+    string starttime = 2;
+    int32 npts = 3;
+    int32 nchannels = 4;
+    string data = 5;
+    string station_code = 6;
+    string p_pick = 7;
+    string s_pick = 8;
+}
