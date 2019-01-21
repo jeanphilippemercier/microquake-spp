@@ -127,6 +127,7 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
     origin.evaluation_mode = 'automatic'
     origin.evaluation_status = 'preliminary'
     origin.creation_info = CreationInfo(creation_time=UTCDateTime.now())
+    origin.method_id = "PICKER_FOR_HOLDING_ARRIVALS"
 
     cat[0].picks += snr_picks_filtered
     cat[0].origins += [origin]

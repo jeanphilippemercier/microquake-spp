@@ -41,7 +41,9 @@ def callback(cat=None, stream=None, extra_msgs=None, logger=None,
 
     ot_epoch = tools.datetime_to_epoch_sec((t0 + iot / dsr).datetime)
     time = UTCDateTime(datetime.fromtimestamp((ot_epoch)))
-    cat[0].origins.append(Origin(x=lmax[0], y=lmax[1], z=lmax[2], time=time))
+    method = '%s' % ("INTERLOC", )
+    cat[0].origins.append(Origin(x=lmax[0], y=lmax[1], z=lmax[2], time=time,
+                                 method_id=method))
     cat[0].preferred_origin_id = cat[0].origins[-1].resource_id.id
 
     logger.info("power: %.3f, ix_grid: %d, ix_ot: %d" % (vmax, imax, iot))

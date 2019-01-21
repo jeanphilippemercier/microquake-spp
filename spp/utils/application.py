@@ -477,14 +477,14 @@ class Application(object):
 
         return arrivals
 
-    def get_kafka_producer(self, logger=None):
+    def get_kafka_producer(self, logger=None, **kwargs):
         from confluent_kafka import Producer
         producer = Producer({'bootstrap.servers':
                              self.settings.kafka.brokers},
                              logger=logger)
         return producer
 
-    def get_kafka_consumer(self, logger=None):
+    def get_kafka_consumer(self, logger=None, **kwargs):
         from kafka import KafkaConsumer
         return KafkaConsumer(self.settings[
                                  self.__module_name__].kafka_consumer_topic,
