@@ -14,7 +14,8 @@ from microquake.core import read
 from microquake.core import UTCDateTime
 from microquake.core.event import read_events as read_events
 from microquake.core.event import (Origin, CreationInfo, Event)
-from microquake.core.data.station2 import get_inventory, inv_station_list_to_dict
+from microquake.core.data.station2 import inv_station_list_to_dict
+#from microquake.core.data.station2 import get_inventory, inv_station_list_to_dict
 from microquake.waveform.amp_measures import measure_pick_amps, measure_velocity_pulse, set_pick_snrs
 
 from microquake.core.util.tools import copy_picks_to_dict
@@ -54,9 +55,21 @@ def main():
     vs = vs_grid.interpolate(ev_loc)[0]
 
     #plot_profile_with_picks(st, picks=event.picks, origin=origin, title="IMS picks")
-    sensor_csv = os.environ['SPP_COMMON'] + '/sensors.csv'
-    inventories = get_inventory(sensor_csv)
+    #sensor_csv = os.environ['SPP_COMMON'] + '/sensors.csv'
+    #inventories = get_inventory(sensor_csv)
+    inventories = app.get_inventory()
+
     st.attach_response(inventories)
+
+    stations = app.get_inventory()[0]
+    for station in stations:
+        print(station)
+        for chan in station.channels:
+            print(chan)
+
+
+
+    exit()
 
     noisy_channels = remove_noisy_traces(st, event.picks)
     for tr in noisy_channels:
