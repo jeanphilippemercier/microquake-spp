@@ -7,6 +7,7 @@ import logging
 import sys
 from logging.handlers import TimedRotatingFileHandler
 import os
+import numpy as np
 
 
 class Application(object):
@@ -205,7 +206,7 @@ class Application(object):
         """
         from microquake.core.data.grid import read_grid
         import os
-        
+
         common_dir = self.common_dir
         nll_dir = self.settings.nlloc.nll_base
         f_tt = os.path.join(common_dir, nll_dir, 'time', 'OT.%s.%s.%s.buf'
@@ -367,7 +368,6 @@ class Application(object):
         from microquake.core import Trace
         from scipy.interpolate import interp1d
         from obspy.realtime.signal import kurtosis
-        import numpy as np
         # from IPython.core.debugger import Tracer
         # import matplotlib.pyplot as plt
 
@@ -452,6 +452,9 @@ class Application(object):
         from microquake.core.event import Arrival
         from IPython.core.debugger import Tracer
 
+        print("create_arrival_from_picks: event_location:<%.1f, %.1f, %.1f>" % \
+              (event_location[0], event_location[1], event_location[2]))
+
         arrivals = []
         for pick in picks:
             station_code = pick.waveform_id.station_code
@@ -462,7 +465,22 @@ class Application(object):
 
             ray = self.get_ray(station_code, phase, event_location)
             arrival.distance = ray.length()
-            arrival.ray = list(ray.nodes)
+
+            # TODO: MTH: Gotta think about how to store the ray points. Obspy will not handle
+            #       a list in the extra dict, so you won't be able to do something like event.copy() later
+            #arrival.ray = list(ray.nodes)
+            #for node in ray.nodes:
+                #print(node)
+
+            #xoff = ray.nodes[-2][0] - ray.nodes[-1][0]
+            #yoff = ray.nodes[-2][1] - ray.nodes[-1][1]
+            #zoff = ray.nodes[-2][2] - ray.nodes[-1][2]
+            #baz = np.arctan2(xoff,yoff)
+            #if baz < 0:
+                #baz += 2.*np.pi
+
+            #pick.backazimuth = baz*180./np.pi
+
             predicted_tt = self.get_grid_point(station_code, phase,
                                                event_location)
             predicted_at = origin_time + predicted_tt
@@ -471,6 +489,14 @@ class Application(object):
                                            event_location, type='take_off')
             arrival.azimuth = self.get_grid_point(station_code, phase,
                                           event_location, type='azimuth')
+
+            # MTH: arrival azimuth/takeoff should be in degrees - I'm pretty sure the grids
+            #  store them in radians (?)
+            arrival.azimuth *= 180./np.pi
+            if arrival.azimuth < 0:
+                arrival.azimuth += 360.
+            arrival.takeoff_angle *= 180./np.pi
+
             arrival.pick_id = pick.resource_id.id
             arrival.earth_model_id = self.get_current_velocity_model_id(phase)
             arrivals.append(arrival)
@@ -644,6 +670,34 @@ class Application(object):
         return cat, st
 
 
+import matplotlib.pyplot as plt
+def plot_nodes(sta_code, phase, nodes, event_location):
+    x = []
+    y = []
+    z = []
+    h = []
+    print(event_location[0], event_location[1])
+    for node in nodes:
+        x.append(node[0] - event_location[0])
+        y.append(node[1] - event_location[1])
+        z.append(node[2] - event_location[2])
+        h.append(np.sqrt(x[-1]*x[-1] + y[-1]*y[-1]))
+        print(x[-1], y[-1])
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.set_title("Sta:%s [%s] ray nodes - ev_loc at 0,0" % (sta_code, phase))
+    ax.set_xlabel('x offset = Easting')
+    ax.set_xlabel('horiz offset')
+    ax.set_ylabel('y offset = Northing')
+    ax.set_ylabel('z offset wrt ev dep')
+    #ax.plot(x, y, 'b')
+    ax.plot(h, z, 'b')
+    plt.show()
+    print("sta:%s phase:%s node.x[-2]=%f node.x[-1]=%f" % (sta_code, phase, nodes[-2][0], nodes[-1][0]))
+    print("sta:%s phase:%s node.y[-2]=%f node.y[-1]=%f" % (sta_code, phase, nodes[-2][1], nodes[-1][1]))
+
+    print("N nodes:%d" % len(nodes))
 
 
 
