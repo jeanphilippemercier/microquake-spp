@@ -18,8 +18,12 @@ message Trace {
     string s_pick = 8;
     float p_residual = 9;
     float s_residual = 10;
-    float e_s_distance = 11;
+    float e_s_ray_distance = 11;
+    float e_s_distance
     string network = 12;
     string component = 13;
     string data_dtype = 14;
+    float station_x = 15;
+    float station_y = 16;
+    float station_z =17;
 }

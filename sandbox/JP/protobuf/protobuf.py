@@ -48,8 +48,8 @@ with open('waveform.pb', mode='wb') as wf_file:
         waveform = stream.traces.add()
         st_sta = st.select(station=station).composite()
         # check for NaN
-        if any(np.isnan(st_sta[0].data)):
-            continue
+        # if any(np.isnan(st_sta[0].data)):
+        #     continue
 
         npts = st[0].stats.npts
         waveform.npts = st[0].stats.npts

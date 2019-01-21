@@ -6,9 +6,11 @@ RUN apt install vim -y
 
 ADD ./ /app
 
-#ADD $SPP_COMMON/ /app/common
+ADD $SPP_COMMON/ /app/common
+ADD $SPP_CONFIG /app/config
 #COPY $SPP_CONFIG /app/config
 
+RUN pip install scikit-learn
 RUN pip install --no-deps -e libs/microquake
 #RUN pip install -e libs/microquake/
 RUN pip install --no-deps libs/xseis

@@ -27,13 +27,13 @@ logger = app.get_logger('data_connector', 'data_connector.log')
 
 site = app.get_stations()
 ims_base_url = app.settings.data_connector.path
-end_time = UTCDateTime.now() - 3600
-start_time = UTCDateTime(2019, 1, 5)
+end_time = UTCDateTime.now()
+start_time = UTCDateTime(2019, 1, 1)
 # start_time = end_time - 5 * 24 * 3600  # 4 days
 tz = app.get_time_zone()
 
-end_time = end_time.datetime.replace(tzinfo=tz)
-start_time = start_time.datetime.replace(tzinfo=tz)
+end_time = end_time.datetime.replace(tzinfo=pytz.utc).astimezone(tz=tz)
+start_time = start_time.datetime.replace(tzinfo=pytz.utc).astimezone(tz=tz)
 
 logger.info('Retrieving event the seismic API')
 t0 = time()
@@ -46,6 +46,8 @@ logger.info('Done retrieving event from the web api server. \n Retrived %d '
 spp_home = os.environ['SPP_HOME']
 
 for request_event in catalog:
+    print(request_event.event_resource_id)
+
     if request_event.z > 500:
         continue
     time_utc = request_event.time_utc
@@ -65,6 +67,7 @@ for request_event in catalog:
 
     if glob(fpath):
         wf = read(fpath)
+        # continue
     else:
         logger.info('Retrieving waveforms from seismic API')
         t0 = time()
