@@ -3,6 +3,7 @@ import os
 from microquake.core.util.attribdict import AttribDict
 from microquake.core.data.grid import create, read_grid
 from microquake.core.data.station import read_stations
+from microquake.core.data.station2 import load_inventory
 import logging
 import sys
 from logging.handlers import TimedRotatingFileHandler
@@ -44,6 +45,8 @@ class Application(object):
 
         self.settings = AttribDict(toml.load(self.toml_file))
 
+        self.inventory = None
+
         # Appending the SPP_COMMON directory to nll_base
 
         if 'nlloc' in self.settings.__dict__.keys():
@@ -81,6 +84,19 @@ class Application(object):
         tts = ttable.array_from_nll_grids(self.nll_tts_dir, 'S', prefix='OT')
         fpath = os.path.join(self.common_dir, fname)
         ttable.write_h5(fpath, ttp, tdict2=tts)
+
+    def get_inventory(self):
+        params = self.settings.sensors
+
+        if self.inventory is None:
+            print("app.get_inventory: Load inventory file")
+            if params.source == 'local':
+                fpath = os.path.join(self.common_dir, params.path)
+                self.inventory = load_inventory(fpath, format='CSV')
+            elif self.settings.sensors.source == 'remote':
+                pass
+
+        return self.inventory
 
     def get_stations(self):
         params = self.settings.sensors
