@@ -157,6 +157,23 @@ project_code = 'OT'
     log_file_name = 'magnitude_calculation.log'
     log_topic = 'moment magnitude calculation'
 
+[focal_mechanism]
+    npolmin = 8
+    max_agap = 180
+    #max_agap = 90
+    max_pgap = 60
+    dang = 5
+    nmc = 30
+    maxout = 500
+    badfrac = 0.1
+    delmax = 120
+    cangle = 45
+    prob_max = 0.25
+    #kafka_consumer_topic = 'magnitude'
+    #kafka_producer_topic = 'event_database'
+    log_file_name = 'focal_mechanism_calculation.log'
+    log_topic = 'focal mechanism calculation'
+
 [kafka]
     brokers = 'broker:9092'
     group_id = 'seismic_processing_platform'
