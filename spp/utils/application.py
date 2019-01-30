@@ -3,7 +3,7 @@ import os
 from microquake.core.util.attribdict import AttribDict
 from microquake.core.data.grid import create, read_grid
 from microquake.core.data.station import read_stations
-from microquake.core.data.station2 import load_inventory
+from microquake.core.data.inventory import load_inventory
 import logging
 import sys
 from logging.handlers import TimedRotatingFileHandler

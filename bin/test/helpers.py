@@ -211,7 +211,10 @@ def plot_channels_with_picks(stream, station, picks, channel=None, title=None):
 
     extras = {}
 
-    st = stream.select(station=station)
+    # stream.select returns a new stream with *copies* of the trace references,
+    #   so any manipulation will affect the parent stream!
+    #st = stream.select(station=station)
+    st = stream.copy().select(station=station)
 
     for tr in st:
         check_for_dead_trace(tr)
@@ -220,9 +223,10 @@ def plot_channels_with_picks(stream, station, picks, channel=None, title=None):
         st2 = st.composite().select(station=station)
         st3 = st + st2
     else:
+        st3 = st.composite().select(station=station)
         for tr in st:
             if tr.stats.channel == channel:
-                st3 = Stream(traces=[tr])
+                st3 = st3 + Stream(traces=[tr])
                 break
 
     if len(st3) == 0:
@@ -231,6 +235,7 @@ def plot_channels_with_picks(stream, station, picks, channel=None, title=None):
 
     if type(picks) is list:
         picks = copy_picks_to_dict(picks)
+
 
     pFound = sFound = 0
     if station in picks:
@@ -254,11 +259,11 @@ def plot_channels_with_picks(stream, station, picks, channel=None, title=None):
             endtime   = extras['stime'] + .2
         #st.trim(starttime, endtime, pad=True, fill_value=0.0)
 
-#MTH:
         st3.trim(starttime, endtime, pad=True, fill_value=0.0)
 
     waveform = wp(stream=st3, color='k', xlabel='Seconds',number_of_ticks=8, tick_rotation=0, title=title, addOverlay=False, extras=extras, outfile=None)
     waveform.plot_waveform(equal_scale='False')
+    return
 
 def calc_avg_snr(stream, picks, preWl=.03, postWl=.03):
     fname = 'calc_avg_snr'
@@ -296,6 +301,8 @@ def remove_noisy_traces(stream, picks, pre_wl=.03, post_wl=.03, snr_thresh=1.6):
         noise_start = noise_end - pre_wl
         if noise_start < tr.stats.starttime:
             print("noise_start < trace starttime!")
+            print("%s: sta:%s cha:%s tr_start:%s noise_start:%s P_time:%s" % \
+                  (fname, sta, tr.stats.channel, tr.stats.starttime, noise_start, p_time))
 
         signal_start = p_time + .005
         signal_end   = signal_start + post_wl
@@ -465,3 +472,47 @@ def clean_nans(st, threshold=.05):
             tr.data[nans]= np.interp(x(nans), x(~nans), tr.data[~nans])
 
     return
+
+
+def test_stereo(azimuths,takeoffs,polarities,sdr=[], title=None):
+    '''
+        Plots points with given azimuths, takeoff angles, and
+        polarities on a stereonet. Will also plot both planes
+        of a double-couple given a strike/dip/rake
+    '''
+    import matplotlib.pyplot as plt
+    import mplstereonet
+    from obspy.imaging.beachball import aux_plane
+
+    '''
+    print("azimuths:")
+    print(azimuths)
+    print("takeoffs:")
+    print(takeoffs)
+    print("polarities:")
+    print(polarities)
+    '''
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='stereonet')
+    up = polarities > 0
+    dn = polarities < 0
+    #h_rk = ax.rake(azimuths[up]-90.,takeoffs[up],90, 'ro')
+    # MTH: this seems to put the observations in the right location
+    #  We're plotting a lower-hemisphere focal mech, and we have to convert
+    #  the up-going rays to the right az/dip quadrants:
+    h_rk = ax.rake(azimuths[up]-90.+180.,90.-takeoffs[up],90, 'ro')
+    h_rk = ax.rake(azimuths[dn]-90.+180.,90.-takeoffs[dn],90, 'b+')
+    #ax.rake(strike-90., 90.-dip, rake, 'ro', markersize=14)
+
+    #h_rk = ax.rake(azimuths[dn]-90.,takeoffs[dn],90, 'b+')
+    if sdr:
+        s2,d2,r2 = aux_plane(*sdr)
+        h_rk = ax.plane(sdr[0],sdr[1],'g')
+        h_rk = ax.rake(sdr[0],sdr[1],-sdr[2], 'go')
+        h_rk = ax.plane(s2,d2, 'g')
+
+    if title:
+        plt.title(title)
+
+    plt.show()
