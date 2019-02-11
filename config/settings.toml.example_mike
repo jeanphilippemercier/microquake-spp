@@ -1,0 +1,196 @@
+project_code = 'OT'
+[grids]
+    units = 'meter'
+    method = 'ODS'
+    origin = [650200, 4766170, -500]
+    dimensions = [100, 101, 68]
+    spacing = 25
+
+    [grids.velocities]
+        source = 'local'
+        homogeneous = false
+        vp = "velocities/vp"
+        vs = "velocities/vs"
+        format = 'NLLOC'
+
+    [grids.travel_time_h5]
+        fname = 'travel_time_tables.h5'
+
+# Not used, definition similar to velocity grids
+#   [grids.density]
+#   homogeneous = false
+
+[time_zone]
+    type = 'UTC_offset'                # either 'UTC_offset or 'time_zone'
+    time_zone_code = 'ULN'             # time zone code. If type=time_zone, time_zone_code must be a valid pytz timezone
+    offset = 8                         # time offset in hours, ignored if type=time_zone
+
+[sensors]
+    source  = 'local'
+    units   = 'meter'
+    format  = 'csv'
+    path    = 'sensors.csv'
+
+[data_local]
+    ms_chunks    = '/home/phil/data/oyu/spp_common/synthetic/chunks/*.mseed'
+    ms_long = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.mseed'
+    xml_long   = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.xml'
+
+[data_connector]
+    source  = 'remote'
+    path    = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
+
+[mseed_decomposer]  
+    kafka_producer_topic = 'mseed_blocks'
+
+[transformer]
+    kafka_consumer_topic = 'mseed_blocks'
+    kafka_producer_topic = 'mseed_1sec'
+
+[interloc]
+    threads = 4
+    debug = 0
+    wlen_seconds = 1.0
+    dsr = 3000.0
+    threshold = 0.2
+    kafka_consumer_topic = 'mseed_1sec'
+    kafka_producer_topic = 'iloc_out'
+
+[create_event]
+    log_topic = 'create_event'
+    log_file_name = 'create_event.log'
+
+[picker]
+    snr_wlens = [15e-3, 10e-3]
+    wlen_search = 50e-3
+    stepsize = 1e-3
+    snr_threshold = 6
+    kafka_consumer_topic = 'iloc_out'
+    kafka_producer_topic = 'picker_out'
+    log_topic = 'automatic picker'
+    log_file_name = 'automatic_picker.log'
+
+    [picker.waveform_filter]
+        frequency_min = 60
+        frequency_max = 600
+
+    [picker.p_wave]
+        [picker.p_wave.search_window]
+            #start = -0.01         # start of search window relative to predicted arrival time (s)
+            #end = 0.015            # end of the search window relative to predicted arrival time (s)
+            start = -0.024         # start of search window relative to predicted arrival time (s)
+            end = 0.020            # end of the search window relative to predicted arrival time (s)
+            resolution = 0.001    # time resolution of search window (s)
+
+        [picker.p_wave.snr_window]
+            #noise  = 0.008        # length of the window for signal energy measurement
+            #signal = 0.0053       # length of the window for signal energy measurement
+            #noise  = 0.01        # length of the window for signal energy measurement
+            #signal = 0.005       # length of the window for signal energy measurement
+            #noise  = 0.005         # length of the window for noise energy measurement
+            #signal = 0.01          # length of the window for signal energy measurement
+            noise  = 0.01        # length of the window for signal energy measurement
+            signal = 0.01       # length of the window for signal energy measurement
+
+    [picker.s_wave]
+        [picker.s_wave.search_window]
+            start = -0.007         # start of search window relative to predicted arrival time (s)
+            end = 0.020            # end of the search window relative to predicted arrival time (s)
+            resolution = 0.001    # time resolution of search window (s)
+
+        [picker.s_wave.snr_window]
+            #noise  = 0.005         # length of the window for noise energy measurement
+            #signal = 0.01          # length of the window for signal energy measurement
+            noise  = 0.01         # length of the window for noise energy measurement
+            signal = 0.02          # length of the window for signal energy measurement
+
+[nlloc]
+    nll_base = 'NLL'
+    locsig = 'Oyu Tolgoi Geotechnical Monitoring Team'
+    loccom = 'Prototype'
+    # locsearch = 'OCT 20 20 30 1e-6 50000 1000 0 1'
+    # locsearch = 'OCT 10 10 10 1e-6 20000 1000 0 1'
+    locsearch = 'OCT 5 5 5 1e-6 5000 1000 0 1'
+    locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
+    kafka_consumer_topic = 'location'
+    kafka_producer_topic = 'magnitude'
+    log_file_name = 'hypocenter_location_nlloc.log'
+    log_topic = 'hypocenter Location NonLinLoc'
+# MTH: Not sure what this is meant to be
+    picking_error = 0.001
+
+[magnitude]
+    ttpath = 'None'
+    only_triaxial = true
+    density = 2700
+    min_dist = 20
+    win_length = 0.02
+    # len_spectrum is specified in exponent of 2. For instance 14 is equal to 2 ** 14
+    len_spectrum_exponent = 14
+    # could instead specify <len_spectrum> directly
+    freq = 100
+    kafka_consumer_topic = 'magnitude'
+    kafka_producer_topic = 'event_database'
+    log_file_name = 'magnitude_calculation.log'
+    log_topic = 'moment magnitude calculation'
+
+[focal_mechanism]
+    npolmin = 8
+    max_agap = 180
+    #max_agap = 90
+    max_pgap = 60
+    dang = 5
+    nmc = 30
+    maxout = 500
+    badfrac = 0.1
+    delmax = 120
+    cangle = 45
+    prob_max = 0.25
+    #kafka_consumer_topic = 'magnitude'
+    #kafka_producer_topic = 'event_database'
+    log_file_name = 'focal_mechanism_calculation.log'
+    log_topic = 'focal mechanism calculation'
+
+
+[kafka]
+    brokers = ['broker:9092']
+    threads = 3 
+
+[airflow]
+    description = 'Data Loader'
+    catchup = false
+
+[logging]
+    log_directory = '/Users/mth/mth/python_pkgs/spp/bin/log/'
+    #log_directory = '/var/log/spp/'
+    log_level = 'INFO'
+    log_format = '[%(levelname)s] %(asctime)s <%(name)s> <%(thread)d> %(message)s'
+    log_filename = 'spp.log'
+    logger_name = 'spp'
+    log_destination = 'stdout'
+
+[event_db]
+    uri = 'mongodb://localhost:27017/'
+    name = 'OT'
+    trace_collection = 'traces'
+    event_collection = 'events'
+    events_inuse_collection = 'event_in_use'
+    in_use_ttl = 1
+    filestore_base_dir = '/var/ot/'
+    kafka_topic = 'event_database'
+    log_file_name = 'event_db_insertion_update.log'
+    log_topic = 'insertion and update into event DB'
+
+[continuous_db]
+    uri = 'mongodb://mongo-node-001:27017/'
+    db_name = 'seismic'
+    traces_collection = 'traces_json'
+    events_collection = 'events'
+    events_inuse_collection = 'events_inuse'
+    filestore_base_dir = '/Users/hanee/Rio_Tinto/data/'
+    inuse_ttl = 300
+
+[seismic_api]
+    events_url = 'http://localhost:8000/api/v1/events'
+
+

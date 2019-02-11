@@ -1,27 +1,13 @@
 
-from helpers import *
-import matplotlib.pyplot as plt
-
-import os
-import warnings
-warnings.simplefilter("ignore", UserWarning)
-warnings.simplefilter("ignore")
-
 from obspy.core.event.base import ResourceIdentifier
 
 from microquake.core import read
-from obspy.core.stream import read as obs_read
-from microquake.core import UTCDateTime
-from microquake.core.event import read_events as read_events
-from microquake.core.event import (Origin, CreationInfo, Event)
 from microquake.core.data.inventory import inv_station_list_to_dict
-from microquake.waveform.amp_measures import measure_pick_amps, measure_velocity_pulse, set_pick_snrs, measure_displacement_pulse
-
-from microquake.core.util.tools import copy_picks_to_dict
+from microquake.core.event import read_events as read_events
 
 from spp.utils.application import Application
 
-from lib_process import *
+from lib_process import fix_arr_takeoff_and_azimuth
 
 
 def main():
@@ -40,10 +26,10 @@ def main():
     logger = app.get_logger('test_xml','test_xml.log')
 
     data_dir   = '/Users/mth/mth/Data/OT_data/'
-    #event_file = data_dir + "20180706112101.xml"
     event_file = data_dir + "20180628153305.xml"
     event_file = data_dir + "20180609195044.xml"
     event_file = data_dir + "20180523111608.xml"
+    event_file = data_dir + "20180706112101.xml"
     mseed_file = event_file.replace('xml','mseed')
     st = read(mseed_file, format='MSEED')
 
@@ -68,17 +54,14 @@ def main():
 
     sta_meta_dict = inv_station_list_to_dict(inventory)
 
-# 1. Rotate to ENZ:
-    st_rot = rotate_to_ENZ(st, sta_meta_dict)
-    st = st_rot
-
-    noisy_channels = remove_noisy_traces(st, event.picks)
-    for tr in noisy_channels:
-        print("%s: Removed noisy tr:%s" % (fname, tr.get_id()))
+    #noisy_channels = remove_noisy_traces(st, event.picks)
+    #for tr in noisy_channels:
+        #print("%s: Removed noisy tr:%s" % (fname, tr.get_id()))
 
 
 # 2. Repick
-    from zlibs import picker
+    #from zlibs import picker
+    picker = __import__('033_picker').picker
     params = app.settings.picker
     # This will create a new (2nd) origin with origin.time from stacking and origin.loc same as original orogin.loc
     #  The new origin will have arrivals for each snr pick that exceeded snr_threshold
@@ -89,7 +72,8 @@ def main():
     snr_picks = [ pk for pk in cat_out[0].picks if pk.method is not None and 'snr_picker' in pk.method ]
 
 # 3. Relocate
-    from zlibs import location
+    #from zlibs import location
+    location = __import__('044_hypocenter_location').location
     from microquake.nlloc import NLL, calculate_uncertainty
     params = app.settings.nlloc
     logger.info('Preparing NonLinLoc')
@@ -99,11 +83,11 @@ def main():
     #   however, event will still contain only 2 origins and event.preferred_origin points to the old preferred
 
     cat_out, st_out = location(cat=[event], stream=st, extra_msgs=None, logger=logger, nll=nll,
-                               params=params, project_code=project_code)
+                               params=params, project_code=project_code, app=app)
 
     origin = cat_out[0].preferred_origin()
-    print("NLLoc locn:<%.1f %.1f %.1f>" % (origin.loc[0], origin.loc[1], origin.loc[2]))
-    print(origin)
+    logger.info("NLLoc locn:<%.1f %.1f %.1f>" % (origin.loc[0], origin.loc[1], origin.loc[2]))
+    logger.info(origin)
 
 # 4. Fix nlloc origin.arrival angles:
 
@@ -111,21 +95,19 @@ def main():
     #  the last.hyp nlloc output where they were in turn read/interpolated from common/time/OT.41.P.angle.buf
     #  produced by Grid2Time with ANGLES_YES set.  These angles look wrong - I think because our positive vertical
     #  is opposite (?) the NLLOC convention, hence station wrt event depth is wrong (?)
+    #
+    #  The newly calculated distances are hypocentral (ray) and are exactly the same as those in nlloc last.hypo
+    #    however, the new arrival.time_residual are DIFFERENT than nlloc values!
 
     fix_arr_takeoff_and_azimuth(cat_out, sta_meta_dict, app=app)
 
-    cat_out.write("event.xml", format='QUAKEML')
+    # Just to reinforce that these are hypocentral distance in meters ... to be used by moment_mag calc
+    # ie, obspy.arrival.distance = epicenteral distance in degrees
+    origin = cat_out[0].preferred_origin()
+    for arr in origin.arrivals:
+        arr.hypo_dist_in_m = arr.distance
 
-    '''
-    pick_dict = copy_picks_to_dict(snr_picks)
-    for arr in cat_out[0].preferred_origin().arrivals:
-        pk = arr.pick_id.get_referred_object()
-        sta = pk.waveform_id.station_code
-        cha = pk.waveform_id.channel_code
-        print("sta:%s cha:%s pha:%s time:%s [%s] az:%.1f th:%.1f dist:%.1f" % \
-              (sta, cha, pk.phase_hint, pk.time, pick_dict[sta][pk.phase_hint].time, \
-               arr.azimuth, arr.takeoff_angle, arr.distance))
-    '''
+    cat_out.write("event.xml", format='QUAKEML')
 
     return
 

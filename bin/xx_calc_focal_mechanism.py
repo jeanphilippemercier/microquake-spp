@@ -1,18 +1,8 @@
 
-import os
-import warnings
-warnings.simplefilter("ignore", UserWarning)
-warnings.simplefilter("ignore")
-
+import numpy as np
 from obspy.core.event.base import ResourceIdentifier
-
-from microquake.core import read
 from microquake.core.event import read_events as read_events
-
 from spp.utils.application import Application
-
-from lib_process import *
-from helpers import *
 
 
 def main():
@@ -35,6 +25,10 @@ def main():
 
 
 
+from hashpy.scripts.mth_new import calc_focal_mechanisms
+from obspy.core.event.source import FocalMechanism, NodalPlane, NodalPlanes
+from obspy.imaging.beachball import aux_plane
+from obspy.core.event.base import Comment
 def calc_focal_mechanism(cat, settings):
 
     sname  = []
@@ -102,11 +96,7 @@ def calc_focal_mechanism(cat, settings):
     exit()
     """
 
-    from hashpy.scripts.mth_new import calc_focal_mechanisms
     outputs = calc_focal_mechanisms(events, settings, phase_format='FPFIT')
-    from obspy.core.event.source import FocalMechanism, NodalPlane, NodalPlanes
-    from obspy.imaging.beachball import aux_plane
-    from obspy.core.event.base import Comment
 
     focal_mechanisms = []
 
@@ -138,6 +128,42 @@ def calc_focal_mechanism(cat, settings):
 
 
     return focal_mechanisms
+
+
+import matplotlib.pyplot as plt
+import mplstereonet
+from obspy.imaging.beachball import aux_plane
+
+def test_stereo(azimuths,takeoffs,polarities,sdr=[], title=None):
+    '''
+        Plots points with given azimuths, takeoff angles, and
+        polarities on a stereonet. Will also plot both planes
+        of a double-couple given a strike/dip/rake
+    '''
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='stereonet')
+    up = polarities > 0
+    dn = polarities < 0
+    #h_rk = ax.rake(azimuths[up]-90.,takeoffs[up],90, 'ro')
+    # MTH: this seems to put the observations in the right location
+    #  We're plotting a lower-hemisphere focal mech, and we have to convert
+    #  the up-going rays to the right az/dip quadrants:
+    h_rk = ax.rake(azimuths[up]-90.+180.,90.-takeoffs[up],90, 'ro')
+    h_rk = ax.rake(azimuths[dn]-90.+180.,90.-takeoffs[dn],90, 'b+')
+    #ax.rake(strike-90., 90.-dip, rake, 'ro', markersize=14)
+
+    #h_rk = ax.rake(azimuths[dn]-90.,takeoffs[dn],90, 'b+')
+    if sdr:
+        s2,d2,r2 = aux_plane(*sdr)
+        h_rk = ax.plane(sdr[0],sdr[1],'g')
+        h_rk = ax.rake(sdr[0],sdr[1],-sdr[2], 'go')
+        h_rk = ax.plane(s2,d2, 'g')
+
+    if title:
+        plt.title(title)
+
+    plt.show()
 
 if __name__ == '__main__':
 
