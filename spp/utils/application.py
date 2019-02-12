@@ -85,18 +85,18 @@ class Application(object):
         fpath = os.path.join(self.common_dir, fname)
         ttable.write_h5(fpath, ttp, tdict2=tts)
 
-    def get_inventory(self):
-        params = self.settings.sensors
-
-        if self.inventory is None:
-            print("app.get_inventory: Load inventory file")
-            if params.source == 'local':
-                fpath = os.path.join(self.common_dir, params.path)
-                self.inventory = load_inventory(fpath, format='CSV')
-            elif self.settings.sensors.source == 'remote':
-                pass
-
-        return self.inventory
+    # def get_inventory(self):
+    #     params = self.settings.sensors
+    #
+    #     if self.inventory is None:
+    #         print("app.get_inventory: Load inventory file")
+    #         if params.source == 'local':
+    #             fpath = os.path.join(self.common_dir, params.path)
+    #             self.inventory = load_inventory(fpath, format='CSV')
+    #         elif self.settings.sensors.source == 'remote':
+    #             pass
+    #
+    #     return self.inventory
 
     def get_stations(self):
         params = self.settings.sensors
@@ -201,7 +201,7 @@ class Application(object):
             tz_code = tz_settings.time_zone_code  # code for the time zone
             tz = tzoffset(tz_code, offset * 3600)
 
-        elif tz_settings.type  == "time_zone":
+        elif tz_settings.type == "time_zone":
             import pytz
             valid_time_zones = pytz.all_timezones
             if tz_settings.time_zone_code not in valid_time_zones:
@@ -279,7 +279,7 @@ class Application(object):
 
         elif phase.upper() == 'S':
              v_path = os.path.join(self.common_dir,
-                                  self.settings.grids.velocities.vs) + '.rid'
+                                   self.settings.grids.velocities.vs) + '.rid'
 
         with open(v_path) as ris:
             return ris.read()

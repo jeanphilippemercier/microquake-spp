@@ -9,6 +9,10 @@ import numpy as np
 from time import time
 from IPython.core.debugger import Tracer
 
+from importlib import reload
+
+reload(seismic_client)
+
 __module_name__ = 'data_connector'
 
 app = Application(module_name=__module_name__)
@@ -18,12 +22,12 @@ logger = app.get_logger('data_connector', 'data_connector.log')
 
 site = app.get_stations()
 ims_base_url = app.settings.data_connector.path
-end_time = UTCDateTime.now() - 3600
-start_time = end_time - 4 * 24 * 3600  # 4 days
+end_time = UTCDateTime.now() - 7200
+start_time = end_time - 5 * 24 * 3600  # 4 days
 tz = app.get_time_zone()
 
-end_time = end_time.datetime.replace(tzinfo=tz)
-start_time = start_time.datetime.replace(tzinfo=tz)
+end_time = end_time.datetime.replace(tzinfo=pytz.utc).astimezone(tz=tz)
+start_time = start_time.datetime.replace(tzinfo=pytz.utc).astimezone(tz=tz)
 
 cat_ims = web_client.get_catalogue(ims_base_url, start_time, end_time,
                                    site, tz, blast=False)
@@ -37,19 +41,21 @@ events_mq = [request_event.get_event() for request_event in cat_mq]
 
 event_to_upload = [evt_ims for evt_ims in cat_ims]
 
-for event_ims in cat_ims:
-    event_time = event_ims.preferred_origin().time
-    to_db = True
-    for cat_mq in events_mq:
-        event_mq = cat_mq[0]
-        if np.abs(event_mq.preferred_origin().time - event_time) < 0.5:
-            to_db = False
+# for event_ims in cat_ims:
+#     event_time = event_ims.preferred_origin().time
+#     to_db = True
+#     for cat_mq in events_mq:
+#         event_mq = cat_mq[0]
+#         if np.abs(event_mq.preferred_origin().time - event_time) < 0.5:
+#             to_db = False
+#
+#     if to_db:
+#         event_to_upload.append(event_ims)
 
-    if to_db:
-        event_to_upload.append(event_ims)
+event_to_upload = [event for event in cat_ims]
 
 site_ids = [int(station.code) for station in site.stations() if station.code
-            not in app.settings.sensors.blacklist]
+            not in app.settings.sensors.black_list]
 
 for event in event_to_upload:
     event = web_client.get_picks_event(ims_base_url, event, site, tz)
