@@ -39,10 +39,11 @@ def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
 
     logger.info('calculating Uncertainty')
     t2 = time()
+    picking_error = app.settings.nlloc.picking_error
     origin_uncertainty = calculate_uncertainty(cat_out[0], base_folder,
                                                project_code,
                                                perturbation=5,
-                                               pick_uncertainty=1e-3)
+                                               pick_uncertainty=picking_error)
 
     cat_out[0].preferred_origin().origin_uncertainty = origin_uncertainty
     t3 = time()

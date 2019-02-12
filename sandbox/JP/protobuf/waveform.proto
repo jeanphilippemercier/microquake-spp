@@ -2,13 +2,28 @@ syntax = "proto3";
 
 package waveform;
 
-message Waveform {
+message Stream {
+    string time = 1;
+    repeated Trace traces = 2;
+}
+
+message Trace {
     int32 sampling_rate = 1;
     string starttime = 2;
     int32 npts = 3;
-    int32 nchannels = 4;
+    string channel = 4;
     string data = 5;
     string station_code = 6;
     string p_pick = 7;
     string s_pick = 8;
+    float p_residual = 9;
+    float s_residual = 10;
+    float e_s_ray_distance = 11;
+    float e_s_distance
+    string network = 12;
+    string component = 13;
+    string data_dtype = 14;
+    float station_x = 15;
+    float station_y = 16;
+    float station_z =17;
 }
