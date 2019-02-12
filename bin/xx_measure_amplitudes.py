@@ -9,10 +9,12 @@ from microquake.waveform.transforms import rotate_to_ENZ, rotate_to_P_SV_SH
 
 from spp.utils.application import Application
 
+from lib_process import processCmdLine
 
 def main():
 
     fname = 'measure_amplitudes'
+    use_web_api, xml_out, xml_in, mseed_in = processCmdLine(fname)
 
     # reading application data
     app = Application()
@@ -25,29 +27,26 @@ def main():
 
     logger = app.get_logger('test_xml','test_xml.log')
 
-    data_dir   = '/Users/mth/mth/Data/OT_data/'
-    mseed_file = data_dir + "20180706112101.mseed"
-    mseed_file = data_dir + "20180628153305.mseed"
-    mseed_file = data_dir + "20180609195044.mseed"
-    mseed_file = data_dir + "20180523111608.mseed"
-# MTH!!
-    event_file = 'event.xml'
-    event  = read_events(event_file)[0]
-    prefix = event.origins[0].time.datetime.strftime('%Y%m%d%H%M%S')
-    mseed_file = data_dir + prefix + '.mseed'
-
-    st = read(mseed_file, format='MSEED')
-
-    # Fix 4..Z channel name:
-    for tr in st:
-        tr.stats.channel = tr.stats.channel.lower()
+    if use_web_api:
+        logger.info("Read from web_api")
+        api_base_url = settings.seismic_api.base_url
+        start_time = UTCDateTime("2018-07-06T11:21:00")
+        end_time = start_time + 3600.
+        request = get_events_catalog(api_base_url, start_time, end_time)
+        cat = request[0].get_event()
+        event=cat[0]
+        print(event)
+        st = request[0].get_waveforms()
+    else:
+        logger.info("Read from files on disk")
+        st = read(mseed_in, format='MSEED')
+        event  = read_events(xml_in)[0]
 
 
     inventory = app.get_inventory()
     st.attach_response(inventory)
 
     sta_meta_dict = inv_station_list_to_dict(inventory)
-
 
 # 1. Rotate traces to ENZ
     st_rot = rotate_to_ENZ(st, sta_meta_dict)
@@ -72,7 +71,7 @@ def main():
 
 # Write out new event xml file with arrival dicts containing the amp measurements
 #   needed by moment_mag and focal_mech modules:
-    cat_out[0].write('event_1.xml', format='QUAKEML')
+    cat_out[0].write(xml_out, format='QUAKEML')
 
     exit()
 

@@ -4,6 +4,10 @@ from obspy.core.event.base import ResourceIdentifier
 from microquake.core.event import read_events as read_events
 from spp.utils.application import Application
 
+from lib_process import processCmdLine
+
+import logging
+logger = logging.getLogger()
 
 def main():
 
@@ -13,15 +17,29 @@ def main():
     app = Application()
     settings = app.settings
 
-    cat = read_events('event_2.xml')
+    use_web_api, xml_out, xml_in, mseed_in = processCmdLine(fname)
+
+    if use_web_api:
+        logger.info("Read from web_api")
+        api_base_url = settings.seismic_api.base_url
+        start_time = UTCDateTime("2018-07-06T11:21:00")
+        end_time = start_time + 3600.
+        request = get_events_catalog(api_base_url, start_time, end_time)
+        cat = request[0].get_event()
+    else:
+        logger.info("Read from files on disk")
+        cat  = read_events(xml_in)
 
     focal_mechanisms = calc_focal_mechanism(cat, settings.focal_mechanism)
     for i,event in enumerate(cat):
         focal_mechanism = focal_mechanisms[i]
         event.focal_mechanisms = [ focal_mechanism ]
-        event.preferred_focal_mechanism_id = ResourceIdentifier(id=focal_mechanism.resource_id.id, referred_object=focal_mechanism)
+        event.preferred_focal_mechanism_id = ResourceIdentifier(id=focal_mechanism.resource_id.id, \
+                                                                referred_object=focal_mechanism)
 
-    cat.write("event_3.xml", format='QUAKEML')
+    cat.write(xml_out, format='QUAKEML')
+
+    return
 
 
 
@@ -60,7 +78,8 @@ def calc_focal_mechanism(cat, settings):
         for arr in arrivals:
 
             if arr.pulse_snr is None:
-                print("%s P arr pulse_snr == NONE !!!" % arr.pick_id.get_referred_object().waveform_id.station_code)
+                print("%s P arr pulse_snr == NONE !!!" % \
+                      arr.pick_id.get_referred_object().waveform_id.station_code)
                 continue
 
             sname.append(arr.pick_id.get_referred_object().waveform_id.station_code)
@@ -165,6 +184,8 @@ def test_stereo(azimuths,takeoffs,polarities,sdr=[], title=None):
 
     plt.show()
 
-if __name__ == '__main__':
+    return
 
+
+if __name__ == '__main__':
     main()

@@ -2,6 +2,7 @@
 from obspy.core.event.base import ResourceIdentifier
 
 from microquake.core import read
+from microquake.core import UTCDateTime
 from microquake.core.data.inventory import inv_station_list_to_dict
 from microquake.core.event import read_events as read_events
 
@@ -9,10 +10,21 @@ from spp.utils.application import Application
 
 from lib_process import fix_arr_takeoff_and_azimuth
 
+from spp.utils.seismic_client import RequestEvent, get_events_catalog, get_event_by_id
+
+import os
+import argparse
+
+import logging
+fname = 'post_process'
+logger = logging.getLogger(fname)
+
+from lib_process import processCmdLine
+
 
 def main():
 
-    fname = 'post_process'
+    use_web_api, xml_out, xml_in, mseed_in = processCmdLine(fname)
 
     # reading application data
     app = Application()
@@ -23,8 +35,44 @@ def main():
     gridpar = app.nll_velgrids()
     sensors = app.nll_sensors()
 
-    logger = app.get_logger('test_xml','test_xml.log')
+    if use_web_api:
+        logger.info("Read from web_api")
+        api_base_url = settings.seismic_api.base_url
+        start_time = UTCDateTime("2018-07-06T11:21:00")
+        end_time = start_time + 3600.
+        request = get_events_catalog(api_base_url, start_time, end_time)
+        cat = request[0].get_event()
+        event=cat[0]
+        print(event)
+        #print(event.resource_id)
+        #print(request[0].event_resource_id)
+        st = request[0].get_waveforms()
+        #for tr in st:
+            #print(tr.get_id())
 
+        '''
+        event_id = "smi:local/8f0f1cbd-2f81-4050-8c62-fd72241f6752"
+        request = get_event_by_id(api_base_url, event_id)
+        print(type(request))
+        print(request)
+        exit()
+        '''
+    else:
+        logger.info("Read from files on disk")
+        st = read(mseed_in, format='MSEED')
+        # Fix 4..Z channel name:
+        #for tr in st:
+            #tr.stats.channel = tr.stats.channel.lower()
+            #print(tr.get_id())
+
+        # Fix broken preferred:
+        event  = read_events(xml_in)[0]
+        origin = event.origins[0]
+        event.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id, referred_object=origin)
+        mag = event.magnitudes[0]
+        event.preferred_magnitude_id = ResourceIdentifier(id=mag.resource_id.id, referred_object=mag)
+
+    """
     data_dir   = '/Users/mth/mth/Data/OT_data/'
     event_file = data_dir + "20180628153305.xml"
     event_file = data_dir + "20180609195044.xml"
@@ -32,17 +80,9 @@ def main():
     event_file = data_dir + "20180706112101.xml"
     mseed_file = event_file.replace('xml','mseed')
     st = read(mseed_file, format='MSEED')
+    """
 
-    # Fix 4..Z channel name:
-    for tr in st:
-        tr.stats.channel = tr.stats.channel.lower()
 
-    event  = read_events(event_file)[0]
-    origin = event.origins[0]
-    # Fix broken preferred:
-    event.preferred_origin_id = ResourceIdentifier(id=origin.resource_id.id, referred_object=origin)
-    mag = event.magnitudes[0]
-    event.preferred_magnitude_id = ResourceIdentifier(id=mag.resource_id.id, referred_object=mag)
     ev_loc = event.preferred_origin().loc
 
     vp_grid, vs_grid = app.get_velocities()
@@ -107,7 +147,7 @@ def main():
     for arr in origin.arrivals:
         arr.hypo_dist_in_m = arr.distance
 
-    cat_out.write("event.xml", format='QUAKEML')
+    cat_out.write(xml_out, format='QUAKEML')
 
     return
 
