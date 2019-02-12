@@ -4,6 +4,7 @@ from io import BytesIO
 import requests
 from dateutil import parser
 from microquake.core import UTCDateTime
+import urllib
 from IPython.core.debugger import Tracer
 
 
@@ -156,7 +157,7 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         event_time = re.time_utc
         event_resource_id = str(re.event_resource_id)
 
-    data['event_resource_id'] = event_resource_id
+    # data['event_resource_id'] = event_resource_id
 
     logger.info('processing event with resource_id: %s' % event_resource_id)
 
@@ -206,16 +207,21 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         files['context'] = mseed_context_bytes
         logger.info('done preparing context waveform data')
 
-    return post_event_data(api_url, data, files)
+    return post_event_data(api_url, event_resource_id, files, logger)
 
 
-def post_event_data(api_base_url, request_data, request_files):
-    url = api_base_url + "events"
+def post_event_data(api_base_url, event_resource_id, request_files, logger):
+    url = api_base_url + "/%s" % urllib.parse.quote(event_resource_id, safe="")
+    url = api_base_url + "/%s" % event_resource_id
+    logger.info('posting data on %s' % url)
 
-    headers = {'Content-Type': 'multipart/form-data'}
+    from IPython.core.debugger import Tracer
 
-    result = requests.post(api_base_url, data=request_data, files=request_files)
+    # headers = {'Content-Type': 'multipart/form-data'}
+
+    result = requests.post(url, files=request_files)
     print(result)
+    Tracer()()
 
     '''
     if result.code == 200:
@@ -285,7 +291,7 @@ def get_continuous_stream(api_base_url, start_time, end_time, station=None,
 
 def post_continuous_stream(api_base_url, stream, post_to_kafka=True,
                            stream_id=None):
-    url = api_base_url + "continuous_waveform_upload"
+    url = api_base_url + "continuous_waveform"
 
     request_files = {}
     wf_bytes = BytesIO()

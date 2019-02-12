@@ -184,7 +184,7 @@ class Application(object):
             tz_code = tz_settings.time_zone_code  # code for the time zone
             tz = tzoffset(tz_code, offset * 3600)
 
-        elif tz_settings.type  == "time_zone":
+        elif tz_settings.type == "time_zone":
             import pytz
             valid_time_zones = pytz.all_timezones
             if tz_settings.time_zone_code not in valid_time_zones:
@@ -262,7 +262,7 @@ class Application(object):
 
         elif phase.upper() == 'S':
              v_path = os.path.join(self.common_dir,
-                                  self.settings.grids.velocities.vs) + '.rid'
+                                   self.settings.grids.velocities.vs) + '.rid'
 
         with open(v_path) as ris:
             return ris.read()
