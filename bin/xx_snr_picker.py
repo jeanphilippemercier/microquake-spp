@@ -16,7 +16,7 @@ import os
 import argparse
 
 import logging
-fname = 'post_process'
+fname = 'snr_picker'
 logger = logging.getLogger(fname)
 
 from lib_process import processCmdLine
@@ -53,7 +53,7 @@ def main():
 
 # Repick
     #from zlibs import picker
-    picker = __import__('033_picker').picker
+    picker = __import__('03_picker').picker
     params = app.settings.picker
     # This will create a new (2nd) origin with origin.time from stacking and origin.loc same as original orogin.loc
     #  The new origin will have arrivals for each snr pick that exceeded snr_threshold

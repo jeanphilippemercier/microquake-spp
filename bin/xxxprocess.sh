@@ -12,6 +12,7 @@
 python xx_snr_picker.py -e smi:local/8f0f1cbd-2f81-4050-8c62-fd72241f6752 -o event.xml
 
 python xx_locate.py -x event.xml -o event.xml
+#exit 1
 
 # Read traces from web api but use local xml:
 python xx_measure_amplitudes.py -e smi:local/8f0f1cbd-2f81-4050-8c62-fd72241f6752 -x event.xml -o event.xml

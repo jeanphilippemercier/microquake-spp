@@ -16,7 +16,7 @@ import os
 import argparse
 
 import logging
-fname = 'post_process'
+fname = 'locate'
 logger = logging.getLogger(fname)
 
 from lib_process import processCmdLine
@@ -63,7 +63,7 @@ def main():
 
 # Relocate
     #from zlibs import location
-    location = __import__('044_hypocenter_location').location
+    location = __import__('04_hypocenter_location').location
     from microquake.nlloc import NLL, calculate_uncertainty
     params = app.settings.nlloc
     logger.info('Preparing NonLinLoc')
