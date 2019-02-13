@@ -1,3 +1,5 @@
+import time
+
 from spp.utils.application import Application
 from spp.utils.seismic_client import get_event_by_id
 
@@ -28,3 +30,7 @@ for tr in st:
 
 app.send_message(cat, st)
 
+# producer.produce() is an async function. This sleep allows the message to go
+# through by introducing a short time delay for the function to execute
+# this is a short-term hack and future solutions will use callbacks on producer()
+time.sleep(2)
