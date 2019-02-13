@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
 from spp.utils.application import Application
+from microquake.core.data.inventory import inv_station_list_to_dict
 from microquake.nlloc import NLL, calculate_uncertainty
+
+from lib_process import fix_arr_takeoff_and_azimuth
 
 import numpy as np
 import sys
@@ -37,6 +40,11 @@ def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
     t1 = time()
     logger.info('done running NonLinLoc in %0.3f seconds' % (t1 - t0))
 
+    logger.info("Here comes the nlloc origin:")
+    logger.info(cat_out.preferred_origin())
+    logger.info("Here comes the nlloc location:")
+    logger.info(cat_out.preferred_origin().loc)
+
     base_folder = params.nll_base
 
     logger.info('calculating Uncertainty')
@@ -51,7 +59,24 @@ def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
     t3 = time()
     logger.info('done calculating uncertainty in %0.3f seconds' % (t3 - t2))
 
+    inventory = app.get_inventory()
+    sta_meta_dict = inv_station_list_to_dict(inventory)
+
+# Fix nlloc origin.arrival angles:
+
+    fix_arr_takeoff_and_azimuth(cat_out, sta_meta_dict, app=app)
+
+    # Just to reinforce that these are hypocentral distance in meters ... to be used by moment_mag calc
+    # ie, obspy.arrival.distance = epicenteral distance in degrees
+    origin = cat_out[0].preferred_origin()
+    for arr in origin.arrivals:
+        arr.hypo_dist_in_m = arr.distance
+
+    cat_out.write("cat_nlloc.xml", format='QUAKEML')
+
     return cat_out, stream
+
+
 
 __module_name__ = 'nlloc'
 
@@ -81,7 +106,7 @@ def main(argv):
 
             try:
                 cat_out, st = app.receive_message(msg_in, location, nll=nll,
-                                                  params=params,
+                                                  params=params, app=app,
                                                   project_code=project_code)
             except Exception as e:
                 app.logger.error(e)
