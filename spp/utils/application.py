@@ -676,14 +676,14 @@ class Application(object):
                          % (self.processing_flow, self.processing_step))
 
         if not kwargs:
-            cat, st = callback(cat=cat, stream=st, logger=self.logger)
+            cat_out, st = callback(cat=cat, stream=st, logger=self.logger)
 
         else:
-            cat, st = callback(cat=cat, stream=st, logger=self.logger,
+            cat_out, st = callback(cat=cat, stream=st, logger=self.logger,
                                **kwargs)
 
         self.logger.info('awaiting for message on topic %s' % topic)
-        return cat, st
+        return cat_out, st
 
 
 import matplotlib.pyplot as plt
