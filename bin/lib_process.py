@@ -1,25 +1,9 @@
 
-from helpers import *
-import numpy as np
-import matplotlib.pyplot as plt
-
-import os
 import warnings
 warnings.simplefilter("ignore", UserWarning)
 warnings.simplefilter("ignore")
 
-from obspy.core.event.base import ResourceIdentifier
-
-from microquake.core import read
-from microquake.core import UTCDateTime
-from microquake.core.event import read_events as read_events
-from microquake.core.event import (Origin, CreationInfo, Event)
-from microquake.core.data.inventory import inv_station_list_to_dict
-from microquake.waveform.amp_measures import measure_pick_amps, measure_velocity_pulse, set_pick_snrs
-
-from microquake.core.util.tools import copy_picks_to_dict
-
-from spp.utils.application import Application
+import numpy as np
 
 def fix_arr_takeoff_and_azimuth(cat_out, sta_meta_dict, app=None):
 
