@@ -122,8 +122,9 @@ def fix_arr_takeoff_and_azimuth(cat_out, sta_meta_dict, app=None):
 import os
 import argparse
 import logging
+logger = logging.getLogger()
 
-def processCmdLine(fname):
+def processCmdLine(fname, require_mseed=False):
     parser = argparse.ArgumentParser()
     optional = parser._action_groups.pop()
     required = parser.add_argument_group('required arguments')
@@ -141,44 +142,51 @@ def processCmdLine(fname):
     required.add_argument("-o", "--xml_out", type=str, metavar='', default=None,\
                         help="[-o xml_out ]     --XML_OUT=event.xml")
 
-    optional.add_argument("-a", "--use_web_api", action='store_true',\
-                        help="[-a use_web_api ]")
+    #optional.add_argument("-a", "--use_web_api", action='store_true',\
+                        #help="[-a use_web_api ]")
 
+    optional.add_argument("-e", "--event_id", type=str, metavar='', default=None,\
+                        help="[-e event_id ]     --EVENT_ID=smi:local/8f0f1cbd-2f81-4050-8c62-fd72241f6752")
 
     args = parser.parse_args()
 
     mseed_in = args.mseed_in
     xml_in   = args.xml_in
     xml_out  = args.xml_out
-    use_web_api  = args.use_web_api
+    #use_web_api  = args.use_web_api
+    event_id  = args.event_id
 
-    if not use_web_api:
-        if not mseed_in:
-            logger.error("%s: You must specify either -a [use_web_api] or -m [mseed_in]" % (fname) )
-            parser.print_help()
-            exit(2)
-        else:
-            if not os.path.exists(mseed_in):
-                logger.error("%s mseed_in=[%s] does NOT exist --> Please retry" % (fname, mseed_in) )
+    if not xml_out:
+        logger.error("%s: You must specify  -o xml_out" % (fname) )
+        parser.print_help()
+        exit(2)
+
+    use_web_api = False
+
+    if event_id:
+        use_web_api = True
+    else:
+        if require_mseed:
+            if not mseed_in:
+                logger.error("%s: You must specify either -e event_id (for web api) or -m [mseed_in]" % (fname) )
                 parser.print_help()
                 exit(2)
+            else:
+                if not os.path.exists(mseed_in):
+                    logger.error("%s mseed_in=[%s] does NOT exist --> Please retry" % (fname, mseed_in) )
+                    parser.print_help()
+                    exit(2)
 
         if not xml_in:
             logger.error("%s: You must specify either -a [use_web_api] or -x [xml_in]" % (fname) )
             parser.print_help()
             exit(2)
 
-        else:
-            if not os.path.exists(xml_in):
-                logger.error("%s xml_in=[%s] does NOT exist --> Please retry" % (fname, xml_in) )
-                parser.print_help()
-                exit(2)
+        if not os.path.exists(xml_in):
+            logger.error("%s xml_in=[%s] does NOT exist --> Please retry" % (fname, xml_in) )
+            parser.print_help()
+            exit(2)
 
-
-    if not xml_out:
-        logger.error("%s: You must specify  -o xml_out" % (fname) )
-        parser.print_help()
-        exit(2)
 
     LOGLEVELS = ['CRITICAL','ERROR','WARN','INFO','DEBUG','NOTSET']
 
@@ -190,6 +198,6 @@ def processCmdLine(fname):
         logger.setLevel(logging.getLevelName(args.LOGLEVEL))
 
 
-    return use_web_api, xml_out, xml_in, mseed_in
+    return use_web_api, event_id, xml_out, xml_in, mseed_in
 
 

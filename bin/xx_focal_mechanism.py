@@ -3,6 +3,7 @@ import numpy as np
 from obspy.core.event.base import ResourceIdentifier
 from microquake.core.event import read_events as read_events
 from spp.utils.application import Application
+from spp.utils.seismic_client import get_event_by_id
 
 from lib_process import processCmdLine
 
@@ -11,23 +12,27 @@ logger = logging.getLogger()
 
 def main():
 
-    fname = 'calc_focal_mechanism'
+    fname = 'focal_mechanism'
 
     # reading application data
     app = Application()
     settings = app.settings
 
-    use_web_api, xml_out, xml_in, mseed_in = processCmdLine(fname)
+    use_web_api, event_id, xml_out, xml_in, mseed_in = processCmdLine(fname, require_mseed=False)
+
+    # reading application data
+    app = Application()
+    settings = app.settings
 
     if use_web_api:
-        logger.info("Read from web_api")
         api_base_url = settings.seismic_api.base_url
-        start_time = UTCDateTime("2018-07-06T11:21:00")
-        end_time = start_time + 3600.
-        request = get_events_catalog(api_base_url, start_time, end_time)
-        cat = request[0].get_event()
+        request = get_event_by_id(api_base_url, event_id)
+        if request is None:
+            logger.error("seismic api returned None!")
+            exit(0)
+        cat = request.get_event()
+
     else:
-        logger.info("Read from files on disk")
         cat  = read_events(xml_in)
 
     focal_mechanisms = calc_focal_mechanism(cat, settings.focal_mechanism)

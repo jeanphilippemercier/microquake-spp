@@ -10,26 +10,26 @@ logger = getLogger()
 
 def main():
 
-    fname = 'calc_moment_magnitude'
+    fname = 'moment_magnitude'
 
-    use_web_api, xml_out, xml_in, mseed_in = processCmdLine(fname)
-
-    if use_web_api:
-        logger.info("Read from web_api")
-        api_base_url = settings.seismic_api.base_url
-        start_time = UTCDateTime("2018-07-06T11:21:00")
-        end_time = start_time + 3600.
-        request = get_events_catalog(api_base_url, start_time, end_time)
-        cat = request[0].get_event()
-    else:
-        logger.info("Read from files on disk")
-        cat  = read_events(xml_in)
-
+    use_web_api, event_id, xml_out, xml_in, mseed_in = processCmdLine(fname)
 
     # reading application data
     app = Application()
     settings = app.settings
     vp_grid, vs_grid = app.get_velocities()
+
+    if use_web_api:
+        api_base_url = settings.seismic_api.base_url
+        request = get_event_by_id(api_base_url, event_id)
+        if request is None:
+            logger.error("seismic api returned None!")
+            exit(0)
+        cat = request.get_event()
+
+    else:
+        cat  = read_events(xml_in)
+
 
     use_smom = True
     use_smom = False

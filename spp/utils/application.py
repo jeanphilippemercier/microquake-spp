@@ -85,18 +85,18 @@ class Application(object):
         fpath = os.path.join(self.common_dir, fname)
         ttable.write_h5(fpath, ttp, tdict2=tts)
 
-    # def get_inventory(self):
-    #     params = self.settings.sensors
-    #
-    #     if self.inventory is None:
-    #         print("app.get_inventory: Load inventory file")
-    #         if params.source == 'local':
-    #             fpath = os.path.join(self.common_dir, params.path)
-    #             self.inventory = load_inventory(fpath, format='CSV')
-    #         elif self.settings.sensors.source == 'remote':
-    #             pass
-    #
-    #     return self.inventory
+    def get_inventory(self):
+        params = self.settings.sensors
+
+        if self.inventory is None:
+            print("app.get_inventory: Load inventory file")
+            if params.source == 'local':
+                fpath = os.path.join(self.common_dir, params.path)
+                self.inventory = load_inventory(fpath, format='CSV')
+            elif self.settings.sensors.source == 'remote':
+                pass
+
+        return self.inventory
 
     def get_stations(self):
         params = self.settings.sensors

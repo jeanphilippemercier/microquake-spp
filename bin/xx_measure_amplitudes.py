@@ -8,40 +8,41 @@ from microquake.waveform.smom_mag import measure_pick_smom
 from microquake.waveform.transforms import rotate_to_ENZ, rotate_to_P_SV_SH
 
 from spp.utils.application import Application
+from spp.utils.seismic_client import get_event_by_id
 
 from lib_process import processCmdLine
 
 def main():
 
     fname = 'measure_amplitudes'
-    use_web_api, xml_out, xml_in, mseed_in = processCmdLine(fname)
+    use_web_api, event_id, xml_out, xml_in, mseed_in = processCmdLine(fname)
 
     # reading application data
     app = Application()
     settings = app.settings
-
-    project_code = settings.project_code
-    base_folder = settings.nlloc.nll_base
-    gridpar = app.nll_velgrids()
-    sensors = app.nll_sensors()
 
     logger = app.get_logger('test_xml','test_xml.log')
 
     if use_web_api:
         logger.info("Read from web_api")
         api_base_url = settings.seismic_api.base_url
-        start_time = UTCDateTime("2018-07-06T11:21:00")
-        end_time = start_time + 3600.
-        request = get_events_catalog(api_base_url, start_time, end_time)
-        cat = request[0].get_event()
-        event=cat[0]
-        print(event)
-        st = request[0].get_waveforms()
+        request = get_event_by_id(api_base_url, event_id)
+        if request is None:
+            logger.error("seismic api returned None!")
+            exit(0)
+        cat = request.get_event()
+        st  = request.get_waveforms()
+
     else:
         logger.info("Read from files on disk")
         st = read(mseed_in, format='MSEED')
-        event  = read_events(xml_in)[0]
 
+# Override web api cat with local input:
+    if xml_in:
+        #print("Override cat with xml_in!")
+        cat  = read_events(xml_in)
+
+    cat_out = cat.copy()
 
     inventory = app.get_inventory()
     st.attach_response(inventory)
@@ -55,8 +56,6 @@ def main():
     #noisy_channels = remove_noisy_traces(st, event.picks)
     #for tr in noisy_channels:
         #print("%s: Removed noisy tr:%s" % (fname, tr.get_id()))
-
-    cat_out = [event]
 
 # 2. Rotate traces to P,SV,SH wrt event location
     st_new = rotate_to_P_SV_SH(st, cat_out)
