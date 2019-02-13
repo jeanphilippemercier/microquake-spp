@@ -683,6 +683,8 @@ class Application(object):
                                **kwargs)
 
         self.logger.info('awaiting for message on topic %s' % topic)
+        self.logger.info('Inside receive_message: preferred origin to follow')
+        self.logger.info(cat_out[0].preferred_origin())
         return cat_out, st
 
 
