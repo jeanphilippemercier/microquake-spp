@@ -106,5 +106,5 @@ def main(argv):
 
     return
 
-if __name__ == "main":
+if __name__ == "__main__":
     main(sys.argv[1:])
