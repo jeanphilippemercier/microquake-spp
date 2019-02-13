@@ -41,9 +41,9 @@ def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
     logger.info('done running NonLinLoc in %0.3f seconds' % (t1 - t0))
 
     logger.info("Here comes the nlloc origin:")
-    logger.info(cat_out.preferred_origin())
+    logger.info(cat_out[0].preferred_origin())
     logger.info("Here comes the nlloc location:")
-    logger.info(cat_out.preferred_origin().loc)
+    logger.info(cat_out[0].preferred_origin().loc)
 
     base_folder = params.nll_base
 
