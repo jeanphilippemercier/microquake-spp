@@ -89,16 +89,19 @@ class Application(object):
         params = self.settings.sensors
 
         if self.inventory is None:
-            print("app.get_inventory: Load inventory file")
+            print("app.get_inventory: ** Load inventory file **")
             if params.source == 'local':
                 fpath = os.path.join(self.common_dir, params.path)
                 self.inventory = load_inventory(fpath, format='CSV')
             elif self.settings.sensors.source == 'remote':
                 pass
+        else:
+            print("app.get_inventory: INVENTORY FILE ALREADY LOADED")
 
         return self.inventory
 
     def get_stations(self):
+
         params = self.settings.sensors
         if params.source == 'local':
             fpath = os.path.join(self.common_dir, params.path)
@@ -143,12 +146,18 @@ class Application(object):
 
         out_dict = AttribDict()
 
+        inventory = self.get_inventory()
+        stations  = inventory.stations()
+        out_dict.name = array([station.code for station in stations])
+        out_dict.pos  = array([station.loc for station in stations])
+        out_dict.site = "THIS IS NOT SET"
+
+        '''
         site = self.get_stations()
-
         out_dict.site = site
-
         out_dict.name = array([station.code for station in site.stations()])
         out_dict.pos = array([station.loc for station in site.stations()])
+        '''
         out_dict.key = '0'
         out_dict.index = 0
 
@@ -346,23 +355,34 @@ class Application(object):
         from numpy.linalg import norm
 
         picks = []
-        stations = self.get_stations().stations()
-        site = self.get_stations()
+
+        print("==== ENTERING synthetic_arrival_times ====")
+        #stations = self.get_stations().stations()
+        #site = self.get_stations()
+
+        inventory = self.get_inventory()
+        stations  = inventory.stations()
+
         for phase in ['P', 'S']:
             for station in stations:
-                station = station.code
-                st_loc = site.select(station=station).stations()[0].loc
+                #station = station.code
+                #st_loc = site.select(station=station).stations()[0].loc
+
+                st_loc   = station.loc
+
                 dist = norm(st_loc - event_location)
                 if (phase == 'S') and (dist < 100):
                     continue
 
-                at = origin_time + self.get_grid_point(station, phase,
+                #at = origin_time + self.get_grid_point(station, phase,
+                at = origin_time + self.get_grid_point(station.code, phase,
                                                        event_location,
                                                        grid_coordinates=False)
 
                 wf_id = WaveformStreamID(
                     network_code=self.settings.project_code,
-                    station_code=station)
+                    station_code=station.code)
+                    #station_code=station)
                 pk = Pick(time=at, method='predicted', phase_hint=phase,
                           evaluation_mode='automatic',
                           evaluation_status='preliminary', waveform_id=wf_id)

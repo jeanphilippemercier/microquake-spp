@@ -35,6 +35,8 @@ def main():
     gridpar = app.nll_velgrids()
     sensors = app.nll_sensors()
 
+    #print(sensors)
+
     if use_web_api:
         logger.info("Read from web_api")
         api_base_url = settings.seismic_api.base_url
@@ -78,24 +80,7 @@ def main():
     origin = cat_out[0].preferred_origin()
     logger.info("NLLoc locn:<%.1f %.1f %.1f>" % (origin.loc[0], origin.loc[1], origin.loc[2]))
     logger.info(origin)
-
-# 4. Fix nlloc origin.arrival angles:
-
-    # At this point the arrival take_off angles are incorrect - they would have been read directly from 
-    #  the last.hyp nlloc output where they were in turn read/interpolated from common/time/OT.41.P.angle.buf
-    #  produced by Grid2Time with ANGLES_YES set.  These angles look wrong - I think because our positive vertical
-    #  is opposite (?) the NLLOC convention, hence station wrt event depth is wrong (?)
-    #
-    #  The newly calculated distances are hypocentral (ray) and are exactly the same as those in nlloc last.hypo
-    #    however, the new arrival.time_residual are DIFFERENT than nlloc values!
-
-    fix_arr_takeoff_and_azimuth(cat_out, sta_meta_dict, app=app)
-
-    # Just to reinforce that these are hypocentral distance in meters ... to be used by moment_mag calc
-    # ie, obspy.arrival.distance = epicenteral distance in degrees
-    origin = cat_out[0].preferred_origin()
-    for arr in origin.arrivals:
-        arr.hypo_dist_in_m = arr.distance
+    print(origin)
 
     cat_out.write(xml_out, format='QUAKEML')
 
