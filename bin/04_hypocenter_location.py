@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
-from spp.utils.application import Application
-from microquake.core.data.inventory import inv_station_list_to_dict
-from microquake.nlloc import NLL, calculate_uncertainty
-
-from lib_process import fix_arr_takeoff_and_azimuth
+import sys
 
 import numpy as np
-import sys
+
+from lib_process import fix_arr_takeoff_and_azimuth
+from microquake.core.data.inventory import inv_station_list_to_dict
+from microquake.nlloc import NLL, calculate_uncertainty
+from spp.utils.application import Application
+
 
 def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
              params=None, app=None, project_code=None):
@@ -33,17 +34,20 @@ def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
     #         new_arrivals.append(arrival)
     # cat[0].preferred_origin().arrivals = new_arrivals
     # logger.info('done removing picks with large time residual')
-
+    import pdb; pdb.set_trace()
     logger.info('running NonLinLoc')
     t0 = time()
     cat_out = nll.run_event(cat[0].copy())
     t1 = time()
     logger.info('done running NonLinLoc in %0.3f seconds' % (t1 - t0))
 
-    logger.info("Here comes the nlloc origin:")
-    logger.info(cat_out[0].preferred_origin())
-    logger.info("Here comes the nlloc location:")
-    logger.info(cat_out[0].preferred_origin().loc)
+    if cat_out[0].preferred_origin():
+        logger.info("preferred_origin exists from nlloc:")
+        logger.info(cat_out[0].preferred_origin())
+        logger.info("Here comes the nlloc location:")
+        logger.info(cat_out[0].preferred_origin().loc)
+    else:
+        logger.info("No preferred_origin found")
 
     base_folder = params.nll_base
 
@@ -54,10 +58,10 @@ def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
                                                project_code,
                                                perturbation=5,
                                                pick_uncertainty=picking_error)
-
-    cat_out[0].preferred_origin().origin_uncertainty = origin_uncertainty
-    t3 = time()
-    logger.info('done calculating uncertainty in %0.3f seconds' % (t3 - t2))
+    if cat_out[0].preferred_origin():
+        cat_out[0].preferred_origin().origin_uncertainty = origin_uncertainty
+        t3 = time()
+        logger.info('done calculating uncertainty in %0.3f seconds' % (t3 - t2))
 
     inventory = app.get_inventory()
     sta_meta_dict = inv_station_list_to_dict(inventory)
@@ -68,9 +72,10 @@ def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
 
     # Just to reinforce that these are hypocentral distance in meters ... to be used by moment_mag calc
     # ie, obspy.arrival.distance = epicenteral distance in degrees
-    origin = cat_out[0].preferred_origin()
-    for arr in origin.arrivals:
-        arr.hypo_dist_in_m = arr.distance
+    if cat_out[0].preferred_origin():
+        origin = cat_out[0].preferred_origin()
+        for arr in origin.arrivals:
+            arr.hypo_dist_in_m = arr.distance
 
     cat_out.write("cat_nlloc.xml", format='QUAKEML')
 
@@ -100,24 +105,23 @@ def main(argv):
             sensors=sensors, params=params)
     app.logger.info('done preparing NonLinLoc')
     app.logger.info('awaiting message from Kafka')
-
     try:
         for msg_in in app.consumer:
-
             try:
+                import pdb; pdb.set_trace()
                 cat_out, st = app.receive_message(msg_in, location, nll=nll,
                                                   params=params, app=app,
                                                   project_code=project_code)
             except Exception as e:
                 app.logger.error(e)
                 continue
-
             app.send_message(cat_out, st)
             app.logger.info('awaiting message from Kafka')
             app.logger.info('IMS location %s' % cat_out[0].origins[0].loc)
-            app.logger.info('Interloc location %s' % cat_out[0].preferred_origin().loc)
-            dist = np.linalg.norm(cat_out[0].origins[0].loc - cat_out[0].preferred_origin().loc)
-            app.logger.info('distance between two location %0.2f m' % dist )
+            if cat_out[0].preferred_origin():
+                app.logger.info('Interloc location %s' % cat_out[0].preferred_origin().loc)
+                dist = np.linalg.norm(cat_out[0].origins[0].loc - cat_out[0].preferred_origin().loc)
+                app.logger.info('distance between two location %0.2f m' % dist )
             app.logger.info('awaiting message from Kafka')
 
 
