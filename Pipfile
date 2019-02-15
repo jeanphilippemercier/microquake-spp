@@ -27,8 +27,15 @@ msgpack = "*"
 dynaconf = "*"
 ipython = "*"
 redis = "*"
-
-[dev-packages]
+microquake = {editable = true,path = "./libs/microquake"}
 
 [requires]
 python_version = "3"
+
+[dev-packages]
+black = "*"
+mypy = "*"
+pylint = "*"
+
+[pipenv]
+allow_prereleases = true
