@@ -1,6 +1,6 @@
 """
 
-This convenience module will insert local data into the SPP processing pipeline
+This convenience module will insert api data into the SPP processing pipeline
 to kick it off.
 
 A kafka message bus connects modules to each other. See the settings.toml to
@@ -44,7 +44,7 @@ def retrieve_api_event(
     api_base_url: str, event_id: str, stations_black_list: List[str]
 ) -> Tuple[Catalog, Stream]:
     """
-    Retrieve a catalog and filtered waveform list from the local file system
+    Retrieve a catalog and filtered waveform list from the api
     """
 
     request = get_event_by_id(api_base_url, event_id)
