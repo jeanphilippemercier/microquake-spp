@@ -221,7 +221,6 @@ def post_event_data(api_base_url, event_resource_id, request_files, logger):
 
     result = requests.post(url, files=request_files)
     print(result)
-    Tracer()()
 
     '''
     if result.code == 200:
