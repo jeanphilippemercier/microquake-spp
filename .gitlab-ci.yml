@@ -2,6 +2,7 @@ stages:
   - base
   - build
   - docker
+  - deploy
 
 variables:
   DOCKER_DRIVER: overlay2
@@ -61,3 +62,24 @@ spp:
     - docker build . -t $CI_REGISTRY_IMAGE/spp:latest -t $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY
     - docker push $CI_REGISTRY_IMAGE/spp:latest
     - docker push $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA | cut -c1-8)
+
+kube:
+  image: docker:stable
+  stage: deploy
+  services:
+    - name: docker:stable-dind
+      entrypoint:
+        - dockerd-entrypoint.sh
+  before_script:
+    - apk add --update openssh-client make ca-certificates openssl python git bash
+  script:
+    - wget https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
+    - chmod +x kubectl
+    - echo "$KUBE" > admin.conf
+    - ./kubectl --kubeconfig admin.conf set image deployment.v1.apps/seismic-platform spp-initializer=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record
+    - ./kubectl --kubeconfig admin.conf set image deployment.v1.apps/seismic-platform spp-interloc=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record
+    - ./kubectl --kubeconfig admin.conf set image deployment.v1.apps/seismic-platform spp-picker=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record
+    - ./kubectl --kubeconfig admin.conf set image deployment.v1.apps/seismic-platform spp-hypocenter-location=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record
+    - ./kubectl --kubeconfig admin.conf set image deployment.v1.apps/seismic-platform spp-magnitude-calculation=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record
+# hypocenter-location
+# magnitude-calculation

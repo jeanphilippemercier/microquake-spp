@@ -14,11 +14,9 @@ pyparsing = "*"
 scipy = "*"
 scikit-fmm = "*"
 cython = "*"
-kafka-python = "*"
 prometheus-client = "*"
 avro = "*"
 fastavro = "*"
-confluent-kafka = "*"
 pathos = "*"
 pyyaml = "*"
 toolz = "*"
@@ -27,8 +25,17 @@ msgpack = "*"
 dynaconf = "*"
 ipython = "*"
 redis = "*"
-
-[dev-packages]
+microquake = {editable = true,path = "./libs/microquake"}
+confluent-kafka = "==0.11.5"
+kafka-python = "*"
 
 [requires]
 python_version = "3"
+
+[dev-packages]
+black = "*"
+mypy = "*"
+pylint = "*"
+
+[pipenv]
+allow_prereleases = true

@@ -263,10 +263,10 @@ def get_event_by_id(api_base_url, event_resource_id):
     import json
 
     # smi:local/e7021615-e7f0-40d0-ad39-8ff8dc0edb73
-    url = api_base_url + "events"
-    querystring = {"event_resource_id": event_resource_id}
+    url = api_base_url + "events/"
+    # querystring = {"event_resource_id": event_resource_id}
 
-    response = requests.request("GET", url, params=querystring)
+    response = requests.request("GET", url + event_resource_id)
 
     if response.status_code != 200:
         return None

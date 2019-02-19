@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
-from spp.utils.application import Application
-from microquake.waveform.pick import snr_picker
 import numpy as np
-from microquake.core.event import (Origin, CreationInfo)
+import sys
+
 from microquake.core import UTCDateTime
+from microquake.core.event import (Origin, CreationInfo)
+from microquake.waveform.pick import snr_picker
+from spp.utils.application import Application
+
 
 def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
            app=None):
@@ -138,33 +141,39 @@ def picker(cat=None, stream=None, extra_msgs=None, logger=None, params=None,
 
 __module_name__ = 'picker'
 
-app = Application(module_name=__module_name__)
-app.init_module()
+def main(argv):
 
-# reading application data
-settings = app.settings
-params = app.settings.picker
-logger = app.get_logger(settings.create_event.log_topic,
-                        settings.create_event.log_file_name)
+    app = Application(module_name=__module_name__)
+    app.init_module()
 
-app.logger.info('awaiting message from Kafka')
-try:
-    for msg_in in app.consumer:
-        try:
-            cat, st = app.receive_message(msg_in, picker, params=params, app=app)
-        except Exception as e:
-            logger.error(e)
+    # reading application data
+    settings = app.settings
+    params = app.settings.picker
+    logger = app.get_logger(settings.create_event.log_topic,
+                            settings.create_event.log_file_name)
 
+    app.logger.info('awaiting message from Kafka')
+    try:
+        for msg_in in app.consumer:
+            try:
+                cat, st = app.receive_message(msg_in, picker, params=params, app=app)
+            except Exception as e:
+                logger.error(e)
 
-        app.send_message(cat, st)
-        app.logger.info('awaiting message from Kafka')
+            app.send_message(cat, st)
+            app.logger.info('awaiting message from Kafka')
 
-        logger.info('awaiting Kafka messsages')
+            logger.info('awaiting Kafka messsages')
 
-except KeyboardInterrupt:
-    logger.info('received keyboard interrupt')
+    except KeyboardInterrupt:
+        logger.info('received keyboard interrupt')
 
-finally:
-    logger.info('closing Kafka connection')
-    app.consumer.close()
-    logger.info('connection to Kafka closed')
+    finally:
+        logger.info('closing Kafka connection')
+        app.consumer.close()
+        logger.info('connection to Kafka closed')
+
+    return
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
