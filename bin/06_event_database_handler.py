@@ -3,15 +3,16 @@
 # [catalog, stream, context_stream, event_id]
 
 from io import BytesIO
-from microquake.io import msgpack
 from time import time
-from spp.utils.application import Application
-from spp.utils.kafka import KafkaHandler
-from spp.utils import seismic_client
-from spp.utils.seismic_client import (post_data_from_objects)
 
-def event_database_handler(cat=None, stream=None, extra_msgs=None, logger=None,
-                           api_base_url=None):
+from microquake.io import msgpack
+from spp.utils import seismic_client
+from spp.utils.cli import CLI
+from spp.utils.seismic_client import post_data_from_objects
+
+
+def process(cat=None, stream=None, logger=None, app=None, module_settings=None, prepared_objects=None):
+    api_base_url = app.settings.seismic_api.base_url
     logger.info('posting data to the API')
     result = post_data_from_objects(api_base_url, event_id=None, event=cat,
                                     stream=stream, context_stream=None)
@@ -26,26 +27,12 @@ def event_database_handler(cat=None, stream=None, extra_msgs=None, logger=None,
     return result
 
 
-__module_name__ = 'event_database_handler'
+__module_name__ = 'event_database'
 
-app = Application(module_name=__module_name__)
-app.init_module()
-api_base_url = app.settings.seismic_api.base_url
+def main():
+    cli = CLI(__module_name__, callback=process)
+    cli.prepare_module()
+    cli.run_module()
 
-app.logger.info('awaiting message from Kafka')
-
-try:
-    for msg_in in app.consumer:
-        try:
-            result = app.receive_message(msg_in, event_database_handler,
-                                              api_base_url=api_base_url)
-        except Exception as e:
-            app.logger.error(e)
-
-except KeyboardInterrupt:
-    app.logger.info('received keyboard interrupt')
-
-finally:
-    app.logger.info('closing Kafka connection')
-    app.consumer.close()
-    app.logger.info('connection to Kafka closed')
+if __name__ == "__main__":
+    main()

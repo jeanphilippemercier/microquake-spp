@@ -34,7 +34,6 @@ def get_application() -> Application:
     application = Application(
         module_name=__module_name__,
         processing_flow="automatic",
-        init_processing_flow=True,
     )
     application.init_module()
     return application
