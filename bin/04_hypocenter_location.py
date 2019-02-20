@@ -1,45 +1,35 @@
 #!/usr/bin/env python3
+"""
+Predict hypocenter location
+"""
 
-import sys
+from time import time
 
 import numpy as np
 
 from lib_process import fix_arr_takeoff_and_azimuth
 from microquake.core.data.inventory import inv_station_list_to_dict
 from microquake.nlloc import NLL, calculate_uncertainty
-from spp.utils.application import Application
+from spp.utils.cli import CLI
 
 
-def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
-             params=None, app=None, project_code=None):
+def process(
+    cat=None,
+    stream=None,
+    logger=None,
+    app=None,
+    module_settings=None,
+    prepared_objects=None,
+):
+    nll = prepared_objects["nll"]
+    project_code = app.settings.project_code
+    base_folder = module_settings.nll_base
 
-    from time import time
-    #from IPython.core.debugger import Tracer
-
-    logger.info('unpacking the data received from Kafka topic <%s>'
-                % params.kafka_consumer_topic)
-
-
-    # removing arrivals that have a residual higher than residual_tolerance
-    # (see config file)
-
-    # logger.info('removing picks with large time residual')
-    # new_arrivals = []
-    # # from IPython.core.debugger import Tracer
-    # # Tracer()()
-    # for arrival in cat[0].preferred_origin().arrivals:
-    #     if arrival.time_residual is None:
-    #         new_arrivals.append(arrival)
-    #     elif arrival.time_residual < params.residual_tolerance:
-    #         new_arrivals.append(arrival)
-    # cat[0].preferred_origin().arrivals = new_arrivals
-    # logger.info('done removing picks with large time residual')
-    import pdb; pdb.set_trace()
-    logger.info('running NonLinLoc')
+    logger.info("running NonLinLoc")
     t0 = time()
     cat_out = nll.run_event(cat[0].copy())
     t1 = time()
-    logger.info('done running NonLinLoc in %0.3f seconds' % (t1 - t0))
+    logger.info("done running NonLinLoc in %0.3f seconds" % (t1 - t0))
 
     if cat_out[0].preferred_origin():
         logger.info("preferred_origin exists from nlloc:")
@@ -49,24 +39,25 @@ def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
     else:
         logger.info("No preferred_origin found")
 
-    base_folder = params.nll_base
-
-    logger.info('calculating Uncertainty')
+    logger.info("calculating Uncertainty")
     t2 = time()
-    picking_error = params.picking_error
-    origin_uncertainty = calculate_uncertainty(cat_out[0], base_folder,
-                                               project_code,
-                                               perturbation=5,
-                                               pick_uncertainty=picking_error)
+    picking_error = module_settings.picking_error
+    origin_uncertainty = calculate_uncertainty(
+        cat_out[0],
+        base_folder,
+        project_code,
+        perturbation=5,
+        pick_uncertainty=picking_error,
+    )
     if cat_out[0].preferred_origin():
         cat_out[0].preferred_origin().origin_uncertainty = origin_uncertainty
         t3 = time()
-        logger.info('done calculating uncertainty in %0.3f seconds' % (t3 - t2))
+        logger.info("done calculating uncertainty in %0.3f seconds" % (t3 - t2))
 
     inventory = app.get_inventory()
     sta_meta_dict = inv_station_list_to_dict(inventory)
 
-# Fix nlloc origin.arrival angles:
+    # Fix nlloc origin.arrival angles:
 
     fix_arr_takeoff_and_azimuth(cat_out, sta_meta_dict, app=app)
 
@@ -77,63 +68,46 @@ def location(cat=None, stream=None, extra_msgs=None, logger=None, nll=None,
         for arr in origin.arrivals:
             arr.hypo_dist_in_m = arr.distance
 
-    cat_out.write("cat_nlloc.xml", format='QUAKEML')
+    cat_out.write("cat_nlloc.xml", format="QUAKEML")
+
+    app.logger.info("IMS location %s" % cat_out[0].origins[0].loc)
+    if cat_out[0].preferred_origin():
+        app.logger.info("Interloc location %s" % cat_out[0].preferred_origin().loc)
+        dist = np.linalg.norm(
+            cat_out[0].origins[0].loc - cat_out[0].preferred_origin().loc
+        )
+        app.logger.info("distance between two location %0.2f m" % dist)
 
     return cat_out, stream
 
 
-
-__module_name__ = 'nlloc'
-
-def main(argv):
-
-    app = Application(module_name=__module_name__)
-    app.init_module()
-
-    # reading application data
-    settings = app.settings
-
-    project_code = settings.project_code
-    base_folder = settings.nlloc.nll_base
+def prepare(app=None, module_settings=None):
+    project_code = app.settings.project_code
+    base_folder = module_settings.nll_base
     gridpar = app.nll_velgrids()
     sensors = app.nll_sensors()
-    params = app.settings.nlloc
 
-    # Preparing NonLinLoc
-    app.logger.info('preparing NonLinLoc')
-    nll = NLL(project_code, base_folder=base_folder, gridpar=gridpar,
-            sensors=sensors, params=params)
-    app.logger.info('done preparing NonLinLoc')
-    app.logger.info('awaiting message from Kafka')
-    try:
-        for msg_in in app.consumer:
-            try:
-                import pdb; pdb.set_trace()
-                cat_out, st = app.receive_message(msg_in, location, nll=nll,
-                                                  params=params, app=app,
-                                                  project_code=project_code)
-            except Exception as e:
-                app.logger.error(e)
-                continue
-            app.send_message(cat_out, st)
-            app.logger.info('awaiting message from Kafka')
-            app.logger.info('IMS location %s' % cat_out[0].origins[0].loc)
-            if cat_out[0].preferred_origin():
-                app.logger.info('Interloc location %s' % cat_out[0].preferred_origin().loc)
-                dist = np.linalg.norm(cat_out[0].origins[0].loc - cat_out[0].preferred_origin().loc)
-                app.logger.info('distance between two location %0.2f m' % dist )
-            app.logger.info('awaiting message from Kafka')
+    app.logger.info("preparing NonLinLoc")
+    nll = NLL(
+        project_code,
+        base_folder=base_folder,
+        gridpar=gridpar,
+        sensors=sensors,
+        params=module_settings,
+    )
+    app.logger.info("done preparing NonLinLoc")
+
+    return {"nll": nll}
 
 
-    except KeyboardInterrupt:
-        app.logger.info('received keyboard interrupt')
+__module_name__ = "nlloc"
 
-    finally:
-        app.logger.info('closing Kafka connection')
-        app.consumer.close()
-        app.logger.info('connection to Kafka closed')
 
-    return
+def main():
+    cli = CLI(__module_name__, callback=process, prepare=prepare)
+    cli.prepare_module()
+    cli.run_module()
+
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
