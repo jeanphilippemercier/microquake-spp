@@ -25,9 +25,9 @@ msgpack = "*"
 dynaconf = "*"
 ipython = "*"
 redis = "*"
-microquake = {editable = true,path = "./libs/microquake"}
 confluent-kafka = "==0.11.5"
 kafka-python = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3"
