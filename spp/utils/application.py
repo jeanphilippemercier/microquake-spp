@@ -1,20 +1,28 @@
-import toml
-import os
-from microquake.core.util.attribdict import AttribDict
-from microquake.core.data.grid import create, read_grid
-from microquake.core.data.station import read_stations
-from microquake.core.data.inventory import load_inventory
 import logging
-import sys
-from logging.handlers import TimedRotatingFileHandler
 import os
+import sys
+import uuid
+from io import BytesIO
+from logging.handlers import TimedRotatingFileHandler
+from time import time
+
+import matplotlib.pyplot as plt
 import numpy as np
+import toml
+from confluent_kafka import Consumer, KafkaError, Producer
+
+from microquake.core import read_events
+from microquake.core.data.grid import create, read_grid
+from microquake.core.data.inventory import load_inventory
+from microquake.core.data.station import read_stations
+from microquake.core.util.attribdict import AttribDict
+from microquake.io import msgpack
 
 
 class Application(object):
 
     def __init__(self, toml_file=None, module_name=None,
-                 processing_flow=None, init_processing_flow=False):
+                 processing_flow_name='automatic'):
         """
 
         :param toml_file: path to the TOML file containing the project
@@ -24,7 +32,7 @@ class Application(object):
         with a section in the config file.
         :param processing_flow: Name of the processing flow. This must
         correspond to a section in the config file
-        :param init_processing_flow: initialize the processing flow by
+        :param processing_flow_name: initialize the processing flow by
         setting the processing step to 0.
         :return: None
         """
@@ -37,13 +45,13 @@ class Application(object):
         if toml_file is None:
             toml_file = os.path.join(self.config_dir, 'settings.toml')
         self.toml_file = toml_file
-        self.processing_flow = processing_flow
-        if init_processing_flow:
-            self.processing_step = 0
-        else:
-            self.processing_step = None
 
         self.settings = AttribDict(toml.load(self.toml_file))
+
+        processing_flow = self.settings.processing_flow[processing_flow_name]
+        self.trigger_data_name = processing_flow.trigger_data_name
+        self.dataset = processing_flow.dataset
+        self.processing_flow_steps = processing_flow.steps
 
         self.inventory = None
 
@@ -58,6 +66,44 @@ class Application(object):
                     self.settings.magnitude.__dict__.keys():
                 self.settings.magnitude.len_spectrum = 2 ** \
                 self.settings.magnitude.len_spectrum_exponent
+
+    def get_consumer_topic(self, processing_flow, dataset, module_name, trigger_data_name, input_data_name=None):
+        if input_data_name:
+            return self.get_topic(dataset, input_data_name)
+        
+        if len(processing_flow) == 0:
+            raise ValueError("Empty processing_flow, cannot determine consumer topic")
+        processing_step = -1
+        for i, flow_step in enumerate(processing_flow):
+            if module_name in flow_step:
+                processing_step = i
+                break
+        if self.get_output_data_name(module_name) == trigger_data_name:
+            # This module is triggering the processing flow. It is not consuming on any topics.
+            return ""
+        if processing_step == -1:
+            raise ValueError("Module {} does not exist in processing_flow, cannot determine consumer topic".format(module_name) )
+        if processing_step == 0:
+            # The first module always consumes from the triggering
+            return self.get_topic(dataset, trigger_data_name)
+        if len(processing_flow) < 2:
+            raise ValueError("Processing flow is malformed and only has one step {}".format(processing_flow))
+        input_module_name = processing_flow[processing_step - 1][0]
+        input_data_name = self.get_output_data_name(input_module_name)
+        return self.get_topic(dataset, input_data_name)
+
+
+    def get_producer_topic(self, dataset, module_name):
+        return self.get_topic(dataset, self.get_output_data_name(module_name))
+
+
+    def get_topic(self, dataset, data_name):
+        return "seismic_processing.{}.{}".format(dataset, data_name)
+
+
+    def get_output_data_name(self, module_name):
+        return self.settings[module_name].output_data_name
+
 
     @property
     def nll_tts_dir(self):
@@ -542,26 +588,16 @@ class Application(object):
         return arrivals
 
     def get_kafka_producer(self, logger=None, **kwargs):
-        from confluent_kafka import Producer
-        producer = Producer({'bootstrap.servers':
+        return Producer({'bootstrap.servers':
                              self.settings.kafka.brokers},
                              logger=logger)
-        return producer
 
     def get_kafka_consumer(self, logger=None, **kwargs):
-        from kafka import KafkaConsumer
-        return KafkaConsumer(self.settings[
-                                 self.__module_name__].kafka_consumer_topic,
-                             # group_id=self.settings.kafka.group_id,
-                             bootstrap_servers=self.settings.kafka.brokers)
-        # from confluent_kafka import Consumer
-        # consumer = Consumer({'bootstrap.servers':
-        #                       self.settings.kafka.brokers,
-        #                      'group.id': self.settings.kafka.group_id,
-        #                      'auto.offset.reset': 'earliest'},
-        #                      logger=logger)
-
-        return consumer
+        return Consumer({'bootstrap.servers':
+                              self.settings.kafka.brokers,
+                             'group.id': self.settings.kafka.group_id,
+                             'auto.offset.reset': 'earliest'},
+                             logger=logger)
 
     def init_module(self):
         """
@@ -570,7 +606,6 @@ class Application(object):
         """
         if self.__module_name__ is None:
             return
-
         self.logger = self.get_logger(self.settings[
                                           self.__module_name__].log_topic,
                         self.settings[self.__module_name__].log_file_name)
@@ -578,83 +613,69 @@ class Application(object):
         self.logger.info('setting up Kafka')
         self.producer = self.get_kafka_producer(logger=self.logger)
         self.consumer = self.get_kafka_consumer(logger=self.logger)
-
-        consumer_topics = self.settings[
-            self.__module_name__].kafka_consumer_topic
-        if type(consumer_topics) is list:
-            self.consumer.subscribe(consumer_topics)
-        else:
-            self.consumer.subscribe([consumer_topics])
-
+        self.consumer_topic = self.get_consumer_topic(self.processing_flow_steps, self.dataset, self.__module_name__, self.trigger_data_name)
+        if self.consumer_topic is not "":
+            self.consumer.subscribe([self.consumer_topic])
         self.logger.info('done setting up Kafka')
 
         self.logger.info('init connection to redis')
         self.redis_conn = self.init_redis()
         self.logger.info('connection to redis database successfully initated')
 
+    def close(self):
+        self.logger.info('closing Kafka connection')
+        self.consumer.close()
+        self.logger.info('connection to Kafka closed')
+
+
+    def consumer_msg_iter(self, timeout=0):
+        self.logger.info('awaiting message on topic %s' % self.consumer_topic)
+        try:
+            while True:
+                msg = self.consumer.poll(timeout)
+                if msg is None:
+                    continue
+                if msg.error():
+                    if msg.error().code() == KafkaError._PARTITION_EOF:
+                        self.logger.info('Reached end of queue!: %s', msg.error())
+                    else:
+                        self.logger.error('consumer error: %s', msg.error())
+                    continue
+                self.logger.info('message received on topic %s' % self.consumer_topic)
+                yield msg
+                self.logger.info('awaiting message on topic %s' % self.consumer_topic)
+                
+        except KeyboardInterrupt:
+            self.logger.info('received keyboard interrupt')
+
+
     def send_message(self, cat, stream, topic=None):
         """
-        send message to the next module
+        send message to the output topic on the message bus
+
         :param cat: a microquake.core.event.Catalog object
         :param stream: a microquake.core.Stream object
         :param topic: Kafka topic to which the message will be sent
         :return: None
-
-        Note that for this to work the processing_flow must be defined
         """
-        from io import BytesIO
-        from microquake.io import msgpack
-        import uuid
 
-        steps = self.settings.processing_flow[self.processing_flow].steps
-        if self.processing_step == len(steps):
-            self.info('End of processing flow! No more processing step, '
-                      'exiting')
-            return
+        if topic is None:
+            topic = self.get_producer_topic(self.dataset, self.__module_name__)
 
-        step_topics = steps[self.processing_step]
-
-        self.logger.info('Preparing data')
-        data_out = []
-        if cat is not None:
-            ev_io = BytesIO()
-            data_out.append(self.processing_flow)
-            data_out.append(self.processing_step + 1)
-            cat[0].write(ev_io, format='QUAKEML')
-            data_out.append(ev_io.getvalue())
-
-        # if stream is not None:
-        data_out.append(stream)
-
-        msg_out = msgpack.pack(data_out)
-        # timestamp_ms = int(cat[0].preferred_origin().time.timestamp * 1e3)
-        redis_key = str(uuid.uuid4())
+        self.logger.info('preparing data')
+        msg = self.serialise_message(cat, stream)
         self.logger.info('done preparing data')
 
+        redis_key = str(uuid.uuid4())
         self.logger.info('sending data to Redis with redis key = %s' %redis_key)
-        self.redis_conn.set(redis_key, msg_out,
+        self.redis_conn.set(redis_key, msg,
                             ex=self.settings.redis_extra.ttl)
         self.logger.info('done sending data to Redis')
 
         self.logger.info('sending message to kafka')
-
-        if (self.processing_flow is None) and (topic is None):
-            self.logger.error('self.processing_flow is not set and topic is '
-                              'not defined... exiting')
-            raise AttributeError('either self.processing_flow or topic have '
-                                 'to be defined')
-
-        # from IPython.core.debugger import Tracer
-        # Tracer()()
-        if type(step_topics) is list:
-            for topic in step_topics:
-                self.producer.produce(topic, redis_key)
-
-        else:
-            topic = step_topics
-            self.producer.produce(topic, redis_key)
-
+        self.producer.produce(topic, redis_key)
         self.logger.info('done sending message to kafka on topic %s' % topic)
+
 
     def receive_message(self, msg_in, callback, **kwargs):
         """
@@ -665,52 +686,42 @@ class Application(object):
         :param msg_in: message read from kafka
         :return: what callback function returns
         """
-        from microquake.io import msgpack
-        from time import time
-        from microquake.core import read_events
-        from io import BytesIO
-
-        # reload settings allows for settings to be changed dynamically.
-        self.settings = AttribDict(toml.load(self.toml_file))
-
-        topic = self.settings[self.__module_name__].kafka_consumer_topic
-
-        self.logger.info('awaiting for message on topic %s' % topic)
-
-        redis_key = msg_in.value
+        redis_key = msg_in.value()
         self.logger.info('getting data from Redis (key: %s)' % redis_key)
         t0 = time()
-        data = msgpack.unpack(self.redis_conn.get(redis_key))
+        redis_data = self.redis_conn.get(redis_key)
         t1 = time()
         self.logger.info('done getting data from Redis in %0.3f seconds' % (
             t1 - t0))
 
         self.logger.info('unpacking data')
         t2 = time()
-        st = data[3]
-        cat = read_events(BytesIO(data[2]), format='QUAKEML')
-        self.processing_flow = data[0]
-        self.processing_step = data[1]
+        cat, stream = self.deserialise_message(redis_data)
         t3 = time()
         self.logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
 
-        self.logger.info('on %s processing flow, step %d'
-                         % (self.processing_flow, self.processing_step))
-
         if not kwargs:
-            cat_out, st = callback(cat=cat, stream=st, logger=self.logger)
-
+            cat_out, st_out = callback(cat=cat, stream=stream, logger=self.logger)
         else:
-            cat_out, st = callback(cat=cat, stream=st, logger=self.logger,
+            cat_out, st_out = callback(cat=cat, stream=stream, logger=self.logger,
                                **kwargs)
-
-        self.logger.info('awaiting for message on topic %s' % topic)
-        self.logger.info('Inside receive_message: preferred origin to follow')
-        self.logger.info(cat_out[0].preferred_origin())
-        return cat_out, st
+        return cat_out, st_out
 
 
-import matplotlib.pyplot as plt
+    def serialise_message(self, cat, stream):
+        ev_io = BytesIO()
+        if cat is not None:
+            cat[0].write(ev_io, format='QUAKEML')
+        return msgpack.pack([stream, ev_io.getvalue()])
+
+
+    def deserialise_message(self, data):
+        stream, quake_ml_bytes = msgpack.unpack(data)
+        cat = read_events(BytesIO(quake_ml_bytes), format='QUAKEML')
+        return cat, stream
+
+
+
 def plot_nodes(sta_code, phase, nodes, event_location):
     x = []
     y = []
@@ -738,6 +749,3 @@ def plot_nodes(sta_code, phase, nodes, event_location):
     print("sta:%s phase:%s node.y[-2]=%f node.y[-1]=%f" % (sta_code, phase, nodes[-2][1], nodes[-1][1]))
 
     print("N nodes:%d" % len(nodes))
-
-
-

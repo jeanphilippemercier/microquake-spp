@@ -2,12 +2,11 @@ from microquake.IMS import web_client
 from microquake.core import UTCDateTime
 from spp.utils.application import Application
 import pytz
-import os
-from io import BytesIO
 from spp.utils import seismic_client
 import numpy as np
 from time import time
-from IPython.core.debugger import Tracer
+
+# from spp.utils.cli import CLI
 
 from importlib import reload
 
@@ -15,7 +14,7 @@ reload(seismic_client)
 
 __module_name__ = 'data_connector'
 
-app = Application(module_name=__module_name__)
+app = Application()
 # app.init_module()
 
 logger = app.get_logger('data_connector', 'data_connector.log')
@@ -70,14 +69,16 @@ for event in event_to_upload:
         wf = web_client.get_seismogram_event(ims_base_url, event, 'OT', tz)
         context = None
     else:
-        wf = c_wf.copy().trim(starttime=event_time-0.2, endtime=event_time+1.)
+        wf = c_wf.copy().trim(starttime=event_time-1., endtime=event_time+1.)
         index = np.argmin([arrival.distance for arrival in
                            event.preferred_origin().arrivals])
 
         station_code = event.preferred_origin().arrivals[index
                        ].get_pick().waveform_id.station_code
 
-        context = c_wf.select(station=station_code).composite()
+        context = c_wf.select(station=station_code).filter('bandpass',
+                                                           freqmin=60,
+                                                           freqmax=1000).composite()
 
     logger.info('uploading the data to the server (url:%s)' % api_base_url)
     t0 = time()

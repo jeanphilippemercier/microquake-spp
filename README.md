@@ -104,3 +104,55 @@ TypeError: 'module' object is not callable
 ```
 pipenv run python -m pip install -U 'pip==18.0'
 ```
+
+# Development
+
+See https://git.microquake.org/rio-tinto/infrastructure/wikis/home for system-wide standards
+
+It's recommended to run code through a linter, formatter, and static type checker before committing.
+
+## Linting
+
+Linting will catch any basic programming errors and enforce basic coding standards.
+Pylint is the linter for this project. See https://www.pylint.org for more information
+A .pylintrc is included in this repo that will configure the linter with our team's standards.
+
+Run the linter like this for a single file:
+
+```
+pylint ./bin/send_api_data_to_channel.py
+```
+
+Or like this to cover a package you're intereted in:
+```
+pylint spp.utils.application
+```
+
+Integrations are available for most editors to show these hints inline.
+
+## Formatting
+
+To unify our coding style, run your code through a code formatter. This way we'll avoid unproductive conversations about brackets and spaces ;)
+black is the code formatter for this project. See https://github.com/ambv/black for more information.
+
+To run:
+
+```
+black ./bin/send_api_data_to_channel.py 
+```
+
+Integrations are available for most editors to run this every time you save.
+
+## Static type checking
+
+Type annotations and static type checking serves two purposes:
+- Acts as machine-checked documentation 
+- Helps us more quickly debug errors
+
+mypy is the type checker used for this project. See http://mypy-lang.org/ for more information.
+
+To run:
+```
+mypy ./bin/send_local_data_to_channel.py --ignore-missing-imports
+```
+

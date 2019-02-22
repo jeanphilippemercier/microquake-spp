@@ -42,8 +42,11 @@ project_code = 'OT'
 [processing_flow]
     # this describes the kafka channel to which the message should be routed
     [processing_flow.automatic]
-        steps=[['location'], ['interloc'], ['picker'], ['location'], 
-               ['magnitude'], ['event_database']]
+        trigger_data_name = 'created'
+        dataset = 'seismic_event'
+        steps=[['nlloc'], ['interloc'], ['picker'], ['nlloc_adjustment'], 
+               ['measure_amplitudes'], ['magnitude'], ['event_database']]
+
     [processing_flow.interactive]
         steps=[['location'], ['magnitude'], ['event_database', 'ui_notification']]
 
@@ -55,17 +58,14 @@ project_code = 'OT'
     # path = '/Users/jpmercier/.spp/data/'
     kafka_consumer_topic = 'data_connector'
     kafka_feedback_topic = 'data_connector'
-    # kafka_producer_topic = ['continuous_db_handler', 'mseed_1sec']
-    # kafka_producer_topic = 'mseed_1sec'
     kafka_producer_topic =  'picker'
     log_topic = 'data_connector'
     log_file_name = 'data_connector.log'
 
 [initializer]
-    kafka_consumer_topic = 'initializer'
-    # kafka_producer_topic = 'interloc'
     log_topic = 'initializer'
     log_file_name = 'initializer.log'
+    output_data_name = 'created'
     [initializer.filter]
         freqmin=100
         freqmax=1000
@@ -81,15 +81,15 @@ project_code = 'OT'
     kafka_producer_topic = 'mseed_1sec'
 
 [interloc]
-    threads = 4
+    nthreads = 4
     debug = 0
-    wlen_seconds = 1.0
+    wlen_sec = 1.0
     dsr = 3000.0
     threshold = 0.2
-    kafka_consumer_topic = 'interloc'
-    # kafka_producer_topic = 'picker'
+    output_data_name = 'event_located'
     log_topic = 'interloc'
     log_file_name = 'interloc.log'
+    npz_file_dir = './common'
 
 [create_event]
     log_topic = 'create_event'
@@ -99,8 +99,7 @@ project_code = 'OT'
     snr_threshold = 6
     residual_tolerance = 10e-3
     p_s_tolerance = 5e-3  # P and S must be at least separated by p_s_tolerance
-    kafka_consumer_topic = 'picker'
-    # kafka_producer_topic = 'location'
+    output_data_name  = 'picks_set'
     log_topic = 'automatic picker'
     log_file_name = 'automatic_picker.log'
 
@@ -137,42 +136,46 @@ project_code = 'OT'
 	locsearch = 'OCT 5 5 5 1e-6 5000 500 0 1'
 	locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
     locgau = ''
-	kafka_consumer_topic = 'location'
-	# kafka_producer_topic = 'magnitude'
+    output_data_name = 'hypocenter_location_set'
 	log_file_name = 'hypocenter_location_nlloc.log'
 	log_topic = 'hypocenter Location NonLinLoc'
+    picking_error = 0.001
+
+[nlloc_adjustment]
+	nll_base = 'NLL'
+	locsig = 'Oyu Tolgoi Geotechnical Monitoring Team'
+	loccom = 'Prototype'
+    residual_tolerance = 10e-3
+	# locsearch = 'OCT 20 20 30 1e-6 50000 1000 0 1'
+	# locsearch = 'OCT 10 10 10 1e-6 20000 1000 0 1'
+	locsearch = 'OCT 5 5 5 1e-6 5000 500 0 1'
+	locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
+    locgau = ''
+    output_data_name = 'hypocenter_location_adjusted'
+	log_file_name = 'hypocenter_location_nlloc.log'
+	log_topic = 'hypocenter Location NonLinLoc'
+    picking_error = 0.001
 
 [magnitude]
 	ttpath = 'None'
 	only_triaxial = true
+    P_or_S = 'P'
 	density = 2700
+    use_smom = false
     min_dist = 20
     win_length = 0.02
     # len_spectrum is specified in exponent of 2. For instance 14 is equal to 2 ** 14
     len_spectrum_exponent = 14
     # could instead specify <len_spectrum> directly
     freq = 100
-    kafka_consumer_topic = 'magnitude'
-    # kafka_producer_topic = 'event_database'
+    output_data_name = 'magnitude_set'
     log_file_name = 'magnitude_calculation.log'
     log_topic = 'moment magnitude calculation'
 
-[focal_mechanism]
-    npolmin = 8
-    max_agap = 180
-    #max_agap = 90
-    max_pgap = 60
-    dang = 5
-    nmc = 30
-    maxout = 500
-    badfrac = 0.1
-    delmax = 120
-    cangle = 45
-    prob_max = 0.25
-    #kafka_consumer_topic = 'magnitude'
-    #kafka_producer_topic = 'event_database'
-    log_file_name = 'focal_mechanism_calculation.log'
-    log_topic = 'focal mechanism calculation'
+[measure_amplitudes]
+    output_data_name = 'amplitude_set'
+    log_file_name = 'measure_amplitudes.log'
+    log_topic = 'amplitude measurement'
 
 [kafka]
     brokers = 'broker:9092'
@@ -184,17 +187,18 @@ project_code = 'OT'
     catchup = false
 
 [logging]
-    log_directory = '/var/log/spp/'
+    log_directory = '.'
+    # log_directory = '/var/log/spp/'
     log_level = 'INFO'
     log_format = '[%(levelname)s] %(asctime)s <%(name)s> <%(thread)d> %(message)s'
     log_filename = 'spp.log'
     logger_name = 'spp'
     log_destination = 'stdout'
 
-[event_database_handler]
-	kafka_consumer_topic = 'event_database'
-    log_file_name = 'event_database_handler.log'
-    log_topic = 'event database handler'
+[event_database]
+    output_data_name = 'saved_to_db'
+    log_file_name = 'event_database.log'
+    log_topic = 'event database'
 
 [event_db]
     uri = 'mongodb://localhost:27017/'
@@ -218,10 +222,12 @@ project_code = 'OT'
   	inuse_ttl = 300
 
 [seismic_api]
-	base_url = 'http://sppkube.eastus.cloudapp.azure.com/api/v1/'
+	base_url = 'http://api.microquake.org/api/v1/'
+    # base_url = 'http://127.0.0.1:8000/api/v1/'
 
 [redis_db]
-	host = 'localhost'
+	# host = 'localhost'
+	host = 'redisdb'
 	password = ''
 	port = 6379
 	db = 0

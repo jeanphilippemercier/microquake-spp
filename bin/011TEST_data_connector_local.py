@@ -1,3 +1,5 @@
+import time
+
 from spp.utils.application import Application
 from spp.utils.seismic_client import get_event_by_id
 
@@ -9,11 +11,11 @@ app.init_module()
 
 logger = app.get_logger('data_connector', 'data_connector.log')
 
-event_id = "smi:local/8f0f1cbd-2f81-4050-8c62-fd72241f6752"  # 2018-07-06 event
+event_id = "smi:local/97f39d25-db59-40fb-bcf8-57de70589fd1"  # 2018-07-06 event
 
 settings = app.settings
 api_base_url = settings.seismic_api.base_url
-request = get_event_by_id(api_base_url, event_id)
+request = get_event_by_id(api_base_url, event_id    )
 if request is None:
     logger.error("seismic api returned None!")
     exit(0)
@@ -28,3 +30,7 @@ for tr in st:
 
 app.send_message(cat, st)
 
+# producer.produce() is an async function. This sleep allows the message to go
+# through by introducing a short time delay for the function to execute
+# this is a short-term hack and future solutions will use callbacks on producer()
+time.sleep(2)

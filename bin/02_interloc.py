@@ -1,103 +1,99 @@
-import numpy as np
 import os
-from microquake.core import Stream, UTCDateTime
-from microquake.core.event import Origin
 from datetime import datetime
+from time import time
+
+import numpy as np
+
+from microquake.core import UTCDateTime
+from microquake.core.event import Origin
 from microquake.core.util import tools
-from spp.utils.application import Application
+from spp.utils.cli import CLI
+from xseis2 import xspy
 
 
-def callback(cat=None, stream=None, extra_msgs=None, logger=None,
-             wlen_sec=None, log_dir=None, dsr=None, threshold=None):
+def process(
+    cat=None,
+    stream=None,
+    logger=None,
+    app=None,
+    module_settings=None,
+    prepared_objects=None,
+):
+    threshold = module_settings.threshold
+    npz_file_dir = module_settings.npz_file_dir
+    nthreads = module_settings.nthreads
+    wlen_sec = module_settings.wlen_sec
+    debug = module_settings.debug
+    dsr = module_settings.dsr
 
-    from time import time
-    from xseis2 import xspy
+    htt = app.get_ttable_h5()
+    stalocs = htt.locations
+    ttable = (htt.hf["ttp"][:] * dsr).astype(np.uint16)
+    ngrid = ttable.shape[1]
+    tt_ptrs = np.array([row.__array_interface__["data"][0] for row in ttable])
 
-    logger.info('preparing data for Interloc')
+    logger.info("preparing data for Interloc")
     t4 = time()
     st_out = stream.copy()
-    stream.filter('highpass', freq=100)
+    stream.filter("highpass", freq=100)
 
     data, sr, t0 = stream.as_array(wlen_sec)
     data = np.nan_to_num(data)
     data = tools.decimate(data, sr, int(sr / dsr))
     chanmap = stream.chanmap().astype(np.uint16)
     ikeep = htt.index_sta(stream.unique_stations())
-    npz_file = os.path.join(log_dir, "iloc_" + str(t0) + ".npz")
+    npz_file = os.path.join(npz_file_dir, "iloc_" + str(t0) + ".npz")
     t5 = time()
-    logger.info('done preparing data for Interloc in %0.3f seconds' % (t5 -
-                                                                        t4))
+    logger.info("done preparing data for Interloc in %0.3f seconds" % (t5 - t4))
 
-    logger.info('Locating event with Interloc')
+    logger.info("Locating event with Interloc")
     t6 = time()
-    out = xspy.pySearchOnePhase(data, dsr, chanmap, stalocs[ikeep],
-                                tt_ptrs[ikeep], ngrid, nthreads, debug,
-                                npz_file)
+    out = xspy.pySearchOnePhase(
+        data,
+        dsr,
+        chanmap,
+        stalocs[ikeep],
+        tt_ptrs[ikeep],
+        ngrid,
+        nthreads,
+        debug,
+        npz_file,
+    )
     vmax, imax, iot = out
     lmax = htt.icol_to_xyz(imax)
     t7 = time()
-    logger.info('Done locating event with Interloc in %0.3f seconds' % (t7 -
-                                                                        t6))
+    logger.info("Done locating event with Interloc in %0.3f seconds" % (t7 - t6))
 
     ot_epoch = tools.datetime_to_epoch_sec((t0 + iot / dsr).datetime)
-    time = UTCDateTime(datetime.fromtimestamp((ot_epoch)))
-    method = '%s' % ("INTERLOC", )
-    cat[0].origins.append(Origin(x=lmax[0], y=lmax[1], z=lmax[2], time=time,
-                                 method_id=method))
+    utcdatetime = UTCDateTime(datetime.fromtimestamp((ot_epoch)))
+    method = "%s" % ("INTERLOC",)
+    cat[0].origins.append(
+        Origin(x=lmax[0], y=lmax[1], z=lmax[2], time=utcdatetime, method_id=method)
+    )
     cat[0].preferred_origin_id = cat[0].origins[-1].resource_id.id
 
     logger.info("power: %.3f, ix_grid: %d, ix_ot: %d" % (vmax, imax, iot))
-    logger.info("utm_loc: ", lmax.astype(int))
+    logger.info("utm_loc: %r", lmax.astype(int))
 
     logger.info("=======================================\n")
-    logger.info("VMAX over threshold (%.3f > %.3f)" %
-                (vmax, threshold))
+    logger.info("VMAX over threshold (%.3f > %.3f)" % (vmax, threshold))
+
+    logger.info("IMS location %s" % cat[0].origins[0].loc)
+    logger.info("Interloc location %s" % cat[0].origins[1].loc)
+    dist = np.linalg.norm(cat[0].origins[0].loc - cat[0].origins[1].loc)
+    logger.info("distance between two location %0.2f m" % dist)
 
     return cat, st_out
 
 
-__module_name__ = 'interloc'
-
-app = Application(module_name=__module_name__)
-app.init_module()
-
-params = app.settings.interloc
-nthreads = params.threads
-wlen_sec = params.wlen_seconds
-debug = params.debug
-dsr = params.dsr
-
-conf = {'wlen_sec': wlen_sec, 'log_dir': '/app/common', 'dsr': dsr,
-        'threshold': params.threshold}
-
-htt = app.get_ttable_h5()
-stalocs = htt.locations
-ttable = (htt.hf['ttp'][:] * dsr).astype(np.uint16)
-ngrid = ttable.shape[1]
-tt_ptrs = np.array([row.__array_interface__['data'][0] for row in ttable])
-
-app.logger.info('awaiting message from Kafka')
-
-try:
-    for msg_in in app.consumer:
-        try:
-            cat, st = app.receive_message(msg_in, callback, **conf)
-        except Exception as e:
-            app.logger.error(e)
+__module_name__ = "interloc"
 
 
-        app.send_message(cat, st)
-        app.logger.info('IMS location %s' % cat[0].origins[0].loc)
-        app.logger.info('Interloc location %s' % cat[0].origins[1].loc)
-        dist = np.linalg.norm(cat[0].origins[0].loc - cat[0].origins[1].loc)
-        app.logger.info('distance between two location %0.2f m' % dist )
-        app.logger.info('awaiting message from Kafka')
+def main():
+    cli = CLI(__module_name__, callback=process)
+    cli.prepare_module()
+    cli.run_module()
 
 
-except KeyboardInterrupt:
-    app.logger.info('received keyboard interrupt')
-
-finally:
-    app.logger.info('closing Kafka connection')
-    app.consumer.close()
-    app.logger.info('connection to Kafka closed')
+if __name__ == "__main__":
+    main()
