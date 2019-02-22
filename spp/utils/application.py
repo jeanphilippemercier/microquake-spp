@@ -13,7 +13,7 @@ from confluent_kafka import Consumer, KafkaError, Producer
 
 from microquake.core import read_events
 from microquake.core.data.grid import create, read_grid
-from microquake.core.data.inventory import load_inventory
+# from microquake.core.data.inventory import load_inventory
 from microquake.core.data.station import read_stations
 from microquake.core.util.attribdict import AttribDict
 from microquake.io import msgpack
