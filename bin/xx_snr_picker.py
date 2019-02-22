@@ -2,24 +2,15 @@
 from obspy.core.event.base import ResourceIdentifier
 
 from microquake.core import read
-from microquake.core import UTCDateTime
-from microquake.core.data.inventory import inv_station_list_to_dict
 from microquake.core.event import read_events as read_events
-
 from spp.utils.application import Application
-
-from lib_process import fix_arr_takeoff_and_azimuth
-
 from spp.utils.seismic_client import RequestEvent, get_events_catalog, get_event_by_id
 
-import os
-import argparse
+from lib_process import fix_arr_takeoff_and_azimuth, processCmdLine
 
 import logging
 fname = 'snr_picker'
 logger = logging.getLogger(fname)
-
-from lib_process import processCmdLine
 
 
 def main():

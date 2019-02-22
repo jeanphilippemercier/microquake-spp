@@ -35,7 +35,9 @@ def main():
     else:
         cat  = read_events(xml_in)
 
+
     focal_mechanisms = calc_focal_mechanism(cat, settings.focal_mechanism)
+
     for i,event in enumerate(cat):
         focal_mechanism = focal_mechanisms[i]
         event.focal_mechanisms = [ focal_mechanism ]

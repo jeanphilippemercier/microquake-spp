@@ -19,6 +19,8 @@ def main():
     settings = app.settings
     vp_grid, vs_grid = app.get_velocities()
 
+    density = settings.magnitude.density
+
     if use_web_api:
         api_base_url = settings.seismic_api.base_url
         request = get_event_by_id(api_base_url, event_id)
@@ -45,12 +47,19 @@ def main():
         vp = vp_grid.interpolate(ev_loc)[0]
         vs = vs_grid.interpolate(ev_loc)[0]
 
-        Mw_P, station_mags_P = calc_magnitudes_from_lambda(cat, vp=vp, vs=vs, density=2700, 
-                                                           P_or_S='P', use_smom=use_smom)
+#1234567890123456789012345678901234567890123456789012345678901234567890123456789
+
+        Mw_P, station_mags_P = calc_magnitudes_from_lambda(cat, vp=vp, vs=vs,
+                                                           density=density,
+                                                           P_or_S='P',
+                                                           use_smom=use_smom,
+                                                           use_sdr=True,
+                                                           sdr=(0,80,-90))
 
         #print("In main: Mw_P=%.1f [from disp_area]" % Mw_P)
 
-        #Mw_S, station_mags_S = calc_magnitudes_from_lambda(cat, vp=vp, vs=vs, density=2700, 
+
+        #Mw_S, station_mags_S = calc_magnitudes_from_lambda(cat, vp=vp, vs=vs, density=2700,
                                                            #P_or_S='S', use_smom=use_smom)
         #print("In main: Mw_S=%.1f [from disp_area]" % Mw_S)
 
@@ -66,6 +75,7 @@ def main():
 
     cat.write(xml_out, format='QUAKEML')
 
+    return
 
 
 if __name__ == '__main__':

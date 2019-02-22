@@ -525,6 +525,8 @@ class Application(object):
                                            event_location, type='take_off')
             arrival.azimuth = self.get_grid_point(station_code, phase,
                                           event_location, type='azimuth')
+            print("create arrival: type(arrival)=%s type(takeoff_angle)=%s type(azimuth)=%s" % \
+                  (type(arrival), type(arrival.takeoff_angle), type(arrival.azimuth)))
 
             # MTH: arrival azimuth/takeoff should be in degrees - I'm pretty sure the grids
             #  store them in radians (?)

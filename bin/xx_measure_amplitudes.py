@@ -1,16 +1,17 @@
 
 from microquake.core import read
 from microquake.core.data.inventory import inv_station_list_to_dict
+
 from microquake.core.event import read_events
 from microquake.core.stream import Stream
 from microquake.waveform.amp_measures import measure_pick_amps
 from microquake.waveform.smom_mag import measure_pick_smom
 from microquake.waveform.transforms import rotate_to_ENZ, rotate_to_P_SV_SH
-
 from spp.utils.application import Application
 from spp.utils.seismic_client import get_event_by_id
 
 from lib_process import processCmdLine
+
 
 def main():
 
@@ -47,15 +48,13 @@ def main():
     inventory = app.get_inventory()
     st.attach_response(inventory)
 
+# TODO: pass inventory straight into transform.rotations ?
+
     sta_meta_dict = inv_station_list_to_dict(inventory)
 
 # 1. Rotate traces to ENZ
     st_rot = rotate_to_ENZ(st, sta_meta_dict)
     st = st_rot
-
-    #noisy_channels = remove_noisy_traces(st, event.picks)
-    #for tr in noisy_channels:
-        #print("%s: Removed noisy tr:%s" % (fname, tr.get_id()))
 
 # 2. Rotate traces to P,SV,SH wrt event location
     st_new = rotate_to_P_SV_SH(st, cat_out)
@@ -67,6 +66,7 @@ def main():
                       min_pulse_width=.00167, min_pulse_snr=5, debug=False)
     # TODO: eventually will probably want to move min_pulse params to toml file
 
+    '''
 
 # Write out new event xml file with arrival dicts containing the amp measurements
 #   needed by moment_mag and focal_mech modules:
@@ -75,6 +75,7 @@ def main():
     exit()
 
   # Zach: I'm still working out the flow for the S arrivals below here, so ignore for now ..
+    '''
 
     trS = [tr for tr in st_rot if tr.stats.channel[0].upper() != 'Z']
     st2 = Stream(traces=trS)
