@@ -71,7 +71,7 @@ class Application(object):
     def get_consumer_topic(self, processing_flow, dataset, module_name, trigger_data_name, input_data_name=None):
         if input_data_name:
             return self.get_topic(dataset, input_data_name)
-        
+
         if len(processing_flow) == 0:
             raise ValueError("Empty processing_flow, cannot determine consumer topic")
         processing_step = -1

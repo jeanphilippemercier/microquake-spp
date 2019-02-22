@@ -280,7 +280,7 @@ def get_continuous_stream(api_base_url, start_time, end_time, station=None,
 
 
     querystring = {'start_time': str(start_time), 'end_time': str(end_time),
-                   "station":station,}
+                   "station": station,}
 
     response = requests.request('GET', url,  params=querystring)
     file = BytesIO(response.content)
