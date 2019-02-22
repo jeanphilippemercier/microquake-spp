@@ -30,6 +30,7 @@ project_code = 'OT'
     units   = 'meter'
     format  = 'csv'
     path    = 'sensors.csv'
+    black_list = ['23', '31', '32', '100', '102', '107', '88', '90', '77']
 
 [data_local]
     ms_chunks    = '/home/phil/data/oyu/spp_common/synthetic/chunks/*.mseed'
@@ -191,6 +192,7 @@ project_code = 'OT'
     inuse_ttl = 300
 
 [seismic_api]
+    base_url = 'http://sppkube.eastus.cloudapp.azure.com/api/v1/'
     events_url = 'http://localhost:8000/api/v1/events'
 
 
