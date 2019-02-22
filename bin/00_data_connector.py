@@ -2,12 +2,11 @@ from microquake.IMS import web_client
 from microquake.core import UTCDateTime
 from spp.utils.application import Application
 import pytz
-import os
-from io import BytesIO
 from spp.utils import seismic_client
 import numpy as np
 from time import time
-from IPython.core.debugger import Tracer
+
+# from spp.utils.cli import CLI
 
 from importlib import reload
 
@@ -15,7 +14,7 @@ reload(seismic_client)
 
 __module_name__ = 'data_connector'
 
-app = Application(module_name=__module_name__)
+app = Application()
 # app.init_module()
 
 logger = app.get_logger('data_connector', 'data_connector.log')
