@@ -541,8 +541,8 @@ class Application(object):
         from microquake.core.event import Arrival
         from IPython.core.debugger import Tracer
 
-        print("create_arrival_from_picks: event_location:<%.1f, %.1f, %.1f>" % \
-              (event_location[0], event_location[1], event_location[2]))
+        #print("create_arrival_from_picks: event_location:<%.1f, %.1f, %.1f>" % \
+              #(event_location[0], event_location[1], event_location[2]))
 
         arrivals = []
         for pick in picks:
@@ -578,8 +578,8 @@ class Application(object):
                                            event_location, type='take_off')
             arrival.azimuth = self.get_grid_point(station_code, phase,
                                           event_location, type='azimuth')
-            print("create arrival: type(arrival)=%s type(takeoff_angle)=%s type(azimuth)=%s" % \
-                  (type(arrival), type(arrival.takeoff_angle), type(arrival.azimuth)))
+            #print("create arrival: type(arrival)=%s type(takeoff_angle)=%s type(azimuth)=%s" % \
+                  #(type(arrival), type(arrival.takeoff_angle), type(arrival.azimuth)))
 
             # MTH: arrival azimuth/takeoff should be in degrees - I'm pretty sure the grids
             #  store them in radians (?)

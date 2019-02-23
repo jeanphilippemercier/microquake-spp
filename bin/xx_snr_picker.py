@@ -8,10 +8,7 @@ from spp.utils.seismic_client import RequestEvent, get_events_catalog, get_event
 
 from lib_process import fix_arr_takeoff_and_azimuth, processCmdLine
 
-import logging
 fname = 'snr_picker'
-logger = logging.getLogger(fname)
-
 
 def main():
 
@@ -20,6 +17,7 @@ def main():
     # reading application data
     app = Application()
     settings = app.settings
+    logger = app.get_logger('xx_picker', 'zlog')
 
     if use_web_api:
         api_base_url = settings.seismic_api.base_url
@@ -41,15 +39,13 @@ def main():
         mag = event.magnitudes[0]
         event.preferred_magnitude_id = ResourceIdentifier(id=mag.resource_id.id, referred_object=mag)
 
-
-# Repick
-    #from zlibs import picker
-    picker = __import__('03_picker').picker
+    picker = __import__('03_picker').process
     params = app.settings.picker
     # This will create a new (2nd) origin with origin.time from stacking and origin.loc same as original orogin.loc
     #  The new origin will have arrivals for each snr pick that exceeded snr_threshold
     # Both event.preferred_origin and cat_out[0].preferred_origin will be set to this new (2nd) origin
-    cat_out, st_out = picker(cat=cat, stream=st, extra_msgs=None, logger=logger, params=params, app=app)
+    #cat_out, st_out = picker(cat=cat, stream=st, extra_msgs=None, logger=logger, params=params, app=app)
+    cat_out, st_out = picker(cat=cat, stream=st, app=app, module_settings = app.settings.picker, logger=logger)
 
     cat_out.write(xml_out, format='QUAKEML')
 

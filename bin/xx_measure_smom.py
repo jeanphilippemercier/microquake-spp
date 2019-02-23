@@ -1,4 +1,6 @@
 
+from obspy.core.event.base import Comment
+
 from microquake.core import read
 from microquake.core.data.inventory import inv_station_list_to_dict
 
@@ -14,14 +16,14 @@ from lib_process import processCmdLine
 
 def main():
 
-    fname = 'measure_amplitudes'
+    fname = 'measure_smom'
     use_web_api, event_id, xml_out, xml_in, mseed_in = processCmdLine(fname)
 
     # reading application data
     app = Application()
     settings = app.settings
 
-    logger = app.get_logger('xx_measure_amplitudes','zlog')
+    logger = app.get_logger('xx_measure_smom','zlog')
 
     if use_web_api:
         logger.info("Read from web_api")
@@ -51,31 +53,42 @@ def main():
         logger.warn("Inventory: Missing response for sta:%s" % sta)
 
 # 1. Rotate traces to ENZ
-    st_rot = rotate_to_ENZ(st, inventory)
-    st = st_rot
-    # MTH: st_rot now contains a mix of rotated (P,SV,SH) and non-rotate(E,N,Z) traces
-    # since if we have no arrival we have no backazimuth and hence no rotation!
-    # However, measure_pick_amps is only going to measure traces that are associated
-    # with an arrival
+    #st_rot = rotate_to_ENZ(st, inventory)
+    #st = st_rot
 
 # 2. Rotate traces to P,SV,SH wrt event location
-    st_new = rotate_to_P_SV_SH(st, cat_out)
-    st = st_new
+    #st_new = rotate_to_P_SV_SH(st, cat_out)
+    #st = st_new
 
-# 3. Measure polarities, displacement areas, etc for each pick from instrument deconvolved traces
+    for event in cat_out:
+        origin = event.preferred_origin()
+        synthetic_picks = app.synthetic_arrival_times(origin.loc, origin.time)
+        smom_dict, fc = measure_pick_smom(st, inventory, event, synthetic_picks, \
+                                      fmin=30., fmax=600, P_or_S='P',
+                                      use_fixed_fmin_fmax=True,
+                                      debug=True)
 
-    # MTH: This time-domain method only seems (to me) to be reliable for
-    #      for measuring P polarity and displacement_area.
-    #      For S I prefer to use freq domain approach in a separate module
+        """
+        arrivals = [arr for arr in event.preferred_origin().arrivals if arr.phase == 'P']
+        for arr in arrivals:
+            pk = arr.pick_id.get_referred_object()
+            sta= pk.waveform_id.station_code
+            print("sta:%3s [%s] time:%s smom:%12.10g" % (sta, arr.phase, pk.time, arr.smom))
+        """
 
-    trP = [tr for tr in st if tr.stats.channel == 'P' or tr.stats.channel.upper() == 'Z']
-    measure_pick_amps(Stream(traces=trP), cat_out, phase_list=['P'], use_stats_dict=False,
-                      min_pulse_width=.00167, min_pulse_snr=5, debug=True)
+        comment = Comment(text="corner_frequency_P=%.2f measured for P arrivals" % fc)
+        origin.comments.append(comment)
 
-# Write out new event xml file with arrival dicts containing the amp measurements
-#   needed by moment_mag and focal_mech modules:
+        smom_dict, fc = measure_pick_smom(st, inventory, event, synthetic_picks, \
+                                      fmin=30., fmax=600, P_or_S='S',
+                                      use_fixed_fmin_fmax=True,
+                                      debug=True)
+
+        comment = Comment(text="corner_frequency_S=%.2f measured for S arrivals" % fc)
+        origin.comments.append(comment)
+
+# Write out event xml for downstream modules (focal_mech, moment_mag)
     cat_out[0].write(xml_out, format='QUAKEML')
-
 
     return
 

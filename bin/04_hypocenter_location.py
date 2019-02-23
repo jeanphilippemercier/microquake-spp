@@ -70,13 +70,17 @@ def process(
 
     cat_out.write("cat_nlloc.xml", format="QUAKEML")
 
-    app.logger.info("IMS location %s" % cat_out[0].origins[0].loc)
+    logger.info("IMS location %s" % cat_out[0].origins[0].loc)
     if cat_out[0].preferred_origin():
-        app.logger.info("Interloc location %s" % cat_out[0].preferred_origin().loc)
+        # MTH: Why pass in logger if you're going to pull it from app ? This only
+        #      works if you've run app.init_module() - e.g, with kafka
+        #app.logger.info("Interloc location %s" % cat_out[0].preferred_origin().loc)
+        logger.info("Interloc location %s" % cat_out[0].preferred_origin().loc)
         dist = np.linalg.norm(
             cat_out[0].origins[0].loc - cat_out[0].preferred_origin().loc
         )
-        app.logger.info("distance between two location %0.2f m" % dist)
+        #app.logger.info("distance between two location %0.2f m" % dist)
+        logger.info("distance between two location %0.2f m" % dist)
 
     return cat_out, stream
 
