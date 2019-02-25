@@ -13,7 +13,8 @@ from confluent_kafka import Consumer, KafkaError, Producer
 
 from microquake.core import read_events
 from microquake.core.data.grid import create, read_grid
-# from microquake.core.data.inventory import load_inventory
+from microquake.core.data.inventory import load_inventory
+from microquake.core.data.inventory import Inventory
 from microquake.core.data.station import read_stations
 from microquake.core.util.attribdict import AttribDict
 from microquake.io import msgpack
@@ -70,7 +71,7 @@ class Application(object):
     def get_consumer_topic(self, processing_flow, dataset, module_name, trigger_data_name, input_data_name=None):
         if input_data_name:
             return self.get_topic(dataset, input_data_name)
-        
+
         if len(processing_flow) == 0:
             raise ValueError("Empty processing_flow, cannot determine consumer topic")
         processing_step = -1
@@ -137,8 +138,12 @@ class Application(object):
         if self.inventory is None:
             print("app.get_inventory: ** Load inventory file **")
             if params.source == 'local':
-                fpath = os.path.join(self.common_dir, params.path)
-                self.inventory = load_inventory(fpath, format='CSV')
+                # MTH: let's read in the stationxml directly for now!
+                fpath = os.path.join(self.common_dir, params.stationXML)
+                self.inventory = Inventory.load_from_xml(fpath)
+                #fpath = os.path.join(self.common_dir, params.path)
+                #self.inventory = load_inventory(fpath, format='CSV')
+
             elif self.settings.sensors.source == 'remote':
                 pass
         else:
