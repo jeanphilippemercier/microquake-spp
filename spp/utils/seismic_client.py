@@ -12,6 +12,8 @@ class RequestEvent:
     def __init__(self, ev_dict):
         for key in ev_dict.keys():
             if 'time' in key:
+                if key == 'timezone':
+                    continue
                 if type(ev_dict[key]) is not str:
                     setattr(self, key, ev_dict[key])
                     continue
@@ -32,6 +34,12 @@ class RequestEvent:
         waveform_context_file = requests.request('GET',
                                                  self.context_waveform_file)
         byte_stream = BytesIO(waveform_context_file)
+        return read(byte_stream)
+
+    def get_variable_length_waveform(self):
+        variable_length_waveform_file = requests.request('GET',
+                                        self.variable_size_waveform_file)
+        byte_stream = BytesIO(variable_length_waveform_file)
         return read(byte_stream)
 
     def select(self):
@@ -91,7 +99,8 @@ def post_data_from_files(api_base_url, event_id=None, event_file=None,
 
 
 def post_data_from_objects(api_base_url, event_id=None, event=None,
-                          stream=None, context_stream=None, tolerance=0.5,
+                          stream=None, context_stream=None,
+                          variable_lenght_stream=None, tolerance=0.5,
                           logger=None):
     """
     Build request directly from objects
@@ -103,6 +112,8 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
     considered. Use catalog with caution.
     :param stream: event seismogram (microquake.core.Stream.stream)
     :param context_stream: context seismogram trace (
+    microquake.core.Stream.stream)
+    :param variable_lenght_stream: variable length seismogram trace (
     microquake.core.Stream.stream)
     :param tolerance: Minimum time between an event already in the database
     and this event for this event to be inserted into the database. This is to
@@ -206,6 +217,16 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         mseed_context_bytes.seek(0)
         files['context'] = mseed_context_bytes
         logger.info('done preparing context waveform data')
+
+    if variable_lenght_stream is not None:
+        logger.info('preparing variable length waveform data')
+        mseed_variable_bytes = BytesIO()
+        context_stream.write(mseed_variable_bytes, format='MSEED')
+        mseed_variable_file_name = base_event_file_name + '.variable_mseed'
+        mseed_context_bytes.name = mseed_variable_file_name
+        mseed_context_bytes.seek(0)
+        files['variable_size_waveform'] = mseed_context_bytes
+        logger.info('done preparing variable length waveform data')
 
     return post_event_data(api_url, event_resource_id, files, logger)
 
