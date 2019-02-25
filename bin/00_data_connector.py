@@ -65,8 +65,11 @@ for event in event_to_upload:
     et = event_time + 1
     c_wf = web_client.get_continuous(ims_base_url, st, et, site_ids, tz)
 
+    vs_waveform = web_client.get_seismogram_event(ims_base_url, event, 'OT',
+                                                  tz)
+
     if not c_wf:
-        wf = web_client.get_seismogram_event(ims_base_url, event, 'OT', tz)
+        wf = vs_waveform
         context = None
     else:
         wf = c_wf.copy().trim(starttime=event_time-1., endtime=event_time+1.)
@@ -84,7 +87,8 @@ for event in event_to_upload:
     t0 = time()
     seismic_client.post_data_from_objects(api_base_url, event_id=None,
                                           event=event, stream=wf,
-                                          context_stream=context)
+                                          context_stream=context,
+                                          variable_lenght_stream=vs_waveform)
     t1 = time()
     logger.info('done uploading the data to the server in %0.3f seconds'
                 % (t1 - t0))
