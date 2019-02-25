@@ -99,9 +99,9 @@ def post_data_from_files(api_base_url, event_id=None, event_file=None,
 
 
 def post_data_from_objects(api_base_url, event_id=None, event=None,
-                          stream=None, context_stream=None,
-                          variable_lenght_stream=None, tolerance=0.5,
-                          logger=None):
+                           stream=None, context_stream=None,
+                           variable_length_stream=None, tolerance=0.5,
+                           logger=None):
     """
     Build request directly from objects
     :param api_base_url: base url of the API
@@ -113,7 +113,7 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
     :param stream: event seismogram (microquake.core.Stream.stream)
     :param context_stream: context seismogram trace (
     microquake.core.Stream.stream)
-    :param variable_lenght_stream: variable length seismogram trace (
+    :param variable_length_stream: variable length seismogram trace (
     microquake.core.Stream.stream)
     :param tolerance: Minimum time between an event already in the database
     and this event for this event to be inserted into the database. This is to
@@ -124,6 +124,7 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
     :return: same as build_request_data_from_bytes
     """
 
+    from pdb import set_trace
     from microquake.core.event import Catalog
 
     api_url = api_base_url + "events"
@@ -133,10 +134,6 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
     if logger is None:
         import logging
         logger = logging.getLogger(__name__)
-
-    event_bytes=None
-    mseed_bytes=None
-    mseed_context_bytes=None
 
     if type(event) is type(Catalog):
         event = event[0]
@@ -218,27 +215,24 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         files['context'] = mseed_context_bytes
         logger.info('done preparing context waveform data')
 
-    if variable_lenght_stream is not None:
+    if variable_length_stream is not None:
         logger.info('preparing variable length waveform data')
         mseed_variable_bytes = BytesIO()
-        context_stream.write(mseed_variable_bytes, format='MSEED')
+        variable_length_stream.write(mseed_variable_bytes, format='MSEED')
         mseed_variable_file_name = base_event_file_name + '.variable_mseed'
-        mseed_context_bytes.name = mseed_variable_file_name
-        mseed_context_bytes.seek(0)
-        files['variable_size_waveform'] = mseed_context_bytes
+        mseed_variable_bytes.name = mseed_variable_file_name
+        mseed_variable_bytes.seek(0)
+        files['variable_size_waveform'] = mseed_variable_bytes
         logger.info('done preparing variable length waveform data')
+
+    set_trace()
 
     return post_event_data(api_url, event_resource_id, files, logger)
 
 
 def post_event_data(api_base_url, event_resource_id, request_files, logger):
-    url = api_base_url + "/%s" % urllib.parse.quote(event_resource_id, safe="")
     url = api_base_url + "/%s" % event_resource_id
     logger.info('posting data on %s' % url)
-
-    from IPython.core.debugger import Tracer
-
-    # headers = {'Content-Type': 'multipart/form-data'}
 
     result = requests.post(url, files=request_files)
     print(result)
