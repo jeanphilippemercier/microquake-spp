@@ -21,22 +21,10 @@ from typing import List, Tuple
 from obspy.core.event.catalog import Catalog
 
 from microquake.core.stream import Stream
-from spp.utils.application import Application
+from spp.utils.kafka_redis_application import KafkaRedisApplication
 from spp.utils.seismic_client import get_event_by_id
 
 __module_name__ = "initializer"
-
-
-def get_application() -> Application:
-    """
-    Return an initialised application
-    """
-    application = Application(
-        module_name=__module_name__,
-        processing_flow="automatic",
-    )
-    application.init_module()
-    return application
 
 
 def retrieve_api_event(
@@ -60,7 +48,7 @@ def retrieve_api_event(
 
 
 def send_to_msg_bus(
-    app: Application, catalog: Catalog, waveform_stream: Stream
+    app: KafkaRedisApplication, catalog: Catalog, waveform_stream: Stream
 ):
     """
     Send a catalog and waveform list to the msg bus
@@ -76,23 +64,19 @@ def send_to_msg_bus(
 
 
 if __name__ == "__main__":
-    logging.getLogger("send_api_data_to_channel").info(
-        "Initialising application"
-    )
+    logging.getLogger("send_api_data_to_channel").info("Initialising application")
 
-    app = get_application()
-    logger = app.get_logger(
-        "send_api_data_to_channel", "send_api_data_to_channel.log"
+    app = KafkaRedisApplication(
+        module_name=__module_name__, processing_flow_name="automatic"
     )
+    logger = app.get_logger("send_api_data_to_channel", "send_api_data_to_channel.log")
     logger.info("Initialised application")
 
     event_id = sys.argv[1:][0]
 
     logger.info("Retrieving event and waveforms from API: %s", event_id)
     catalog, waveform_stream = retrieve_api_event(
-        app.settings.seismic_api.base_url,
-        event_id,
-        app.settings.sensors.black_list,
+        app.settings.seismic_api.base_url, event_id, app.settings.sensors.black_list
     )
 
     logger.info("Sending event to message bus")
