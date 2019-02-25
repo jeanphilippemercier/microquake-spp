@@ -124,7 +124,6 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
     :return: same as build_request_data_from_bytes
     """
 
-    from pdb import set_trace
     from microquake.core.event import Catalog
 
     api_url = api_base_url + "events"
@@ -224,8 +223,6 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         mseed_variable_bytes.seek(0)
         files['variable_size_waveform'] = mseed_variable_bytes
         logger.info('done preparing variable length waveform data')
-
-    set_trace()
 
     return post_event_data(api_url, event_resource_id, files, logger)
 
