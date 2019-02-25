@@ -72,18 +72,22 @@ for event in event_to_upload:
         wf = vs_waveform
         context = None
     else:
-        wf = c_wf.copy().trim(starttime=event_time-1., endtime=event_time+1.)
+        wf = c_wf.copy().trim(starttime=event_time - 1., endtime=event_time + 1.)
         index = np.argmin([arrival.distance for arrival in
                            event.preferred_origin().arrivals])
 
         station_code = event.preferred_origin().arrivals[index
-                       ].get_pick().waveform_id.station_code
+        ].get_pick().waveform_id.station_code
 
         context = c_wf.select(station=station_code).filter('bandpass',
                                                            freqmin=60,
                                                            freqmax=1000).composite()
 
     logger.info('uploading the data to the server (url:%s)' % api_base_url)
+
+    logger.info('Objects Types: event: %s, stream: %s, context: %s, vl_stream: %s' % (
+    type(event), type(wf), type(context), type(vs_waveform)))
+
     t0 = time()
     seismic_client.post_data_from_objects(api_base_url, event_id=None,
                                           event=event, stream=wf,
@@ -101,21 +105,3 @@ for event in event_to_upload:
                                           stream_id=event.resource_id)
     t3 = time()
     logger.info('done uploading continuous data in %0.3f seconds' % (t3 - t2))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

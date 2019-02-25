@@ -52,7 +52,7 @@ class RequestEvent:
 
 
 def post_data_from_files(api_base_url, event_id=None, event_file=None,
-                         mseed_file=None, mseed_context_file=None,
+                         mseed_file=None, mseed_context_file=None, variable_length_stream_file=None,
                          tolerance=0.5, logger=None):
     """
     Build request directly from objects
@@ -92,9 +92,13 @@ def post_data_from_files(api_base_url, event_id=None, event_file=None,
     if mseed_context_file is not None:
         context_stream = read(mseed_context_file, format='MSEED')
 
+    # read variable length waveform
+    if variable_length_stream_file is not None:
+        variable_length_stream = read(variable_length_stream_file, format='MSEED')
+
     return post_data_from_objects(api_base_url, event_id=event_id,
                                   event=event, stream=stream,
-                                  context_stream=context_stream,
+                                  context_stream=context_stream, variable_length_stream=variable_length_stream,
                                   tolerance=tolerance, logger=logger)
 
 
@@ -134,7 +138,7 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         import logging
         logger = logging.getLogger(__name__)
 
-    if type(event) is type(Catalog):
+    if type(event) is Catalog:
         event = event[0]
         logger.warning('a <microquake.core.event.Catalog> object was '
                        'provided, only the first element of the catalog will '
