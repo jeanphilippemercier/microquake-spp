@@ -14,7 +14,7 @@ reload(seismic_client)
 
 __module_name__ = 'data_connector'
 
-app = Application()
+app = Application(module_name=__module_name__)
 # app.init_module()
 
 logger = app.get_logger('data_connector', 'data_connector.log')
@@ -105,3 +105,12 @@ for event in event_to_upload:
                                           stream_id=event.resource_id)
     t3 = time()
     logger.info('done uploading continuous data in %0.3f seconds' % (t3 - t2))
+
+def main():
+    cli = CLI(__module_name__, callback=process)
+    cli.prepare_module()
+    cli.run_module()
+
+
+if __name__ == "__main__":
+    main()
