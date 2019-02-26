@@ -43,7 +43,7 @@ def retrieve_local_event(
         waveform_stream = read(waveform_file, format="MSEED")
 
     for trace in waveform_stream:
-        if trace.stats.station not in stations_black_list:
+        if trace.stats.station in stations_black_list:
             waveform_stream.remove(trace)
 
     return catalog, waveform_stream

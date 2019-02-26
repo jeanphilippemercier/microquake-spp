@@ -597,7 +597,7 @@ class Application(object):
 
     def clean_waveform_stream(self, waveform_stream, stations_black_list):
         for trace in waveform_stream:
-            if trace.stats.station not in stations_black_list:
+            if trace.stats.station in stations_black_list:
                 waveform_stream.remove(trace)
         return waveform_stream
 
