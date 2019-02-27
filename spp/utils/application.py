@@ -626,14 +626,14 @@ class Application(object):
         t3 = time()
         self.logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
 
+        if self.settings.sensors.black_list is not None:
+            self.clean_waveform_stream(stream, self.settings.sensors.black_list)
+
         if not kwargs:
             cat_out, st_out = callback(cat=cat, stream=stream, logger=self.logger)
         else:
             cat_out, st_out = callback(cat=cat, stream=stream, logger=self.logger,
                                **kwargs)
-
-        if self.settings.sensors.black_list is not None:
-            self.clean_waveform_stream(st_out, self.settings.sensors.black_list)
 
         return cat_out, st_out
 
