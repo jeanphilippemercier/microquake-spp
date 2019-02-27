@@ -17,6 +17,7 @@ import logging
 import sys
 import time
 from typing import List, Tuple
+import numpy as np
 
 from obspy.core.event.catalog import Catalog
 
@@ -41,6 +42,20 @@ def retrieve_local_event(
 
     with open(local_mseed_location, "rb") as waveform_file:
         waveform_stream = read(waveform_file, format="MSEED")
+
+    # adding trim and filtering functions.
+
+    pick_time = [arrival.get_pick().time for arrival in
+                 catalog[0].preferred_origin().arrivals]
+    min_pick_time = np.min(pick_time)
+
+    waveform_stream = waveform_stream.detrend('demean').detrend('linear')
+
+    waveform_stream.filter('bandpass', freqmin=100, freqmax=1000)
+
+    waveform_stream = waveform_stream.trim(startime=min_pick_time - 0.5,
+                                           endtime=min_pick_time + 1.5,
+                                           pad=True, fill_value=0)
 
     for trace in waveform_stream:
         if trace.stats.station not in stations_black_list:

@@ -92,7 +92,8 @@ for event in event_to_upload:
     seismic_client.post_data_from_objects(api_base_url, event_id=None,
                                           event=event, stream=wf,
                                           context_stream=context,
-                                          variable_length_stream=vs_waveform)
+                                          variable_length_stream=vs_waveform,
+                                          logger=logger)
     t1 = time()
     logger.info('done uploading the data to the server in %0.3f seconds'
                 % (t1 - t0))
