@@ -7,14 +7,14 @@ from lib_process import processCmdLine
 
 def main():
 
-    fname = 'moment_magnitude'
+    fname = 'moment_magnitude_f'
 
     use_web_api, event_id, xml_out, xml_in, mseed_in = processCmdLine(fname)
 
     # reading application data
     app = Application()
     settings = app.settings
-    logger = app.get_logger('xx_moment_magnitude', 'zlog')
+    logger = app.get_logger('xx_moment_magnitude_f', 'zlog')
     vp_grid, vs_grid = app.get_velocities()
 
     density = settings.magnitude.density
@@ -43,18 +43,34 @@ def main():
                                                            vs=vs,
                                                            density=density,
                                                            P_or_S='P',
-                                                           use_smom=False,
+                                                           use_smom=True,
                                                            use_sdr=False,
                                                            use_free_surface_correction=False,
                                                            sdr=(0,80,-90),
                                                            logger=logger)
 
-        print("In main: Mw_P=%.1f [from disp area]" % Mw_P)
 
-        comment="Average of time-domain P station moment magnitudes"
-        Mw = Mw_P
-        station_mags = station_mags_P
-        set_new_event_mag(event, station_mags, Mw, comment, make_preferred=True)
+        Mw_S, station_mags_S = calc_magnitudes_from_lambda([event],
+                                                           vp=vp,
+                                                           vs=vs,
+                                                           density=density,
+                                                           P_or_S='S',
+                                                           use_smom=True,
+                                                           use_sdr=False,
+                                                           use_free_surface_correction=False,
+                                                           sdr=(0,80,-90),
+                                                           logger=logger)
+
+
+        # Average Mw_P,Mw_S to get event Mw and wrap with list of station mags/contributions
+        Mw = 0.5 * (Mw_P + Mw_S)
+        station_mags = station_mags_P + station_mags_S
+
+        comment="Average of frequency-domain P and S station moment magnitudes"
+
+        print("%s: Mw_P=%.1f Mw_S=%.1f Mw=%.1f" % (fname, Mw_P, Mw_S, Mw))
+
+        set_new_event_mag(event, station_mags, Mw, comment, make_preferred=False)
 
 
     cat.write(xml_out, format='QUAKEML')

@@ -9,10 +9,7 @@ from spp.utils.seismic_client import RequestEvent, get_events_catalog, get_event
 
 from lib_process import fix_arr_takeoff_and_azimuth, processCmdLine
 
-import logging
 fname = 'locate'
-logger = logging.getLogger(fname)
-
 
 def main():
 
@@ -21,11 +18,7 @@ def main():
     # reading application data
     app = Application()
     settings = app.settings
-
-    project_code = settings.project_code
-    base_folder = settings.nlloc.nll_base
-    gridpar = app.nll_velgrids()
-    sensors = app.nll_sensors()
+    logger = app.get_logger('xx_locate', 'zlog')
 
     if use_web_api:
         logger.info("Read from web_api")
@@ -42,17 +35,26 @@ def main():
 
     #snr_picks = [ pk for pk in cat_out[0].picks if pk.method is not None and 'snr_picker' in pk.method ]
 
-# Relocate
-    location = __import__('04_hypocenter_location').location
+    location = __import__('04_hypocenter_location').process
     params = app.settings.nlloc
     logger.info('Preparing NonLinLoc')
+
+    project_code = settings.project_code
+    base_folder = settings.nlloc.nll_base
+    gridpar = app.nll_velgrids()
+    sensors = app.nll_sensors()
+
     nll = NLL(project_code, base_folder=base_folder, gridpar=gridpar, sensors=sensors, params=params)
+    prepared_objects = {"nll": nll}
 
     # This will create a new (3rd) origin and will set cat_out[0].preferred_origin to point to it,
     #   however, event will still contain only 2 origins and event.preferred_origin points to the old preferred
 
-    cat_out, st_out = location(cat=cat, stream=None, extra_msgs=None, logger=logger, nll=nll,
-                               params=params, project_code=project_code, app=app)
+    cat_out, st_out = location(cat=cat, stream=None,
+                               app=app,
+                               module_settings=app.settings.nlloc,
+                               prepared_objects=prepared_objects,
+                               logger=logger)
 
     cat_out.write(xml_out, format='QUAKEML')
 

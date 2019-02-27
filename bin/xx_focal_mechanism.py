@@ -7,8 +7,6 @@ from spp.utils.seismic_client import get_event_by_id
 
 from lib_process import processCmdLine
 
-import logging
-logger = logging.getLogger()
 
 def main():
 
@@ -17,12 +15,9 @@ def main():
     # reading application data
     app = Application()
     settings = app.settings
+    logger = app.get_logger('xx_focal_mechanism', 'zlog')
 
     use_web_api, event_id, xml_out, xml_in, mseed_in = processCmdLine(fname, require_mseed=False)
-
-    # reading application data
-    app = Application()
-    settings = app.settings
 
     if use_web_api:
         api_base_url = settings.seismic_api.base_url
