@@ -36,6 +36,7 @@ def process(
             density=module_settings.density,
             P_or_S=module_settings.P_or_S,
             use_smom=module_settings.use_smom,
+            logger = app.logger
         )
         Mw = Mw_P
         if len(station_mags_P) == 0:
