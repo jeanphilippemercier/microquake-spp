@@ -39,7 +39,6 @@ class Application(object):
         self.__module_name__ = module_name
         if self.__module_name__ is None:
             print("No module name, application cannot initialise")
-            return
 
         self.config_dir = os.environ['SPP_CONFIG']
         self.common_dir = os.environ['SPP_COMMON']
@@ -69,9 +68,11 @@ class Application(object):
                 self.settings.magnitude.len_spectrum = 2 ** \
                 self.settings.magnitude.len_spectrum_exponent
 
-        self.logger = self.get_logger(self.settings[
-                                          self.__module_name__].log_topic,
-                        self.settings[self.__module_name__].log_file_name)
+        self.logger = self.get_logger('application', './application.log')
+        if self.__module_name__:
+            self.logger = self.get_logger(self.settings[
+                                            self.__module_name__].log_topic,
+                            self.settings[self.__module_name__].log_file_name)
 
 
     def get_consumer_topic(self, processing_flow, dataset, module_name, trigger_data_name, input_data_name=None):
