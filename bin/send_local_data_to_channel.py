@@ -17,26 +17,15 @@ import logging
 import sys
 import time
 from typing import List, Tuple
+import numpy as np
 
 from obspy.core.event.catalog import Catalog
 
 from microquake.core import read_events
 from microquake.core.stream import Stream, read
-from spp.utils.application import Application
+from spp.utils.kafka_redis_application import KafkaRedisApplication
 
 __module_name__ = "initializer"
-
-
-def get_application() -> Application:
-    """
-    Return an initialised application
-    """
-    application = Application(
-        module_name=__module_name__,
-        processing_flow_name="automatic"
-    )
-    application.init_module()
-    return application
 
 
 def retrieve_local_event(
@@ -51,18 +40,32 @@ def retrieve_local_event(
     with open(local_quakeml_location, "rb") as event_file:
         catalog = read_events(event_file, format="QUAKEML")
 
-    with open(local_mseed_location, "rb") as event_file:
-        waveform_stream = read(event_file, format="MSEED")
+    with open(local_mseed_location, "rb") as waveform_file:
+        waveform_stream = read(waveform_file, format="MSEED")
+
+    # adding trim and filtering functions.
+
+    pick_time = [arrival.get_pick().time for arrival in
+                 catalog[0].preferred_origin().arrivals]
+    min_pick_time = np.min(pick_time)
+
+    waveform_stream = waveform_stream.detrend('demean').detrend('linear')
+
+    waveform_stream.filter('bandpass', freqmin=100, freqmax=1000)
+
+    waveform_stream = waveform_stream.trim(startime=min_pick_time - 0.5,
+                                           endtime=min_pick_time + 1.5,
+                                           pad=True, fill_value=0)
 
     for trace in waveform_stream:
-        if trace.stats.station not in stations_black_list:
+        if trace.stats.station in stations_black_list:
             waveform_stream.remove(trace)
 
     return catalog, waveform_stream
 
 
 def send_to_msg_bus(
-    app: Application, catalog: Catalog, waveform_stream: Stream
+    app: KafkaRedisApplication, catalog: Catalog, waveform_stream: Stream
 ):
     """
     Send a catalog and waveform list to the msg bus
@@ -78,11 +81,11 @@ def send_to_msg_bus(
 
 
 if __name__ == "__main__":
-    logging.getLogger("send_local_data_to_channel").info(
-        "Initialising application"
-    )
+    logging.getLogger("send_local_data_to_channel").info("Initialising application")
 
-    app = get_application()
+    app = KafkaRedisApplication(
+        module_name=__module_name__, processing_flow_name="automatic"
+    )
     logger = app.get_logger(
         "send_local_data_to_channel", "send_local_data_to_channel.log"
     )
@@ -97,9 +100,7 @@ if __name__ == "__main__":
         local_quakeml_location,
     )
     catalog, waveform_stream = retrieve_local_event(
-        local_mseed_location,
-        local_quakeml_location,
-        app.settings.sensors.black_list,
+        local_mseed_location, local_quakeml_location, app.settings.sensors.black_list
     )
 
     logger.info("Sending event to message bus")

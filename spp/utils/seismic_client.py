@@ -12,6 +12,8 @@ class RequestEvent:
     def __init__(self, ev_dict):
         for key in ev_dict.keys():
             if 'time' in key:
+                if key == 'timezone':
+                    continue
                 if type(ev_dict[key]) is not str:
                     setattr(self, key, ev_dict[key])
                     continue
@@ -34,6 +36,12 @@ class RequestEvent:
         byte_stream = BytesIO(waveform_context_file)
         return read(byte_stream)
 
+    def get_variable_length_waveform(self):
+        variable_length_waveform_file = requests.request('GET',
+                                        self.variable_size_waveform_file)
+        byte_stream = BytesIO(variable_length_waveform_file)
+        return read(byte_stream)
+
     def select(self):
         # select by different attributes
         # TODO write this function :-)
@@ -44,7 +52,7 @@ class RequestEvent:
 
 
 def post_data_from_files(api_base_url, event_id=None, event_file=None,
-                         mseed_file=None, mseed_context_file=None,
+                         mseed_file=None, mseed_context_file=None, variable_length_stream_file=None,
                          tolerance=0.5, logger=None):
     """
     Build request directly from objects
@@ -84,15 +92,20 @@ def post_data_from_files(api_base_url, event_id=None, event_file=None,
     if mseed_context_file is not None:
         context_stream = read(mseed_context_file, format='MSEED')
 
+    # read variable length waveform
+    if variable_length_stream_file is not None:
+        variable_length_stream = read(variable_length_stream_file, format='MSEED')
+
     return post_data_from_objects(api_base_url, event_id=event_id,
                                   event=event, stream=stream,
-                                  context_stream=context_stream,
+                                  context_stream=context_stream, variable_length_stream=variable_length_stream,
                                   tolerance=tolerance, logger=logger)
 
 
 def post_data_from_objects(api_base_url, event_id=None, event=None,
-                          stream=None, context_stream=None, tolerance=0.5,
-                          logger=None):
+                           stream=None, context_stream=None,
+                           variable_length_stream=None, tolerance=0.5,
+                           logger=None):
     """
     Build request directly from objects
     :param api_base_url: base url of the API
@@ -103,6 +116,8 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
     considered. Use catalog with caution.
     :param stream: event seismogram (microquake.core.Stream.stream)
     :param context_stream: context seismogram trace (
+    microquake.core.Stream.stream)
+    :param variable_length_stream: variable length seismogram trace (
     microquake.core.Stream.stream)
     :param tolerance: Minimum time between an event already in the database
     and this event for this event to be inserted into the database. This is to
@@ -123,11 +138,7 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         import logging
         logger = logging.getLogger(__name__)
 
-    event_bytes=None
-    mseed_bytes=None
-    mseed_context_bytes=None
-
-    if type(event) is type(Catalog):
+    if type(event) is Catalog:
         event = event[0]
         logger.warning('a <microquake.core.event.Catalog> object was '
                        'provided, only the first element of the catalog will '
@@ -207,17 +218,22 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         files['context'] = mseed_context_bytes
         logger.info('done preparing context waveform data')
 
+    if variable_length_stream is not None:
+        logger.info('preparing variable length waveform data')
+        mseed_variable_bytes = BytesIO()
+        variable_length_stream.write(mseed_variable_bytes, format='MSEED')
+        mseed_variable_file_name = base_event_file_name + '.variable_mseed'
+        mseed_variable_bytes.name = mseed_variable_file_name
+        mseed_variable_bytes.seek(0)
+        files['variable_size_waveform'] = mseed_variable_bytes
+        logger.info('done preparing variable length waveform data')
+
     return post_event_data(api_url, event_resource_id, files, logger)
 
 
 def post_event_data(api_base_url, event_resource_id, request_files, logger):
-    url = api_base_url + "/%s" % urllib.parse.quote(event_resource_id, safe="")
     url = api_base_url + "/%s" % event_resource_id
     logger.info('posting data on %s' % url)
-
-    from IPython.core.debugger import Tracer
-
-    # headers = {'Content-Type': 'multipart/form-data'}
 
     result = requests.post(url, files=request_files)
     print(result)
