@@ -26,9 +26,8 @@ def process(
     st.attach_response(inventory)
 
     sta_meta_dict = inv_station_list_to_dict(inventory)
-
     # 1. Rotate traces to ENZ
-    st_rot = rotate_to_ENZ(st, sta_meta_dict)
+    st_rot = rotate_to_ENZ(st, inventory)
     st = st_rot
 
     # 2. Rotate traces to P,SV,SH wrt event location
