@@ -76,6 +76,6 @@ kube:
     - wget https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
     - chmod +x kubectl
     - echo "$KUBE" > admin.conf
-    - ./kubectl --kubeconfig admin.conf rolling-update seismic-platform --image=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - ./kubectl --kubeconfig admin.conf set image deployment.v1.apps/seismic-platform *=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record=true
 # hypocenter-location
 # magnitude-calculation

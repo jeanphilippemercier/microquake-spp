@@ -99,6 +99,8 @@ class CLI:
         parser.add_argument("--send_to_api", type=bool)
 
         self.args = parser.parse_args()
+        if self.args.module_name:
+            self.module_name = self.args.module_name
 
     def prepare_module(self):
         """

@@ -39,7 +39,6 @@ class Application(object):
         self.__module_name__ = module_name
         if self.__module_name__ is None:
             print("No module name, application cannot initialise")
-            return
 
         self.config_dir = os.environ['SPP_CONFIG']
         self.common_dir = os.environ['SPP_COMMON']
@@ -69,9 +68,11 @@ class Application(object):
                 self.settings.magnitude.len_spectrum = 2 ** \
                 self.settings.magnitude.len_spectrum_exponent
 
-        self.logger = self.get_logger(self.settings[
-                                          self.__module_name__].log_topic,
-                        self.settings[self.__module_name__].log_file_name)
+        self.logger = self.get_logger('application', './application.log')
+        if self.__module_name__:
+            self.logger = self.get_logger(self.settings[
+                                            self.__module_name__].log_topic,
+                            self.settings[self.__module_name__].log_file_name)
 
 
     def get_consumer_topic(self, processing_flow, dataset, module_name, trigger_data_name, input_data_name=None):
@@ -626,14 +627,14 @@ class Application(object):
         t3 = time()
         self.logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
 
+        if self.settings.sensors.black_list is not None:
+            self.clean_waveform_stream(stream, self.settings.sensors.black_list)
+
         if not kwargs:
             cat_out, st_out = callback(cat=cat, stream=stream, logger=self.logger)
         else:
             cat_out, st_out = callback(cat=cat, stream=stream, logger=self.logger,
                                **kwargs)
-
-        if self.settings.sensors.black_list is not None:
-            self.clean_waveform_stream(st_out, self.settings.sensors.black_list)
 
         return cat_out, st_out
 
