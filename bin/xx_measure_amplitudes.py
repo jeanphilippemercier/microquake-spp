@@ -18,7 +18,7 @@ def main():
     use_web_api, event_id, xml_out, xml_in, mseed_in = processCmdLine(fname)
 
     # reading application data
-    app = Application()
+    app = Application(module_name='nlloc')
     settings = app.settings
 
     logger = app.get_logger('xx_measure_amplitudes','zlog')

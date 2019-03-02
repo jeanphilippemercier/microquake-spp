@@ -9,8 +9,9 @@ from spp.utils.application import Application
 def main():
 
     # reading application data
-    app = Application()
+    app = Application(module_name='nlloc')
     settings = app.settings
+
     inventory = app.get_inventory()
     #sensors = inventory.get_sensor_types()
     #for sensor in sorted(sensors):
