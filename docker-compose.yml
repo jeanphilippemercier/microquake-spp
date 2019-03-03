@@ -5,6 +5,13 @@ networks:
     name: spp-network
 
 services:
+  airflow:
+    image: puckel/docker-airflow:1.10.2
+    hostname: airflow
+    container_name: airflow
+    ports:
+        - "8080:8080"
+
   zookeeper:
     image: confluentinc/cp-zookeeper:5.0.0
     hostname: zookeeper
