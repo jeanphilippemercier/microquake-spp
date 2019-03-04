@@ -21,7 +21,7 @@ def continuously_send_IMS_data(api_base_url, ims_base_url, logger, site, site_id
 
 def get_and_post_IMS_data(api_base_url, ims_base_url, logger, site, site_ids, tz, filter_existing_events=False, post_continuous_data=False, trim_wf=False):
     start_time, end_time = get_times(tz)
-    IMS_events = retrieve_IMS_catalogue(ims_base_url, api_base_url, site, start_time, end_time, tz, filter_existing_events=filter_existing_events)
+    IMS_events = retrieve_IMS_catalogue(ims_base_url, api_base_url, logger, site, start_time, end_time, tz, filter_existing_events=filter_existing_events)
     events_to_upload = filter_existing_events(IMS_events)
     for event in events_to_upload:
         post_event_to_api(event, ims_base_url, api_base_url, site_ids, logger, site, tz, post_continuous_data=post_continuous_data, trim_wf=trim_wf)
@@ -35,11 +35,13 @@ def get_times(tz):
     return start_time, end_time
 
 @retry(wait=wait_exponential(multiplier=1, min=1, max=10))
-def retrieve_IMS_catalogue(ims_base_url, api_base_url, site, start_time, end_time, tz, filter_existing_events=False):
+def retrieve_IMS_catalogue(ims_base_url, api_base_url, logger, site, start_time, end_time, tz, filter_existing_events=False):
+    logger.info('retrieving IMS catalogue (url:%s)' % ims_base_url)
     ims_catalogue = web_client.get_catalogue(ims_base_url, start_time, end_time,
                                     site, tz, blast=False)
     if filter_existing_events:
         return filter_events(api_base_url, ims_catalogue, start_time, end_time)
+    logger.info('retrieved IMS catalogue (url:%s)' % ims_base_url)
     return ims_catalogue
 
 @retry(wait=wait_exponential(multiplier=1, min=1, max=10))
@@ -140,7 +142,7 @@ def main():
     filter_existing_events = args.filter_existing_events
     mode = args.mode
 
-    app = Application(__module_name__)
+    app = Application(module_name=__module_name__)
     site = app.get_stations()
     ims_base_url = app.settings.data_connector.path
     api_base_url = app.settings.seismic_api.base_url
