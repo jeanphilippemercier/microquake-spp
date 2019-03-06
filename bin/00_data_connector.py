@@ -1,20 +1,22 @@
 import argparse
+import logging
 from time import sleep, time
 
 import numpy as np
 import pytz
-from tenacity import retry, wait_exponential
+from tenacity import after_log, retry, stop_after_attempt, wait_exponential
 
 from microquake.core import UTCDateTime
 from microquake.IMS import web_client
 from spp.utils import seismic_client
 from spp.utils.application import Application
 
+logger = logging.getLogger(__name__)
+
 
 def continuously_send_IMS_data(
     api_base_url,
     ims_base_url,
-    logger,
     site,
     site_ids,
     tz,
@@ -28,7 +30,6 @@ def continuously_send_IMS_data(
             get_and_post_IMS_data(
                 api_base_url,
                 ims_base_url,
-                logger,
                 site,
                 site_ids,
                 tz,
@@ -47,7 +48,6 @@ def continuously_send_IMS_data(
 def get_and_post_IMS_data(
     api_base_url,
     ims_base_url,
-    logger,
     site,
     site_ids,
     tz,
@@ -59,7 +59,6 @@ def get_and_post_IMS_data(
     IMS_events = retrieve_IMS_catalogue(
         ims_base_url,
         api_base_url,
-        logger,
         site,
         start_time,
         end_time,
@@ -72,7 +71,6 @@ def get_and_post_IMS_data(
             ims_base_url,
             api_base_url,
             site_ids,
-            logger,
             site,
             tz,
             post_continuous_data=post_continuous_data,
@@ -88,11 +86,14 @@ def get_times(tz):
     return start_time, end_time
 
 
-@retry(wait=wait_exponential(multiplier=1, min=1, max=10))
+@retry(
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    stop=stop_after_attempt(7),
+    after=after_log(logger, logging.DEBUG),
+)
 def retrieve_IMS_catalogue(
     ims_base_url,
     api_base_url,
-    logger,
     site,
     start_time,
     end_time,
@@ -109,7 +110,11 @@ def retrieve_IMS_catalogue(
     return ims_catalogue
 
 
-@retry(wait=wait_exponential(multiplier=1, min=1, max=10))
+@retry(
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    stop=stop_after_attempt(7),
+    after=after_log(logger, logging.DEBUG),
+)
 def filter_events(api_base_url, IMS_catalogue, start_time, end_time):
     # if events exist in our system, do not re-upload them
     api_catalogue = seismic_client.get_events_catalog(
@@ -117,7 +122,7 @@ def filter_events(api_base_url, IMS_catalogue, start_time, end_time):
     )
     api_existing_event_ids = {}
     for api_event in api_catalogue:
-        api_existing_event_ids[api_event.resource_id] = True
+        api_existing_event_ids[api_event.event_resource_id] = True
     events_to_upload = []
     for IMS_event in IMS_catalogue:
         if IMS_event.resource_id not in api_existing_event_ids:
@@ -125,16 +130,13 @@ def filter_events(api_base_url, IMS_catalogue, start_time, end_time):
     return events_to_upload
 
 
-@retry(wait=wait_exponential(multiplier=1, min=1, max=10))
+@retry(
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    stop=stop_after_attempt(7),
+    after=after_log(logger, logging.DEBUG),
+)
 def get_and_post_continuous_data(
-    ims_base_url,
-    api_base_url,
-    event_time,
-    logger,
-    resource_id,
-    site_ids,
-    tz,
-    trim_wf=False,
+    ims_base_url, api_base_url, event_time, resource_id, site_ids, tz, trim_wf=False
 ):
     logger.info("retrieving c_wf continuous data from IMS (url:%s)" % ims_base_url)
     c_wf = web_client.get_continuous(
@@ -156,9 +158,13 @@ def get_and_post_continuous_data(
     return c_wf
 
 
-@retry(wait=wait_exponential(multiplier=1, min=1, max=10))
+@retry(
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    stop=stop_after_attempt(7),
+    after=after_log(logger, logging.DEBUG),
+)
 def get_and_post_event_data(
-    ims_base_url, api_base_url, event, event_time, logger, tz, context=None
+    ims_base_url, api_base_url, event, event_time, tz, context=None
 ):
     logger.info("retrieving vs_waveform from IMS (url:%s)" % ims_base_url)
     vs_waveform = web_client.get_seismogram_event(ims_base_url, event, "OT", tz)
@@ -178,7 +184,6 @@ def get_and_post_event_data(
         stream=wf,
         context_stream=context,
         variable_length_stream=vs_waveform,
-        logger=logger,
     )
     t1 = time()
     logger.info("done uploading data to the SPP API in %0.3f seconds" % (t1 - t0))
@@ -204,7 +209,6 @@ def post_event_to_api(
     ims_base_url,
     api_base_url,
     site_ids,
-    logger,
     site,
     tz,
     post_continuous_data=False,
@@ -221,7 +225,6 @@ def post_event_to_api(
             ims_base_url,
             api_base_url,
             event_time,
-            logger,
             event.resource_id,
             site_ids,
             tz,
@@ -229,11 +232,11 @@ def post_event_to_api(
         )
         context = get_context(c_wf, event.preferred_origin().arrivals, context)
         get_and_post_event_data(
-            ims_base_url, api_base_url, event, event_time, logger, tz, context=context
+            ims_base_url, api_base_url, event, event_time, tz, context=context
         )
     else:
         get_and_post_event_data(
-            ims_base_url, api_base_url, event, event_time, logger, tz, context=None
+            ims_base_url, api_base_url, event, event_time, tz, context=None
         )
 
 
@@ -247,7 +250,7 @@ def process_args():
         default="single",
         help="the mode to run this module in. Options are single, cont (for continuously running this module)",
     )
-    parser.add_argument("--filter_existing_events", default=True, type=bool)
+    parser.add_argument("--filter_existing_events", default=False, type=bool)
     parser.add_argument(
         "--delay",
         default=3600,
@@ -267,6 +270,7 @@ def main():
     sleep_time = args.delay
 
     app = Application(module_name=__module_name__)
+    logger = app.logger
     site = app.get_stations()
     ims_base_url = app.settings.data_connector.path
     api_base_url = app.settings.seismic_api.base_url
@@ -279,22 +283,15 @@ def main():
     ]
 
     if mode == "single":
-        app.logger.info("Retrieving and posting IMS data once")
+        logger.info("Retrieving and posting IMS data once")
         get_and_post_IMS_data(
-            api_base_url,
-            ims_base_url,
-            app.logger,
-            site,
-            site_ids,
-            tz,
-            filter_existing_events,
+            api_base_url, ims_base_url, site, site_ids, tz, filter_existing_events
         )
     elif mode == "cont":
-        app.logger.info("Retrieving and posting IMS data continuously")
+        logger.info("Retrieving and posting IMS data continuously")
         continuously_send_IMS_data(
             api_base_url,
             ims_base_url,
-            app.logger,
             site,
             site_ids,
             tz,
