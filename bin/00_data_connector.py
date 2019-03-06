@@ -11,7 +11,9 @@ from microquake.IMS import web_client
 from spp.utils import seismic_client
 from spp.utils.application import Application
 
-logger = logging.getLogger(__name__)
+__module_name__ = "data_connector"
+app = Application(module_name=__module_name__)
+logger = app.logger
 
 
 def continuously_send_IMS_data(
@@ -260,17 +262,12 @@ def process_args():
     return parser.parse_args()
 
 
-__module_name__ = "data_connector"
-
-
 def main():
     args = process_args()
     filter_existing_events = args.filter_existing_events
     mode = args.mode
     sleep_time = args.delay
 
-    app = Application(module_name=__module_name__)
-    logger = app.logger
     site = app.get_stations()
     ims_base_url = app.settings.data_connector.path
     api_base_url = app.settings.seismic_api.base_url
@@ -298,7 +295,6 @@ def main():
             filter_existing_events=filter_existing_events,
             sleep_time=sleep_time,
         )
-
 
 if __name__ == "__main__":
     main()
