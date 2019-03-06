@@ -186,6 +186,7 @@ def get_and_post_event_data(
         stream=wf,
         context_stream=context,
         variable_length_stream=vs_waveform,
+        send_to_bus=True,
     )
     t1 = time()
     logger.info("done uploading data to the SPP API in %0.3f seconds" % (t1 - t0))
@@ -253,12 +254,14 @@ def process_args():
         help="the mode to run this module in. Options are single, cont (for continuously running this module)",
     )
     parser.add_argument("--filter_existing_events", default=False, type=bool)
+    parser.add_argument("--post_continuous_data", default=False, type=bool)
     parser.add_argument(
         "--delay",
         default=3600,
         type=int,
         help="the time to wait until running data connector again",
     )
+
     return parser.parse_args()
 
 
@@ -266,6 +269,8 @@ def main():
     args = process_args()
     filter_existing_events = args.filter_existing_events
     mode = args.mode
+    post_continuous_data = args.post_continuous_data
+
     sleep_time = args.delay
 
     site = app.get_stations()
@@ -278,11 +283,16 @@ def main():
         for station in site.stations()
         if station.code not in app.settings.sensors.black_list
     ]
-
     if mode == "single":
         logger.info("Retrieving and posting IMS data once")
         get_and_post_IMS_data(
-            api_base_url, ims_base_url, site, site_ids, tz, filter_existing_events
+            api_base_url,
+            ims_base_url,
+            site,
+            site_ids,
+            tz,
+            filter_existing_events,
+            post_continuous_data=post_continuous_data,
         )
     elif mode == "cont":
         logger.info("Retrieving and posting IMS data continuously")
@@ -293,8 +303,10 @@ def main():
             site_ids,
             tz,
             filter_existing_events=filter_existing_events,
+            post_continuous_data=post_continuous_data,
             sleep_time=sleep_time,
         )
+
 
 if __name__ == "__main__":
     main()
