@@ -15,7 +15,7 @@ def process(cat=None, stream=None, logger=None, app=None, module_settings=None, 
     api_base_url = app.settings.seismic_api.base_url
     logger.info('posting data to the API')
     result = post_data_from_objects(api_base_url, event_id=None, event=cat,
-                                    stream=stream, context_stream=None)
+                                    stream=stream, context_stream=None, tolerance=None)
     logger.info('posting seismic data')
 
     if result.status_code == 200:
