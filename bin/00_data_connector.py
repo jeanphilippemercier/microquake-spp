@@ -15,7 +15,6 @@ __module_name__ = "data_connector"
 app = Application(module_name=__module_name__)
 logger = app.logger
 
-
 def continuously_send_IMS_data(
     api_base_url,
     ims_base_url,
@@ -145,7 +144,7 @@ def get_and_post_continuous_data(
         ims_base_url, event_time - 1, event_time + 1, site_ids, tz
     )
     if trim_wf:
-        c_wf.trim(starttime=event_time - 1.0, endtime=event_time + 1.0)
+        c_wf.trim(starttime=event_time - 1.0, endtime=event_time + 1.0, pad=True)
 
     logger.info("uploading continuous data to the SPP API (url:%s)" % api_base_url)
     t0 = time()
@@ -170,7 +169,27 @@ def get_and_post_event_data(
 ):
     logger.info("retrieving vs_waveform from IMS (url:%s)" % ims_base_url)
     vs_waveform = web_client.get_seismogram_event(ims_base_url, event, "OT", tz)
-    wf = vs_waveform.copy().trim(starttime=event_time - 1.0, endtime=event_time + 1.0)
+
+    # Do some basic data quality tasks
+
+    wf = vs_waveform.copy()
+    inventory = app.get_inventory()
+    stations = inventory.stations()
+    stations_code_ids = [station.code for station in stations]
+
+    for trace in wf:
+        if trace.stats.station not in stations_code_ids:
+            wf.remove(trace)
+
+    pick_time = [arrival.get_pick().time for arrival in
+                 event.preferred_origin().arrivals]
+    min_pick_time = np.min(pick_time)
+
+    wf = wf.detrend('demean').detrend('linear')
+
+    wf = wf.taper(max_percentage=0.01, type='cosine', max_length=0.001)
+
+    wf = wf.trim(starttime=min_pick_time - 0.5, endtime=min_pick_time + 1.5, pad=True, fill_value=0)
 
     logger.info("uploading data to the SPP API (url:%s)" % api_base_url)
     logger.info(
@@ -187,6 +206,7 @@ def get_and_post_event_data(
         context_stream=context,
         variable_length_stream=vs_waveform,
         send_to_bus=True,
+        tolerance=None
     )
     t1 = time()
     logger.info("done uploading data to the SPP API in %0.3f seconds" % (t1 - t0))
