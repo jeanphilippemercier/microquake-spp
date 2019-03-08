@@ -32,8 +32,11 @@ def process(
 
                 # Next, send the data back to the api
 
+    return
+
+__module_name__ = "ray_tracer"
+
 def main():
-    __module_name__ = "ray_tracer"
     cli = CLI(__module_name__, callback=process)
     cli.prepare_module()
     cli.run_module()
