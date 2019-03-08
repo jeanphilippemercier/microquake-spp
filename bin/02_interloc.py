@@ -38,9 +38,13 @@ def process(
     stream.filter("highpass", freq=100)
 
     data, sr, t0 = stream.as_array(wlen_sec)
+    logger.info("data: %s", data)
     data = np.nan_to_num(data)
     data = tools.decimate(data, sr, int(sr / dsr))
     chanmap = stream.chanmap().astype(np.uint16)
+    for trace in stream:
+        if trace.stats.station not in htt.stations:
+            stream.remove(trace)
     ikeep = htt.index_sta(stream.unique_stations())
     npz_file = os.path.join(npz_file_dir, "iloc_" + str(t0) + ".npz")
     t5 = time()
@@ -48,6 +52,8 @@ def process(
 
     logger.info("Locating event with Interloc")
     t6 = time()
+    logger.info("data %s,dsr %s,chanmap %s,stalocs[ikeep] %s,tt_ptrs[ikeep] %s,ngrid %s,nthreads %s,debug %s,npz_file %s", data,dsr,chanmap,stalocs[ikeep],tt_ptrs[ikeep],ngrid,nthreads,debug,npz_file)
+
     out = xspy.pySearchOnePhase(
         data,
         dsr,
