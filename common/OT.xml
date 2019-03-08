@@ -3,7 +3,7 @@
   <Source>mth-test</Source>
   <Module>ObsPy 1.1.0</Module>
   <ModuleURI>https://www.obspy.org</ModuleURI>
-  <Created>2019-02-22T01:41:40.992975</Created>
+  <Created>2019-03-08T02:52:02.922654</Created>
   <Network code="OT">
     <Station code="1" historicalCode="UGSS4_1GEO">
       <mq:x>650371.73</mq:x>
@@ -18,6 +18,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -134,6 +136,8 @@
       <mq:damping>0.707</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>1.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>3400.0000000000005</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -412,6 +416,8 @@
       <mq:damping>0.707</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>1.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>3400.0000000000005</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -690,6 +696,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -806,6 +814,8 @@
       <mq:damping>0.707</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>1.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>3400.0000000000005</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -1084,6 +1094,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -1200,6 +1212,8 @@
       <mq:damping>0.707</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>1.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>3400.0000000000005</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -1478,6 +1492,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -1594,6 +1610,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -1896,6 +1914,8 @@
       <mq:damping>0.707</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>1.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>3400.0000000000005</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -2004,6 +2024,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -2306,6 +2328,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>993.7246696546912</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -2620,6 +2644,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2082.089784038401</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -2934,6 +2960,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1388.0598560256003</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -3248,6 +3276,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2458.3710703104002</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -3562,6 +3592,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2147.8399877448765</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -3876,6 +3908,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1924.9509324128608</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -4190,6 +4224,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1181.726634183957</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -4504,6 +4540,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2690.7006439880874</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -4818,6 +4856,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1698.014969507045</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -5132,6 +5172,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2853.773410290395</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -5446,6 +5488,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2358.8994085059335</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -5760,6 +5804,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2010.2935845888005</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -6074,6 +6120,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -6376,6 +6424,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>4.5</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -6678,6 +6728,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -6980,6 +7032,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>741.0828044882443</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -7294,6 +7348,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1698.014969507045</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -7608,6 +7664,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1604.5462555892261</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -7922,6 +7980,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2853.773410290395</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -8236,6 +8296,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2136.594752206945</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -8550,6 +8612,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1707.4878563662196</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -8864,6 +8928,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>971.6418992179202</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -9178,6 +9244,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2159.204220484267</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -9492,6 +9560,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1634.5377743852866</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -9806,6 +9876,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>3022.885908677974</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -10120,6 +10192,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2331.9405581230085</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -10434,6 +10508,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1952.5818070407968</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -10748,6 +10824,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -11050,6 +11128,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>4.5</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -11352,6 +11432,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -11654,6 +11736,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>857.3310875452237</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -11968,6 +12052,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1520.830798775875</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -12282,6 +12368,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1173.7955829478233</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -12596,6 +12684,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2205.8897171433864</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -12910,6 +13000,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1971.447331746505</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -13224,6 +13316,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1766.6216349416732</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -13538,6 +13632,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>824.9789710340833</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -13852,6 +13948,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1803.046823290986</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -14166,6 +14264,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1377.1302508600445</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -14480,6 +14580,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2632.8361140098486</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -14794,6 +14896,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2092.76716754629</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -15108,6 +15212,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1736.5514794533044</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -15422,6 +15528,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>741.0828044882443</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -15736,6 +15844,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1604.5462555892261</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -16050,6 +16160,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1295.5225322905603</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -16364,6 +16476,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2534.7179979597922</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -16678,6 +16792,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2182.2973137514787</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -16992,6 +17108,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1898.0911519605884</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -17306,6 +17424,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1181.726634183957</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -17620,6 +17740,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2690.7006439880874</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -17934,6 +18056,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1841.0057037813226</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -18248,6 +18372,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>3264.716781372212</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -18562,6 +18688,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2814.4110184243214</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -18876,6 +19004,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2473.2702889183424</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -19190,6 +19320,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1121.1252683283694</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -19504,6 +19636,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2610.381221779487</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -19818,6 +19952,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1698.014969507045</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -20132,6 +20268,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2935.89638612609</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -20446,6 +20584,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2414.731347168796</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -20760,6 +20900,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2030.2965058284901</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -21074,6 +21216,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1016.8345456931723</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -21388,6 +21532,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2213.8676184712103</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -21702,6 +21848,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1494.8336911044926</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -22016,6 +22164,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2632.8361140098486</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -22330,6 +22480,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2159.2042204842674</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -22644,6 +22796,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1829.9981958364415</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -22958,6 +23112,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>741.0828044882443</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -23272,6 +23428,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1604.5462555892261</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -23586,6 +23744,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1240.3939138952173</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -23900,6 +24060,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2358.8994085059335</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -24214,6 +24376,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1990.6809642513485</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -24528,6 +24692,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1736.5514794533044</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -24842,6 +25008,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -25144,6 +25312,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1181.726634183957</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -25458,6 +25628,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2690.7006439880874</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -25772,6 +25944,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1698.014969507045</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -26086,6 +26260,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>3264.716781372212</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -26400,6 +26576,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2853.773410290395</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -26714,6 +26892,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2473.2702889183424</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -27028,6 +27208,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -27330,6 +27512,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>741.0828044882443</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -27644,6 +27828,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1634.5377743852866</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -27958,6 +28144,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1189.765590879086</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -28272,6 +28460,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2182.2973137514787</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -28586,6 +28776,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1880.5972242927492</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -28900,6 +29092,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1638.9140468736005</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -29214,6 +29408,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>716.7850076197772</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -29528,6 +29724,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1547.7481580462447</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -29842,6 +30040,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1276.609794592888</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -30156,6 +30356,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2503.617163628997</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -30470,6 +30672,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2136.594752206945</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -30784,6 +30988,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1863.4228204179294</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -31098,6 +31304,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>320.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1041.0448920192005</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -31412,6 +31620,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2186.1942732403204</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -31726,6 +31936,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1507.7201884416006</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -32040,6 +32252,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2684.7999846810953</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -32354,6 +32568,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>2292.63818916588</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -32668,6 +32884,8 @@
       <mq:damping>0.18</mq:damping>
       <mq:cable_pF_capacitance_per_m>52.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>115.2</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>1981.0174644248857</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -32982,6 +33200,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -33284,6 +33504,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -33586,6 +33808,8 @@
       <mq:damping>0.6</mq:damping>
       <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
       <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
       <Latitude unit="DEGREES">0.0</Latitude>
       <Longitude unit="DEGREES">0.0</Longitude>
       <Elevation unit="METERS">0.0</Elevation>
@@ -33789,6 +34013,2438 @@
         <mq:x>651105.9</mq:x>
         <mq:y>4767357.4</mq:y>
         <mq:z>-144.3</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+    </Station>
+    <Station code="113" historicalCode="UGSS19_3GEO">
+      <mq:x>651165.8</mq:x>
+      <mq:y>4766428.7</mq:y>
+      <mq:z>-176.9</mq:z>
+      <mq:sensor_id>IMS_14HZ_LM6_Geophone_0</mq:sensor_id>
+      <mq:motion>VELOCITY</mq:motion>
+      <mq:cable_type>IMS_0</mq:cable_type>
+      <mq:cable_length>15</mq:cable_length>
+      <mq:output_resistance_ohm>3500.0</mq:output_resistance_ohm>
+      <mq:resonance_frequency>14</mq:resonance_frequency>
+      <mq:damping>0.6</mq:damping>
+      <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
+      <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
+      <Latitude unit="DEGREES">0.0</Latitude>
+      <Longitude unit="DEGREES">0.0</Longitude>
+      <Elevation unit="METERS">0.0</Elevation>
+      <Site>
+        <Name>Oyu Tolgoi</Name>
+      </Site>
+      <CreationDate>2015-12-31T12:23:34.500000</CreationDate>
+      <TotalNumberChannels>3</TotalNumberChannels>
+      <SelectedNumberChannels>3</SelectedNumberChannels>
+      <Channel code="x" locationCode="">
+        <mq:cos1>1.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[1. 0. 0.]</mq:cosines>
+        <mq:x>651165.8</mq:x>
+        <mq:y>4766428.7</mq:y>
+        <mq:z>-176.9</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">90.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="y" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>1.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[0. 1. 0.]</mq:cosines>
+        <mq:x>651165.8</mq:x>
+        <mq:y>4766428.7</mq:y>
+        <mq:z>-176.9</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="z" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>1.0</mq:cos3>
+        <mq:cosines>[0. 0. 1.]</mq:cosines>
+        <mq:x>651165.8</mq:x>
+        <mq:y>4766428.7</mq:y>
+        <mq:z>-176.9</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+    </Station>
+    <Station code="114" historicalCode="UGSS20_3GEO">
+      <mq:x>651305.426</mq:x>
+      <mq:y>4767414.978</mq:y>
+      <mq:z>-189.96</mq:z>
+      <mq:sensor_id>IMS_14HZ_LM6_Geophone_0</mq:sensor_id>
+      <mq:motion>VELOCITY</mq:motion>
+      <mq:cable_type>IMS_0</mq:cable_type>
+      <mq:cable_length>15</mq:cable_length>
+      <mq:output_resistance_ohm>3500.0</mq:output_resistance_ohm>
+      <mq:resonance_frequency>14</mq:resonance_frequency>
+      <mq:damping>0.6</mq:damping>
+      <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
+      <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
+      <Latitude unit="DEGREES">0.0</Latitude>
+      <Longitude unit="DEGREES">0.0</Longitude>
+      <Elevation unit="METERS">0.0</Elevation>
+      <Site>
+        <Name>Oyu Tolgoi</Name>
+      </Site>
+      <CreationDate>2015-12-31T12:23:34.500000</CreationDate>
+      <TotalNumberChannels>3</TotalNumberChannels>
+      <SelectedNumberChannels>3</SelectedNumberChannels>
+      <Channel code="x" locationCode="">
+        <mq:cos1>1.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[1. 0. 0.]</mq:cosines>
+        <mq:x>651305.426</mq:x>
+        <mq:y>4767414.978</mq:y>
+        <mq:z>-189.96</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">90.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="y" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>1.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[0. 1. 0.]</mq:cosines>
+        <mq:x>651305.426</mq:x>
+        <mq:y>4767414.978</mq:y>
+        <mq:z>-189.96</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="z" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>1.0</mq:cos3>
+        <mq:cosines>[0. 0. 1.]</mq:cosines>
+        <mq:x>651305.426</mq:x>
+        <mq:y>4767414.978</mq:y>
+        <mq:z>-189.96</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+    </Station>
+    <Station code="115" historicalCode="UGSS21_3GEO">
+      <mq:x>651202.77</mq:x>
+      <mq:y>4767490.042</mq:y>
+      <mq:z>-154.317</mq:z>
+      <mq:sensor_id>IMS_14HZ_LM6_Geophone_0</mq:sensor_id>
+      <mq:motion>VELOCITY</mq:motion>
+      <mq:cable_type>IMS_0</mq:cable_type>
+      <mq:cable_length>15</mq:cable_length>
+      <mq:output_resistance_ohm>3500.0</mq:output_resistance_ohm>
+      <mq:resonance_frequency>14</mq:resonance_frequency>
+      <mq:damping>0.6</mq:damping>
+      <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
+      <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
+      <Latitude unit="DEGREES">0.0</Latitude>
+      <Longitude unit="DEGREES">0.0</Longitude>
+      <Elevation unit="METERS">0.0</Elevation>
+      <Site>
+        <Name>Oyu Tolgoi</Name>
+      </Site>
+      <CreationDate>2015-12-31T12:23:34.500000</CreationDate>
+      <TotalNumberChannels>3</TotalNumberChannels>
+      <SelectedNumberChannels>3</SelectedNumberChannels>
+      <Channel code="x" locationCode="">
+        <mq:cos1>1.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[1. 0. 0.]</mq:cosines>
+        <mq:x>651202.77</mq:x>
+        <mq:y>4767490.042</mq:y>
+        <mq:z>-154.317</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">90.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="y" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>1.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[0. 1. 0.]</mq:cosines>
+        <mq:x>651202.77</mq:x>
+        <mq:y>4767490.042</mq:y>
+        <mq:z>-154.317</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="z" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>1.0</mq:cos3>
+        <mq:cosines>[0. 0. 1.]</mq:cosines>
+        <mq:x>651202.77</mq:x>
+        <mq:y>4767490.042</mq:y>
+        <mq:z>-154.317</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+    </Station>
+    <Station code="116" historicalCode="UGSS22-3GEO">
+      <mq:x>651268.9</mq:x>
+      <mq:y>4767519.3</mq:y>
+      <mq:z>-124.8</mq:z>
+      <mq:sensor_id>IMS_14HZ_LM6_Geophone_0</mq:sensor_id>
+      <mq:motion>VELOCITY</mq:motion>
+      <mq:cable_type>IMS_0</mq:cable_type>
+      <mq:cable_length>15</mq:cable_length>
+      <mq:output_resistance_ohm>3500.0</mq:output_resistance_ohm>
+      <mq:resonance_frequency>14</mq:resonance_frequency>
+      <mq:damping>0.6</mq:damping>
+      <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
+      <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
+      <Latitude unit="DEGREES">0.0</Latitude>
+      <Longitude unit="DEGREES">0.0</Longitude>
+      <Elevation unit="METERS">0.0</Elevation>
+      <Site>
+        <Name>Oyu Tolgoi</Name>
+      </Site>
+      <CreationDate>2015-12-31T12:23:34.500000</CreationDate>
+      <TotalNumberChannels>3</TotalNumberChannels>
+      <SelectedNumberChannels>3</SelectedNumberChannels>
+      <Channel code="x" locationCode="">
+        <mq:cos1>1.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[1. 0. 0.]</mq:cosines>
+        <mq:x>651268.9</mq:x>
+        <mq:y>4767519.3</mq:y>
+        <mq:z>-124.8</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">90.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="y" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>1.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[0. 1. 0.]</mq:cosines>
+        <mq:x>651268.9</mq:x>
+        <mq:y>4767519.3</mq:y>
+        <mq:z>-124.8</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="z" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>1.0</mq:cos3>
+        <mq:cosines>[0. 0. 1.]</mq:cosines>
+        <mq:x>651268.9</mq:x>
+        <mq:y>4767519.3</mq:y>
+        <mq:z>-124.8</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+    </Station>
+    <Station code="117" historicalCode="UGSS23_1">
+      <mq:x>651522.432</mq:x>
+      <mq:y>4767309.582</mq:y>
+      <mq:z>-258.549</mq:z>
+      <mq:sensor_id>IMS_14HZ_LM6_Geophone_0</mq:sensor_id>
+      <mq:motion>VELOCITY</mq:motion>
+      <mq:cable_type>IMS_0</mq:cable_type>
+      <mq:cable_length>15</mq:cable_length>
+      <mq:output_resistance_ohm>3500.0</mq:output_resistance_ohm>
+      <mq:resonance_frequency>14</mq:resonance_frequency>
+      <mq:damping>0.6</mq:damping>
+      <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
+      <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
+      <Latitude unit="DEGREES">0.0</Latitude>
+      <Longitude unit="DEGREES">0.0</Longitude>
+      <Elevation unit="METERS">0.0</Elevation>
+      <Site>
+        <Name>Oyu Tolgoi</Name>
+      </Site>
+      <CreationDate>2015-12-31T12:23:34.500000</CreationDate>
+      <TotalNumberChannels>3</TotalNumberChannels>
+      <SelectedNumberChannels>3</SelectedNumberChannels>
+      <Channel code="x" locationCode="">
+        <mq:cos1>1.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[1. 0. 0.]</mq:cosines>
+        <mq:x>651522.432</mq:x>
+        <mq:y>4767309.582</mq:y>
+        <mq:z>-258.549</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">90.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="y" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>1.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[0. 1. 0.]</mq:cosines>
+        <mq:x>651522.432</mq:x>
+        <mq:y>4767309.582</mq:y>
+        <mq:z>-258.549</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="z" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>1.0</mq:cos3>
+        <mq:cosines>[0. 0. 1.]</mq:cosines>
+        <mq:x>651522.432</mq:x>
+        <mq:y>4767309.582</mq:y>
+        <mq:z>-258.549</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+    </Station>
+    <Station code="118" historicalCode="UGSS23_2">
+      <mq:x>651537.52</mq:x>
+      <mq:y>4767308.606</mq:y>
+      <mq:z>-135.547</mq:z>
+      <mq:sensor_id>IMS_14HZ_LM6_Geophone_0</mq:sensor_id>
+      <mq:motion>VELOCITY</mq:motion>
+      <mq:cable_type>IMS_0</mq:cable_type>
+      <mq:cable_length>15</mq:cable_length>
+      <mq:output_resistance_ohm>3500.0</mq:output_resistance_ohm>
+      <mq:resonance_frequency>14</mq:resonance_frequency>
+      <mq:damping>0.6</mq:damping>
+      <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
+      <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
+      <Latitude unit="DEGREES">0.0</Latitude>
+      <Longitude unit="DEGREES">0.0</Longitude>
+      <Elevation unit="METERS">0.0</Elevation>
+      <Site>
+        <Name>Oyu Tolgoi</Name>
+      </Site>
+      <CreationDate>2015-12-31T12:23:34.500000</CreationDate>
+      <TotalNumberChannels>3</TotalNumberChannels>
+      <SelectedNumberChannels>3</SelectedNumberChannels>
+      <Channel code="x" locationCode="">
+        <mq:cos1>1.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[1. 0. 0.]</mq:cosines>
+        <mq:x>651537.52</mq:x>
+        <mq:y>4767308.606</mq:y>
+        <mq:z>-135.547</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">90.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="y" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>1.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[0. 1. 0.]</mq:cosines>
+        <mq:x>651537.52</mq:x>
+        <mq:y>4767308.606</mq:y>
+        <mq:z>-135.547</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="z" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>1.0</mq:cos3>
+        <mq:cosines>[0. 0. 1.]</mq:cosines>
+        <mq:x>651537.52</mq:x>
+        <mq:y>4767308.606</mq:y>
+        <mq:z>-135.547</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+    </Station>
+    <Station code="119" historicalCode="UGSS24_1">
+      <mq:x>651455.252</mq:x>
+      <mq:y>4767477.468</mq:y>
+      <mq:z>-270.435</mq:z>
+      <mq:sensor_id>IMS_14HZ_LM6_Geophone_0</mq:sensor_id>
+      <mq:motion>VELOCITY</mq:motion>
+      <mq:cable_type>IMS_0</mq:cable_type>
+      <mq:cable_length>15</mq:cable_length>
+      <mq:output_resistance_ohm>3500.0</mq:output_resistance_ohm>
+      <mq:resonance_frequency>14</mq:resonance_frequency>
+      <mq:damping>0.6</mq:damping>
+      <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
+      <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
+      <Latitude unit="DEGREES">0.0</Latitude>
+      <Longitude unit="DEGREES">0.0</Longitude>
+      <Elevation unit="METERS">0.0</Elevation>
+      <Site>
+        <Name>Oyu Tolgoi</Name>
+      </Site>
+      <CreationDate>2015-12-31T12:23:34.500000</CreationDate>
+      <TotalNumberChannels>3</TotalNumberChannels>
+      <SelectedNumberChannels>3</SelectedNumberChannels>
+      <Channel code="x" locationCode="">
+        <mq:cos1>1.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[1. 0. 0.]</mq:cosines>
+        <mq:x>651455.252</mq:x>
+        <mq:y>4767477.468</mq:y>
+        <mq:z>-270.435</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">90.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="y" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>1.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[0. 1. 0.]</mq:cosines>
+        <mq:x>651455.252</mq:x>
+        <mq:y>4767477.468</mq:y>
+        <mq:z>-270.435</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="z" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>1.0</mq:cos3>
+        <mq:cosines>[0. 0. 1.]</mq:cosines>
+        <mq:x>651455.252</mq:x>
+        <mq:y>4767477.468</mq:y>
+        <mq:z>-270.435</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+    </Station>
+    <Station code="120" historicalCode="UGSS24_2">
+      <mq:x>651464.95</mq:x>
+      <mq:y>4767470.938</mq:y>
+      <mq:z>-158.282</mq:z>
+      <mq:sensor_id>IMS_14HZ_LM6_Geophone_0</mq:sensor_id>
+      <mq:motion>VELOCITY</mq:motion>
+      <mq:cable_type>IMS_0</mq:cable_type>
+      <mq:cable_length>15</mq:cable_length>
+      <mq:output_resistance_ohm>3500.0</mq:output_resistance_ohm>
+      <mq:resonance_frequency>14</mq:resonance_frequency>
+      <mq:damping>0.6</mq:damping>
+      <mq:cable_pF_capacitance_per_m>0.0</mq:cable_pF_capacitance_per_m>
+      <mq:calculated_pz_sensitivity>80.0</mq:calculated_pz_sensitivity>
+      <mq:min_frequency>14.0</mq:min_frequency>
+      <mq:max_frequency>-999.0</mq:max_frequency>
+      <Latitude unit="DEGREES">0.0</Latitude>
+      <Longitude unit="DEGREES">0.0</Longitude>
+      <Elevation unit="METERS">0.0</Elevation>
+      <Site>
+        <Name>Oyu Tolgoi</Name>
+      </Site>
+      <CreationDate>2015-12-31T12:23:34.500000</CreationDate>
+      <TotalNumberChannels>3</TotalNumberChannels>
+      <SelectedNumberChannels>3</SelectedNumberChannels>
+      <Channel code="x" locationCode="">
+        <mq:cos1>1.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[1. 0. 0.]</mq:cosines>
+        <mq:x>651464.95</mq:x>
+        <mq:y>4767470.938</mq:y>
+        <mq:z>-158.282</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">90.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="y" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>1.0</mq:cos2>
+        <mq:cos3>0.0</mq:cos3>
+        <mq:cosines>[0. 1. 0.]</mq:cosines>
+        <mq:x>651464.95</mq:x>
+        <mq:y>4767470.938</mq:y>
+        <mq:z>-158.282</mq:z>
+        <Latitude unit="DEGREES">0.0</Latitude>
+        <Longitude unit="DEGREES">0.0</Longitude>
+        <Elevation unit="METERS">0.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-0.0</Dip>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>1.0</Value>
+            <Frequency>100.0</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>Velocity in Meters per Second</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>COUNTS</Name>
+              <Description>Digital Counts</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+          <Stage number="1">
+            <PolesZeros name="IMS_14HZ_LM6_Geophone_0">
+              <InputUnits>
+                <Name>M/S</Name>
+              </InputUnits>
+              <OutputUnits>
+                <Name>V</Name>
+              </OutputUnits>
+              <PzTransferFunctionType>LAPLACE (RADIANS/SECOND)</PzTransferFunctionType>
+              <NormalizationFactor>0.9946899818536425</NormalizationFactor>
+              <NormalizationFrequency unit="HERTZ">100.0</NormalizationFrequency>
+              <Zero number="0">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Zero number="1">
+                <Real>0.0</Real>
+                <Imaginary>0.0</Imaginary>
+              </Zero>
+              <Pole number="0">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>70.37167544041137</Imaginary>
+              </Pole>
+              <Pole number="1">
+                <Real>-52.778756580308524</Real>
+                <Imaginary>-70.37167544041137</Imaginary>
+              </Pole>
+            </PolesZeros>
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>100.0</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="2">
+            <StageGain>
+              <Value>1.0</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+          <Stage number="3">
+            <Coefficients name="Generic Digitizer = Placeholder for IMS Digitizer">
+              <InputUnits>
+                <Name>V</Name>
+                <Description>Volts</Description>
+              </InputUnits>
+              <OutputUnits>
+                <Name>COUNTS</Name>
+                <Description>Digital Counts</Description>
+              </OutputUnits>
+              <CfTransferFunctionType>DIGITAL</CfTransferFunctionType>
+              <Numerator>1.0</Numerator>
+            </Coefficients>
+            <Decimation>
+              <InputSampleRate unit="HERTZ">12000.0</InputSampleRate>
+              <Factor>2</Factor>
+              <Offset>0</Offset>
+              <Delay>0.0</Delay>
+              <Correction>0.0</Correction>
+            </Decimation>
+            <StageGain>
+              <Value>1</Value>
+              <Frequency>0.05</Frequency>
+            </StageGain>
+          </Stage>
+        </Response>
+      </Channel>
+      <Channel code="z" locationCode="">
+        <mq:cos1>0.0</mq:cos1>
+        <mq:cos2>0.0</mq:cos2>
+        <mq:cos3>1.0</mq:cos3>
+        <mq:cosines>[0. 0. 1.]</mq:cosines>
+        <mq:x>651464.95</mq:x>
+        <mq:y>4767470.938</mq:y>
+        <mq:z>-158.282</mq:z>
         <Latitude unit="DEGREES">0.0</Latitude>
         <Longitude unit="DEGREES">0.0</Longitude>
         <Elevation unit="METERS">0.0</Elevation>
