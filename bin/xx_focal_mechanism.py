@@ -7,15 +7,17 @@ from spp.utils.seismic_client import get_event_by_id
 
 from lib_process import processCmdLine
 
+logger = None
 
 def main():
 
-    fname = 'focal_mechanism'
+    fname = 'xx_focal_mechanism'
 
     # reading application data
     app = Application()
     settings = app.settings
-    logger = app.get_logger('xx_focal_mechanism', 'zlog')
+    global logger
+    logger = app.get_logger(fname, 'zlog')
 
     use_web_api, event_id, xml_out, xml_in, mseed_in = processCmdLine(fname, require_mseed=False)
 
@@ -122,7 +124,7 @@ def calc_focal_mechanism(cat, settings):
     focal_mechanisms = []
 
     for i,out in enumerate(outputs):
-        print("=== %d: Process Focal Mech" % i)
+        logger.debug("=== %d: Process Focal Mech" % i)
         p1 = NodalPlane(strike=out['strike'], dip=out['dip'], rake=out['rake'])
         s,d,r = aux_plane(out['strike'], out['dip'], out['rake'])
         p2 = NodalPlane(strike=s, dip=d, rake=r)
@@ -136,16 +138,17 @@ def calc_focal_mechanism(cat, settings):
                             evaluation_status = 'preliminary',
                             comments = [Comment(text="HASH v1.2 Quality=[%s]" % out['quality'])]
                            )
-        print(fc)
+        #print(fc)
         focal_mechanisms.append(fc)
 
         event = events[i]
 
-        title = "%s (s,d,r)_1=(%.1f,%.1f,%.1f) _2=(%.1f,%.1f,%.1f)" % \
-                (event['event_info'], p1.strike, p1.dip, p1.rake, p2.strike,p2.dip,p2.rake)
+        if settings.plot_focal_mechs:
+            title = "%s (s,d,r)_1=(%.1f,%.1f,%.1f) _2=(%.1f,%.1f,%.1f)" % \
+                    (event['event_info'], p1.strike, p1.dip, p1.rake, p2.strike,p2.dip,p2.rake)
 
-        test_stereo(np.array(event['qazi']),np.array(event['qthe']),np.array(event['p_pol']),\
-                    sdr=[p1.strike,p1.dip,p1.rake], title=title)
+            test_stereo(np.array(event['qazi']),np.array(event['qthe']),np.array(event['p_pol']),\
+                        sdr=[p1.strike,p1.dip,p1.rake], title=title)
 
 
     return focal_mechanisms

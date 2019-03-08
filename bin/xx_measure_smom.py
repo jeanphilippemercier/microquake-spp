@@ -16,14 +16,25 @@ from lib_process import processCmdLine
 
 def main():
 
-    fname = 'measure_smom'
+    fname = 'xx_measure_smom'
     use_web_api, event_id, xml_out, xml_in, mseed_in = processCmdLine(fname)
 
     # reading application data
     app = Application()
     settings = app.settings
 
-    logger = app.get_logger('xx_measure_smom','zlog')
+    logger = app.get_logger(fname,'zlog')
+
+    params = settings.measure_smom
+    S_win_len = params.S_win_len
+    pre_window_start_sec = params.pre_window_start_sec
+    max_S_P_time = params.max_S_P_time
+    use_fixed_fmin_fmax = params.use_fixed_fmin_fmax
+    fmin = params.fmin
+    fmax = params.fmax
+    phase_list = params.phase_list
+    if not isinstance(phase_list, list):
+        phase_list = [phase_list]
 
     if use_web_api:
         logger.info("Read from web_api")
@@ -60,32 +71,27 @@ def main():
     #st_new = rotate_to_P_SV_SH(st, cat_out)
     #st = st_new
 
+    plot_fit = False
+
     for event in cat_out:
         origin = event.preferred_origin()
         synthetic_picks = app.synthetic_arrival_times(origin.loc, origin.time)
-        smom_dict, fc = measure_pick_smom(st, inventory, event, synthetic_picks, \
-                                      fmin=30., fmax=600, P_or_S='P',
-                                      use_fixed_fmin_fmax=True,
-                                      debug=True)
 
-        """
-        arrivals = [arr for arr in event.preferred_origin().arrivals if arr.phase == 'P']
-        for arr in arrivals:
-            pk = arr.pick_id.get_referred_object()
-            sta= pk.waveform_id.station_code
-            print("sta:%3s [%s] time:%s smom:%12.10g" % (sta, arr.phase, pk.time, arr.smom))
-        """
+        for phase in phase_list:
 
-        comment = Comment(text="corner_frequency_P=%.2f measured for P arrivals" % fc)
-        origin.comments.append(comment)
+            smom_dict, fc = measure_pick_smom(st, inventory, event,
+                                              synthetic_picks,
+                                              P_or_S=phase,
+                                              fmin=fmin, fmax=fmax,
+                                              use_fixed_fmin_fmax=use_fixed_fmin_fmax,
+                                              plot_fit=plot_fit,
+                                              debug_level=1,
+                                              logger_in=logger)
 
-        smom_dict, fc = measure_pick_smom(st, inventory, event, synthetic_picks, \
-                                      fmin=30., fmax=600, P_or_S='S',
-                                      use_fixed_fmin_fmax=True,
-                                      debug=True)
 
-        comment = Comment(text="corner_frequency_S=%.2f measured for S arrivals" % fc)
-        origin.comments.append(comment)
+            comment = Comment(text="corner_frequency_%s=%.2f measured for %s arrivals" % \
+                              (phase, fc, phase))
+            origin.comments.append(comment)
 
 # Write out event xml for downstream modules (focal_mech, moment_mag)
     cat_out[0].write(xml_out, format='QUAKEML')

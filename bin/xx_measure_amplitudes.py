@@ -14,14 +14,23 @@ from lib_process import processCmdLine
 
 def main():
 
-    fname = 'measure_amplitudes'
+    fname = 'xx_measure_amplitudes'
+
     use_web_api, event_id, xml_out, xml_in, mseed_in = processCmdLine(fname)
 
     # reading application data
-    app = Application(module_name='nlloc')
+    app = Application()
     settings = app.settings
+    params = settings.measure_amplitudes
 
-    logger = app.get_logger('xx_measure_amplitudes','zlog')
+    pulse_min_width = params.pulse_min_width
+    pulse_min_snr_P = params.pulse_min_snr_P
+    pulse_min_snr_S = params.pulse_min_snr_S
+    phase_list = params.phase_list
+    if not isinstance(phase_list, list):
+        phase_list = [phase_list]
+
+    logger = app.get_logger(fname,'zlog')
 
     if use_web_api:
         logger.info("Read from web_api")
@@ -69,8 +78,13 @@ def main():
     #      For S I prefer to use freq domain approach in a separate module
 
     trP = [tr for tr in st if tr.stats.channel == 'P' or tr.stats.channel.upper() == 'Z']
-    measure_pick_amps(Stream(traces=trP), cat_out, phase_list=['P'], use_stats_dict=False,
-                      min_pulse_width=.00167, min_pulse_snr=5, debug=True)
+
+    measure_pick_amps(Stream(traces=trP), cat_out,
+                      phase_list=phase_list,
+                      pulse_min_width=pulse_min_width,
+                      pulse_min_snr_P=pulse_min_snr_P,
+                      pulse_min_snr_S=pulse_min_snr_S,
+                      debug=False, logger_in=logger)
 
 # Write out new event xml file with arrival dicts containing the amp measurements
 #   needed by moment_mag and focal_mech modules:
