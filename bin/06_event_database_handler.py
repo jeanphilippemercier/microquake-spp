@@ -24,7 +24,7 @@ def process(cat=None, stream=None, logger=None, app=None, module_settings=None, 
         logger.error('Error in postion data to the API. Returned with '
                      'error code %d' % result.status_code)
 
-    return result
+    return cat, stream
 
 
 __module_name__ = 'event_database'
