@@ -23,15 +23,28 @@ def process(
     gd = Grid()
 
     for phase in ['P', 'S']:
-        for event in cat:
+        for origin in cat[0].origins:
             for station in inventory.stations():
                 logger.info('calculating ray for station %s and location %s'
-                            % (station.code, event.loc))
+                            % (station.code, origin.loc))
                 ray = gd.get_ray(station.code, phase,
-                                 event.preferred_origin().loc)
+                                 origin.loc)
+                
+
+                # 1) Write the post endpoint
+                # 2) Get the pod running
+                # 3) Post an event and send the event to the Kafka topic
+                # ray_tracer
+                # 4) write a function in seismic_client to post the data to
+                # the api
+                # 5) write the get endpoint
+                # 6) write a function in seismic_client to get the data from
+                #  the API.
 
                 # Next, send the data back to the api
-
+                # site id, event_id, origin_id, station_id, arrival_id (can be
+                # NULL),length, nodes (an array of (x, y, z) encoded as
+                # bytes or base64)
     return
 
 __module_name__ = "ray_tracer"
