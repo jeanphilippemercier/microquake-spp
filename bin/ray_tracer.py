@@ -22,15 +22,25 @@ def process(
     inventory = app.get_inventory()
     gd = Grid()
 
+    event_id = cat[0].resource_id
     for phase in ['P', 'S']:
         for origin in cat[0].origins:
+            origin_id = origin.resource_id
             for station in inventory.stations():
                 logger.info('calculating ray for station %s and location %s'
                             % (station.code, origin.loc))
                 ray = gd.get_ray(station.code, phase,
                                  origin.loc)
-                tt = gd.get_grid_point(station.code, phase, origin.loc,
-                                       type='time')
+                travel_time = gd.get_grid_point(station.code, phase,
+                                                origin.loc, type='time')
+                station_id = station.code
+
+                arrival_id = None
+                for arrival in origin.arrivals:
+                    pick = arrival.get_pick()
+                    if pick.waveform_id.station_code == station.code:
+                        if arrival.phase == phase:
+                           arrival_id = arrival.resource_id
 
 
                 # 1) Write the post endpoint
