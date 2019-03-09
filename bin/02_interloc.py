@@ -35,16 +35,18 @@ def process(
     logger.info("preparing data for Interloc")
     t4 = time()
     st_out = stream.copy()
-    stream.filter("highpass", freq=100)
+
+    # remove channels which do not have matching ttable entries
+    for trace in stream:
+        if trace.stats.station not in htt.stations:
+            stream.remove(trace)
 
     data, sr, t0 = stream.as_array(wlen_sec)
     logger.info("data: %s", data)
     data = np.nan_to_num(data)
     data = tools.decimate(data, sr, int(sr / dsr))
     chanmap = stream.chanmap().astype(np.uint16)
-    for trace in stream:
-        if trace.stats.station not in htt.stations:
-            stream.remove(trace)
+
     ikeep = htt.index_sta(stream.unique_stations())
     npz_file = os.path.join(npz_file_dir, "iloc_" + str(t0) + ".npz")
     t5 = time()
