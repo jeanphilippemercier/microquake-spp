@@ -29,7 +29,9 @@ def process(
                             % (station.code, origin.loc))
                 ray = gd.get_ray(station.code, phase,
                                  origin.loc)
-                
+                tt = gd.get_grid_point(station.code, phase, origin.loc,
+                                       type='time')
+
 
                 # 1) Write the post endpoint
                 # 2) Get the pod running
@@ -43,8 +45,8 @@ def process(
 
                 # Next, send the data back to the api
                 # site id, event_id, origin_id, station_id, arrival_id (can be
-                # NULL),length, nodes (an array of (x, y, z) encoded as
-                # bytes or base64)
+                # NULL),length, travel_time, nodes (an array of (x, y,
+                # z) encoded as bytes or base64)
     return
 
 __module_name__ = "ray_tracer"
