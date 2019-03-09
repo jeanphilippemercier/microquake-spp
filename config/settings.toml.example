@@ -34,10 +34,6 @@ project_code = 'OT'
   stationXML = 'OT.xml'
   black_list = ['23', '31', '32', '100', '102', '107', '88', '90', '77']
 
-[data_local]
-  ms_chunks = '/home/phil/data/oyu/spp_common/synthetic/chunks/*.mseed'
-  ms_10s    = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.mseed'
-  xml_10s   = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.xml'
 
 [processing_flow]
 # this describes the kafka channel to which the message should be routed
@@ -87,14 +83,18 @@ project_code = 'OT'
 
 [interloc]
   nthreads = 4
-  debug = 0
-  wlen_sec = 1.0
-  dsr = 3000.0
-  threshold = 0.2
+  samplerate_decimated = 3000.0
+  fixed_wlen_sec = 1.0
+  whiten_corner_freqs = [40.0, 50.0, 350.0, 360.0]
+  pair_dist_min = 0.0
+  pair_dist_max = 2000.0
+  cc_smooth_length_sec = 0.005
+  detection_threshold = 0.2
+  debug_level = 0
+  debug_file_dir = './common'
   output_data_name = 'event_located'
   log_topic = 'interloc'
   log_file_name = 'interloc.log'
-  npz_file_dir = './common'
 
 [create_event]
   log_topic = 'create_event'
@@ -192,7 +192,7 @@ project_code = 'OT'
 [kafka]
   brokers = 'broker:9092'
   group_id = 'seismic_processing_platform'
-  threads = 3 
+  threads = 3
 
 [airflow]
   description = 'Data Loader'
