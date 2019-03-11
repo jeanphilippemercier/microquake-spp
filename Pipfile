@@ -28,6 +28,7 @@ redis = "*"
 confluent-kafka = "==0.11.5"
 kafka-python = "*"
 tqdm = "*"
+tenacity = "*"
 
 [requires]
 python_version = "3"

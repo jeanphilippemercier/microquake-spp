@@ -1,11 +1,12 @@
-from microquake.core import read_events
-from microquake.core.stream import *
+import urllib
 from io import BytesIO
+
 import requests
 from dateutil import parser
-from microquake.core import UTCDateTime
-import urllib
 from IPython.core.debugger import Tracer
+
+from microquake.core import UTCDateTime, read_events
+from microquake.core.stream import *
 
 
 class RequestEvent:
@@ -105,6 +106,7 @@ def post_data_from_files(api_base_url, event_id=None, event_file=None,
 def post_data_from_objects(api_base_url, event_id=None, event=None,
                            stream=None, context_stream=None,
                            variable_length_stream=None, tolerance=0.5,
+                           send_to_bus=False,
                            logger=None):
     """
     Build request directly from objects
@@ -228,14 +230,14 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         files['variable_size_waveform'] = mseed_variable_bytes
         logger.info('done preparing variable length waveform data')
 
-    return post_event_data(api_url, event_resource_id, files, logger)
+    return post_event_data(api_url, event_resource_id, files, logger, send_to_bus=send_to_bus)
 
 
-def post_event_data(api_base_url, event_resource_id, request_files, logger):
+def post_event_data(api_base_url, event_resource_id, request_files, logger, send_to_bus=False):
     url = api_base_url + "/%s" % event_resource_id
     logger.info('posting data on %s' % url)
 
-    result = requests.post(url, files=request_files)
+    result = requests.post(url, data={"send_to_bus":send_to_bus}, files=request_files)
     print(result)
 
     '''
