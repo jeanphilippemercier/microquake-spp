@@ -3,10 +3,21 @@ from io import BytesIO
 
 import requests
 from dateutil import parser
+from microquake.core import UTCDateTime
+from microquake.core import AttribDict
+from microquake.core.event import Ray
+import urllib
 from IPython.core.debugger import Tracer
 
 from microquake.core import UTCDateTime, read_events
 from microquake.core.stream import *
+
+
+class RequestRay(AttribDict):
+    def __init__(self, json_data):
+        super(RequestRay, self).__init__(json_data)
+        self.ray = Ray(self.nodes)
+        del self.nodes
 
 
 class RequestEvent:
@@ -39,7 +50,7 @@ class RequestEvent:
 
     def get_variable_length_waveform(self):
         variable_length_waveform_file = requests.request('GET',
-                                        self.variable_size_waveform_file)
+                                                         self.variable_size_waveform_file)
         byte_stream = BytesIO(variable_length_waveform_file)
         return read(byte_stream)
 
@@ -53,7 +64,8 @@ class RequestEvent:
 
 
 def post_data_from_files(api_base_url, event_id=None, event_file=None,
-                         mseed_file=None, mseed_context_file=None, variable_length_stream_file=None,
+                         mseed_file=None, mseed_context_file=None,
+                         variable_length_stream_file=None,
                          tolerance=0.5, logger=None):
     """
     Build request directly from objects
@@ -77,9 +89,9 @@ def post_data_from_files(api_base_url, event_id=None, event_file=None,
         import logging
         logger = logging.getLogger(__name__)
 
-    event=None,
-    stream=None
-    context_stream=None
+    event = None,
+    stream = None
+    context_stream = None
 
     # read event
     if event_file is not None:
@@ -95,11 +107,13 @@ def post_data_from_files(api_base_url, event_id=None, event_file=None,
 
     # read variable length waveform
     if variable_length_stream_file is not None:
-        variable_length_stream = read(variable_length_stream_file, format='MSEED')
+        variable_length_stream = read(variable_length_stream_file,
+                                      format='MSEED')
 
     return post_data_from_objects(api_base_url, event_id=event_id,
                                   event=event, stream=stream,
-                                  context_stream=context_stream, variable_length_stream=variable_length_stream,
+                                  context_stream=context_stream,
+                                  variable_length_stream=variable_length_stream,
                                   tolerance=tolerance, logger=logger)
 
 
@@ -268,7 +282,7 @@ def get_events_catalog(api_base_url, start_time, end_time):
 
     querystring = {"start_time": start_time, "end_time": end_time}
 
-    response = requests.request("GET", url,  params=querystring).json()
+    response = requests.request("GET", url, params=querystring).json()
 
     events = []
     for event in response:
@@ -296,11 +310,10 @@ def get_continuous_stream(api_base_url, start_time, end_time, station=None,
                           channel=None, network=None):
     url = api_base_url + "continuous_waveform"
 
-
     querystring = {'start_time': str(start_time), 'end_time': str(end_time),
-                   "station": station,}
+                   "station": station, }
 
-    response = requests.request('GET', url,  params=querystring)
+    response = requests.request('GET', url, params=querystring)
     file = BytesIO(response.content)
     wf = read(file, format='MSEED')
     return wf
@@ -331,6 +344,50 @@ def post_continuous_stream(api_base_url, stream, post_to_kafka=True,
 
     result = requests.post(url, data=request_data, files=request_files)
     print(result)
+
+
+def post_ray(api_base_url, site_code, event_id, origin_id, arrival_id,
+             station_code, ray_length, travel_time, nodes):
+    url = api_base_url + "rays"
+
+    request_data = dict()
+    request_data['site_code'] = site_code
+    request_data['event_resource_id'] = event_id
+    request_data['origin_resource_id'] = origin_id
+    request_data['arrival_resource_id'] = arrival_id
+    request_data['station_code'] = station_code
+    request_data['ray_length'] = str(ray_length)
+    request_data['travel_time'] = str(travel_time)
+    request_data['nodes'] = nodes.tolist()
+
+    result = requests.post(url, json=request_data)
+    print(result)
+
+
+def get_rays(api_base_url, event_resource_id, origin_resource_id=None,
+             arrival_resource_id=None):
+    import json
+
+    url = api_base_url + "events/%s/" % event_resource_id
+    url_end = "rays"
+
+    if origin_resource_id:
+        url = url + "origins/%s/" % origin_resource_id
+
+    if origin_resource_id and arrival_resource_id:
+        url = url + "arrivals/%s/" % arrival_resource_id
+
+    url = url + url_end
+
+    response = requests.request("GET", url)
+
+    if response.status_code != 200:
+        return None
+
+    request_rays = []
+    for obj in json.loads(response.content):
+        request_rays.append(RequestRay(obj))
+    return request_rays
 
 
 # if __name__ == "__main__":
