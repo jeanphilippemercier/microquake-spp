@@ -45,7 +45,7 @@ site_code = 'OT'
             ['measure_amplitudes'], ['magnitude'], ['event_database']
            ]
   [processing_flow.ray_tracing]
-   trigger_data_name = 'created'
+   trigger_data_name = 'ray_tracing'
    dataset = 'seismic_event'
    steps = [['ray_tracer']]
 
