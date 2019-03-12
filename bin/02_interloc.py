@@ -45,7 +45,7 @@ def process(
     logger.info("data: %s", data)
     data = np.nan_to_num(data)
     data = tools.decimate(data, sr, int(sr / dsr))
-    chanmap = stream.chanmap().astype(np.uint16)
+    chanmap = stream.channel_map().astype(np.uint16)
 
     ikeep = htt.index_sta(stream.unique_stations())
     npz_file = os.path.join(npz_file_dir, "iloc_" + str(t0) + ".npz")
