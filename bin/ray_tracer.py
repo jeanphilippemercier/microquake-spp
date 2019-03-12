@@ -1,6 +1,6 @@
-from spp.utils.grid import Grid
-from spp.utils.cli import CLI
 from spp.utils import seismic_client
+from spp.utils.cli import CLI
+from spp.utils.grid import Grid
 
 
 def process(
@@ -41,7 +41,7 @@ def process(
                                         arrival_id, station_id, ray.length(),
                                         travel_time, ray.nodes)
 
-    return
+    return cat, stream
 
 
 __module_name__ = "ray_tracer"
