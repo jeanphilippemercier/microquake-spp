@@ -9,6 +9,7 @@ variables:
   CONTAINER_REPO: seismic-gitlab.eastus.cloudapp.azure.com:5005
   BASE_IMAGE: ${CI_REGISTRY_IMAGE}/base
   CI_APPLICATION_TAG: $(echo ${CI_COMMIT_SHA} | cut -c1-8)
+  KUBE_VERSION: v1.12.1
 
 base_image:
   image: docker:stable
