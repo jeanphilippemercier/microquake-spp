@@ -10,6 +10,8 @@ spp.egg-info
 *.dat
 *.xml
 *.pickle
+*.npz
+*.png
 .mypy_cache/
 tmp/
 data/NLLOC_grids/
@@ -19,3 +21,4 @@ libs/microquake
 *.txt
 *.pdf
 common/*
+*.log.*

@@ -42,13 +42,13 @@ class RequestEvent:
         byte_stream = BytesIO(waveform_file.content)
         return read(byte_stream, format='MSEED')
 
-    def get_context(self):
+    def get_context_waveforms(self):
         waveform_context_file = requests.request('GET',
                                                  self.context_waveform_file)
         byte_stream = BytesIO(waveform_context_file)
         return read(byte_stream)
 
-    def get_variable_length_waveform(self):
+    def get_variable_length_waveforms(self):
         variable_length_waveform_file = requests.request('GET',
                                                          self.variable_size_waveform_file)
         byte_stream = BytesIO(variable_length_waveform_file)
@@ -61,6 +61,13 @@ class RequestEvent:
 
     def keys(self):
         return self.__dict__.keys()
+
+    def __repr__(self):
+        outstr = "\n"
+        for key in self.keys():
+            outstr += '%s: %s\n' % (key, self.__dict__[key])
+        outstr += "\n"
+        return outstr
 
 
 def post_data_from_files(api_base_url, event_id=None, event_file=None,
