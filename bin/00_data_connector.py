@@ -165,7 +165,7 @@ def get_and_post_continuous_data(
     after=after_log(logger, logging.DEBUG),
 )
 def get_and_post_event_data(
-    ims_base_url, api_base_url, event, event_time, site_ids, tz, context=None
+    ims_base_url, api_base_url, event, event_time, tz, site_ids, context=None
 ):
     logger.info("retrieving vs_waveform from IMS (url:%s)" % ims_base_url)
     vs_waveform = web_client.get_seismogram_event(ims_base_url, event, "OT", tz)
@@ -185,6 +185,9 @@ def get_and_post_event_data(
     pick_time = [arrival.get_pick().time for arrival in
                  event.preferred_origin().arrivals]
     min_pick_time = np.min(pick_time)
+
+    for trace in wf:
+        trace.data = np.nan_to_num(trace.data)
 
     wf = wf.detrend('demean').detrend('linear')
 
