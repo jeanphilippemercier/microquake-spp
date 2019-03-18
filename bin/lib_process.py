@@ -94,9 +94,11 @@ def fix_arr_takeoff_and_azimuth(cat_out, sta_meta_dict, app=None):
         arr.backazimuth = back_azimuth
         arr.inc_angle   = inc_p
 
+        '''
         print("%3s: [%s] takeoff:%6.2f [stx=%6.2f] inc_p:%.2f [inc_stx:%.2f] baz:%.1f [az:%.1f]" % \
               (sta, arr.phase, arr.takeoff_angle, takeoff_straight, \
                inc_p, inc_straight, back_azimuth, arr.azimuth))
+        '''
 
     cat_out[0].preferred_origin().arrivals = arrivals
 

@@ -31,13 +31,13 @@ echo "input=$input_data"
 # Read traces from web api but use local xml:
 #python xx_measure_amplitudes.py -e smi:local/8f0f1cbd-2f81-4050-8c62-fd72241f6752 -x event.xml -o event.xml
 
-#python xx_snr_picker.py $input_data -x $xml_in -o $xml_out
-#python xx_locate.py -x $xml_out -o $xml_out
-#python xx_measure_amplitudes.py $input_data  -x $xml_out -o $xml_out
-python xx_measure_amplitudes.py $input_data  -x $xml_in -o foo.xml
-exit 1
+python xx_snr_picker.py $input_data -x $xml_in -o $xml_out
+python xx_locate.py -x $xml_out -o $xml_out
+python xx_measure_amplitudes.py $input_data  -x $xml_out -o $xml_out
 python xx_moment_magnitude.py -x $xml_out -o $xml_out
+exit 1
+python xx_focal_mechanism.py -x $xml_out -o $xml_out
 python xx_measure_smom.py $input_data  -x $xml_out -o $xml_out
 python xx_moment_magnitude_f.py -x $xml_out -o $xml_out
-python xx_focal_mechanism.py -x $xml_out -o $xml_out
 exit 1
+

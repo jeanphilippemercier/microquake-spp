@@ -38,7 +38,8 @@ class Application(object):
 
         self.__module_name__ = module_name
         if self.__module_name__ is None:
-            print("No module name, application cannot initialise")
+            #print("No module name, application cannot initialise")
+            pass
 
         self.config_dir = os.environ['SPP_CONFIG']
         self.common_dir = os.environ['SPP_COMMON']
@@ -56,6 +57,8 @@ class Application(object):
 
         self.inventory = None
 
+        self.logger = None
+
         # Appending the SPP_COMMON directory to nll_base
 
         if 'nlloc' in self.settings.__dict__.keys():
@@ -68,11 +71,17 @@ class Application(object):
                 self.settings.magnitude.len_spectrum = 2 ** \
                 self.settings.magnitude.len_spectrum_exponent
 
+        """
+        MTH: Unless there's a good strategy here, I would avoid this pattern
+        as it hoses the logger for any flow that doesn't follow it exactly:
+
         self.logger = self.get_logger('application', './application.log')
+
         if self.__module_name__:
             self.logger = self.get_logger(self.settings[
                                             self.__module_name__].log_topic,
                             self.settings[self.__module_name__].log_file_name)
+        """
 
 
     def get_consumer_topic(self, processing_flow, dataset, module_name, trigger_data_name, input_data_name=None):
@@ -143,18 +152,20 @@ class Application(object):
         params = self.settings.sensors
 
         if self.inventory is None:
-            print("app.get_inventory: ** Load inventory file **")
+
             if params.source == 'local':
                 # MTH: let's read in the stationxml directly for now!
                 fpath = os.path.join(self.common_dir, params.stationXML)
                 self.inventory = Inventory.load_from_xml(fpath)
                 #fpath = os.path.join(self.common_dir, params.path)
                 #self.inventory = load_inventory(fpath, format='CSV')
+                if self.logger:
+                    self.logger.info("Application: Load Inventory from:[%s]" % fpath)
 
             elif self.settings.sensors.source == 'remote':
                 pass
-        else:
-            print("app.get_inventory: INVENTORY FILE ALREADY LOADED")
+        #else:
+            #print("app.get_inventory: INVENTORY FILE ALREADY LOADED")
 
         return self.inventory
 
@@ -380,10 +391,14 @@ class Application(object):
 
     def get_logger(self, logger_name, log_filename):
 
+        # MTH: Return the logger - probably not needed since logger is already a singleton
+        #if getattr(self, 'logger', None):
+            #return self.logger
+
         logger = logging.getLogger(logger_name)
         log_level = self.settings.logging.log_level
 
-        if not len(logger.handlers):
+        if len(logger.handlers) == 0:
 
             final_log_level = self.settings.logging.log_level
             if log_level is not None:
@@ -394,6 +409,9 @@ class Application(object):
 
             logger.addHandler(self.__get_console_handler())
             logger.addHandler(self.__get_file_handler(log_filename))
+
+        # MTH: this is also necessary to disable the extra console logging:
+        logger.propagate = False
         return logger
 
     def synthetic_arrival_times(self, event_location, origin_time):
@@ -410,7 +428,6 @@ class Application(object):
 
         picks = []
 
-        print("==== ENTERING synthetic_arrival_times ====")
         #stations = self.get_stations().stations()
         #site = self.get_stations()
 
