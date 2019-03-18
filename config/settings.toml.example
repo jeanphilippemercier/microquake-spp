@@ -47,6 +47,10 @@ project_code = 'OT'
    steps = [['nlloc'], ['interloc'], ['picker'], ['nlloc_adjustment'],
             ['measure_amplitudes'], ['magnitude'], ['event_database']
            ]
+  [processing_flow.ray_tracing]
+   trigger_data_name = 'created'
+   dataset = 'seismic_event'
+   steps = [['ray_tracer']]
 
   [processing_flow.interactive]
    steps=[['location'], ['magnitude'], ['event_database', 'ui_notification']]
@@ -83,14 +87,18 @@ project_code = 'OT'
 
 [interloc]
   nthreads = 4
-  debug = 0
-  wlen_sec = 1.0
-  dsr = 3000.0
-  threshold = 0.2
+  samplerate_decimated = 3000.0
+  fixed_wlen_sec = 1.0
+  whiten_corner_freqs = [40.0, 50.0, 350.0, 360.0]
+  pair_dist_min = 0.0
+  pair_dist_max = 2000.0
+  cc_smooth_length_sec = 0.005
+  detection_threshold = 0.2
+  debug_level = 0
+  debug_file_dir = './common'
   output_data_name = 'event_located'
   log_topic = 'interloc'
   log_file_name = 'interloc.log'
-  npz_file_dir = './common'
 
 [create_event]
   log_topic = 'create_event'
@@ -179,6 +187,11 @@ project_code = 'OT'
   output_data_name = 'amplitude_set'
   log_file_name = 'measure_amplitudes.log'
   log_topic = 'amplitude measurement'
+
+['ray_tracer']
+    log_file_name = 'ray_tracer.log'
+    log_topic = 'ray_tracer'
+    input_kafka_topic = 'ray_tracer'
 
 [kafka]
   brokers = 'broker:9092'

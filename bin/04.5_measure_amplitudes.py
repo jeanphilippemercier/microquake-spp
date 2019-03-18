@@ -40,8 +40,8 @@ def process(
         Stream(traces=trP),
         cat_out,
         phase_list=["P"],
-        min_pulse_width=0.00167,
-        min_pulse_snr=5,
+        pulse_min_width=0.00167,
+        pulse_min_snr_S=5,
         debug=False,
     )
 
