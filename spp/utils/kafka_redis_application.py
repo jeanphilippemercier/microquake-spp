@@ -72,7 +72,13 @@ class KafkaRedisApplication(Application):
                         self.logger.error("consumer error: %s", msg.error())
                     continue
                 self.logger.info("message received on topic %s", self.consumer_topic)
-                yield msg
+                redis_key = msg.value()
+                self.logger.info("getting data from Redis (key: %s)", redis_key)
+                t0 = time()
+                redis_data = self.redis_conn.get(redis_key)
+                t1 = time()
+                self.logger.info("done getting data from Redis in %0.3f seconds", (t1 - t0))
+                yield redis_data
                 self.logger.info("awaiting message on topic %s", self.consumer_topic)
 
         except KeyboardInterrupt:
@@ -101,12 +107,6 @@ class KafkaRedisApplication(Application):
         :param msg_in: message read from kafka
         :return: what callback function returns
         """
-        redis_key = msg_in.value()
-        self.logger.info("getting data from Redis (key: %s)", redis_key)
-        t0 = time()
-        redis_data = self.redis_conn.get(redis_key)
-        t1 = time()
-        self.logger.info("done getting data from Redis in %0.3f seconds", (t1 - t0))
         return super(KafkaRedisApplication, self).receive_message(
-            redis_data, callback, **kwargs
+            msg_in, callback, **kwargs
         )

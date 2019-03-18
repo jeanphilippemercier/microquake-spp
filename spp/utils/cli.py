@@ -19,10 +19,14 @@ python ./bin/03_picker.py --mode=api --event_id=smi:local/97f39d25-db59-40fb-bcf
 
 And then optionally post the data back to the API with --send_to_api=True
 python ./bin/03_picker.py --mode=api --send_to_api=True --event_id=smi:local/97f39d25-db59-40fb-bcf8-57de70589fd1
+
+To run a chain of modules
+python ./bin/run_modules.py --modules=02_interloc,03_picker --input_mseed=./tmp/input.mseed --input_quakeml=./tmp/input.xml
 """
 
 
 import argparse
+import importlib.util
 
 
 class CLI:
@@ -32,7 +36,11 @@ class CLI:
     """
 
     def __init__(
-        self, module_name, processing_flow_name="automatic", callback=None, prepare=None
+        self,
+        module_name,
+        processing_flow_name="automatic",
+        callback=None,
+        prepare=None,
     ):
         self.module_name = module_name
         self.processing_flow_name = processing_flow_name
@@ -46,7 +54,8 @@ class CLI:
             from spp.utils.kafka_redis_application import KafkaRedisApplication
 
             self.app = KafkaRedisApplication(
-                module_name=self.module_name, processing_flow_name=processing_flow_name
+                module_name=self.module_name,
+                processing_flow_name=processing_flow_name,
             )
         elif self.args.mode == "local":
             from spp.utils.local_application import LocalApplication
@@ -74,7 +83,10 @@ class CLI:
             print("No application mode specified, exiting")
             exit()
 
-        self.module_settings = self.app.settings[module_name]
+        if module_name in self.app.settings:
+            self.module_settings = self.app.settings[module_name]
+        else:
+            print("Module name {} not found in settings".format(module_name))
 
     def process_arguments(self):
         """
@@ -83,6 +95,9 @@ class CLI:
 
         parser = argparse.ArgumentParser(description="Run an SPP module")
         parser.add_argument("--module_name", help="the name for the module")
+        parser.add_argument(
+            "--modules", help="a list of modules to chain together"
+        )
         parser.add_argument(
             "--mode",
             choices=["local", "cont", "api"],
@@ -117,16 +132,49 @@ class CLI:
         self.prepared_objects = self.prepare(self.app, self.module_settings)
         self.app.logger.info("done preparing module %s", self.module_name)
 
+    def run_module_chain(self, modules, msg_in):
+        cat, stream = self.app.deserialise_message(msg_in)
+        for module_file_name in modules:
+            spec = importlib.util.spec_from_file_location(
+                "bin." + module_file_name, "./bin/" + module_file_name + ".py"
+            )
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            if hasattr(mod, "prepare"):
+                self.prepare = mod.prepare
+                self.prepare_module()
+            self.module_settings = self.app.settings[mod.__module_name__]
+
+            if self.app.settings.sensors.black_list is not None:
+                self.app.clean_waveform_stream(
+                    stream, self.app.settings.sensors.black_list
+                )
+
+            cat, stream = mod.process(
+                cat=cat,
+                stream=stream,
+                logger=self.app.logger,
+                app=self.app,
+                prepared_objects=self.prepared_objects,
+                module_settings=self.module_settings,
+            )
+        return cat, stream
+
     def run_module_continuously(self):
         for msg_in in self.app.consumer_msg_iter():
             try:
-                cat, st = self.app.receive_message(
-                    msg_in,
-                    self.callback,
-                    app=self.app,
-                    prepared_objects=self.prepared_objects,
-                    module_settings=self.module_settings,
-                )
+                if self.args.modules:
+                    cat, st = self.run_module_chain(
+                        self.args.modules.split(","), msg_in
+                    )
+                else:
+                    cat, st = self.app.receive_message(
+                        msg_in,
+                        self.callback,
+                        app=self.app,
+                        prepared_objects=self.prepared_objects,
+                        module_settings=self.module_settings,
+                    )
             except Exception as e:
                 self.app.logger.error(e, exc_info=True)
                 continue
@@ -134,24 +182,34 @@ class CLI:
 
     def run_module_locally(self):
         msg_in = self.app.get_message()
-        cat, st = self.app.receive_message(
-            msg_in,
-            self.callback,
-            app=self.app,
-            prepared_objects=self.prepared_objects,
-            module_settings=self.module_settings,
-        )
+        if self.args.modules:
+            cat, st = self.run_module_chain(
+                self.args.modules.split(","), msg_in
+            )
+        else:
+            cat, st = self.app.receive_message(
+                msg_in,
+                self.callback,
+                app=self.app,
+                prepared_objects=self.prepared_objects,
+                module_settings=self.module_settings,
+            )
         self.app.send_message(cat, st)
 
     def run_module_with_api(self):
         msg_in = self.app.get_message()
-        cat, st = self.app.receive_message(
-            msg_in,
-            self.callback,
-            app=self.app,
-            prepared_objects=self.prepared_objects,
-            module_settings=self.module_settings,
-        )
+        if self.args.modules:
+            cat, st = self.run_module_chain(
+                self.args.modules.split(","), msg_in
+            )
+        else:
+            cat, st = self.app.receive_message(
+                msg_in,
+                self.callback,
+                app=self.app,
+                prepared_objects=self.prepared_objects,
+                module_settings=self.module_settings,
+            )
         self.app.send_message(cat, st)
 
     def run_module(self):
@@ -166,6 +224,8 @@ class CLI:
         elif self.args.mode == "api":
             self.run_module_with_api()
         else:
-            self.app.logger.error("Running module in unknown mode %s", self.args.mode)
+            self.app.logger.error(
+                "Running module in unknown mode %s", self.args.mode
+            )
 
         self.app.close()
