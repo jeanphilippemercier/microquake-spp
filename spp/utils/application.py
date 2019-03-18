@@ -76,8 +76,7 @@ class Application(object):
         as it hoses the logger for any flow that doesn't follow it exactly:
 
         self.logger = self.get_logger('application', './application.log')
-
-        if self.__module_name__:
+        if self.__module_name__ and self.__module_name__ in self.settings:
             self.logger = self.get_logger(self.settings[
                                             self.__module_name__].log_topic,
                             self.settings[self.__module_name__].log_file_name)
@@ -87,6 +86,9 @@ class Application(object):
     def get_consumer_topic(self, processing_flow, dataset, module_name, trigger_data_name, input_data_name=None):
         if input_data_name:
             return self.get_topic(dataset, input_data_name)
+
+        if module_name == 'chain':
+            return self.get_topic(dataset, trigger_data_name)
 
         if len(processing_flow) == 0:
             raise ValueError("Empty processing_flow, cannot determine consumer topic")
@@ -119,7 +121,10 @@ class Application(object):
 
 
     def get_output_data_name(self, module_name):
-        return self.settings[module_name].output_data_name
+        if module_name in self.settings:
+            return self.settings[module_name].output_data_name
+        else:
+            return ""
 
 
     @property
