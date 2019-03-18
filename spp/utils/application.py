@@ -71,16 +71,11 @@ class Application(object):
                 self.settings.magnitude.len_spectrum = 2 ** \
                 self.settings.magnitude.len_spectrum_exponent
 
-        """
-        MTH: Unless there's a good strategy here, I would avoid this pattern
-        as it hoses the logger for any flow that doesn't follow it exactly:
-
         self.logger = self.get_logger('application', './application.log')
         if self.__module_name__ and self.__module_name__ in self.settings:
             self.logger = self.get_logger(self.settings[
                                             self.__module_name__].log_topic,
                             self.settings[self.__module_name__].log_file_name)
-        """
 
 
     def get_consumer_topic(self, processing_flow, dataset, module_name, trigger_data_name, input_data_name=None):
@@ -395,11 +390,6 @@ class Application(object):
         return file_handler
 
     def get_logger(self, logger_name, log_filename):
-
-        # MTH: Return the logger - probably not needed since logger is already a singleton
-        #if getattr(self, 'logger', None):
-            #return self.logger
-
         logger = logging.getLogger(logger_name)
         log_level = self.settings.logging.log_level
 
@@ -415,8 +405,9 @@ class Application(object):
             logger.addHandler(self.__get_console_handler())
             logger.addHandler(self.__get_file_handler(log_filename))
 
-        # MTH: this is also necessary to disable the extra console logging:
+        # Disable the extra console logging:
         logger.propagate = False
+
         return logger
 
     def synthetic_arrival_times(self, event_location, origin_time):
