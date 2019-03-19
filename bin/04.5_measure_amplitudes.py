@@ -23,7 +23,10 @@ def process(
     cat_out = cat.copy()
 
     inventory = app.get_inventory()
-    st.attach_response(inventory)
+    missing_responses = st.attach_response(inventory)
+    for sta in missing_responses:
+        logger.warn("Inventory: Missing response for sta:%s" % sta)
+
 
     sta_meta_dict = inv_station_list_to_dict(inventory)
     # 1. Rotate traces to ENZ
