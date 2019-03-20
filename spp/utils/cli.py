@@ -140,10 +140,10 @@ class CLI:
             )
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
+            self.module_settings = self.app.settings[mod.__module_name__]
             if hasattr(mod, "prepare"):
                 self.prepare = mod.prepare
                 self.prepare_module()
-            self.module_settings = self.app.settings[mod.__module_name__]
 
             if self.app.settings.sensors.black_list is not None:
                 self.app.clean_waveform_stream(
