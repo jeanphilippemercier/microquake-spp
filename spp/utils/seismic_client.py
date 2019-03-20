@@ -1,15 +1,13 @@
+import json
 import urllib
 from io import BytesIO
 
 import requests
 from dateutil import parser
-from microquake.core import UTCDateTime
-from microquake.core import AttribDict
-from microquake.core.event import Ray
-import urllib
 from IPython.core.debugger import Tracer
 
-from microquake.core import UTCDateTime, read_events
+from microquake.core import AttribDict, UTCDateTime, read_events
+from microquake.core.event import Ray
 from microquake.core.stream import *
 
 
@@ -397,3 +395,21 @@ def get_rays(api_base_url, event_resource_id, origin_resource_id=None,
     for obj in json.loads(response.content):
         request_rays.append(RequestRay(obj))
     return request_rays
+
+
+def get_station2(api_base_url, station_id):
+    url = "{}station2/{}".format(api_base_url, station_id)
+    session = requests.Session()
+    session.trust_env = False
+    response = session.get(url)
+    if response.status_code != 200:
+        return None
+    return json.loads(response.content)
+
+
+def post_station2(
+    api_base_url, request_data
+):
+    session = requests.Session()
+    session.trust_env = False
+    return session.post("{}station2".format(api_base_url), json=request_data)
