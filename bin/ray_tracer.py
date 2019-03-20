@@ -37,9 +37,10 @@ def process(
 
                 # post ray data to api
                 seismic_client.post_ray(app.settings.seismic_api.base_url,
-                                        site_code, event_id, origin_id,
-                                        arrival_id, station_id, ray.length(),
-                                        travel_time, ray.nodes)
+                                        site_code, network_code, event_id,
+                                        origin_id, arrival_id, station_id,
+                                        phase, ray.length(), travel_time,
+                                        ray.nodes)
 
     return cat, stream
 

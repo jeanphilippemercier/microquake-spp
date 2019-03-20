@@ -353,16 +353,18 @@ def post_continuous_stream(api_base_url, stream, post_to_kafka=True,
     print(result)
 
 
-def post_ray(api_base_url, site_code, event_id, origin_id, arrival_id,
-             station_code, ray_length, travel_time, nodes):
+def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
+             arrival_id, station_code, phase, ray_length, travel_time, nodes):
     url = api_base_url + "rays"
 
     request_data = dict()
     request_data['site_code'] = site_code
+    request_data['network_code'] = network_code
     request_data['event_resource_id'] = event_id
     request_data['origin_resource_id'] = origin_id
     request_data['arrival_resource_id'] = arrival_id
     request_data['station_code'] = station_code
+    request_data['phase'] = phase
     request_data['ray_length'] = str(ray_length)
     request_data['travel_time'] = str(travel_time)
     request_data['nodes'] = nodes.tolist()
@@ -395,21 +397,3 @@ def get_rays(api_base_url, event_resource_id, origin_resource_id=None,
     for obj in json.loads(response.content):
         request_rays.append(RequestRay(obj))
     return request_rays
-
-
-# if __name__ == "__main__":
-#
-#     app = Application()
-#
-#     API_BASE_URL = app.settings.API.base_url
-#
-#     data, files = build_request_data_from_files( None
-#                                                 ,'data/2018-11-08T11-16-47.968400Z.xml'
-#                                                 ,'data/2018-11-08T11-16-47.968400Z.mseed'
-#                                                 , None #'20180523_125102207781.mseed_context'
-#                                                 )
-#
-#     post_event_data(API_BASE_URL, data, files)
-#
-#     get_events_catalog(API_BASE_URL, "2018-11-08T10:21:48.898496Z",
-#                        "2018-11-08T11:21:49.898496Z")
