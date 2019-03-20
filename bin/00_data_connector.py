@@ -80,8 +80,8 @@ def get_and_post_IMS_data(
 
 
 def get_times(tz):
-    end_time = UTCDateTime.now() - 7200
-    start_time = end_time - 5 * 24 * 3600  # 4 days
+    end_time = UTCDateTime.now() - 3600
+    start_time = end_time - 2 * 24 * 3600  # 4 days
     end_time = end_time.datetime.replace(tzinfo=pytz.utc).astimezone(tz=tz)
     start_time = start_time.datetime.replace(tzinfo=pytz.utc).astimezone(tz=tz)
     return start_time, end_time
@@ -165,14 +165,15 @@ def get_and_post_continuous_data(
     after=after_log(logger, logging.DEBUG),
 )
 def get_and_post_event_data(
-    ims_base_url, api_base_url, event, event_time, tz, context=None
+    ims_base_url, api_base_url, event, event_time, tz, site_ids, context=None
 ):
     logger.info("retrieving vs_waveform from IMS (url:%s)" % ims_base_url)
     vs_waveform = web_client.get_seismogram_event(ims_base_url, event, "OT", tz)
+    wf = web_client.get_continuous(
+        ims_base_url, event_time - 10, event_time + 10, site_ids, tz
+    )
 
     # Do some basic data quality tasks
-
-    wf = vs_waveform.copy()
     inventory = app.get_inventory()
     stations = inventory.stations()
     stations_code_ids = [station.code for station in stations]
@@ -184,6 +185,9 @@ def get_and_post_event_data(
     pick_time = [arrival.get_pick().time for arrival in
                  event.preferred_origin().arrivals]
     min_pick_time = np.min(pick_time)
+
+    for trace in wf:
+        trace.data = np.nan_to_num(trace.data)
 
     wf = wf.detrend('demean').detrend('linear')
 
@@ -215,8 +219,7 @@ def get_and_post_event_data(
 
 
 def get_context(c_wf, arrivals, context):
-    index = np.argmin([arrival.distance for arrival in arrivals])
-
+    index = np.argmin([arrival.get_pick().time for arrival in arrivals])
     station_code = arrivals[index].get_pick().waveform_id.station_code
 
     context = (
@@ -242,6 +245,11 @@ def post_event_to_api(
     logger.info("extracting data for event %s" % str(event))
     event_time = event.preferred_origin().time
 
+    ts = []
+    for arrival in event.preferred_origin().arrivals:
+        ts.append(arrival.get_pick().time)
+    event_time = np.min(ts)
+
     context = None
     if post_continuous_data:
         c_wf = get_and_post_continuous_data(
@@ -255,11 +263,11 @@ def post_event_to_api(
         )
         context = get_context(c_wf, event.preferred_origin().arrivals, context)
         get_and_post_event_data(
-            ims_base_url, api_base_url, event, event_time, tz, context=context
+            ims_base_url, api_base_url, event, event_time, tz, site_ids, context=context
         )
     else:
         get_and_post_event_data(
-            ims_base_url, api_base_url, event, event_time, tz, context=None
+            ims_base_url, api_base_url, event, event_time, tz, site_ids, context=None
         )
 
 
