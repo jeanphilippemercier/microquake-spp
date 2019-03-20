@@ -180,6 +180,8 @@ def get_and_post_event_data(
     for trace in wf:
         if trace.stats.station not in stations_code_ids:
             wf.remove(trace)
+        trace.stats.network = inventory.networks[0].code
+        trace.stats.channel = trace.stats.channel.lower()
 
     pick_time = [arrival.get_pick().time for arrival in
                  event.preferred_origin().arrivals]
