@@ -24,8 +24,19 @@ DEFAULT_START_TIME = DEFAULT_END_TIME - DEFAULT_WINDOW_SIZE
 
 
 def process_continuous_data(
-    app, logger, ims_base_url, api_base_url, start_time, end_time, site_ids, tz
+    app,
+    logger,
+    ims_base_url,
+    api_base_url,
+    start_time,
+    end_time,
+    window_size,
+    site_ids,
+    tz,
 ):
+    if end_time is None or start_time is None:
+        end_time = UTCDateTime.now() - (3600 * 2)
+        start_time = end_time - window_size
     wf = get_continuous_data(
         app, logger, ims_base_url, start_time, end_time, site_ids, tz
     )
@@ -71,8 +82,8 @@ def post_all_stations_signals_analysis(
     api_base_url = app.settings.seismic_api.base_url
     for station in signal_quality_data:
         logger.info(
-            "posting data quality information to the API for station: %s" %
-                station["station_code"]
+            "posting data quality information to the API for station: %s"
+            % station["station_code"]
         )
         post_station_signals_analysis(
             api_base_url,
@@ -94,7 +105,10 @@ def post_station_signals_analysis(
 ):
     station = get_station2(api_base_url, station_code)
     if station is None:
-        station = {"name":"OT-station-{}".format(station_code), "code":station_code}
+        station = {
+            "name": "OT-station-{}".format(station_code),
+            "code": station_code,
+        }
 
     station["energy"] = np.nan_to_num(energy)
     station["integrity"] = np.nan_to_num(integrity)
@@ -169,6 +183,7 @@ def main():
             api_base_url,
             start_time,
             end_time,
+            None,
             site_ids,
             tz,
         )
@@ -187,8 +202,9 @@ def main():
                 app.logger,
                 ims_base_url,
                 api_base_url,
-                start_time,
-                end_time,
+                None,
+                None,
+                window_size,
                 site_ids,
                 tz,
             ],
