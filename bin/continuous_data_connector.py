@@ -196,7 +196,7 @@ def main():
             "interval",
             seconds=window_size,
             next_run_time=datetime.now(),
-            max_instances=5,
+            max_instances=10,
             args=[
                 app,
                 app.logger,
