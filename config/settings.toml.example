@@ -256,3 +256,4 @@ network_code = 'HNL1'
 [redis_extra]
   ttl=600
 
+[signal_analysis]

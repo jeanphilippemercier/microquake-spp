@@ -11,9 +11,15 @@ from microquake.IMS import web_client
 from spp.utils import seismic_client
 from spp.utils.application import Application
 
+import os
+
+os.environ['SPP_CONFIG'] = '/home/zachgoldstein/seismic-processing-platform/config'
+os.environ['SPP_COMMON'] = '/home/zachgoldstein/seismic-processing-platform/common'
+
 __module_name__ = "data_connector"
 app = Application(module_name=__module_name__)
 logger = app.logger
+
 
 def continuously_send_IMS_data(
     api_base_url,
@@ -123,10 +129,11 @@ def filter_events(api_base_url, IMS_catalogue, start_time, end_time):
     )
     api_existing_event_ids = {}
     for api_event in api_catalogue:
-        api_existing_event_ids[api_event.event_resource_id] = True
+        api_existing_event_ids[api_event.event_resource_id.replace(r'smi:local/', '')] = True
     events_to_upload = []
+
     for IMS_event in IMS_catalogue:
-        if IMS_event.resource_id not in api_existing_event_ids:
+        if IMS_event.resource_id.id not in api_existing_event_ids:
             events_to_upload.append(IMS_event)
     return events_to_upload
 
