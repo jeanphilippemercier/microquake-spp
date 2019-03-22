@@ -32,12 +32,14 @@ def process(
     st = st.taper(max_percentage=0.1, max_length=0.01)
     st = st.filter("bandpass", freqmin=freq_min, freqmax=freq_max)
 
-    logger.info("calculating origin time")
-    t0 = time()
-    loc = cat[0].preferred_origin().loc
-    ot_utc = app.estimate_origin_time(stream, loc)
-    t1 = time()
-    logger.info("done calculating origin time in %0.3f seconds" % (t1 - t0))
+    # logger.info("calculating origin time")
+    # t0 = time()
+    # loc = cat[0].preferred_origin().loc
+    # ot_utc = app.estimate_origin_time(stream, loc)
+    # t1 = time()
+    # logger.info("done calculating origin time in %0.3f seconds" % (t1 - t0))
+
+    ot_utc = cat[0].preferred_origin().time
 
     logger.info("predicting picks")
     t2 = time()

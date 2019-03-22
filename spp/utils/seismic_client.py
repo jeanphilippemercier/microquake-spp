@@ -249,14 +249,17 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         files['variable_size_waveform'] = mseed_variable_bytes
         logger.info('done preparing variable length waveform data')
 
-    return post_event_data(api_url, event_resource_id, files, logger, send_to_bus=send_to_bus)
+    return post_event_data(api_url, event_resource_id, files, logger,
+                           send_to_bus=send_to_bus)
 
 
-def post_event_data(api_base_url, event_resource_id, request_files, logger, send_to_bus=False):
+def post_event_data(api_base_url, event_resource_id, request_files, logger,
+                    send_to_bus=False):
     url = api_base_url + "/%s" % event_resource_id
     logger.info('posting data on %s' % url)
 
-    result = requests.post(url, data={"send_to_bus":send_to_bus}, files=request_files)
+    result = requests.post(url, data={"send_to_bus":send_to_bus},
+                           files=request_files)
     print(result)
 
     '''
