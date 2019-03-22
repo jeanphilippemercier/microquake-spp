@@ -27,6 +27,10 @@ def process(
                                  origin.loc)
                 travel_time = gd.get_grid_point(station.code, phase,
                                                 origin.loc, type='time')
+                azimuth = gd.get_grid_point(station.code, phase, origin.loc,
+                                            type='azimuth')
+                toa = gd.get_grid_point(station.code, phase, origin.loc,
+                                            type='take_off')
                 station_id = station.code
 
                 arrival_id = None
@@ -41,7 +45,7 @@ def process(
                                         site_code, network_code, event_id,
                                         origin_id, arrival_id, station_id,
                                         phase, ray.length(), travel_time,
-                                        ray.nodes)
+                                        azimuth, toa, ray.nodes)
 
     return cat, stream
 
