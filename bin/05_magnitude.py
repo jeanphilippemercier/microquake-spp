@@ -42,7 +42,8 @@ def process(
         if len(station_mags_P) == 0:
             continue
         station_mags = station_mags_P
-        set_new_event_mag(event, station_mags, Mw, comment)
+        set_new_event_mag(event, station_mags, Mw, comment,
+                          make_preferred=True)
 
     return cat_out, stream
 
