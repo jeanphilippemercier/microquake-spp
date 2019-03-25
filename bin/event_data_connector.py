@@ -97,7 +97,8 @@ def filter_events(api_base_url, IMS_catalogue, start_time, end_time):
     events_to_upload = []
 
     for IMS_event in IMS_catalogue:
-        if IMS_event.resource_id.id not in api_existing_event_ids:
+        ims_resource_id = "{}/{}".format(IMS_event.resource_id.prefix, IMS_event.resource_id.id)
+        if ims_resource_id not in api_existing_event_ids:
             events_to_upload.append(IMS_event)
     logger.info(
         "filtered IMS list of %s events down to %s events" % (len(IMS_catalogue), len(events_to_upload))
