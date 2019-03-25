@@ -39,7 +39,7 @@ def process(
     t1 = time()
     logger.info("done calculating origin time in %0.3f seconds" % (t1 - t0))
 
-    ot_utc = cat[0].preferred_origin().time
+    # ot_utc = cat[0].preferred_origin().time
 
     logger.info("predicting picks")
     t2 = time()
