@@ -275,7 +275,7 @@ def process_args():
     parser.add_argument("--filter_existing_events", default=True, type=bool)
     parser.add_argument(
         "--interval",
-        default=3600,
+        default=1200,
         type=int,
         help="the interval in seconds to run this script",
     )
@@ -319,7 +319,7 @@ def main():
             "interval",
             seconds=interval,
             next_run_time=datetime.now(),
-            max_instances=5,
+            max_instances=15,
             args=[
                 api_base_url,
                 ims_base_url,
