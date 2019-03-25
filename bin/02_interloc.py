@@ -4,7 +4,7 @@ from time import time
 
 import numpy as np
 
-from microquake.core import UTCDateTime
+from microquake.core import UTCDateTime, AttribDict
 from microquake.core.event import Origin
 from microquake.core.util import tools
 from spp.utils.cli import CLI
@@ -103,6 +103,14 @@ def process(
     logger.info("Interloc location %s" % cat[0].origins[1].loc)
     dist = np.linalg.norm(cat[0].origins[0].loc - cat[0].origins[1].loc)
     logger.info("distance between two location %0.2f m" % dist)
+
+    cat.preferred_origins.extra.interloc_vmax \
+        = AttribDict({'value': vmax, 'namespace': 'MICROQUAKE'})
+
+    normed_vmax = vmax * fixed_wlen_sec
+
+    cat.preferred_origins.extra.interloc_normed_vmax \ 
+        = AttribDict({'value': normed_vmax, 'namespace': 'MICROQUAKE'})
 
     return cat, st_out
 
