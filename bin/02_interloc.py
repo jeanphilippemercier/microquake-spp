@@ -104,12 +104,12 @@ def process(
     dist = np.linalg.norm(cat[0].origins[0].loc - cat[0].origins[1].loc)
     logger.info("distance between two location %0.2f m" % dist)
 
-    cat.preferred_origins.extra.interloc_vmax \
+    cat[0].preferred_origin().extra.interloc_vmax \
         = AttribDict({'value': vmax, 'namespace': 'MICROQUAKE'})
 
     normed_vmax = vmax * fixed_wlen_sec
 
-    cat.preferred_origins.extra.interloc_normed_vmax \ 
+    cat[0].preferred_origin().extra.interloc_normed_vmax \
         = AttribDict({'value': normed_vmax, 'namespace': 'MICROQUAKE'})
 
     return cat, st_out
