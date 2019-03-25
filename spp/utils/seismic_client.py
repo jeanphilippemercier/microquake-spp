@@ -368,8 +368,8 @@ def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
     request_data['phase'] = phase
     request_data['ray_length'] = str(ray_length)
     request_data['travel_time'] = str(travel_time)
-    request_data['azimuth'] = azimuth
-    request_data['takeoff_angle'] = takeoff_angle
+    request_data['azimuth'] = str(azimuth)
+    request_data['takeoff_angle'] = str(takeoff_angle)
     request_data['nodes'] = nodes.tolist()
 
     result = requests.post(url, json=request_data)
