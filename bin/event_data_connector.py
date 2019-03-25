@@ -163,8 +163,8 @@ def get_and_post_event_data(
 
     logger.info("uploading data to the SPP API (url:%s)", api_base_url)
     logger.info(
-        "objects types: event: %s, stream: %s, context: %s, vl_stream: %s",
-        (type(event), type(vs_waveform), type(context), type(vs_waveform)),
+        "objects types: event: %s, stream: %s, context: %s, vl_stream: %s" %
+        (type(event), type(vs_waveform), type(context), type(vs_waveform))
     )
 
     t0 = time()
