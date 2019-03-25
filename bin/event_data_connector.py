@@ -84,6 +84,9 @@ def retrieve_IMS_catalogue(
     after=after_log(logger, logging.DEBUG),
 )
 def filter_events(api_base_url, IMS_catalogue, start_time, end_time):
+    logger.info(
+        "filtering IMS list of %s events" % len(IMS_catalogue)
+    )
     # if events exist in our system, do not re-upload them
     api_catalogue = seismic_client.get_events_catalog(
         api_base_url, start_time, end_time
@@ -94,8 +97,12 @@ def filter_events(api_base_url, IMS_catalogue, start_time, end_time):
     events_to_upload = []
 
     for IMS_event in IMS_catalogue:
-        if IMS_event.resource_id.id not in api_existing_event_ids:
+        ims_resource_id = "{}/{}".format(IMS_event.resource_id.prefix, IMS_event.resource_id.id)
+        if ims_resource_id not in api_existing_event_ids:
             events_to_upload.append(IMS_event)
+    logger.info(
+        "filtered IMS list of %s events down to %s events" % (len(IMS_catalogue), len(events_to_upload))
+    )
     return events_to_upload
 
 
@@ -265,10 +272,10 @@ def process_args():
         default="single",
         help="the mode to run this module in. Options are single, cont (for continuously running this module)",
     )
-    parser.add_argument("--filter_existing_events", default=False, type=bool)
+    parser.add_argument("--filter_existing_events", default=True, type=bool)
     parser.add_argument(
         "--interval",
-        default=3600,
+        default=1200,
         type=int,
         help="the interval in seconds to run this script",
     )
@@ -312,7 +319,7 @@ def main():
             "interval",
             seconds=interval,
             next_run_time=datetime.now(),
-            max_instances=5,
+            max_instances=15,
             args=[
                 api_base_url,
                 ims_base_url,
