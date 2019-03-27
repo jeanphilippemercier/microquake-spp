@@ -53,7 +53,7 @@ def process(
     snr_picks_filtered_list = []
     snr_picks_len = []
 
-    for ot_utc in ot_utcs
+    for ot_utc in ot_utcs:
         logger.info("predicting picks for origin time %s" % ot_utc)
         t2 = time()
         o_loc = cat[0].preferred_origin().loc
