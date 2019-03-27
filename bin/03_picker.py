@@ -32,71 +32,102 @@ def process(
     st = st.taper(max_percentage=0.1, max_length=0.01)
     st = st.filter("bandpass", freqmin=freq_min, freqmax=freq_max)
 
+    ot_utcs = []
     logger.info("calculating origin time")
     t0 = time()
     loc = cat[0].preferred_origin().loc
-    ot_utc = app.estimate_origin_time(stream, loc)
+    ot_utcs.append(app.estimate_origin_time(stream, loc))
     t1 = time()
     logger.info("done calculating origin time in %0.3f seconds" % (t1 - t0))
 
-    # ot_utc = cat[0].preferred_origin().time
+    ot_utc_interloc = None
+    for origin in cat[0].origins():
+        if origin.method_id == 'smi:local/INTERLOC':
+            ot_utc_interloc = origin.time
 
-    logger.info("predicting picks")
-    t2 = time()
-    o_loc = cat[0].preferred_origin().loc
-    picks = app.synthetic_arrival_times(o_loc, ot_utc)
-    t3 = time()
-    logger.info("done predicting picks in %0.3f seconds" % (t3 - t2))
+    # only appending the last one
+    if ot_utc_interloc is not None:
+        ot_utcs.append(ot_utc_interloc[-1])
 
-    logger.info("picking P-waves")
-    t4 = time()
-    search_window = np.arange(
-        module_settings.p_wave.search_window.start,
-        module_settings.p_wave.search_window.end,
-        module_settings.p_wave.search_window.resolution,
-    )
+    ot_utcs.append()
+    snr_picks_filtered_list = []
+    snr_picks_len = []
 
-    snr_window = (
-        module_settings.p_wave.snr_window.noise,
-        module_settings.p_wave.snr_window.signal,
-    )
+    for ot_utc in ot_utcs
+        logger.info("predicting picks for origin time %s" % ot_utc)
+        t2 = time()
+        o_loc = cat[0].preferred_origin().loc
+        picks = app.synthetic_arrival_times(o_loc, ot_utc)
+        t3 = time()
+        logger.info("done predicting picks in %0.3f seconds" % (t3 - t2))
 
-    st_c = st.copy().composite()
-    snrs_p, p_snr_picks = snr_picker(
-        st_c, picks, snr_dt=search_window, snr_window=snr_window, filter="P"
-    )
-    t5 = time()
-    logger.info("done picking P-wave in %0.3f seconds" % (t5 - t4))
+        logger.info("picking P-waves")
+        t4 = time()
+        search_window = np.arange(
+            module_settings.p_wave.search_window.start,
+            module_settings.p_wave.search_window.end,
+            module_settings.p_wave.search_window.resolution,
+        )
 
-    logger.info("picking S-waves")
-    t6 = time()
+        snr_window = (
+            module_settings.p_wave.snr_window.noise,
+            module_settings.p_wave.snr_window.signal,
+        )
 
-    search_window = np.arange(
-        module_settings.s_wave.search_window.start,
-        module_settings.s_wave.search_window.end,
-        module_settings.s_wave.search_window.resolution,
-    )
+        st_c = st.copy().composite()
+        snrs_p, p_snr_picks = snr_picker(
+            st_c, picks, snr_dt=search_window, snr_window=snr_window, filter="P"
+        )
+        t5 = time()
+        logger.info("done picking P-wave in %0.3f seconds" % (t5 - t4))
 
-    snr_window = (
-        module_settings.s_wave.snr_window.noise,
-        module_settings.s_wave.snr_window.signal,
-    )
+        logger.info("picking S-waves")
+        t6 = time()
 
-    snrs_s, s_snr_picks = snr_picker(
-        st_c, picks, snr_dt=search_window, snr_window=snr_window, filter="S"
-    )
-    t7 = time()
+        search_window = np.arange(
+            module_settings.s_wave.search_window.start,
+            module_settings.s_wave.search_window.end,
+            module_settings.s_wave.search_window.resolution,
+        )
 
-    logger.info("done picking S-wave in %0.3f seconds" % (t7 - t6))
+        snr_window = (
+            module_settings.s_wave.snr_window.noise,
+            module_settings.s_wave.snr_window.signal,
+        )
 
-    snr_picks = p_snr_picks + s_snr_picks
-    snrs = snrs_p + snrs_s
+        snrs_s, s_snr_picks = snr_picker(
+            st_c, picks, snr_dt=search_window, snr_window=snr_window, filter="S"
+        )
+        t7 = time()
 
-    snr_picks_filtered = [
-        snr_pick
-        for (snr_pick, snr) in zip(snr_picks, snrs)
-        if snr > module_settings.snr_threshold
-    ]
+        logger.info("done picking S-wave in %0.3f seconds" % (t7 - t6))
+
+        snr_picks = p_snr_picks + s_snr_picks
+        snrs = snrs_p + snrs_s
+
+        snr_picks_filtered = [
+            snr_pick
+            for (snr_pick, snr) in zip(snr_picks, snrs)
+            if snr > module_settings.snr_threshold
+        ]
+
+        snr_picks_filtered_list.append(snr_picks_filtered)
+        snr_picks_len.append(len(snr_picks_filtered))
+
+    # selecting the set of picks that contains the most picks
+    logger.info('selecting the set of picks containing the most picks')
+    index = np.argmax(snr_picks_len)
+    snr_picks_filtered = np.array(snr_picks_filtered_list)[index,:]
+    origin_time_calculation_method = 'Interloc'
+    if index == 0:
+        origin_time_calculation_method = 'SPP'
+
+    logger.info('Origin time yielding to the most picks is %s' %
+                origin_time_calculation_method)
+
+    logger.info('SSP: %d picks' %snr_picks_len[0])
+    if len(snr_picks_len) > 1:
+        logger.info('Interloc: %d picks' % snr_picks_len[1])
 
     logger.info("correcting bias in origin time")
     t0 = time()
@@ -107,6 +138,8 @@ def process(
                 pk.waveform_id.station_code == snr_pk.waveform_id.station_code
             ):
                 residuals.append(pk.time - snr_pk.time)
+
+
 
     ot_utc -= np.mean(residuals)
 
