@@ -176,6 +176,7 @@ def get_and_post_event_data(
         context_stream=context,
         variable_length_stream=vs_waveform,
         send_to_bus=True,
+        tolerance=None
     )
     t1 = time()
     logger.info(
