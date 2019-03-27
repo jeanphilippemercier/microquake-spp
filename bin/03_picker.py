@@ -31,8 +31,11 @@ def process(
 
     st_in = stream.copy().detrend("demean")
 
+    logger.info('cleaning the input stream')
     st = is_valid(st_in, return_stream=True, freqmin = freq_min,
                   freqmax=freq_max)
+    logger.info('done cleaning the input stream. %d of %d stations kept.' %
+                (len(st.unique_stations()), len(stream.unique_stations())))
 
     st = st.taper(max_percentage=0.1, max_length=0.01)
     st = st.filter("bandpass", freqmin=freq_min, freqmax=freq_max)
@@ -149,8 +152,8 @@ def process(
 
     biais = np.mean(residuals)
     residuals -= biais
-    indices = np.nonzero(np.abs(residuals) < 0.01)[0]
-    snr_picks_filtered = [snr_picks_filtered[i] for i in indices]
+    # indices = np.nonzero(np.abs(residuals) < 0.01)[0]
+    # snr_picks_filtered = [snr_picks_filtered[i] for i in indices]
 
     t1 = time()
     logger.info("done correcting bias in origin time in %0.3f" % (t1 - t0))
@@ -159,6 +162,8 @@ def process(
     logger.info("creating arrivals")
     t8 = time()
     arrivals = app.create_arrivals_from_picks(snr_picks_filtered, loc, ot_utc)
+    # import pdb; pdb.set_trace()
+
     t9 = time()
     logger.info("done creating arrivals in %0.3f seconds" % (t9 - t8))
 
