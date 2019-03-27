@@ -12,7 +12,7 @@ from microquake.core import UTCDateTime
 from microquake.IMS import web_client
 from spp.utils import seismic_client
 from spp.utils.application import Application
-from spp.utils.seismic_client import get_station2, post_station2
+from spp.utils.seismic_client import post_signal_quality
 
 __module_name__ = "continuous_data_connector"
 app = Application(module_name=__module_name__)
@@ -90,6 +90,9 @@ def post_all_stations_signals_analysis(
             station["station_code"],
             station["energy"],
             station["integrity"],
+            station['sampling_rate'],
+            station['num_samples'],
+            station['amplitude'],
         )
         logger.info("posted station data")
     logger.info("Done posting all station signal quality data")
@@ -101,18 +104,17 @@ def post_all_stations_signals_analysis(
     after=after_log(logger, logging.DEBUG),
 )
 def post_station_signals_analysis(
-    api_base_url, station_code, energy, integrity
-):
-    station = get_station2(api_base_url, station_code)
-    if station is None:
-        station = {
-            "name": "OT-station-{}".format(station_code),
-            "code": station_code,
-        }
-
-    station["energy"] = np.nan_to_num(energy)
-    station["integrity"] = np.nan_to_num(integrity)
-    result = post_station2(api_base_url, station)
+    api_base_url, station_code, energy, integrity, sampling_rate, num_samples, amplitude
+):  
+    signal_quality = {
+        "energy": str(np.nan_to_num(energy)),
+        "integrity": str(np.nan_to_num(integrity)),
+        "sampling_rate": str(np.nan_to_num(sampling_rate)),
+        "num_samples": str(np.nan_to_num(num_samples)),
+        "amplitude": str(np.nan_to_num(amplitude)),
+        "station_code": station_code,
+    }
+    result = post_signal_quality(api_base_url, signal_quality)
     if result.status_code != 201:
         raise Exception(
             "Could not post signals analysis data to api, status code {}".format(
