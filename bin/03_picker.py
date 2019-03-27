@@ -10,6 +10,7 @@ import numpy as np
 from microquake.core import UTCDateTime
 from microquake.core.event import CreationInfo, Origin
 from microquake.waveform.pick import snr_picker
+from microquake.core.stream import is_valid
 from spp.utils.cli import CLI
 
 
@@ -28,7 +29,14 @@ def process(
     freq_min = module_settings.waveform_filter.frequency_min
     freq_max = module_settings.waveform_filter.frequency_max
 
-    st = stream.copy().detrend("demean")
+    st_in = stream.copy().detrend("demean")
+
+    st = is_valid(st_in, return_stream=True, freqmin = freq_min,
+                  freqmax=freq_max)
+
+    st.plot()
+    import pdb; pdb.set_trace()
+
     st = st.taper(max_percentage=0.1, max_length=0.01)
     st = st.filter("bandpass", freqmin=freq_min, freqmax=freq_max)
 
