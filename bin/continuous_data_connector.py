@@ -107,11 +107,11 @@ def post_station_signals_analysis(
     api_base_url, station_code, energy, integrity, sampling_rate, num_samples, amplitude
 ):  
     signal_quality = {
-        "energy": np.nan_to_num(energy),
-        "integrity": np.nan_to_num(integrity),
-        "sampling_rate": np.nan_to_num(sampling_rate),
-        "num_samples": np.nan_to_num(num_samples),
-        "amplitude": np.nan_to_num(amplitude),
+        "energy": str(np.nan_to_num(energy)),
+        "integrity": str(np.nan_to_num(integrity)),
+        "sampling_rate": str(np.nan_to_num(sampling_rate)),
+        "num_samples": str(np.nan_to_num(num_samples)),
+        "amplitude": str(np.nan_to_num(amplitude)),
         "station_code": station_code,
     }
     result = post_signal_quality(api_base_url, signal_quality)
