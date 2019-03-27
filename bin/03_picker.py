@@ -41,15 +41,14 @@ def process(
     logger.info("done calculating origin time in %0.3f seconds" % (t1 - t0))
 
     ot_utc_interloc = None
-    for origin in cat[0].origins():
+    for origin in cat[0].origins:
         if origin.method_id == 'smi:local/INTERLOC':
             ot_utc_interloc = origin.time
 
     # only appending the last one
     if ot_utc_interloc is not None:
-        ot_utcs.append(ot_utc_interloc[-1])
+        ot_utcs.append(ot_utc_interloc)
 
-    ot_utcs.append()
     snr_picks_filtered_list = []
     snr_picks_len = []
 
@@ -117,7 +116,7 @@ def process(
     # selecting the set of picks that contains the most picks
     logger.info('selecting the set of picks containing the most picks')
     index = np.argmax(snr_picks_len)
-    snr_picks_filtered = np.array(snr_picks_filtered_list)[index,:]
+    snr_picks_filtered = snr_picks_filtered_list[index]
     origin_time_calculation_method = 'Interloc'
     if index == 0:
         origin_time_calculation_method = 'SPP'
