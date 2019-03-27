@@ -34,9 +34,6 @@ def process(
     st = is_valid(st_in, return_stream=True, freqmin = freq_min,
                   freqmax=freq_max)
 
-    st.plot()
-    import pdb; pdb.set_trace()
-
     st = st.taper(max_percentage=0.1, max_length=0.01)
     st = st.filter("bandpass", freqmin=freq_min, freqmax=freq_max)
 

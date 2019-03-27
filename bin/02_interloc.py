@@ -7,6 +7,7 @@ import numpy as np
 from microquake.core import UTCDateTime, AttribDict
 from microquake.core.event import Origin
 from microquake.core.util import tools
+from microquake.core.stream import is_valid
 from spp.utils.cli import CLI
 from xseis2 import xspy
 
@@ -44,18 +45,21 @@ def process(
 
     # remove channels which do not have matching ttable entries
     # This should be handled upstream
+
     for trace in stream:
         if trace.stats.station not in htt.stations:
             stream.remove(trace)
 
-    data, samplerate, t0 = stream.as_array(fixed_wlen_sec)
+    st_valid = is_valid(stream, return_stream=True)
+
+    data, samplerate, t0 = st_valid.as_array(fixed_wlen_sec)
     logger.info("data: %s", data)
     data = np.nan_to_num(data)
     decimate_factor = int(samplerate / samplerate_decimated)
     data = tools.decimate(data, samplerate, decimate_factor)
-    channel_map = stream.channel_map().astype(np.uint16)
+    channel_map = st_valid.channel_map().astype(np.uint16)
 
-    ikeep = htt.index_sta(stream.unique_stations())
+    ikeep = htt.index_sta(st_valid.unique_stations())
     debug_file = os.path.join(debug_file_dir, "iloc_" + str(t0) + ".npz")
     t5 = time()
     logger.info("done preparing data for Interloc in %0.3f seconds" % (t5 - t4))
