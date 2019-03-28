@@ -273,7 +273,7 @@ def process_args():
         default="single",
         help="the mode to run this module in. Options are single, cont (for continuously running this module)",
     )
-    parser.add_argument("--filter_existing_events", default=True, type=bool)
+    parser.add_argument("--filter-existing-events", default=False, dest='filter_existing_events', action='store_true')
     parser.add_argument(
         "--interval",
         default=1200,
