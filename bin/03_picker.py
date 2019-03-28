@@ -32,7 +32,7 @@ def process(
     st_in = stream.copy().detrend("demean")
 
     logger.info('cleaning the input stream')
-    st = is_valid(st_in, return_stream=True, freqmin = freq_min,
+    st = is_valid(st_in, return_stream=True, freqmin=freq_min,
                   freqmax=freq_max)
     logger.info('done cleaning the input stream. %d of %d stations kept.' %
                 (len(st.unique_stations()), len(stream.unique_stations())))
@@ -179,11 +179,6 @@ def process(
         "done creating new event or appending to existing event "
         "in %0.3f seconds" % (t11 - t10)
     )
-
-    # TODO: Need to check the event database for IMS event.
-    # if an event exist, 1) get the event, 2) create a new origin with
-    # information from interloc, 3) append picks to event, and 4) append
-    # arrivals to the new origin
 
     origin = Origin()
     origin.time = ot_utc
