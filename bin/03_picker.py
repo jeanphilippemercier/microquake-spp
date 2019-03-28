@@ -28,6 +28,7 @@ def process(
 
     freq_min = module_settings.waveform_filter.frequency_min
     freq_max = module_settings.waveform_filter.frequency_max
+    residual_tolerance = module_settings.residual_tolerance
 
     st_in = stream.copy().detrend("demean")
 
@@ -152,8 +153,8 @@ def process(
 
     biais = np.mean(residuals)
     residuals -= biais
-    # indices = np.nonzero(np.abs(residuals) < 0.01)[0]
-    # snr_picks_filtered = [snr_picks_filtered[i] for i in indices]
+    indices = np.nonzero(np.abs(residuals) < residual_tolerance)[0]
+    snr_picks_filtered = [snr_picks_filtered[i] for i in indices]
 
     t1 = time()
     logger.info("done correcting bias in origin time in %0.3f" % (t1 - t0))
