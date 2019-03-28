@@ -52,7 +52,7 @@ def process(
         elif np.max(trace.data) == 0:
             logger.info('removing trace for station %s' % trace.stats.station)
             stream.remove(trace)
-        elif trace.stats.station in app.settings.stations.black_list:
+        elif trace.stats.station in app.settings.sensors.black_list:
             logger.info('removing trace for station %s' % trace.stats.station)
             stream.remove(trace)
 
