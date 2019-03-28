@@ -418,3 +418,11 @@ def post_station2(
     session = requests.Session()
     session.trust_env = False
     return session.post("{}station2".format(api_base_url), json=request_data)
+
+
+def post_signal_quality(
+    api_base_url, request_data
+):
+    session = requests.Session()
+    session.trust_env = False
+    return session.post("{}signal_quality".format(api_base_url), json=request_data)

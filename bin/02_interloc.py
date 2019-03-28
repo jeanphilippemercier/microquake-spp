@@ -12,14 +12,13 @@ from xseis2 import xspy
 
 
 def process(
-    cat=None,
-    stream=None,
-    logger=None,
-    app=None,
-    module_settings=None,
-    prepared_objects=None,
+        cat=None,
+        stream=None,
+        logger=None,
+        app=None,
+        module_settings=None,
+        prepared_objects=None,
 ):
-
     detection_threshold = module_settings.detection_threshold
     nthreads = module_settings.nthreads
     fixed_wlen_sec = module_settings.fixed_wlen_sec
@@ -30,13 +29,15 @@ def process(
     debug_level = module_settings.debug_level
     debug_file_dir = module_settings.debug_file_dir
 
-    whiten_corner_freqs = np.array(module_settings.whiten_corner_freqs, dtype=np.float32)
+    whiten_corner_freqs = np.array(module_settings.whiten_corner_freqs,
+                                   dtype=np.float32)
 
     htt = app.get_ttable_h5()
     stalocs = htt.locations
     ttable = (htt.hf["ttp"][:] * samplerate_decimated).astype(np.uint16)
     ngrid = ttable.shape[1]
-    ttable_row_ptrs = np.array([row.__array_interface__["data"][0] for row in ttable])
+    ttable_row_ptrs = np.array(
+        [row.__array_interface__["data"][0] for row in ttable])
 
     logger.info("preparing data for Interloc")
     t4 = time()
@@ -65,11 +66,16 @@ def process(
     ikeep = htt.index_sta(stream.unique_stations())
     debug_file = os.path.join(debug_file_dir, "iloc_" + str(t0) + ".npz")
     t5 = time()
-    logger.info("done preparing data for Interloc in %0.3f seconds" % (t5 - t4))
+    logger.info(
+        "done preparing data for Interloc in %0.3f seconds" % (t5 - t4))
 
     logger.info("Locating event with Interloc")
     t6 = time()
-    logger.info("data %s,samplerate_decimated %s,channel_map %s,stalocs[ikeep] %s,ttable_row_ptrs[ikeep] %s,ngrid %s,nthreads %s,debug %s,debug_file %s", data, samplerate_decimated, channel_map, stalocs[ikeep], ttable_row_ptrs[ikeep], ngrid, nthreads, debug_level, debug_file)
+    logger.info(
+        "data %s,samplerate_decimated %s,channel_map %s,stalocs[ikeep] %s,"
+        " ttable_row_ptrs[ikeep] %s,ngrid %s,nthreads %s,debug %s,debug_"
+        "file %s", data, samplerate_decimated, channel_map, stalocs[ikeep],
+        ttable_row_ptrs[ikeep], ngrid, nthreads, debug_level, debug_file)
 
     out = xspy.pySearchOnePhase(
         data,
@@ -90,13 +96,16 @@ def process(
     vmax, imax, iot = out
     lmax = htt.icol_to_xyz(imax)
     t7 = time()
-    logger.info("Done locating event with Interloc in %0.3f seconds" % (t7 - t6))
+    logger.info(
+        "Done locating event with Interloc in %0.3f seconds" % (t7 - t6))
 
-    ot_epoch = tools.datetime_to_epoch_sec((t0 + iot / samplerate_decimated).datetime)
+    ot_epoch = tools.datetime_to_epoch_sec(
+        (t0 + iot / samplerate_decimated).datetime)
     utcdatetime = UTCDateTime(datetime.fromtimestamp((ot_epoch)))
     method = "%s" % ("INTERLOC",)
     cat[0].origins.append(
-        Origin(x=lmax[0], y=lmax[1], z=lmax[2], time=utcdatetime, method_id=method)
+        Origin(x=lmax[0], y=lmax[1], z=lmax[2], time=utcdatetime,
+               method_id=method)
     )
     cat[0].preferred_origin_id = cat[0].origins[-1].resource_id.id
 
@@ -104,7 +113,8 @@ def process(
     logger.info("utm_loc: %r", lmax.astype(int))
 
     logger.info("=======================================\n")
-    logger.info("VMAX over threshold (%.3f > %.3f)" % (vmax, detection_threshold))
+    logger.info(
+        "VMAX over threshold (%.3f > %.3f)" % (vmax, detection_threshold))
 
     logger.info("IMS location %s" % cat[0].origins[0].loc)
     logger.info("Interloc location %s" % cat[0].origins[1].loc)
