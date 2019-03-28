@@ -33,8 +33,9 @@ def process(
     st_in = stream.copy().detrend("demean")
 
     logger.info('cleaning the input stream')
-    st = is_valid(st_in, return_stream=True, freqmin=freq_min,
-                  freqmax=freq_max)
+    # st = is_valid(st_in, return_stream=True, freqmin=freq_min,
+    #               freqmax=freq_max)
+    st = st_in.copy()
     logger.info('done cleaning the input stream. %d of %d stations kept.' %
                 (len(st.unique_stations()), len(stream.unique_stations())))
 
