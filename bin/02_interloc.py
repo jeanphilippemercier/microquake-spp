@@ -48,6 +48,12 @@ def process(
         if trace.stats.station not in htt.stations:
             logger.info('removing trace for station %s' % trace.stats.station)
             stream.remove(trace)
+        elif np.max(trace.data) == 0:
+            logger.info('removing trace for station %s' % trace.stats.station)
+            stream.remove(trace)
+        elif trace.stats.station in app.settings.stations.black_list:
+            logger.info('removing trace for station %s' % trace.stats.station)
+            stream.remove(trace)
 
     data, samplerate, t0 = stream.as_array(fixed_wlen_sec)
     logger.info("data: %s", data)
