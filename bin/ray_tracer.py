@@ -14,6 +14,7 @@ def process(
     inventory = app.get_inventory()
     gd = Grid()
     site_code = app.settings.site_code
+    network_code = app.settings.network_code
 
     event_id = str(cat[0].resource_id)
     for phase in ['P', 'S']:
@@ -26,6 +27,10 @@ def process(
                                  origin.loc)
                 travel_time = gd.get_grid_point(station.code, phase,
                                                 origin.loc, type='time')
+                azimuth = gd.get_grid_point(station.code, phase, origin.loc,
+                                            type='azimuth')
+                toa = gd.get_grid_point(station.code, phase, origin.loc,
+                                            type='take_off')
                 station_id = station.code
 
                 arrival_id = None
@@ -37,9 +42,10 @@ def process(
 
                 # post ray data to api
                 seismic_client.post_ray(app.settings.seismic_api.base_url,
-                                        site_code, event_id, origin_id,
-                                        arrival_id, station_id, ray.length(),
-                                        travel_time, ray.nodes)
+                                        site_code, network_code, event_id,
+                                        origin_id, arrival_id, station_id,
+                                        phase, ray.length(), travel_time,
+                                        azimuth, toa, ray.nodes)
 
     return cat, stream
 

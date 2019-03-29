@@ -21,7 +21,7 @@ from microquake.io import msgpack
 class Application(object):
 
     def __init__(self, toml_file=None, module_name=None,
-                 processing_flow_name='automatic'):
+                 processing_flow_name='automatic', logger=None):
         """
 
         :param toml_file: path to the TOML file containing the project
@@ -56,9 +56,6 @@ class Application(object):
         self.processing_flow_steps = processing_flow.steps
 
         self.inventory = None
-
-        self.logger = None
-
         # Appending the SPP_COMMON directory to nll_base
 
         if 'nlloc' in self.settings.__dict__.keys():
@@ -71,12 +68,14 @@ class Application(object):
                     self.settings.magnitude.__dict__.keys():
                 self.settings.magnitude.len_spectrum = 2 ** \
                 self.settings.magnitude.len_spectrum_exponent
-
-        self.logger = self.get_logger('application', './application.log')
-        if self.__module_name__ and self.__module_name__ in self.settings:
+        if logger:
+            self.logger = logger
+        elif self.__module_name__ and self.__module_name__ in self.settings:
             self.logger = self.get_logger(self.settings[
                                             self.__module_name__].log_topic,
                             self.settings[self.__module_name__].log_file_name)
+        else:
+            self.logger = self.get_logger('application', './application.log')
 
 
     def get_consumer_topic(self, processing_flow, dataset, module_name, trigger_data_name, input_data_name=None):

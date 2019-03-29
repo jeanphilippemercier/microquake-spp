@@ -1,15 +1,13 @@
+import json
 import urllib
 from io import BytesIO
 
 import requests
 from dateutil import parser
-from microquake.core import UTCDateTime
-from microquake.core import AttribDict
-from microquake.core.event import Ray
-import urllib
 from IPython.core.debugger import Tracer
 
-from microquake.core import UTCDateTime, read_events
+from microquake.core import AttribDict, UTCDateTime, read_events
+from microquake.core.event import Ray
 from microquake.core.stream import *
 
 
@@ -251,14 +249,17 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         files['variable_size_waveform'] = mseed_variable_bytes
         logger.info('done preparing variable length waveform data')
 
-    return post_event_data(api_url, event_resource_id, files, logger, send_to_bus=send_to_bus)
+    return post_event_data(api_url, event_resource_id, files, logger,
+                           send_to_bus=send_to_bus)
 
 
-def post_event_data(api_base_url, event_resource_id, request_files, logger, send_to_bus=False):
+def post_event_data(api_base_url, event_resource_id, request_files, logger,
+                    send_to_bus=False):
     url = api_base_url + "/%s" % event_resource_id
     logger.info('posting data on %s' % url)
 
-    result = requests.post(url, data={"send_to_bus":send_to_bus}, files=request_files)
+    result = requests.post(url, data={"send_to_bus":send_to_bus},
+                           files=request_files)
     print(result)
 
     '''
@@ -353,18 +354,22 @@ def post_continuous_stream(api_base_url, stream, post_to_kafka=True,
     print(result)
 
 
-def post_ray(api_base_url, site_code, event_id, origin_id, arrival_id,
-             station_code, ray_length, travel_time, nodes):
+def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
+             arrival_id, station_code, phase, ray_length, travel_time, azimuth, takeoff_angle, nodes):
     url = api_base_url + "rays"
 
     request_data = dict()
     request_data['site_code'] = site_code
+    request_data['network_code'] = network_code
     request_data['event_resource_id'] = event_id
     request_data['origin_resource_id'] = origin_id
     request_data['arrival_resource_id'] = arrival_id
     request_data['station_code'] = station_code
+    request_data['phase'] = phase
     request_data['ray_length'] = str(ray_length)
     request_data['travel_time'] = str(travel_time)
+    request_data['azimuth'] = str(azimuth)
+    request_data['takeoff_angle'] = str(takeoff_angle)
     request_data['nodes'] = nodes.tolist()
 
     result = requests.post(url, json=request_data)
@@ -397,19 +402,27 @@ def get_rays(api_base_url, event_resource_id, origin_resource_id=None,
     return request_rays
 
 
-# if __name__ == "__main__":
-#
-#     app = Application()
-#
-#     API_BASE_URL = app.settings.API.base_url
-#
-#     data, files = build_request_data_from_files( None
-#                                                 ,'data/2018-11-08T11-16-47.968400Z.xml'
-#                                                 ,'data/2018-11-08T11-16-47.968400Z.mseed'
-#                                                 , None #'20180523_125102207781.mseed_context'
-#                                                 )
-#
-#     post_event_data(API_BASE_URL, data, files)
-#
-#     get_events_catalog(API_BASE_URL, "2018-11-08T10:21:48.898496Z",
-#                        "2018-11-08T11:21:49.898496Z")
+def get_station2(api_base_url, station_id):
+    url = "{}station2/{}".format(api_base_url, station_id)
+    session = requests.Session()
+    session.trust_env = False
+    response = session.get(url)
+    if response.status_code != 200:
+        return None
+    return json.loads(response.content)
+
+
+def post_station2(
+    api_base_url, request_data
+):
+    session = requests.Session()
+    session.trust_env = False
+    return session.post("{}station2".format(api_base_url), json=request_data)
+
+
+def post_signal_quality(
+    api_base_url, request_data
+):
+    session = requests.Session()
+    session.trust_env = False
+    return session.post("{}signal_quality".format(api_base_url), json=request_data)
