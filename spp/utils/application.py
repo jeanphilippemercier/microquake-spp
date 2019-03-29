@@ -65,6 +65,7 @@ class Application(object):
             self.settings.nlloc.nll_base = os.path.join(self.common_dir,
                                                         self.settings.nlloc.nll_base)
 
+    # MTH: The new mag mod doesn't use the settings below ... delete ?
         if 'magnitude' in self.settings.__dict__.keys():
             if 'len_spectrum_exponent' in \
                     self.settings.magnitude.__dict__.keys():
@@ -588,6 +589,8 @@ class Application(object):
                                                event_location)
             predicted_at = origin_time + predicted_tt
             arrival.time_residual = pick.time - predicted_at
+            #print("create_arrivals: sta:%3s pha:%s pick.time:%s 
+
             arrival.takeoff_angle = self.get_grid_point(station_code, phase,
                                            event_location, type='take_off')
             arrival.azimuth = self.get_grid_point(station_code, phase,
@@ -607,6 +610,91 @@ class Application(object):
             arrivals.append(arrival)
 
         return arrivals
+
+
+    def fix_arr_takeoff_and_azimuth(self, cat):
+        """
+        Currently NLLoc is *not* calculating the takeoff angles at the source.
+        These default to -1 so that when microquake.nlloc reads last.hyp it
+        returns -1 for these values.
+
+        Here we re-create the arrivals from the picks & the NLLoc location 
+        so that it populates the takeoff and azimuth angles.
+        Also, we add the relevant angles at the receiver (backazimuth and incidence)
+        to the arrivals.
+        """
+
+        vp_grid, vs_grid = self.get_velocities()
+
+        for event in cat:
+            origin = event.preferred_origin()
+            ev_loc = origin.loc
+
+            vp = vp_grid.interpolate(ev_loc)[0]
+            vs = vs_grid.interpolate(ev_loc)[0]
+
+            picks = []
+            for arr in origin.arrivals:
+                picks.append(arr.pick_id.get_referred_object())
+
+            inventory = self.get_inventory()
+
+    # MTH: create_arrivals_from_picks will create an entirely new set of arrivals (new resource_ids)
+    #      it will set arr.distance (looks exactly same as nlloc's arr.distance)
+    #      it will set arr.time_residual *** DIFFERS *** from arr.time_residual nlloc calcs/reads from last.hypo
+    #      it will fix the missing azim/theta that nlloc set to -1
+    #      it will drop nlloc arr.time_weight field
+
+            arrivals = self.create_arrivals_from_picks(picks, ev_loc, origin.time)
+
+    # Now set the receiver angles (backazimuth and incidence angle)
+
+            for arr in arrivals:
+                pk = arr.pick_id.get_referred_object()
+                sta = pk.waveform_id.station_code
+                pha = arr.phase
+
+                st_loc = inventory.get_station(sta).loc
+
+                xoff = ev_loc[0]-st_loc[0]
+                yoff = ev_loc[1]-st_loc[1]
+                zoff = np.abs(ev_loc[2]-st_loc[2])
+                H = np.sqrt(xoff*xoff + yoff*yoff)
+                alpha = np.arctan2(zoff,H)
+                beta  = np.pi/2. - alpha
+                takeoff_straight = alpha * 180./np.pi + 90.
+                inc_straight = beta * 180./np.pi
+
+                if pha == 'P':
+                    v = vp
+                    v_grid = vp_grid
+                elif pha == 'S':
+                    v = vs
+                    v_grid = vs_grid
+
+                p = np.sin(arr.takeoff_angle*np.pi/180.) / v
+
+                v_sta = v_grid.interpolate(st_loc)[0]
+
+                inc_p  = np.arcsin(p*v_sta) * 180./np.pi
+
+                # I have the incidence angle now, need backazimuth so rotate to P,SV,SH
+                back_azimuth = np.arctan2(xoff,yoff) * 180./np.pi
+                if back_azimuth < 0:
+                    back_azimuth += 360.
+
+                arr.backazimuth = back_azimuth
+                arr.inc_angle   = inc_p
+
+                '''
+                print("%3s: [%s] takeoff:%6.2f [stx=%6.2f] inc_p:%.2f [inc_stx:%.2f] baz:%.1f [az:%.1f]" % \
+                    (sta, arr.phase, arr.takeoff_angle, takeoff_straight, \
+                    inc_p, inc_straight, back_azimuth, arr.azimuth))
+                '''
+
+            origin.arrivals = arrivals
+
+        return
 
 
     def clean_waveform_stream(self, waveform_stream, stations_black_list):

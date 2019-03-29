@@ -7,8 +7,6 @@ from time import time
 
 import numpy as np
 
-from lib_process import fix_arr_takeoff_and_azimuth
-from microquake.core.data.inventory import inv_station_list_to_dict
 from microquake.nlloc import NLL, calculate_uncertainty
 from spp.utils.cli import CLI
 
@@ -33,9 +31,9 @@ def process(
 
     if cat_out[0].preferred_origin():
         logger.info("preferred_origin exists from nlloc:")
-        logger.info(cat_out[0].preferred_origin())
-        logger.info("Here comes the nlloc location:")
-        logger.info(cat_out[0].preferred_origin().loc)
+        #logger.info(cat_out[0].preferred_origin())
+        #logger.info("Here comes the nlloc location:")
+        #logger.info(cat_out[0].preferred_origin().loc)
     else:
         logger.info("No preferred_origin found")
 
@@ -43,23 +41,19 @@ def process(
     t2 = time()
     picking_error = module_settings.picking_error
     origin_uncertainty = calculate_uncertainty(
-        cat_out[0],
-        base_folder,
-        project_code,
-        perturbation=5,
-        pick_uncertainty=picking_error,
-    )
+                            cat_out[0],
+                            base_folder,
+                            project_code,
+                            perturbation=5,
+                            pick_uncertainty=picking_error,
+                            )
     if cat_out[0].preferred_origin():
         cat_out[0].preferred_origin().origin_uncertainty = origin_uncertainty
         t3 = time()
         logger.info("done calculating uncertainty in %0.3f seconds" % (t3 - t2))
 
-    inventory = app.get_inventory()
-    sta_meta_dict = inv_station_list_to_dict(inventory)
-
-    # Fix nlloc origin.arrival angles:
-
-    fix_arr_takeoff_and_azimuth(cat_out, sta_meta_dict, app=app)
+    # Fix the source angles (takeoff, azimuth) and add receiver angles (incidence, backazimuth)
+    app.fix_arr_takeoff_and_azimuth(cat_out)
 
     # Just to reinforce that these are hypocentral distance in meters ... to be used by moment_mag calc
     # ie, obspy.arrival.distance = epicenteral distance in degrees
@@ -70,16 +64,15 @@ def process(
 
     cat_out.write("cat_nlloc.xml", format="QUAKEML")
 
-    logger.info("IMS location %s" % cat_out[0].origins[0].loc)
+
     if cat_out[0].preferred_origin():
-        # MTH: Why pass in logger if you're going to pull it from app ? This only
-        #      works if you've run app.init_module() - e.g, with kafka
-        #app.logger.info("Interloc location %s" % cat_out[0].preferred_origin().loc)
-        logger.info("Interloc location %s" % cat_out[0].preferred_origin().loc)
+        logger.info("IMS   origin:  %s" % cat_out[0].origins[0].time)
+        logger.info("NLLoc origin:  %s" % cat_out[0].preferred_origin().time)
+        logger.info("IMS   location %s" % cat_out[0].origins[0].loc)
+        logger.info("NLLoc location %s" % cat_out[0].preferred_origin().loc)
         dist = np.linalg.norm(
             cat_out[0].origins[0].loc - cat_out[0].preferred_origin().loc
         )
-        #app.logger.info("distance between two location %0.2f m" % dist)
         logger.info("distance between two location %0.2f m" % dist)
 
     return cat_out, stream
