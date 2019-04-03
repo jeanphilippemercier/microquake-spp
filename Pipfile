@@ -30,6 +30,7 @@ kafka-python = "*"
 tqdm = "*"
 tenacity = "*"
 apscheduler = "*"
+hashwrap = {editable = true,git = "https://github.com/mikehagerty/hashwrap"}
 
 [requires]
 python_version = "3"

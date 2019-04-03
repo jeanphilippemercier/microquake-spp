@@ -4,7 +4,6 @@ import sys
 
 import numpy as np
 
-from microquake.core.data.inventory import inv_station_list_to_dict
 from microquake.core.stream import Stream
 from microquake.waveform.amp_measures import measure_pick_amps
 from microquake.waveform.transforms import rotate_to_ENZ, rotate_to_P_SV_SH
@@ -19,6 +18,14 @@ def process(
     module_settings=None,
     prepared_objects=None,
 ):
+
+    pulse_min_width = module_settings.pulse_min_width
+    pulse_min_snr_P = module_settings.pulse_min_snr_P
+    pulse_min_snr_S = module_settings.pulse_min_snr_S
+    phase_list = module_settings.phase_list
+    if not isinstance(phase_list, list):
+        phase_list = [phase_list]
+
     st = stream.copy()
     cat_out = cat.copy()
 
@@ -28,7 +35,6 @@ def process(
         logger.warn("Inventory: Missing response for sta:%s" % sta)
 
 
-    sta_meta_dict = inv_station_list_to_dict(inventory)
     # 1. Rotate traces to ENZ
     st_rot = rotate_to_ENZ(st, inventory)
     st = st_rot
@@ -38,15 +44,16 @@ def process(
     st = st_new
 
     # 3. Measure polarities, displacement areas, etc for each pick from instrument deconvolved traces
-    trP = [tr for tr in st if tr.stats.channel == "P"]
-    measure_pick_amps(
-        Stream(traces=trP),
-        cat_out,
-        phase_list=["P"],
-        pulse_min_width=0.00167,
-        pulse_min_snr_S=5,
-        debug=False,
-    )
+    trP = [tr for tr in st if tr.stats.channel == 'P' or tr.stats.channel.upper() == 'Z']
+
+    measure_pick_amps(Stream(traces=trP),
+                      cat_out,
+                      phase_list=phase_list,
+                      pulse_min_width=pulse_min_width,
+                      pulse_min_snr_P=pulse_min_snr_P,
+                      pulse_min_snr_S=pulse_min_snr_S,
+                      debug=False,
+                      logger_in=logger)
 
     return cat_out, stream
 
