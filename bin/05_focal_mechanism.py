@@ -30,7 +30,10 @@ def process(
     logger.info("Calculate focal mechanisms [DONE]")
 
     for i,event in enumerate(cat):
-        focal_mechanism = focal_mechanisms[i]
+        try:
+            focal_mechanism = focal_mechanisms[i]
+        except IndexError as e:
+            continue
         event.focal_mechanisms = [ focal_mechanism ]
         event.preferred_focal_mechanism_id = ResourceIdentifier(id=focal_mechanism.resource_id.id, \
                                                                 referred_object=focal_mechanism)

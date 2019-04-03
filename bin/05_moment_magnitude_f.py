@@ -98,7 +98,7 @@ def prepare(app=None, module_settings=None):
     return {"vp_grid": vp_grid, "vs_grid": vs_grid}
 
 
-__module_name__ = "magnitude"
+__module_name__ = "magnitude_f"
 
 
 def main():
