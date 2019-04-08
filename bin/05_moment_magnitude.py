@@ -2,7 +2,8 @@
 
 import numpy as np
 
-from microquake.waveform.mag_new import calc_magnitudes_from_lambda, set_new_event_mag
+from microquake.waveform.mag_new import (calc_magnitudes_from_lambda,
+                                         set_new_event_mag)
 from spp.utils.cli import CLI
 
 
@@ -84,6 +85,9 @@ def process(
         comment="Average of time-domain station moment magnitudes"
         if use_sdr_rad and sdr is not None:
             comment += " Use_sdr_rad: sdr=(%.1f,%.1f,%.1f)" % (sdr[0],sdr[1],sdr[2])
+        if np.isnan(Mw):
+            logger.warn("Mw is nan, cannot set on event")
+            continue
 
         set_new_event_mag(event, station_mags, Mw, comment, make_preferred=make_preferred)
 
