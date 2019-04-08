@@ -3,7 +3,6 @@
 import sys
 
 import numpy as np
-
 from obspy.core.event.base import Comment
 
 from microquake.core.stream import Stream
@@ -46,16 +45,18 @@ def process(
         synthetic_picks = app.synthetic_arrival_times(origin.loc, origin.time)
 
         for phase in phase_list:
-
-            smom_dict, fc = measure_pick_smom(st, inventory, event,
-                                              synthetic_picks,
-                                              P_or_S=phase,
-                                              fmin=fmin, fmax=fmax,
-                                              use_fixed_fmin_fmax=use_fixed_fmin_fmax,
-                                              plot_fit=plot_fit,
-                                              debug_level=1,
-                                              logger_in=logger)
-
+            try:
+                smom_dict, fc = measure_pick_smom(st, inventory, event,
+                                                synthetic_picks,
+                                                P_or_S=phase,
+                                                fmin=fmin, fmax=fmax,
+                                                use_fixed_fmin_fmax=use_fixed_fmin_fmax,
+                                                plot_fit=plot_fit,
+                                                debug_level=1,
+                                                logger_in=logger)
+            except Exception as e:
+                logger.warn("Error in measure_pick_smom. Continuing to next phase in phase_list: \n %s", e)
+                continue
 
             comment = Comment(text="corner_frequency_%s=%.2f measured for %s arrivals" % \
                               (phase, fc, phase))
