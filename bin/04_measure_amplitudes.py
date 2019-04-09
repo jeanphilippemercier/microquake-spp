@@ -47,6 +47,7 @@ def process(
     trP = [tr for tr in st if tr.stats.channel == 'P' or tr.stats.channel.upper() == 'Z']
 
     measure_pick_amps(Stream(traces=trP),
+    #measure_pick_amps(st_rot,
                       cat_out,
                       phase_list=phase_list,
                       pulse_min_width=pulse_min_width,

@@ -7,7 +7,7 @@ import numpy as np
 from obspy.core.event.base import Comment
 
 from microquake.core.stream import Stream
-from microquake.waveform.smom_mag import measure_pick_smom
+from microquake.waveform.smom_measure import measure_pick_smom
 from spp.utils.cli import CLI
 
 
@@ -32,6 +32,7 @@ def process(
         phase_list = [phase_list]
 
     plot_fit = False
+    #plot_fit = True
 
     st = stream.copy()
     cat_out = cat.copy()
@@ -46,6 +47,8 @@ def process(
         synthetic_picks = app.synthetic_arrival_times(origin.loc, origin.time)
 
         for phase in phase_list:
+
+            logger.info("Call measure_pick_smom for phase=[%s]" % phase)
 
             smom_dict, fc = measure_pick_smom(st, inventory, event,
                                               synthetic_picks,
