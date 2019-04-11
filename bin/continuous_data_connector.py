@@ -112,7 +112,7 @@ def post_station_signals_analysis(
         "sampling_rate": str(np.nan_to_num(sampling_rate)),
         "num_samples": str(np.nan_to_num(num_samples)),
         "amplitude": str(np.nan_to_num(amplitude)),
-        "station_code": station_code,
+        "station": station_code,
     }
     result = post_signal_quality(api_base_url, signal_quality)
     if result.status_code != 201:
