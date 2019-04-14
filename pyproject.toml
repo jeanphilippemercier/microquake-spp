@@ -5,6 +5,7 @@ description = ""
 authors = ["Reza Jelveh <reza.jelveh@toptal.com>"]
 
 [tool.poetry.dependencies]
+python = "3.7.0"
 future = "*"
 lxml = "*"
 matplotlib = "*"
@@ -26,14 +27,13 @@ msgpack = "*"
 dynaconf = "*"
 ipython = "*"
 redis = "*"
-confluent-kafka = "==0.11.5"
+confluent-kafka = "*"
 kafka-python = "*"
 tqdm = "*"
 tenacity = "*"
 apscheduler = "*"
-hashwrap = {editable = true,git = "https://github.com/mikehagerty/hashwrap"}
-spp = {editable = true,path = "."}
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
 autopep8 = "*"
+numpy = "*"
