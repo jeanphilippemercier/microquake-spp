@@ -1,0 +1,39 @@
+[tool.poetry]
+name = "seismic-processing-platform"
+version = "0.1.0"
+description = ""
+authors = ["Reza Jelveh <reza.jelveh@toptal.com>"]
+
+[tool.poetry.dependencies]
+future = "*"
+lxml = "*"
+matplotlib = "*"
+numpy = "*"
+obspy = "*"
+pymongo = "*"
+pyparsing = "*"
+scipy = "*"
+scikit-fmm = "*"
+cython = "*"
+prometheus-client = "*"
+avro = "*"
+fastavro = "*"
+pathos = "*"
+pyyaml = "*"
+toolz = "*"
+pytz = "*"
+msgpack = "*"
+dynaconf = "*"
+ipython = "*"
+redis = "*"
+confluent-kafka = "==0.11.5"
+kafka-python = "*"
+tqdm = "*"
+tenacity = "*"
+apscheduler = "*"
+hashwrap = {editable = true,git = "https://github.com/mikehagerty/hashwrap"}
+spp = {editable = true,path = "."}
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.0"
+autopep8 = "*"
