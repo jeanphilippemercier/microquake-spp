@@ -218,6 +218,24 @@ version = "3.1.1"
 
 [[package]]
 category = "main"
+description = ""
+name = "hashwrap"
+optional = false
+platform = "*"
+python-versions = "*"
+version = "0.0.2"
+
+[package.dependencies]
+matplotlib = "*"
+numpy = "*"
+toml = "*"
+
+[package.source]
+reference = "7b7afc9e0690c6ce2d9b82fdff238f2c6d6d1964"
+type = "git"
+url = "https://github.com/mikehagerty/hashwrap"
+[[package]]
+category = "main"
 description = "Internationalized Domain Names in Applications (IDNA)"
 name = "idna"
 optional = false
@@ -756,9 +774,9 @@ python-versions = "*"
 version = "0.1.7"
 
 [metadata]
-content-hash = "4a342d5438a7524b3d5bf79c03197b7f4a3b2c25a83415ac83a8cf5ce087bb63"
+content-hash = "4d0a220aa131876483447f5dee0898656a2557404bbfb4423be951092cd0a407"
 platform = "*"
-python-versions = "3.7.0"
+python-versions = "^3.6 || ^3.7"
 
 [metadata.hashes]
 appnope = ["5b26757dc6f79a3b7dc9fab95359328d5747fcb2409d331ea66d0272b90ab2a0", "8b995ffe925347a2138d7ac0fe77155e4311a0ea6d6da4f5128fe4b3cbe5ed71"]
@@ -782,6 +800,7 @@ enum34 = ["2d81cbbe0e73112bdfe6ef8576f2238f2ba27dd0d55752a776c41d38b7da2850", "6
 fastavro = ["071859b06ad7e4e4c4e62709e987fb1319c9d148e884f5fce27e3a73ed9ea584", "1657aa2c117f18c377968be94949ac6df47f353c7f7a2f28b125b26b4400186b", "1fe4eede0caee564f6922ae7e26b6836a28630b294ec023ca9dd3991af6be4eb", "26312419af3754d8a11384feaea3f2765d0ceb8ed360d467b6a25db267b82b39", "305e475851070536c717adb9581d84372ae576c2b253653011b6594f7668cbd5", "460b013b00e15d398c73a1362950f484955529047aad90fb04cacc7c3c62e702", "475614a33fc50cd2fd9e8712e5cb3e50fa47146a07d6d6d7a2fb7f3bb90b6366", "5b991c5084a85e82673ed4727e33a0a014c47b20522d2ead0a3c65760dfa0e18", "6d6939618e7b7d57a86f892286429631e3c5a637ee1c9693d29264799f64a2fb", "710b49acb293058fafb3e4a954e75120eb8f6b8906ac7a537369ee5542ce50aa", "81016e87d975e146ff2ddb0ffad729685ef8d7fc9d962fb9a87ceb4961d113b0", "a1f8f5c6836b43557cefa1b3a7dddc81f61c67f4a7806815b5a9936c98e795f4", "a3452d8a8b0029a3ba5c95090ac56d7546988e023542c27b37f29c2719af221f", "d617e42e8a86de23abbd4cd7637638a47f66515f8049797ff27f6817b8bf38ec"]
 future = ["67045236dcfd6816dc439556d009594abf643e5eb48992e36beac09c2ca659b8"]
 futures = ["51ecb45f0add83c806c68e4b06106f90db260585b25ef2abfcda0bd95c0132fd", "c4884a65654a7c45435063e14ae85280eb1f111d94e542396717ba9828c4337f"]
+hashwrap = []
 idna = ["c357b3f628cf53ae2c4c05627ecc484553142ca23264e593d327bcde5e9c3407", "ea8b7f6188e6fa117537c3df7da9fc686d485087abf6ac197f9c46432f7e4a3c"]
 ipython = ["b038baa489c38f6d853a3cfc4c635b0cda66f2864d136fe8f40c1a6e334e2a6b", "f5102c1cd67e399ec8ea66bcebe6e3968ea25a8977e53f012963e5affeb1fe38"]
 ipython-genutils = ["72dd37233799e619666c9f639a9da83c34013a73e8bbc79a7a6348d93c61fab8", "eb2e116e75ecef9d4d228fdc66af54269afa26ab4463042e33785b887c628ba8"]
