@@ -14,6 +14,8 @@ def test_picker():
     with open('./data/tests/test_input_interloc.mseed', "rb") as event_file:
         waveform_stream = read(event_file, format="MSEED")
 
+    original_pick_count = len(catalog[0].picks)
+
     test_input = (catalog, waveform_stream)
     test_app = TestApplication(module_name='picker', processing_flow_name="automatic", input_data=test_input)
 
@@ -35,8 +37,9 @@ def test_picker():
     cli = CLI('picker', 'automatic', app=test_app, args=args)
 
     cli.prepare_module()
-    # assert cli.prepared_objects['test_prep_dep']
-
     cli.run_module()
-    # assert cli.app.process_output['test_output']
-    # self.output_data = (cat, stream)
+
+    cat, stream = cli.app.output_data
+    assert len(cat[0].picks) > original_pick_count
+
+    assert len(stream) == len(waveform_stream)
