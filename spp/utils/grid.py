@@ -1,8 +1,8 @@
 import os
-from microquake.core import AttribDict
-import toml
 from microquake.core.data.grid import create, read_grid
 from microquake.simul.eik import ray_tracer
+from dynaconf import LazySettings
+
 
 class Grid(object):
 
@@ -28,7 +28,22 @@ class Grid(object):
             toml_file = os.path.join(self.config_dir, 'settings.toml')
         self.toml_file = toml_file
 
-        self.settings = AttribDict(toml.load(self.toml_file))
+        dconf = {}
+        dconf.setdefault('GLOBAL_ENV_FOR_DYNACONF', 'SPP')
+
+        env_prefix = '{0}_ENV'.format(
+            dconf['GLOBAL_ENV_FOR_DYNACONF']
+        )  # DJANGO_ENV
+
+        dconf.setdefault(
+            'ENV_FOR_DYNACONF',
+            os.environ.get(env_prefix, 'DEVELOPMENT').upper()
+        )
+
+        self.settings = LazySettings(**dconf)
+
+        self.config_dir = self.settings.config
+        self.common_dir = self.settings.common
 
     def get_velocities(self):
         """

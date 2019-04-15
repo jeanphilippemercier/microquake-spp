@@ -17,6 +17,7 @@ from microquake.core.data.inventory import Inventory, load_inventory
 from microquake.core.data.station import read_stations
 from microquake.core.util.attribdict import AttribDict
 from microquake.io import msgpack
+from dynaconf import LazySettings
 
 
 class Application(object):
@@ -42,14 +43,26 @@ class Application(object):
             #print("No module name, application cannot initialise")
             pass
 
-        self.config_dir = os.environ['SPP_CONFIG']
-        self.common_dir = os.environ['SPP_COMMON']
-
         if toml_file is None:
             toml_file = os.path.join(self.config_dir, 'settings.toml')
         self.toml_file = toml_file
 
-        self.settings = AttribDict(toml.load(self.toml_file))
+        dconf = {}
+        dconf.setdefault('GLOBAL_ENV_FOR_DYNACONF', 'SPP')
+
+        env_prefix = '{0}_ENV'.format(
+            dconf['GLOBAL_ENV_FOR_DYNACONF']
+        )  # DJANGO_ENV
+
+        dconf.setdefault(
+            'ENV_FOR_DYNACONF',
+            os.environ.get(env_prefix, 'DEVELOPMENT').upper()
+        )
+
+        self.settings = LazySettings(**dconf)
+
+        self.config_dir = self.settings.config
+        self.common_dir = self.settings.common
 
         if processing_flow_name:
             processing_flow = self.settings.processing_flow[processing_flow_name]
