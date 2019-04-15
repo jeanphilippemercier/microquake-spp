@@ -1,8 +1,20 @@
+[sdist]
+keep-temp = 1
+dist-dir = "dist/source"
+
+[tox]
+minversion = "3.4.0"
+requires = ["tox-venv", "setuptools >= 30.0.0"]
+
 [tool.poetry]
-name = "seismic-processing-platform"
+name = "spp"
 version = "0.1.0"
-description = ""
-authors = ["Reza Jelveh <reza.jelveh@toptal.com>"]
+authors = ["Jean-Phillipe Mercier", "Reza Jelveh"]
+license = "GPL-3.0"
+description = "Python library for processing of seismic data"
+keywords = ["seismology", "mining" ]
+homepage = "https://api.microquake.org"
+repository = "https://git.microquake.org"
 
 [tool.poetry.dependencies]
 python = "^3.6 || ^3.7"
