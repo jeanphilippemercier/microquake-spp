@@ -9,6 +9,7 @@ from time import time
 import matplotlib.pyplot as plt
 import numpy as np
 import toml
+from dynaconf import settings
 
 from microquake.core import read_events
 from microquake.core.data.grid import create, read_grid
@@ -21,7 +22,7 @@ from microquake.io import msgpack
 class Application(object):
 
     def __init__(self, toml_file=None, module_name=None,
-                 processing_flow_name='automatic', logger=None):
+                 processing_flow_name=None, logger=None):
         """
 
         :param toml_file: path to the TOML file containing the project
@@ -50,10 +51,11 @@ class Application(object):
 
         self.settings = AttribDict(toml.load(self.toml_file))
 
-        processing_flow = self.settings.processing_flow[processing_flow_name]
-        self.trigger_data_name = processing_flow.trigger_data_name
-        self.dataset = processing_flow.dataset
-        self.processing_flow_steps = processing_flow.steps
+        if processing_flow_name:
+            processing_flow = self.settings.processing_flow[processing_flow_name]
+            self.trigger_data_name = processing_flow.trigger_data_name
+            self.dataset = processing_flow.dataset
+            self.processing_flow_steps = processing_flow.steps
 
         self.inventory = None
         # Appending the SPP_COMMON directory to nll_base

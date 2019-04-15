@@ -48,17 +48,3 @@ def process(
                                         azimuth, toa, ray.nodes)
 
     return cat, stream
-
-
-__module_name__ = "ray_tracer"
-
-
-def main():
-    cli = CLI(__module_name__, processing_flow_name='ray_tracing',
-              callback=process)
-    cli.prepare_module()
-    cli.run_module()
-
-
-if __name__ == "__main__":
-    main()
