@@ -1,0 +1,15 @@
+[paths]
+source =
+   src
+   */site-packages
+
+[run]
+branch = true
+source =
+    spp
+parallel = true
+
+[report]
+show_missing = true
+precision = 2
+omit = *migrations*

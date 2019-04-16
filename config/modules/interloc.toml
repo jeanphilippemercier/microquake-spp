@@ -1,0 +1,14 @@
+[default]
+interloc_nthreads = 4
+interloc_samplerate_decimated = 3000.0
+interloc_fixed_wlen_sec = 1.0
+interloc_whiten_corner_freqs = [40.0, 50.0, 350.0, 360.0]
+interloc_pair_dist_min = 0.0
+interloc_pair_dist_max = 2000.0
+interloc_cc_smooth_length_sec = 0.005
+interloc_detection_threshold = 0.2
+interloc_debug_level = 0
+interloc_debug_file_dir = './common'
+interloc_output_data_name = 'event_located'
+interloc_log_topic = 'interloc'
+interloc_log_file_name = 'interloc.log'

@@ -9,6 +9,7 @@ from time import time
 import matplotlib.pyplot as plt
 import numpy as np
 import toml
+from dynaconf import settings
 
 from microquake.core import read_events
 from microquake.core.data.grid import create, read_grid
@@ -21,7 +22,7 @@ from microquake.io import msgpack
 class Application(object):
 
     def __init__(self, toml_file=None, module_name=None,
-                 processing_flow_name='automatic', logger=None):
+                 processing_flow_name=None, logger=None):
         """
 
         :param toml_file: path to the TOML file containing the project
@@ -50,10 +51,11 @@ class Application(object):
 
         self.settings = AttribDict(toml.load(self.toml_file))
 
-        processing_flow = self.settings.processing_flow[processing_flow_name]
-        self.trigger_data_name = processing_flow.trigger_data_name
-        self.dataset = processing_flow.dataset
-        self.processing_flow_steps = processing_flow.steps
+        if processing_flow_name:
+            processing_flow = self.settings.processing_flow[processing_flow_name]
+            self.trigger_data_name = processing_flow.trigger_data_name
+            self.dataset = processing_flow.dataset
+            self.processing_flow_steps = processing_flow.steps
 
         self.inventory = None
         # Appending the SPP_COMMON directory to nll_base
@@ -128,8 +130,7 @@ class Application(object):
         returns the path where the travel time grids are stored
         :return: path
         """
-        return os.path.join(self.common_dir,
-                         self.settings.nlloc.nll_base, 'time')
+        return os.path.join(self.settings.nlloc.nll_base, 'time')
 
     def get_ttable_h5(self):
         from microquake.core.data import ttable
@@ -301,9 +302,8 @@ class Application(object):
         from microquake.core.data.grid import read_grid
         import os
 
-        common_dir = self.common_dir
         nll_dir = self.settings.nlloc.nll_base
-        f_tt = os.path.join(common_dir, nll_dir, 'time', 'OT.%s.%s.%s.buf'
+        f_tt = os.path.join(nll_dir, 'time', 'OT.%s.%s.%s.buf'
                             % (phase.upper(), station_code, type))
         tt_grid = read_grid(f_tt, format='NLLOC')
 
@@ -588,7 +588,7 @@ class Application(object):
                                                event_location)
             predicted_at = origin_time + predicted_tt
             arrival.time_residual = pick.time - predicted_at
-            #print("create_arrivals: sta:%3s pha:%s pick.time:%s 
+            #print("create_arrivals: sta:%3s pha:%s pick.time:%s
 
             arrival.takeoff_angle = self.get_grid_point(station_code, phase,
                                            event_location, type='take_off')
@@ -617,7 +617,7 @@ class Application(object):
         These default to -1 so that when microquake.nlloc reads last.hyp it
         returns -1 for these values.
 
-        Here we re-create the arrivals from the picks & the NLLoc location 
+        Here we re-create the arrivals from the picks & the NLLoc location
         so that it populates the takeoff and azimuth angles.
         Also, we add the relevant angles at the receiver (backazimuth and incidence)
         to the arrivals.

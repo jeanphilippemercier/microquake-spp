@@ -3,8 +3,8 @@
 # 1) prepare NLL directory and create the travel time table
 # 2) convert the travel time table to H5F
 
-from spp.utils.application import Application
 from microquake.nlloc import NLL
+from spp.utils.application import Application
 
 if __name__ == '__main__':
 

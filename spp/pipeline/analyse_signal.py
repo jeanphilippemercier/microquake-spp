@@ -36,11 +36,3 @@ def process(cat=None, stream=None, logger=None, app=None, module_settings=None, 
     return signal_quality_data
 
 __module_name__ = 'signal_analysis'
-
-def main():
-    cli = CLI(__module_name__, callback=process)
-    cli.prepare_module()
-    cli.run_module()
-
-if __name__ == "__main__":
-    main()

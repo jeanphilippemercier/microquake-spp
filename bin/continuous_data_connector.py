@@ -6,10 +6,11 @@ import numpy as np
 from apscheduler.schedulers.background import BlockingScheduler
 from tenacity import after_log, retry, stop_after_attempt, wait_exponential
 
-from bin.analyse_signal import __module_name__ as analyse_signal_module_name
-from bin.analyse_signal import process as analyse_signal
 from microquake.core import UTCDateTime
 from microquake.IMS import web_client
+from spp.pipeline.analyse_signal import \
+    __module_name__ as analyse_signal_module_name
+from spp.pipeline.analyse_signal import process as analyse_signal
 from spp.utils import seismic_client
 from spp.utils.application import Application
 from spp.utils.seismic_client import post_signal_quality
