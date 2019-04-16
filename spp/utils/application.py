@@ -130,8 +130,7 @@ class Application(object):
         returns the path where the travel time grids are stored
         :return: path
         """
-        return os.path.join(self.common_dir,
-                         self.settings.nlloc.nll_base, 'time')
+        return os.path.join(self.settings.nlloc.nll_base, 'time')
 
     def get_ttable_h5(self):
         from microquake.core.data import ttable
@@ -303,9 +302,8 @@ class Application(object):
         from microquake.core.data.grid import read_grid
         import os
 
-        common_dir = self.common_dir
         nll_dir = self.settings.nlloc.nll_base
-        f_tt = os.path.join(common_dir, nll_dir, 'time', 'OT.%s.%s.%s.buf'
+        f_tt = os.path.join(nll_dir, 'time', 'OT.%s.%s.%s.buf'
                             % (phase.upper(), station_code, type))
         tt_grid = read_grid(f_tt, format='NLLOC')
 
@@ -590,7 +588,7 @@ class Application(object):
                                                event_location)
             predicted_at = origin_time + predicted_tt
             arrival.time_residual = pick.time - predicted_at
-            #print("create_arrivals: sta:%3s pha:%s pick.time:%s 
+            #print("create_arrivals: sta:%3s pha:%s pick.time:%s
 
             arrival.takeoff_angle = self.get_grid_point(station_code, phase,
                                            event_location, type='take_off')
@@ -619,7 +617,7 @@ class Application(object):
         These default to -1 so that when microquake.nlloc reads last.hyp it
         returns -1 for these values.
 
-        Here we re-create the arrivals from the picks & the NLLoc location 
+        Here we re-create the arrivals from the picks & the NLLoc location
         so that it populates the takeoff and azimuth angles.
         Also, we add the relevant angles at the receiver (backazimuth and incidence)
         to the arrivals.
