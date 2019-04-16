@@ -1,23 +1,12 @@
-FROM registry.microquake.org/rio-tinto/seismic-processing-platform/base:latest
-
-RUN apt install vim -y
-
-#COPY ./ /app
+FROM microquake/python-seismology
 
 ADD ./ /app
+WORKDIR /app
 
-ADD $SPP_COMMON/ /app/common
-ADD $SPP_CONFIG /app/config
-#COPY $SPP_CONFIG /app/config
+ENV PATH="/ve/bin:${PATH}"
 
-RUN pip install scikit-learn
-RUN pip install --no-deps -e libs/microquake
-#RUN pip install -e libs/microquake/
-RUN pip install --no-deps libs/xseis
-RUN pip install ipython
-RUN pip install -e .
-
-RUN rm -rf /root/.cache
-RUN rm -rf /usr/local/lib/python3.6/site-packages/microquake/examples
-
-# CMD ["python", "app.py"]
+RUN cd libs/microquake; pip install -e .
+RUN curl -o xseis2-0.1.1-cp37-cp37m-linux_x86_64.whl -J -L 'https://git.microquake.org/api/v4/projects/13/jobs/2274/artifacts/dist/xseis2-0.1.1-cp37-cp37m-linux_x86_64.whl?private_token=A9kAyWM7-Qa57QLpwt66'
+RUN pip install xseis*whl ; rm *whl
+RUN bash -c ". /ve/bin/activate ; poetry install --no-dev"
+RUN pip install confluent-kafka
