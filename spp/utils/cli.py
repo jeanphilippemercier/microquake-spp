@@ -16,7 +16,7 @@ class CLI:
     def __init__(
         self,
         module_name,
-        processing_flow_name,
+        processing_flow_name="automatic",
         settings_name=None,
         callback=None,
         prepare=None,
@@ -31,7 +31,7 @@ class CLI:
         self.app = app
         self.args = args
         self.prepared_objects = {}
-        
+
         if not args:
             self.process_arguments()
 
@@ -39,7 +39,7 @@ class CLI:
         if not self.module_name:
             print("No module specified, exiting")
             exit()
-    
+
         self.set_app()
         if not self.app:
             print("No application mode specified, exiting")
