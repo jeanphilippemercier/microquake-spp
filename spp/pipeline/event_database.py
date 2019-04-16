@@ -1,3 +1,6 @@
+# This modules expect to receive a message containing the following:
+# [catalog, stream, context_stream, event_id]
+
 from io import BytesIO
 from time import time
 

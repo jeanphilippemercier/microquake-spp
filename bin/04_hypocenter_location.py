@@ -3,7 +3,7 @@
 Predict hypocenter location
 """
 from spp.utils.cli import CLI
-from spp.pipeline.hypocenter_location import prepare, process
+from spp.pipeline.nlloc import prepare, process
 
 __module_name__ = "nlloc"
 

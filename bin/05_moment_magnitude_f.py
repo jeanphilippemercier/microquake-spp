@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from spp.utils.cli import CLI
-from spp.pipeline.moment_magnitude_f import process
+from spp.pipeline.magnitude_f import process
 from spp.pipeline.utils import prepare_velocities
 
 __module_name__ = "magnitude_f"

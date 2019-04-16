@@ -1,5 +1,4 @@
 from spp.utils import seismic_client
-from spp.utils.cli import CLI
 from spp.utils.grid import Grid
 
 
