@@ -22,8 +22,6 @@ def process(
 
     cat_out = cat.copy()
 
-    logger.info("Calculate focal mechanisms")
-
     focal_mechanisms, figs = calc_focal_mechanisms(cat, module_settings, logger_in=logger)
 
     logger.info("Calculate focal mechanisms [DONE]")
@@ -38,6 +36,7 @@ def process(
 
         if save_figs:
             for i,fig in enumerate(figs):
+                logger.info("Save fig to file:foc_mech_%d.png" % i)
                 fig.savefig('foc_mech_%d.png' % i)
 
 

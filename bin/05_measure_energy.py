@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from microquake.waveform.amp_measures import calc_velocity_flux
-from microquake.waveform.mag_new import calculate_energy_from_flux
+from microquake.waveform.mag import calculate_energy_from_flux
 from spp.utils.cli import CLI
 
 def process(cat=None,

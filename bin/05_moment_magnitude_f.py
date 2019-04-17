@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from microquake.waveform.mag_new import (calc_magnitudes_from_lambda,
+from microquake.waveform.mag import (calc_magnitudes_from_lambda,
                                          set_new_event_mag)
 from spp.utils.cli import CLI
 
