@@ -10,6 +10,14 @@ The package can be installed by simply executing the following command from this
 
 You may enter the poetry venv directly using `poetry shell`
 
+## Old MacOS and confluent kafka
+
+If you use an old confluent kafka version please use the following command to install it manually
+
+```
+>> pip install --no-binary :all: confluent-kafka
+```
+
 ## Using poetry
 
 ```
