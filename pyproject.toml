@@ -16,6 +16,11 @@ keywords = ["seismology", "mining" ]
 homepage = "https://api.microquake.org"
 repository = "https://git.microquake.org"
 
+packages = [
+    { include = "spp", from ="./" },
+]
+
+
 [tool.poetry.dependencies]
 python = "^3.6 || ^3.7"
 matplotlib = "*"

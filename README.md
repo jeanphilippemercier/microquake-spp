@@ -3,8 +3,31 @@
 The package can be installed by simply executing the following command from this directory
 
 ```
->> pip install -e .
+>> poetry install
+>> pip install confluent-kafka
+>> poetry run pip install -e libs/microquake
 ```
+
+## Using poetry
+
+```
+>> poetry add pandas
+```
+
+## Caveats
+
+Confluent Kafka is currently not following pep-508 there is a pull-request on github waiting to be merged fixing this issue
+
+https://github.com/confluentinc/confluent-kafka-python/pull/583
+
+If you did install it through poetry you also added enum34 breaking a lot of things. Run the following commands to fix it.
+
+```
+>> poetry run pip uninstall enum34
+>> poetry remove confluent-kafka
+>> poetry run pip install confluent-kafka
+```
+
 
 ## Set-up of environment variables
 
