@@ -8,6 +8,8 @@ The package can be installed by simply executing the following command from this
 >> poetry run pip install -e libs/microquake
 ```
 
+You may enter the poetry venv directly using `poetry shell`
+
 ## Using poetry
 
 ```
