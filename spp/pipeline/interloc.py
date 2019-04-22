@@ -4,7 +4,7 @@ from time import time
 
 import numpy as np
 
-from microquake.core import UTCDateTime, AttribDict
+from microquake.core import AttribDict, UTCDateTime
 from microquake.core.event import Origin
 from microquake.core.util import tools
 from xseis2 import xspy

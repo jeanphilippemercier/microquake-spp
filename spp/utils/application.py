@@ -727,8 +727,7 @@ class Application(object):
         t3 = time()
         self.logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
 
-        if self.settings.sensors.black_list is not None:
-            self.clean_waveform_stream(stream, self.settings.sensors.black_list)
+        (cat, stream) = self.clean_message((cat, stream))
 
         if not kwargs:
             cat_out, st_out = callback(cat=cat, stream=stream, logger=self.logger)
@@ -737,6 +736,14 @@ class Application(object):
                                **kwargs)
 
         return cat_out, st_out
+
+    def clean_message(self, msg_in):
+        (catalog, waveform_stream) = msg_in
+        if self.settings.sensors.black_list is not None:
+            self.clean_waveform_stream(
+                waveform_stream, self.settings.sensors.black_list
+            )
+        return (catalog, waveform_stream)
 
 
     def serialise_message(self, cat, stream):

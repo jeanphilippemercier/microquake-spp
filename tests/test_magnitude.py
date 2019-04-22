@@ -7,20 +7,20 @@ from spp.utils.cli import CLI
 from spp.utils.test_application import TestApplication
 
 
-def test_picker():
-    with open('./data/tests/test_input_interloc.xml', "rb") as event_file:
+def test_magnitude():
+    with open('./data/tests/test_magnitude.xml', "rb") as event_file:
         catalog = read_events(event_file, format="QUAKEML")
 
-    with open('./data/tests/test_input_interloc.mseed', "rb") as event_file:
+    with open('./data/tests/test_magnitude.mseed', "rb") as event_file:
         waveform_stream = read(event_file, format="MSEED")
 
     test_input = (catalog, waveform_stream)
-    test_app = TestApplication(module_name='picker', processing_flow_name="automatic", input_data=test_input)
+    test_app = TestApplication(module_name='magnitude', processing_flow_name="automatic", input_data=test_input)
 
     args = AttribDict({
         'mode': 'local',
-        'module':'picker',
-        'settings_name':'picker',
+        'module':'magnitude',
+        'settings_name':'magnitude',
         'processing_flow':'automatic',
         'modules':None,
         'input_bytes':None,
@@ -32,17 +32,22 @@ def test_picker():
         'event_id':None,
         'send_to_api':None,
     })
-    cli = CLI('picker', 'automatic', app=test_app, args=args)
+    cli = CLI('magnitude', 'automatic', app=test_app, args=args)
 
     cli.prepare_module()
     cli.run_module()
-    check_picker_data((catalog, waveform_stream), cli.app.output_data)
+    check_magnitude_data((catalog, waveform_stream), cli.app.output_data)
 
 
-def check_picker_data(input_data, output_data):
+def check_magnitude_data(input_data, output_data):
     (input_catalog, input_waveform_stream) = input_data
     (output_catalog, output_waveform_stream) = output_data
 
-    original_pick_count = len(input_catalog[0].picks)
-    assert len(output_catalog[0].picks) > original_pick_count
+    input_magnitude_count = len(input_catalog[0].magnitudes)
+
+    event = output_catalog[0]
+    assert event.magnitudes
+    assert len(event.magnitudes) > input_magnitude_count
+    assert event.station_magnitudes
+
     assert len(output_waveform_stream) == len(input_waveform_stream)

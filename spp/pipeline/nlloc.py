@@ -82,7 +82,7 @@ def prepare(app=None, module_settings=None):
     base_folder = module_settings.nll_base
     gridpar = app.nll_velgrids()
     sensors = app.nll_sensors()
-
+    print(base_folder)
     app.logger.info("preparing NonLinLoc")
     nll = NLL(
         project_code,
@@ -94,6 +94,3 @@ def prepare(app=None, module_settings=None):
     app.logger.info("done preparing NonLinLoc")
 
     return {"nll": nll}
-
-
-
