@@ -93,8 +93,12 @@ class CLI:
         self.module_settings = self.app.settings.get(settings_name, None)
         if hasattr(mod, "prepare"):
             self.prepare = mod.prepare
+        else:
+            self.prepare = None
         if hasattr(mod, "process"):
             self.callback = mod.process
+        else:
+            self.callback = None
 
 
     def set_defaults(self):
@@ -170,11 +174,8 @@ class CLI:
             self.load_module(module_file_name, module_file_name)
             if self.prepare:
                 self.prepare_module()
-
-            if self.app.settings.sensors.black_list is not None:
-                self.app.clean_waveform_stream(
-                    stream, self.app.settings.sensors.black_list
-                )
+            
+            cat, stream = self.app.clean_message((cat, stream))
 
             cat, stream = self.callback(
                 cat=cat,

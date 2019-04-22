@@ -3,6 +3,7 @@ import numpy as np
 from microquake.waveform.mag_new import (calc_magnitudes_from_lambda,
                                          set_new_event_mag)
 
+
 def process(
     cat=None,
     stream=None,
@@ -91,3 +92,8 @@ def process(
 
 
     return cat_out, stream
+
+def prepare(app=None, module_settings=None):
+    vp_grid, vs_grid = app.get_velocities()
+    site = app.get_stations()
+    return {"vp_grid": vp_grid, "vs_grid": vs_grid, "site": site}
