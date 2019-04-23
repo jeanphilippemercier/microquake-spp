@@ -28,13 +28,13 @@ class Grid(object):
         """
         returns velocity models
         """
-        grids = self.settings.get('grids')
+        grids = settings.get('grids')
         if grids.velocities.homogeneous:
             vp = create(**grids)
             vp.data *= grids.velocities.vp
             vp.resource_id = self.get_current_velocity_model_id('P')
             vs = create(**grids)
-            vs.data *= self.settings.grid.velocities.vs
+            vs.data *= settings.grid.velocities.vs
             vs.resource_id = self.get_current_velocity_model_id('S')
 
         else:
@@ -48,7 +48,7 @@ class Grid(object):
                                        grids.velocities.vs)
                 vs = read_grid(vs_path, format=format)
                 vs.resource_id = self.get_current_velocity_model_id('S')
-            elif self.settings['grids.velocities.local']:
+            elif settings['grids.velocities.local']:
                 # TODO: read the velocity grids from the server
                 pass
 
@@ -65,8 +65,8 @@ class Grid(object):
         from microquake.core.data.grid import read_grid
         import os
 
-        nll_dir = self.settings.nll_base
-        f_tt = os.path.join(self.settings.common_dir, nll_dir, 'time', 'OT.%s.%s.%s.buf'
+        nll_dir = settings.nll_base
+        f_tt = os.path.join(settings.common_dir, nll_dir, 'time', 'OT.%s.%s.%s.buf'
                             % (phase.upper(), station_code, type))
         tt_grid = read_grid(f_tt, format='NLLOC')
 
@@ -111,7 +111,7 @@ class Grid(object):
         :return: resource_identifier
 
         """
-        grids = self.settings.get('grids')
+        grids = settings.get('grids')
         if phase.upper() == 'P':
             v_path = os.path.join(settings.common_dir,
                                   grids.velocities.vp) + '.rid'
