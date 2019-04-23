@@ -28,6 +28,7 @@ class Grid(object):
         """
         returns velocity models
         """
+        grids = self.settings.get('grids')
         if grids.velocities.homogeneous:
             vp = create(**grids)
             vp.data *= grids.velocities.vp
@@ -111,7 +112,6 @@ class Grid(object):
 
         """
         grids = self.settings.get('grids')
-        velocity_dir = grids.velocities
         if phase.upper() == 'P':
             v_path = os.path.join(settings.common_dir,
                                   grids.velocities.vp) + '.rid'
