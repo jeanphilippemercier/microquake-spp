@@ -10,7 +10,7 @@ from spp.utils.seismic_client import post_data_from_objects
 
 
 def process(cat=None, stream=None, logger=None, app=None, module_settings=None, prepared_objects=None):
-    api_base_url = app.settings.seismic_api.base_url
+    api_base_url = app.settings.get('seismic_api').base_url
     logger.info('posting data to the API')
     result = post_data_from_objects(api_base_url, event_id=None, event=cat,
                                     stream=stream, context_stream=None, tolerance=None)
