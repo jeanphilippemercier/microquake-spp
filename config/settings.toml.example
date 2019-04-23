@@ -4,6 +4,7 @@ site = 'Oyu Tolgoi'
 site_code = 'OT'
 network = 'Hugo North Lift 1 Underground Network'
 network_code = 'HNL1'
+single_run = false
 
 # nlloc
 nlloc.nll_base = 'NLL'
