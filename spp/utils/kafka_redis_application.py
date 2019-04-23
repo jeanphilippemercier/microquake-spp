@@ -35,7 +35,7 @@ class KafkaRedisApplication(Application):
     def init_redis(self):
         from redis import StrictRedis
 
-        return StrictRedis(**self.settings.redis_db)
+        return StrictRedis(**self.settings.get('redis_db'))
 
     def get_kafka_producer(self, logger=None, **kwargs):
         return Producer(
