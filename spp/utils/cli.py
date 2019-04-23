@@ -6,6 +6,8 @@ CLI-related classes and functions
 import argparse
 import importlib.util
 
+from ..core.settings import settings
+
 
 class CLI:
     """
@@ -90,7 +92,7 @@ class CLI:
         )
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
-        self.module_settings = self.app.settings.get(settings_name, None)
+        self.module_settings = settings.get(settings_name)
         if hasattr(mod, "prepare"):
             self.prepare = mod.prepare
         else:
@@ -174,7 +176,7 @@ class CLI:
             self.load_module(module_file_name, module_file_name)
             if self.prepare:
                 self.prepare_module()
-            
+
             cat, stream = self.app.clean_message((cat, stream))
 
             cat, stream = self.callback(
