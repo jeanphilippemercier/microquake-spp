@@ -31,6 +31,7 @@ tqdm = "*"
 tenacity = "*"
 apscheduler = "*"
 hashwrap = {editable = true,git = "https://github.com/mikehagerty/hashwrap"}
+pytest = "*"
 
 [requires]
 python_version = "3"

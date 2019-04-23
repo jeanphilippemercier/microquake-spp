@@ -1,5 +1,16 @@
-*.pyc
-spp.egg-info
+*.py[cod]
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+.eggs
+sdist
 *idea
 *.yaml
 *.buf
@@ -16,9 +27,35 @@ spp.egg-info
 tmp/
 data/NLLOC_grids/
 libs/microquake
-*.toml
+config/*.toml
 *.s
 *.txt
 *.pdf
 common/*
 *.log.*
+
+
+.DS_Store
+*~
+.*.sw[po]
+.build
+.ve
+.env
+.cache
+.pytest
+.bootstrap
+*.bak
+
+
+# Unit test / coverage reports
+.coverage
+.tox
+.coverage.*
+.pytest_cache/
+nosetests.xml
+coverage.xml
+htmlcov
+
+# Sphinx
+docs/_build
+

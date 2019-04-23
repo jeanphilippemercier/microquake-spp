@@ -1,27 +1,5 @@
 """
 CLI-related classes and functions
-
-The default mode is to run continuously, listening for messages on the message bus:
-python ./bin/03_picker.py
-
-Setting this explicitly:
-python ./bin/03_picker.py --mode=cont
-
-You can run modules manually with input/output mseed and quakeml files.
-python ./bin/03_picker.py --mode=local --input_mseed=./tmp/input.mseed --input_quakeml=./tmp/input.xml --output_mseed=./tmp/output.mseed --output_quakeml=./tmp/output.xml
-
-Msgpack files are serialised, binary representations of both the catalog and waveform objects.
-You can run modules with these files directly.
-python ./bin/03_picker.py --mode=local --input_bytes=./tmp/input.msgpack --output_bytes=./tmp/output.msgpack
-
-You can run a module with data from the API:
-python ./bin/03_picker.py --mode=api --event_id=smi:local/97f39d25-db59-40fb-bcf8-57de70589fd1
-
-And then optionally post the data back to the API with --send_to_api=True
-python ./bin/03_picker.py --mode=api --send_to_api=True --event_id=smi:local/97f39d25-db59-40fb-bcf8-57de70589fd1
-
-To run a chain of modules
-python ./bin/run_modules.py --modules=02_interloc,03_picker --input_mseed=./tmp/input.mseed --input_quakeml=./tmp/input.xml
 """
 
 
@@ -39,54 +17,42 @@ class CLI:
         self,
         module_name,
         processing_flow_name="automatic",
+        settings_name=None,
         callback=None,
         prepare=None,
+        app=None,
+        args=None
     ):
         self.module_name = module_name
         self.processing_flow_name = processing_flow_name
+        self.settings_name = settings_name
         self.callback = callback
         self.prepare = prepare
+        self.app = app
+        self.args = args
         self.prepared_objects = {}
 
-        self.process_arguments()
+        if not args:
+            self.process_arguments()
 
-        if self.args.mode == "cont":
-            from spp.utils.kafka_redis_application import KafkaRedisApplication
+        self.set_defaults()
+        if not self.module_name:
+            print("No module specified, exiting")
+            exit()
 
-            self.app = KafkaRedisApplication(
-                module_name=self.module_name,
-                processing_flow_name=processing_flow_name,
-            )
-        elif self.args.mode == "local":
-            from spp.utils.local_application import LocalApplication
-
-            self.app = LocalApplication(
-                module_name=self.module_name,
-                processing_flow_name=processing_flow_name,
-                input_bytes=self.args.input_bytes,
-                input_mseed=self.args.input_mseed,
-                input_quakeml=self.args.input_quakeml,
-                output_bytes=self.args.output_bytes,
-                output_mseed=self.args.output_mseed,
-                output_quakeml=self.args.output_quakeml,
-            )
-        elif self.args.mode == "api":
-            from spp.utils.api_application import APIApplication
-
-            self.app = APIApplication(
-                module_name=self.module_name,
-                processing_flow_name=processing_flow_name,
-                event_id=self.args.event_id,
-                send_to_api=self.args.send_to_api,
-            )
-        else:
+        self.set_app()
+        if not self.app:
             print("No application mode specified, exiting")
             exit()
 
-        if module_name in self.app.settings:
-            self.module_settings = self.app.settings[module_name]
-        else:
-            print("Module name {} not found in settings".format(module_name))
+        # If we're running a chain of modules, no need to load the module and settings
+        if self.args.modules:
+            return
+
+        self.load_module(self.module_name, self.settings_name)
+        if not self.module_settings:
+            print("Module name {} not found in settings and not running module chain, exiting".format(module_name))
+            exit()
 
     def process_arguments(self):
         """
@@ -94,7 +60,9 @@ class CLI:
         """
 
         parser = argparse.ArgumentParser(description="Run an SPP module")
-        parser.add_argument("--module_name", help="the name for the module")
+        parser.add_argument("--module", help="the name of the module to run")
+        parser.add_argument("--settings_name", help="to override the name of the module when loading settings")
+        parser.add_argument("--processing_flow", help="the name of the processing flow to run")
         parser.add_argument(
             "--modules", help="a list of modules to chain together"
         )
@@ -114,8 +82,72 @@ class CLI:
         parser.add_argument("--send_to_api", type=bool)
 
         self.args = parser.parse_args()
-        if self.args.module_name:
-            self.module_name = self.args.module_name
+
+
+    def load_module(self, module_file_name, settings_name):
+        spec = importlib.util.spec_from_file_location(
+            "spp.pipeline." + module_file_name, "./spp/pipeline/" + module_file_name + ".py"
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        self.module_settings = self.app.settings.get(settings_name, None)
+        if hasattr(mod, "prepare"):
+            self.prepare = mod.prepare
+        if hasattr(mod, "process"):
+            self.callback = mod.process
+
+
+    def set_defaults(self):
+        # If there is a CLI arg for module_name, use it!
+        if self.args.module and not self.module_name:
+            self.module_name = self.args.module
+
+        # If we are running a chain of modules, use the name 'chain'
+        if self.args.modules and not self.module_name:
+            self.module_name = 'chain'
+
+        # If there is a CLI arg for settings_name, use it! Otherwise use module_name
+        if self.args.settings_name and not self.settings_name:
+            self.settings_name = self.args.settings_name
+        elif not self.args.settings_name and not self.settings_name:
+            self.settings_name = self.module_name
+
+        if self.args.processing_flow and not self.processing_flow_name:
+            self.processing_flow_name = self.args.processing_flow
+
+    def set_app(self):
+        if self.app:
+            return
+        if self.args.mode == "cont":
+            from spp.utils.kafka_redis_application import KafkaRedisApplication
+
+            self.app = KafkaRedisApplication(
+                module_name=self.module_name,
+                processing_flow_name=self.processing_flow_name,
+            )
+        elif self.args.mode == "local":
+            from spp.utils.local_application import LocalApplication
+
+            self.app = LocalApplication(
+                module_name=self.module_name,
+                processing_flow_name=self.processing_flow_name,
+                input_bytes=self.args.input_bytes,
+                input_mseed=self.args.input_mseed,
+                input_quakeml=self.args.input_quakeml,
+                output_bytes=self.args.output_bytes,
+                output_mseed=self.args.output_mseed,
+                output_quakeml=self.args.output_quakeml,
+            )
+        elif self.args.mode == "api":
+            from spp.utils.api_application import APIApplication
+
+            self.app = APIApplication(
+                module_name=self.module_name,
+                processing_flow_name=self.processing_flow_name,
+                event_id=self.args.event_id,
+                send_to_api=self.args.send_to_api,
+            )
+
 
     def prepare_module(self):
         """
@@ -135,14 +167,8 @@ class CLI:
     def run_module_chain(self, modules, msg_in):
         cat, stream = self.app.deserialise_message(msg_in)
         for module_file_name in modules:
-            spec = importlib.util.spec_from_file_location(
-                "bin." + module_file_name, "./bin/" + module_file_name + ".py"
-            )
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-            self.module_settings = self.app.settings[mod.__module_name__]
-            if hasattr(mod, "prepare"):
-                self.prepare = mod.prepare
+            self.load_module(module_file_name, module_file_name)
+            if self.prepare:
                 self.prepare_module()
 
             if self.app.settings.sensors.black_list is not None:
@@ -150,7 +176,7 @@ class CLI:
                     stream, self.app.settings.sensors.black_list
                 )
 
-            cat, stream = mod.process(
+            cat, stream = self.callback(
                 cat=cat,
                 stream=stream,
                 logger=self.app.logger,

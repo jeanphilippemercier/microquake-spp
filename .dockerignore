@@ -7,4 +7,9 @@ common/
 .dmypy.json
 dmypy.json
 
-git/
+.git/
+
+.tox/
+tmp/
+
+# dist

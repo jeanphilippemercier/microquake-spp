@@ -6,10 +6,11 @@ import numpy as np
 from apscheduler.schedulers.background import BlockingScheduler
 from tenacity import after_log, retry, stop_after_attempt, wait_exponential
 
-from bin.analyse_signal import __module_name__ as analyse_signal_module_name
-from bin.analyse_signal import process as analyse_signal
 from microquake.core import UTCDateTime
 from microquake.IMS import web_client
+from spp.pipeline.analyse_signal import \
+    __module_name__ as analyse_signal_module_name
+from spp.pipeline.analyse_signal import process as analyse_signal
 from spp.utils import seismic_client
 from spp.utils.application import Application
 from spp.utils.seismic_client import post_signal_quality
@@ -112,7 +113,7 @@ def post_station_signals_analysis(
         "sampling_rate": str(np.nan_to_num(sampling_rate)),
         "num_samples": str(np.nan_to_num(num_samples)),
         "amplitude": str(np.nan_to_num(amplitude)),
-        "station_code": station_code,
+        "station": station_code,
     }
     result = post_signal_quality(api_base_url, signal_quality)
     if result.status_code != 201:
