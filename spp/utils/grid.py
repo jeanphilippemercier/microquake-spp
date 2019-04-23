@@ -1,7 +1,9 @@
 import os
+
 from microquake.core.data.grid import create, read_grid
 from microquake.simul.eik import ray_tracer
-from dynaconf import LazySettings
+
+from ..core.settings import settings
 
 
 class Grid(object):
@@ -20,52 +22,29 @@ class Grid(object):
         setting the processing step to 0.
         :return: None
         """
-
-        self.config_dir = os.environ['SPP_CONFIG']
-        self.common_dir = os.environ['SPP_COMMON']
-
-        if toml_file is None:
-            toml_file = os.path.join(self.config_dir, 'settings.toml')
-        self.toml_file = toml_file
-
-        dconf = {}
-        dconf.setdefault('GLOBAL_ENV_FOR_DYNACONF', 'SPP')
-
-        env_prefix = '{0}_ENV'.format(
-            dconf['GLOBAL_ENV_FOR_DYNACONF']
-        )  # DJANGO_ENV
-
-        dconf.setdefault(
-            'ENV_FOR_DYNACONF',
-            os.environ.get(env_prefix, 'DEVELOPMENT').upper()
-        )
-
-        self.settings = LazySettings(**dconf)
-
-        self.config_dir = self.settings.config
-        self.common_dir = self.settings.common
+        settings.load(toml_file)
 
     def get_velocities(self):
         """
         returns velocity models
         """
-        if self.settings.grids.velocities.homogeneous:
-            vp = create(**self.settings.grids)
-            vp.data *= self.settings.grids.velocities.vp
+        if grids.velocities.homogeneous:
+            vp = create(**grids)
+            vp.data *= grids.velocities.vp
             vp.resource_id = self.get_current_velocity_model_id('P')
-            vs = create(**self.settings.grids)
+            vs = create(**grids)
             vs.data *= self.settings.grid.velocities.vs
             vs.resource_id = self.get_current_velocity_model_id('S')
 
         else:
-            if self.settings.grids.velocities.source == 'local':
-                format = self.settings.grids.velocities.format
-                vp_path = os.path.join(self.common_dir,
-                                       self.settings.grids.velocities.vp)
+            if grids.velocities.source == 'local':
+                format = grids.velocities.format
+                vp_path = os.path.join(settings.common_dir,
+                                       grids.velocities.vp)
                 vp = read_grid(vp_path, format=format)
                 vp.resource_id = self.get_current_velocity_model_id('P')
-                vs_path = os.path.join(self.common_dir,
-                                       self.settings.grids.velocities.vs)
+                vs_path = os.path.join(settings.common_dir,
+                                       grids.velocities.vs)
                 vs = read_grid(vs_path, format=format)
                 vs.resource_id = self.get_current_velocity_model_id('S')
             elif self.settings['grids.velocities.local']:
@@ -85,9 +64,8 @@ class Grid(object):
         from microquake.core.data.grid import read_grid
         import os
 
-        common_dir = self.common_dir
-        nll_dir = self.settings.nlloc.nll_base
-        f_tt = os.path.join(common_dir, nll_dir, 'time', 'OT.%s.%s.%s.buf'
+        nll_dir = self.settings.nll_base
+        f_tt = os.path.join(self.settings.common_dir, nll_dir, 'time', 'OT.%s.%s.%s.buf'
                             % (phase.upper(), station_code, type))
         tt_grid = read_grid(f_tt, format='NLLOC')
 
@@ -132,15 +110,15 @@ class Grid(object):
         :return: resource_identifier
 
         """
-        common_dir = self.common_dir
-        velocity_dir = self.settings.grids.velocities
+        grids = self.settings.get('grids')
+        velocity_dir = grids.velocities
         if phase.upper() == 'P':
-            v_path = os.path.join(self.common_dir,
-                                  self.settings.grids.velocities.vp) + '.rid'
+            v_path = os.path.join(settings.common_dir,
+                                  grids.velocities.vp) + '.rid'
 
         elif phase.upper() == 'S':
-             v_path = os.path.join(self.common_dir,
-                                   self.settings.grids.velocities.vs) + '.rid'
+             v_path = os.path.join(settings.common_dir,
+                                   grids.velocities.vs) + '.rid'
 
         with open(v_path) as ris:
             return ris.read()

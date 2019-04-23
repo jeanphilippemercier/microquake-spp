@@ -1,6 +1,9 @@
 from microquake.waveform.amp_measures import calc_velocity_flux
 from microquake.waveform.mag_new import calculate_energy_from_flux
 
+from ..core.settings import settings
+
+
 def process(cat=None,
             stream=None,
             logger=None,
@@ -10,7 +13,7 @@ def process(cat=None,
            ):
 
     # reading application data
-    params = app.settings.measure_energy
+    params = settings.get('measure_energy')
 
     if logger is None:
         logger = app.logger
@@ -46,5 +49,3 @@ def process(cat=None,
     calculate_energy_from_flux(cat_out, use_sdr_rad=use_sdr_rad)
 
     return cat_out, st
-
-

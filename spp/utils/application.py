@@ -8,8 +8,6 @@ from time import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-import toml
-from dynaconf import settings
 
 from microquake.core import read_events
 from microquake.core.data.grid import create, read_grid
@@ -17,7 +15,8 @@ from microquake.core.data.inventory import Inventory, load_inventory
 from microquake.core.data.station import read_stations
 from microquake.core.util.attribdict import AttribDict
 from microquake.io import msgpack
-from dynaconf import LazySettings
+
+from ..core.settings import settings
 
 
 class Application(object):
@@ -38,57 +37,29 @@ class Application(object):
         :return: None
         """
 
+        settings.load(toml_file)
+        self.settings = settings
+        self.grids = settings.get('grids')
+
         self.__module_name__ = module_name
         if self.__module_name__ is None:
             #print("No module name, application cannot initialise")
             pass
 
-        if toml_file is None:
-            toml_file = os.path.join(self.config_dir, 'settings.toml')
-        self.toml_file = toml_file
-
-        dconf = {}
-        dconf.setdefault('GLOBAL_ENV_FOR_DYNACONF', 'SPP')
-
-        env_prefix = '{0}_ENV'.format(
-            dconf['GLOBAL_ENV_FOR_DYNACONF']
-        )  # DJANGO_ENV
-
-        dconf.setdefault(
-            'ENV_FOR_DYNACONF',
-            os.environ.get(env_prefix, 'DEVELOPMENT').upper()
-        )
-
-        self.settings = LazySettings(**dconf)
-
-        self.config_dir = self.settings.config
-        self.common_dir = self.settings.common
 
         if processing_flow_name:
-            processing_flow = self.settings.processing_flow[processing_flow_name]
+            processing_flow = self.settings.get('processing_flow')[processing_flow_name]
             self.trigger_data_name = processing_flow.trigger_data_name
             self.dataset = processing_flow.dataset
             self.processing_flow_steps = processing_flow.steps
 
         self.inventory = None
-        # Appending the SPP_COMMON directory to nll_base
 
-        if 'nlloc' in self.settings.__dict__.keys():
-            self.settings.nlloc.nll_base = os.path.join(self.common_dir,
-                                                        self.settings.nlloc.nll_base)
-
-    # MTH: The new mag mod doesn't use the settings below ... delete ?
-        if 'magnitude' in self.settings.__dict__.keys():
-            if 'len_spectrum_exponent' in \
-                    self.settings.magnitude.__dict__.keys():
-                self.settings.magnitude.len_spectrum = 2 ** \
-                self.settings.magnitude.len_spectrum_exponent
         if logger:
             self.logger = logger
-        elif self.__module_name__ and self.__module_name__ in self.settings:
-            self.logger = self.get_logger(self.settings[
-                                            self.__module_name__].log_topic,
-                            self.settings[self.__module_name__].log_file_name)
+        elif self.__module_name__ and self.settings.get(self.__module_name__):
+            self.logger = self.get_logger(self.settings.get(self.__module_name__).log_topic,
+                            self.settings.get(self.__module_name__).log_file_name)
         else:
             self.logger = self.get_logger('application', './application.log')
 
@@ -143,40 +114,40 @@ class Application(object):
         returns the path where the travel time grids are stored
         :return: path
         """
-        return os.path.join(self.settings.nlloc.nll_base, 'time')
+        return os.path.join(self.settings.nll_base, 'time')
 
     def get_ttable_h5(self):
         from microquake.core.data import ttable
-        fname = os.path.join(self.common_dir,
-                             self.settings.grids.travel_time_h5.fname)
+        fname = os.path.join(settings.common_dir,
+                             self.grids.travel_time_h5.fname)
         return ttable.H5TTable(fname)
 
     def write_ttable_h5(self, fname=None):
         from microquake.core.data import ttable
 
         if fname is None:
-            fname = self.settings.grids.travel_time_h5.fname
+            fname = self.grids.travel_time_h5.fname
 
         ttp = ttable.array_from_nll_grids(self.nll_tts_dir, 'P', prefix='OT')
         tts = ttable.array_from_nll_grids(self.nll_tts_dir, 'S', prefix='OT')
-        fpath = os.path.join(self.common_dir, fname)
+        fpath = os.path.join(settings.common_dir, fname)
         ttable.write_h5(fpath, ttp, tdict2=tts)
 
     def get_inventory(self):
-        params = self.settings.sensors
+        params = self.settings.get('sensors')
 
         if self.inventory is None:
 
             if params.source == 'local':
                 # MTH: let's read in the stationxml directly for now!
-                fpath = os.path.join(self.common_dir, params.stationXML)
+                fpath = os.path.join(settings.common_dir, params.stationXML)
                 self.inventory = Inventory.load_from_xml(fpath)
-                #fpath = os.path.join(self.common_dir, params.path)
+                #fpath = os.path.join(settings.common_dir, params.path)
                 #self.inventory = load_inventory(fpath, format='CSV')
                 if self.logger:
                     self.logger.info("Application: Load Inventory from:[%s]" % fpath)
 
-            elif self.settings.sensors.source == 'remote':
+            elif self.settings.get('sensors').source == 'remote':
                 pass
         #else:
             #print("app.get_inventory: INVENTORY FILE ALREADY LOADED")
@@ -185,11 +156,11 @@ class Application(object):
 
     def get_stations(self):
 
-        params = self.settings.sensors
+        params = self.settings.get('sensors')
         if params.source == 'local':
-            fpath = os.path.join(self.common_dir, params.path)
+            fpath = os.path.join(settings.common_dir, params.path)
             site = read_stations(fpath, format='CSV')
-        elif self.settings.sensors.source == 'remote':
+        elif self.settings.get('sensors').source == 'remote':
             pass
 
         return site
@@ -206,10 +177,10 @@ class Application(object):
         vp, vs = self.get_velocities()
 
         out_dict = AttribDict()
-        out_dict.vp = self.settings.grids.velocities.vp
-        out_dict.vs = self.settings.grids.velocities.vs
+        out_dict.vp = self.grids.velocities.vp
+        out_dict.vs = self.grids.velocities.vs
         out_dict.homogeneous = \
-            self.settings.grids.velocities.homogeneous
+            self.grids.velocities.homogeneous
         out_dict.grids = AttribDict()
         out_dict.grids.vp = vp
         out_dict.grids.vs = vs
@@ -253,23 +224,23 @@ class Application(object):
         """
         returns velocity models
         """
-        if self.settings.grids.velocities.homogeneous:
-            vp = create(**self.settings.grids)
-            vp.data *= self.settings.grids.velocities.vp
+        if self.grids.velocities.homogeneous:
+            vp = create(**self.grids)
+            vp.data *= self.grids.velocities.vp
             vp.resource_id = self.get_current_velocity_model_id('P')
-            vs = create(**self.settings.grids)
+            vs = create(**self.grids)
             vs.data *= self.settings.grid.velocities.vs
             vs.resource_id = self.get_current_velocity_model_id('S')
 
         else:
-            if self.settings.grids.velocities.source == 'local':
-                format = self.settings.grids.velocities.format
-                vp_path = os.path.join(self.common_dir,
-                                       self.settings.grids.velocities.vp)
+            if self.grids.velocities.source == 'local':
+                format = self.grids.velocities.format
+                vp_path = os.path.join(settings.common_dir,
+                                       self.grids.velocities.vp)
                 vp = read_grid(vp_path, format=format)
                 vp.resource_id = self.get_current_velocity_model_id('P')
-                vs_path = os.path.join(self.common_dir,
-                                       self.settings.grids.velocities.vs)
+                vs_path = os.path.join(settings.common_dir,
+                                       self.grids.velocities.vs)
                 vs = read_grid(vs_path, format=format)
                 vs.resource_id = self.get_current_velocity_model_id('S')
             elif self.settings['grids.velocities.local']:
@@ -285,7 +256,7 @@ class Application(object):
         :return: a time zone object
         """
 
-        tz_settings = self.settings.time_zone
+        tz_settings = self.settings.get('time_zone')
 
         if tz_settings.type == "UTC_offset":
             from dateutil.tz import tzoffset
@@ -315,7 +286,7 @@ class Application(object):
         from microquake.core.data.grid import read_grid
         import os
 
-        nll_dir = self.settings.nlloc.nll_base
+        nll_dir = self.settings.nll_base
         f_tt = os.path.join(nll_dir, 'time', 'OT.%s.%s.%s.buf'
                             % (phase.upper(), station_code, type))
         tt_grid = read_grid(f_tt, format='NLLOC')
@@ -362,15 +333,15 @@ class Application(object):
         :return: resource_identifier
 
         """
-        common_dir = self.common_dir
-        velocity_dir = self.settings.grids.velocities
+        common_dir = settings.common_dir
+        velocity_dir = self.grids.velocities
         if phase.upper() == 'P':
-            v_path = os.path.join(self.common_dir,
-                                  self.settings.grids.velocities.vp) + '.rid'
+            v_path = os.path.join(settings.common_dir,
+                                  self.grids.velocities.vp) + '.rid'
 
         elif phase.upper() == 'S':
-             v_path = os.path.join(self.common_dir,
-                                   self.settings.grids.velocities.vs) + '.rid'
+             v_path = os.path.join(settings.common_dir,
+                                   self.grids.velocities.vs) + '.rid'
 
         with open(v_path) as ris:
             return ris.read()
@@ -382,7 +353,7 @@ class Application(object):
 
         """
         console_handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter(self.settings.logging.log_format)
+        formatter = logging.Formatter(self.settings.get('logging').log_format)
         console_handler.setFormatter(formatter)
         return console_handler
 
@@ -392,8 +363,8 @@ class Application(object):
         Returns: file handler
 
         """
-        log_dir = self.settings.logging.log_directory
-        formatter = logging.Formatter(self.settings.logging.log_format)
+        log_dir = self.settings.get('logging').log_directory
+        formatter = logging.Formatter(self.settings.get('logging').log_format)
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
         logger_file = os.path.join(log_dir, log_filename)
@@ -404,11 +375,11 @@ class Application(object):
 
     def get_logger(self, logger_name, log_filename):
         logger = logging.getLogger(logger_name)
-        log_level = self.settings.logging.log_level
+        log_level = self.settings.get('logging').log_level
 
         if len(logger.handlers) == 0:
 
-            final_log_level = self.settings.logging.log_level
+            final_log_level = log_level
             if log_level is not None:
                 final_log_level = log_level
             elif log_level is not None:
@@ -460,7 +431,7 @@ class Application(object):
                                                        grid_coordinates=False)
 
                 wf_id = WaveformStreamID(
-                    network_code=self.settings.project_code,
+                    network_code=self.settings.get('project_code'),
                     station_code=station.code)
                     #station_code=station)
                 pk = Pick(time=at, method='predicted', phase_hint=phase,
@@ -752,9 +723,9 @@ class Application(object):
 
     def clean_message(self, msg_in):
         (catalog, waveform_stream) = msg_in
-        if self.settings.sensors.black_list is not None:
+        if self.settings.get('sensors').black_list is not None:
             self.clean_waveform_stream(
-                waveform_stream, self.settings.sensors.black_list
+                waveform_stream, self.settings.get('sensors').black_list
             )
         return (catalog, waveform_stream)
 

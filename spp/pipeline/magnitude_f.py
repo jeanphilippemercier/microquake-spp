@@ -3,6 +3,8 @@ import numpy as np
 from microquake.waveform.mag_new import (calc_magnitudes_from_lambda,
                                          set_new_event_mag)
 
+from ..core.settings import settings
+
 
 def process(
     cat=None,
@@ -20,7 +22,7 @@ def process(
     vs_grid = prepared_objects["vs_grid"]
 
     #params = module_settings.magnitude
-    params = app.settings.magnitude
+    params = settings.get('magnitude')
 
     density = params.density
     min_dist = params.min_dist
