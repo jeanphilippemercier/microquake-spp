@@ -218,7 +218,7 @@ class Application(object):
         return out_dict
 
     def nll_nll(self):
-        return AttribDict(self.settings['nlloc'])
+        return AttribDict(self.settings.get('nlloc'))
 
     def get_velocities(self):
         """
