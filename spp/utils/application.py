@@ -229,7 +229,7 @@ class Application(object):
             vp.data *= self.grids.velocities.vp
             vp.resource_id = self.get_current_velocity_model_id('P')
             vs = create(**self.grids)
-            vs.data *= self.settings.grid.velocities.vs
+            vs.data *= self.grids.velocities.vs
             vs.resource_id = self.get_current_velocity_model_id('S')
 
         else:
