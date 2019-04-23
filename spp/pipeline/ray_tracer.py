@@ -12,8 +12,8 @@ def process(
 
     inventory = app.get_inventory()
     gd = Grid()
-    site_code = app.settings.site_code
-    network_code = app.settings.network_code
+    site_code = app.settings.SITE_CODE
+    network_code = app.settings.NETWORK_CODE
 
     event_id = str(cat[0].resource_id)
     for phase in ['P', 'S']:

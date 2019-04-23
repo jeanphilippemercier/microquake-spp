@@ -21,7 +21,7 @@ def process(
     prepared_objects=None,
 ):
     nll = prepared_objects["nll"]
-    project_code = settings.project_code
+    project_code = settings.PROJECT_CODE
     base_folder = module_settings.nll_base
 
     logger.info("running NonLinLoc")
@@ -80,7 +80,7 @@ def process(
 
 
 def prepare(app=None, module_settings=None):
-    project_code = app.settings.project_code
+    project_code = settings.PROJECT_CODE
     base_folder = module_settings.nll_base
     gridpar = app.nll_velgrids()
     sensors = app.nll_sensors()
