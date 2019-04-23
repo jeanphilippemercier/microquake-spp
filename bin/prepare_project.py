@@ -14,8 +14,8 @@ if __name__ == '__main__':
     logger = app.get_logger(settings.nlloc.log_topic,
                             settings.nlloc.log_file_name)
 
-    project_code = settings.project_code
-    base_folder = settings.nlloc.nll_base
+    project_code = settings.PROJECT_CODE
+    base_folder = settings.NLL_BASE
     gridpar = app.nll_velgrids()
     sensors = app.nll_sensors()
     params = app.settings.nlloc

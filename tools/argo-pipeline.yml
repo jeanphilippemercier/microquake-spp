@@ -1,0 +1,140 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: spp-workflow-
+spec:
+  entrypoint: spp-workflow
+  imagePullSecrets:
+  - name: regcred
+
+  # This spec contains two templates: hello-hello-hello and whalesay
+  templates:
+  - name: spp-workflow
+    # Instead of just running a container
+    # This template has a sequence of steps
+    steps:
+    - - name: interloc
+        template: interloc
+
+    - - name: picker
+        template: picker
+
+    - - name: hypocenter
+        template: hypocenter
+
+    - - name: measure-amp
+        template: measure-amp
+
+    - - name: measure-smom
+        template: measure-smom
+
+    - - name: focal-mechanism
+        template: focal-mechanism
+
+    - - name: measure-energy
+        template: measure-energy
+
+    - - name: moment-magnitude
+        template: moment-magnitude
+
+    - - name: moment-magnitude-f
+        template: moment-magnitude-f
+
+    - - name: event-database           # double dash => run after previous step
+        template: event-database
+      - name: raytracer
+        template: raytracer
+
+  - name: interloc              # name of the template
+    container: &sppdef
+      image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp
+      command:
+      - python
+      args:
+      - /app/bin/02_interloc.py
+      volumeMounts:
+      - mountPath: "/app/common"
+        name: mypd
+      - mountPath: "/app/config"
+        name: config
+      resources:
+        limits:
+          memory: "6Gi"
+        requests:
+          memory: "4Gi"
+      env:
+      - name: SPP_SINGLE_RUN
+        value: true
+      - name: SPP_CONFIG
+        value: /app/config
+      - name: SPP_COMMON
+        value: /app/common
+
+
+  - name: picker
+    container:
+      <<: *sppdef
+      args:
+      - /app/bin/03_picker.py
+
+  - name: hypocenter
+    container:
+      <<: *sppdef
+      args:
+      - /app/bin/04_hypocenter_location.py
+
+  - name: measure-amp
+    container:
+      <<: *sppdef
+      args:
+      - /app/bin/04_measure_amplitudes.py
+
+  - name: measure-smom
+    container:
+      <<: *sppdef
+      args:
+      - /app/bin/04_measure_smom.py
+
+  - name: focal-mechanism
+    container:
+      <<: *sppdef
+      args:
+      - /app/bin/05_focal_mechanism.py
+
+  - name: measure-energy
+    container:
+      <<: *sppdef
+      args:
+      - /app/bin/05_measure_energy.py
+
+  - name: moment-magnitude
+    container:
+      <<: *sppdef
+      args:
+      - /app/bin/05_moment_magnitude.py
+
+  - name: moment-magnitude-f
+    container:
+      <<: *sppdef
+      args:
+      - /app/bin/05_moment_magnitude_f.py
+
+  - name: event-database
+    container:
+      <<: *sppdef
+      args:
+      - /app/bin/06_event_database_handler.py
+
+  - name: raytracer              # name of the template
+    container:
+      <<: *sppdef
+      args:
+      - /app/bin/ray_tracer.py
+
+  volumes:
+  - name: mypd
+    persistentVolumeClaim:
+      claimName: travel-time-grids-pvc
+  - name: config
+    persistentVolumeClaim:
+      claimName: spp-dev-config-pvc

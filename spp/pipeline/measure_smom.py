@@ -65,5 +65,3 @@ def process(
             origin.comments.append(comment)
 
     return cat_out, stream
-
-

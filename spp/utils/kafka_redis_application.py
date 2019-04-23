@@ -35,18 +35,18 @@ class KafkaRedisApplication(Application):
     def init_redis(self):
         from redis import StrictRedis
 
-        return StrictRedis(**self.settings.redis_db)
+        return StrictRedis(**self.settings.get('redis_db'))
 
     def get_kafka_producer(self, logger=None, **kwargs):
         return Producer(
-            {"bootstrap.servers": self.settings.kafka.brokers}, logger=logger
+            {"bootstrap.servers": self.settings.get('kafka').brokers}, logger=logger
         )
 
     def get_kafka_consumer(self, logger=None, **kwargs):
         return Consumer(
             {
-                "bootstrap.servers": self.settings.kafka.brokers,
-                "group.id": self.settings.kafka.group_id,
+                "bootstrap.servers": self.settings.get('kafka').brokers,
+                "group.id": self.settings.get('kafka').group_id,
                 "auto.offset.reset": "earliest",
             },
             logger=logger,
@@ -89,7 +89,7 @@ class KafkaRedisApplication(Application):
 
         redis_key = str(uuid.uuid4())
         self.logger.info("sending data to Redis with redis key = %s", redis_key)
-        self.redis_conn.set(redis_key, msg, ex=self.settings.redis_extra.ttl)
+        self.redis_conn.set(redis_key, msg, ex=self.settings.get('redis_extra').ttl)
         self.logger.info("done sending data to Redis")
 
         if topic is None:

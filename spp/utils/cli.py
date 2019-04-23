@@ -6,6 +6,8 @@ CLI-related classes and functions
 import argparse
 import importlib.util
 
+from ..core.settings import settings
+
 
 class CLI:
     """
@@ -90,11 +92,15 @@ class CLI:
         )
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
-        self.module_settings = self.app.settings.get(settings_name, None)
+        self.module_settings = settings.get(settings_name)
         if hasattr(mod, "prepare"):
             self.prepare = mod.prepare
+        else:
+            self.prepare = None
         if hasattr(mod, "process"):
             self.callback = mod.process
+        else:
+            self.callback = None
 
 
     def set_defaults(self):
@@ -171,10 +177,7 @@ class CLI:
             if self.prepare:
                 self.prepare_module()
 
-            if self.app.settings.sensors.black_list is not None:
-                self.app.clean_waveform_stream(
-                    stream, self.app.settings.sensors.black_list
-                )
+            cat, stream = self.app.clean_message((cat, stream))
 
             cat, stream = self.callback(
                 cat=cat,
@@ -205,6 +208,10 @@ class CLI:
                 self.app.logger.error(e, exc_info=True)
                 continue
             self.app.send_message(cat, st)
+
+            if settings.SINGLE_RUN:
+                exit(0)
+
 
     def run_module_locally(self):
         msg_in = self.app.get_message()

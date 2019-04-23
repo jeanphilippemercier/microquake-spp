@@ -52,6 +52,4 @@ def process(
                       pulse_min_snr_S=pulse_min_snr_S,
                       debug=False,
                       logger_in=logger)
-
     return cat_out, stream
-

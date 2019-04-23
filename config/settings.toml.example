@@ -1,259 +1,283 @@
+[default]
 project_code = 'OT'
 site = 'Oyu Tolgoi'
 site_code = 'OT'
 network = 'Hugo North Lift 1 Underground Network'
 network_code = 'HNL1'
+single_run = false
 
-[grids]
-  units = 'meter'
-  method = 'ODS'
-  origin = [650200, 4766170, -500]
-  dimensions = [100, 101, 68]
-  spacing = 25
+# nlloc
+nlloc.nll_base = 'NLL'
+nlloc.locsig = 'Oyu Tolgoi Geotechnical Monitoring Team'
+nlloc.loccom = 'Prototype'
+nlloc.residual_tolerance = 10e-3
+# locsearch = 'OCT 20 20 30 1e-6 50000 1000 0 1'
+# locsearch = 'OCT 10 10 10 1e-6 20000 1000 0 1'
+nlloc.locsearch = 'OCT 5 5 5 1e-6 5000 500 0 1'
+nlloc.locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
+nlloc.locgau = ''
+nlloc.output_data_name = 'hypocenter_location_set'
+nlloc.log_file_name = 'hypocenter_location_nlloc.log'
+nlloc.log_topic = 'hypocenter Location NonLinLoc'
+nlloc.picking_error = 0.001
 
-  [grids.velocities]
-    source = 'local'
-    homogeneous = false
-    vp = 'velocities/vp'
-    vs = 'velocities/vs'
-    format = 'NLLOC'
+# nlloc_adjustment
+nlloc_adjustment.nll_base = 'NLL'
+nlloc_adjustment.locsig = 'Oyu Tolgoi Geotechnical Monitoring Team'
+nlloc_adjustment.loccom = 'Prototype'
+nlloc_adjustment.residual_tolerance = 10e-3
+# locsearch = 'OCT 20 20 30 1e-6 50000 1000 0 1'
+# locsearch = 'OCT 10 10 10 1e-6 20000 1000 0 1'
+nlloc_adjustment.locsearch = 'OCT 5 5 5 1e-6 5000 500 0 1'
+nlloc_adjustment.locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
+nlloc_adjustment.locgau = ''
+nlloc_adjustment.output_data_name = 'hypocenter_location_adjusted'
+nlloc_adjustment.log_file_name = 'hypocenter_location_nlloc.log'
+nlloc_adjustment.log_topic = 'hypocenter Location NonLinLoc'
+nlloc_adjustment.picking_error = 0.001
 
-  [grids.travel_time_h5]
-   fname = 'travel_time_tables.h5f'
+time_zone.type = 'UTC_offset'                # either 'UTC_offset or 'time_zone'
+time_zone.time_zone_code = 'ULN'             # time zone code. If type=time_zone, time_zone_code must be a valid pytz timezone
+time_zone.offset = 8                         # time offset in hours, ignored if type=time_zone
+
+
+grids.units = 'meter'
+grids.method = 'ODS'
+grids.origin = [650200, 4766170, -500]
+grids.dimensions = [100, 101, 68]
+grids.spacing = 25
+
+grids.velocities.source = 'local'
+grids.velocities.homogeneous = false
+grids.velocities.vp = 'velocities/vp'
+grids.velocities.vs = 'velocities/vs'
+grids.velocities.format = 'NLLOC'
+
+grids.travel_time_h5.fname = 'travel_time_tables.h5f'
+
 
 # Not used, definition similar to velocity grids
-#[grids.density]
-#homogeneous = false
+# 	[grids.density]
+#		homogeneous = false
 
-[time_zone]
-  type = 'UTC_offset'                # either 'UTC_offset or 'time_zone'
-  time_zone_code = 'ULN'             # time zone code. If type=time_zone, time_zone_code must be a valid pytz timezone
-  offset = 8                         # time offset in hours, ignored if type=time_zone
+sensors.source     = 'local'
+sensors.units      = 'meter'
+sensors.format     = 'csv'
+sensors.path       = 'sensors.csv'
+sensors.stationXML = 'OT.xml'
+sensors.black_list = ['23', '31', '32', '100', '102', '107', '88', '90', '77']
 
-[sensors]
-  source     = 'local'
-  units      = 'meter'
-  format     = 'csv'
-  path       = 'sensors.csv'
-  stationXML = 'OT.xml'
-  black_list = ['23', '31', '32', '100', '102', '107', '88', '90', '77']
+data_local.ms_chunks = '/home/phil/data/oyu/spp_common/synthetic/chunks/*.mseed'
+data_local.ms_10s    = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.mseed'
+data_local.xml_10s   = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.xml'
 
-[data_local]
-  ms_chunks = '/home/phil/data/oyu/spp_common/synthetic/chunks/*.mseed'
-  ms_10s    = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.mseed'
-  xml_10s   = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.xml'
-
-[processing_flow]
 # this describes the kafka channel to which the message should be routed
-  [processing_flow.automatic]
-   trigger_data_name = 'created'
-   dataset = 'seismic_event'
-   steps = [['nlloc'], ['interloc'], ['picker'], ['nlloc_adjustment'],
-            ['measure_amplitudes'], ['magnitude'], ['event_database']
-           ]
-  [processing_flow.ray_tracing]
-   trigger_data_name = 'created'
-   dataset = 'seismic_event'
-   steps = [['ray_tracer']]
+processing_flow.automatic.trigger_data_name = 'created'
+processing_flow.automatic.dataset = 'seismic_event'
+processing_flow.automatic.steps = [['interloc'], ['picker'], ['nlloc'], ['measure_amplitudes'],
+['measure_smom'], ['focal_mechanism'], ['measure_energy'],
+['magnitude'], ['magnitude_f'], ['event_database']
+]
 
-  [processing_flow.interactive]
-   steps=[['location'], ['magnitude'], ['event_database', 'ui_notification']]
+processing_flow.ray_tracing.trigger_data_name = 'ray_tracing'
+processing_flow.ray_tracing.dataset = 'seismic_event'
+processing_flow.ray_tracing.steps = [['ray_tracer']]
+
+processing_flow.interactive.steps=[['location'], ['magnitude'], ['event_database', 'ui_notification']]
 
 
-[data_connector]
-  source  = 'remote'
-  path    = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
-  # source = 'local'
-  # path = '/Users/jpmercier/.spp/data/'
-  kafka_consumer_topic = 'data_connector'
-  kafka_feedback_topic = 'data_connector'
-  kafka_producer_topic =  'picker'
-  log_topic = 'data_connector'
-  log_file_name = 'data_connector.log'
+data_connector.source  = 'remote'
+data_connector.path    = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
+# source = 'local'
+# path = '/Users/jpmercier/.spp/data/'
+data_connector.kafka_consumer_topic = 'data_connector'
+data_connector.kafka_feedback_topic = 'data_connector'
+data_connector.kafka_producer_topic =  'picker'
+data_connector.log_topic = 'data_connector'
+data_connector.log_file_name = 'data_connector.log'
 
-[initializer]
-  log_topic = 'initializer'
-  log_file_name = 'initializer.log'
-  output_data_name = 'created'
-  [initializer.filter]
-   freqmin=100
-   freqmax=1000
-  [initializer.window_size]
-   start=-0.3    # seconds before event time
-   end=0.9       # seconds after event time
+initializer.log_topic = 'initializer'
+initializer.log_file_name = 'initializer.log'
+initializer.output_data_name = 'created'
 
-[mseed_decomposer]
-  kafka_producer_topic = 'mseed_blocks'
+initializer.filter.freqmin=100
+initializer.filter.freqmax=1000
 
-[transformer]
-  kafka_consumer_topic = 'mseed_blocks'
-  kafka_producer_topic = 'mseed_1sec'
+initializer.window_size.start=-0.3    # seconds before event time
+initializer.window_size.end=0.9       # seconds after event time
 
-[interloc]
-  nthreads = 4
-  samplerate_decimated = 3000.0
-  fixed_wlen_sec = 2.0
-  whiten_corner_freqs = [40.0, 50.0, 350.0, 360.0]
-  pair_dist_min = 0.0
-  pair_dist_max = 2000.0
-  cc_smooth_length_sec = 0.005
-  detection_threshold = 0.2
-  debug_level = 0
-  debug_file_dir = './common'
-  output_data_name = 'event_located'
-  log_topic = 'interloc'
-  log_file_name = 'interloc.log'
+mseed_decomposer.kafka_producer_topic = 'mseed_blocks'
 
-[create_event]
-  log_topic = 'create_event'
-  log_file_name = 'create_event.log'
+transformer.kafka_consumer_topic = 'mseed_blocks'
+transformer.kafka_producer_topic = 'mseed_1sec'
 
-[picker]
-  snr_threshold = 6
-  residual_tolerance = 10e-3
-  p_s_tolerance = 5e-3  # P and S must be at least separated by p_s_tolerance
-  output_data_name  = 'picks_set'
-  log_topic = 'automatic picker'
-  log_file_name = 'automatic_picker.log'
+interloc.nthreads = 4
+interloc.samplerate_decimated = 3000.0
+interloc.fixed_wlen_sec = 2.0
+interloc.whiten_corner_freqs = [40.0, 50.0, 350.0, 360.0]
+interloc.pair_dist_min = 0.0
+interloc.pair_dist_max = 2000.0
+interloc.cc_smooth_length_sec = 0.005
+interloc.detection_threshold = 0.2
+interloc.debug_level = 0
+interloc.debug_file_dir = './common'
+interloc.output_data_name = 'event_located'
+interloc.log_topic = 'interloc'
+interloc.log_file_name = 'interloc.log'
 
-  [picker.waveform_filter]
-    frequency_min = 100
-    frequency_max = 1000
+create_event.log_topic = 'create_event'
+create_event.log_file_name = 'create_event.log'
 
-  [picker.p_wave]
-   [picker.p_wave.search_window]
-      start = -20e-3        # start of search window relative to predicted
-      arrival time (s)
-      end = 5e-3           # end of the search window relative to predicted arrival time (s)
-      resolution = 0.001   # time resolution of search window (s)
-   [picker.p_wave.snr_window]
-      #noise = 0.005         # length of the window for noise energy measurement
-      noise = 0.01         # length of the window for noise energy measurement
-      signal = 0.01        # length of the window for signal energy measurement
+picker.snr_threshold = 6
+picker.residual_tolerance = 15e-3
+picker.p_s_tolerance = 5e-3  # P and S must be at least separated by p_s_tolerance
+picker.output_data_name  = 'picks_set'
+picker.log_topic = 'automatic picker'
+picker.log_file_name = 'automatic_picker.log'
 
-  [picker.s_wave]
-    [picker.s_wave.search_window]
-      start = -70e-3        # start of search window relative to predicted arrival time (s)
-      end = 20e-3           # end of the search window relative to predicted arrival time (s)
-      resolution = 0.001   # time resolution of search window (s)
-    [picker.s_wave.snr_window]
-      #noise = 0.005         # length of the window for noise energy measurement
-      #signal = 0.01        # length of the window for signal energy measurement
-      noise = 0.01         # length of the window for noise energy measurement
-      signal = 0.02        # length of the window for signal energy measurement
+picker.waveform_filter.frequency_min = 100
+picker.waveform_filter.frequency_max = 1000
 
-[nlloc]
-  nll_base = 'NLL'
-  locsig = 'Oyu Tolgoi Geotechnical Monitoring Team'
-  loccom = 'Prototype'
-  residual_tolerance = 10e-3
-  # locsearch = 'OCT 20 20 30 1e-6 50000 1000 0 1'
-  # locsearch = 'OCT 10 10 10 1e-6 20000 1000 0 1'
-  locsearch = 'OCT 5 5 5 1e-6 5000 500 0 1'
-  locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
-  locgau = ''
-  output_data_name = 'hypocenter_location_set'
-  log_file_name = 'hypocenter_location_nlloc.log'
-  log_topic = 'hypocenter Location NonLinLoc'
-  picking_error = 0.001
+picker.p_wave.search_window.start = -100e-3        # start of search window relative to predicted arrival time (s)
+picker.p_wave.search_window.end = 20e-3           # end of the search window relative to predicted arrival time (s)
+picker.p_wave.search_window.resolution = 0.001   # time resolution of search window (s)
 
-[nlloc_adjustment]
-  nll_base = 'NLL'
-  locsig = 'Oyu Tolgoi Geotechnical Monitoring Team'
-  loccom = 'Prototype'
-  residual_tolerance = 10e-3
-  # locsearch = 'OCT 20 20 30 1e-6 50000 1000 0 1'
-  # locsearch = 'OCT 10 10 10 1e-6 20000 1000 0 1'
-  locsearch = 'OCT 5 5 5 1e-6 5000 500 0 1'
-  locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
-  locgau = ''
-  output_data_name = 'hypocenter_location_adjusted'
-  log_file_name = 'hypocenter_location_nlloc.log'
-  log_topic = 'hypocenter Location NonLinLoc'
-  picking_error = 0.001
+picker.p_wave.snr_window.noise = 0.005         # length of the window for noise energy measurement
+picker.p_wave.snr_window.signal = 0.01        # length of the window for signal energy measurement
 
-[magnitude]
-  ttpath = 'None'
-  only_triaxial = true
-  P_or_S = 'P'
-  density = 2700
-  use_smom = false
-  min_dist = 20
-  win_length = 0.02
-  # len_spectrum is specified in exponent of 2. For instance 14 is equal to 2 ** 14
-  len_spectrum_exponent = 14
-  # could instead specify <len_spectrum> directly
-  freq = 100
-  output_data_name = 'magnitude_set'
-  log_file_name = 'magnitude_calculation.log'
-  log_topic = 'moment magnitude calculation'
+picker.s_wave.search_window.start = -100e-3        # start of search window relative to predicted arrival time (s)
+picker.s_wave.search_window.end = 20e-3           # end of the search window relative to predicted arrival time (s)
+picker.s_wave.search_window.resolution = 0.001   # time resolution of search window (s)
 
-[measure_amplitudes]
-  output_data_name = 'amplitude_set'
-  log_file_name = 'measure_amplitudes.log'
-  log_topic = 'amplitude measurement'
+picker.s_wave.snr_window.noise = 0.005         # length of the window for noise energy measurement
+picker.s_wave.snr_window.signal = 0.01        # length of the window for signal energy measurement
 
-['ray_tracer']
-    log_file_name = 'ray_tracer.log'
-    log_topic = 'ray_tracer'
-    input_kafka_topic = 'ray_tracer'
+magnitude.ttpath = 'None'
+magnitude.only_triaxial = true
+magnitude.phase_list = 'P'
+magnitude.density = 2700
+magnitude.min_dist = 20
+magnitude.win_length = 0.02
+# len_spectrum is specified in exponent of 2. For instance 14 is equal to 2 ** 14
+magnitude.len_spectrum_exponent = 14
+# could instead specify <len_spectrum> directly
+magnitude.freq = 100
+magnitude.output_data_name = 'magnitude_set'
+magnitude.log_file_name = 'magnitude_calculation.log'
+magnitude.log_topic = 'moment magnitude calculation'
+magnitude.use_sdr_rad = false
+magnitude.use_free_surface_correction = false
+magnitude.make_preferred = true
 
-[kafka]
-  brokers = 'broker:9092'
-  group_id = 'seismic_processing_platform'
-  threads = 3 
+magnitude.smom.phase_list = ['P', 'S']
+# If you run freq domain mag mod *after focal mech, and use_sdr_rad is True,
+#    then it will calc/use rad pattern computed for preferred focal mech
+magnitude.smom.use_sdr_rad = false
+magnitude.smom.make_preferred = false
 
-[airflow]
-  description = 'Data Loader'
-  catchup = false
+magnitude_f.output_data_name = 'magnitude_f'
+magnitude_f.log_file_name = 'magnitude_f.log'
+magnitude_f.log_topic = 'magnitude f'
 
-[logging]
-  log_directory = '.'
-  # log_directory = '/var/log/spp/'
-  log_level = 'INFO'
-  log_format = '[%(levelname)s] %(asctime)s <%(name)s> <%(thread)d> %(message)s'
-  log_filename = 'spp.log'
-  logger_name = 'spp'
-  log_destination = 'stdout'
+focal_mechanism.npolmin = 8
+focal_mechanism.max_agap = 180
+#max_agap = 90
+focal_mechanism.max_pgap = 60
+focal_mechanism.dang = 5
+focal_mechanism.nmc = 30
+focal_mechanism.maxout = 500
+focal_mechanism.badfrac = 0.1
+focal_mechanism.delmax = 120
+focal_mechanism.cangle = 45
+focal_mechanism.prob_max = 0.25
+focal_mechanism.output_data_name = 'focal_mechanism_calculation'
+focal_mechanism.log_file_name = 'focal_mechanism_calculation.log'
+focal_mechanism.log_topic = 'focal mechanism calculation'
+focal_mechanism.plot_focal_mechs = false
 
-[event_database]
-  output_data_name = 'saved_to_db'
-  log_file_name = 'event_database.log'
-  log_topic = 'event database'
+measure_amplitudes.pulse_min_snr_P = 9
+measure_amplitudes.pulse_min_snr_S = 6
+measure_amplitudes.pulse_min_width = 0.0014
+measure_amplitudes.phase_list = 'P'
+measure_amplitudes.output_data_name = 'amplitude_set'
+measure_amplitudes.log_file_name = 'measure_amplitudes.log'
+measure_amplitudes.log_topic = 'amplitude measurement'
 
-[event_db]
-  uri = 'mongodb://localhost:27017/'
-  name = 'OT'
-  trace_collection = 'traces'
-  event_collection = 'events'
-  events_inuse_collection = 'event_in_use'
-  in_use_ttl = 1
-  filestore_base_dir = '/var/ot/'
-  kafka_topic = 'event_database'
-  log_file_name = 'event_db_insertion_update.log'
-  log_topic = 'insertion and update into event DB'
+measure_energy.phase_list = ['P', 'S']
+measure_energy.correct_attenuation = false
+measure_energy.attenuation_Q = 200
+measure_energy.use_sdr_rad = false
+measure_energy.output_data_name = 'measure_energy'
+measure_energy.log_file_name = 'measure_energy.log'
+measure_energy.log_topic = 'measure energy'
 
-[continuous_db]
-  uri = 'mongodb://mongo-node-001:27017/'
-  db_name = 'seismic'
-  traces_collection = 'traces_json'
-  events_collection = 'events'
-  events_inuse_collection = 'events_inuse'
-  filestore_base_dir = '/Users/hanee/Rio_Tinto/data/'
-  inuse_ttl = 300
+measure_smom.phase_list = ['P', 'S']
+measure_smom.S_win_len = 0.1
+measure_smom.pre_window_start_sec = 0.01
+measure_smom.max_S_P_time = 0.25
+measure_smom.use_fixed_fmin_fmax = false
+# These are only used if use_fixed_fmin_fmax = true:
+measure_smom.fmin = 30.0
+measure_smom.fmax = 600.0
+measure_smom.output_data_name = 'measure_smom'
+measure_smom.log_file_name = 'measure_smom.log'
+measure_smom.log_topic = 'measure smom'
 
-[seismic_api]
-  base_url = 'http://api.microquake.org/api/v1/'
-  # base_url = 'http://127.0.0.1:8000/api/v1/'
+ray_tracer.log_file_name = 'ray_tracer.log'
+ray_tracer.log_topic = 'ray_tracer'
+ray_tracer.output_data_name  = 'traced_rays'
 
-[redis_db]
-  # host = 'localhost'
-  host = 'redisdb'
-  password = ''
-  port = 6379
-  db = 0
+kafka.brokers = 'spp-confluent-cp-kafka-headless:9092'
+# kafka.brokers = 'broker:9092'
+kafka.group_id = 'seismic_processing_platform'
+kafka.threads = 3
 
-[redis_extra]
-  ttl=600
+airflow.description = 'Data Loader'
+airflow.catchup = false
 
-[signal_analysis]
+logging.log_directory = '.'
+# log_directory = '/var/log/spp/'
+logging.log_level = 'INFO'
+logging.log_format = '[%(levelname)s] %(asctime)s <%(name)s> <%(thread)d> %(message)s'
+logging.log_filename = 'spp.log'
+logging.logger_name = 'spp'
+logging.log_destination = 'stdout'
+
+event_database.output_data_name = 'saved_to_db'
+event_database.log_file_name = 'event_database.log'
+event_database.log_topic = 'event database'
+
+event_db.uri = 'mongodb://localhost:27017/'
+event_db.name = 'OT'
+event_db.trace_collection = 'traces'
+event_db.event_collection = 'events'
+event_db.events_inuse_collection = 'event_in_use'
+event_db.in_use_ttl = 1
+event_db.filestore_base_dir = '/var/ot/'
+event_db.kafka_topic = 'event_database'
+event_db.log_file_name = 'event_db_insertion_update.log'
+event_db.log_topic = 'insertion and update into event DB'
+
+continuous_db.uri = 'mongodb://mongo-node-001:27017/'
+continuous_db.db_name = 'seismic'
+continuous_db.traces_collection = 'traces_json'
+continuous_db.events_collection = 'events'
+continuous_db.events_inuse_collection = 'events_inuse'
+continuous_db.filestore_base_dir = '/Users/hanee/Rio_Tinto/data/'
+continuous_db.inuse_ttl = 300
+
+seismic_api.base_url = 'https://api.microquake.org/api/v1/'
+# base_url = 'http://127.0.0.1:8000/api/v1/'
+
+redis_db.host = 'spp-redis-dev-master'
+# redis_db.password = ''
+# host = 'localhost'
+# host = 'redisdb'
+# password = ''
+redis_db.port = 6379
+redis_db.db = 0
+
+redis_extra.ttl=600
+
+signal_analysis.log_file_name = 'signal_analysis.log'
+signal_analysis.log_topic = 'signal analysis'

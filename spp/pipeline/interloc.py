@@ -3,11 +3,13 @@ from datetime import datetime
 from time import time
 
 import numpy as np
+from xseis2 import xspy
 
-from microquake.core import UTCDateTime, AttribDict
+from microquake.core import AttribDict, UTCDateTime
 from microquake.core.event import Origin
 from microquake.core.util import tools
-from xseis2 import xspy
+
+from ..core.settings import settings
 
 
 def process(
@@ -51,7 +53,7 @@ def process(
         elif np.max(trace.data) == 0:
             logger.info('removing trace for station %s' % trace.stats.station)
             stream.remove(trace)
-        elif trace.stats.station in app.settings.sensors.black_list:
+        elif trace.stats.station in settings.get('sensors').black_list:
             logger.info('removing trace for station %s' % trace.stats.station)
             stream.remove(trace)
 

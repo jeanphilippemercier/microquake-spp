@@ -16,8 +16,6 @@ def test_interloc():
     with open('./data/tests/test_input_interloc.mseed', "rb") as event_file:
         waveform_stream = read(event_file, format="MSEED")
 
-    original_origin_count = len(catalog[0].origins)
-
     test_input = (catalog, waveform_stream)
     test_app = TestApplication(module_name='interloc', processing_flow_name="automatic", input_data=test_input)
 
@@ -41,16 +39,34 @@ def test_interloc():
     cli.prepare_module()
     cli.run_module()
 
-    cat, stream = cli.app.output_data
+    check_interloc_data((catalog, waveform_stream), cli.app.output_data)
 
-    assert len(cat[0].origins) == (original_origin_count + 1)
-    assert isinstance(cat[0].origins[0], Origin)
-    assert cat[0].preferred_origin_id is not None
 
-    dist = np.linalg.norm(cat[0].origins[0].loc - cat[0].origins[1].loc)
-    assert 170 < dist < 180
+def check_interloc_data(input_data, output_data):
+    (input_catalog, input_waveform_stream) = input_data
+    (output_catalog, output_waveform_stream) = output_data
 
-    assert cat[0].preferred_origin().extra.interloc_normed_vmax.value > 0
-    assert cat[0].preferred_origin().extra.interloc_normed_vmax.namespace == 'MICROQUAKE'
+    original_origin_count = len(input_catalog[0].origins)
+
+    assert len(output_catalog[0].origins) == (original_origin_count + 1)
+    assert isinstance(output_catalog[0].origins[0], Origin)
+    assert output_catalog[0].preferred_origin_id is not None
+
+    dist = np.linalg.norm(output_catalog[0].origins[0].loc - output_catalog[0].origins[1].loc)
+    assert 178 < dist < 180
+
+    assert output_catalog[0].preferred_origin().extra.interloc_normed_vmax.value is not None
+    assert output_catalog[0].preferred_origin().extra.interloc_normed_vmax.namespace == 'MICROQUAKE'
     
-    assert len(stream) == len(waveform_stream)
+    assert len(output_waveform_stream) == len(input_waveform_stream)
+
+# Some interloc data is removed later in the pipeline
+def check_interloc_data_end_to_end(input_data, output_data):
+    (input_catalog, input_waveform_stream) = input_data
+    (output_catalog, output_waveform_stream) = output_data
+    assert isinstance(output_catalog[0].origins[0], Origin)
+    assert output_catalog[0].preferred_origin_id is not None
+
+    dist = np.linalg.norm(output_catalog[0].origins[0].loc - output_catalog[0].origins[1].loc)
+    assert 26 < dist < 28
+    assert len(output_waveform_stream) == len(input_waveform_stream)

@@ -9,6 +9,8 @@ import numpy as np
 from microquake.nlloc import NLL, calculate_uncertainty
 from spp.utils.cli import CLI
 
+from ..core.settings import settings
+
 
 def process(
     cat=None,
@@ -19,8 +21,8 @@ def process(
     prepared_objects=None,
 ):
     nll = prepared_objects["nll"]
-    project_code = app.settings.project_code
-    base_folder = module_settings.nll_base
+    project_code = settings.PROJECT_CODE
+    base_folder = settings.nll_base
 
     logger.info("running NonLinLoc")
     t0 = time()
@@ -78,11 +80,11 @@ def process(
 
 
 def prepare(app=None, module_settings=None):
-    project_code = app.settings.project_code
-    base_folder = module_settings.nll_base
+    project_code = settings.PROJECT_CODE
+    base_folder = settings.nll_base
     gridpar = app.nll_velgrids()
     sensors = app.nll_sensors()
-
+    print(base_folder)
     app.logger.info("preparing NonLinLoc")
     nll = NLL(
         project_code,
@@ -94,6 +96,3 @@ def prepare(app=None, module_settings=None):
     app.logger.info("done preparing NonLinLoc")
 
     return {"nll": nll}
-
-
-
