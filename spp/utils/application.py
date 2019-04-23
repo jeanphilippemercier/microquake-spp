@@ -102,8 +102,8 @@ class Application(object):
 
 
     def get_output_data_name(self, module_name):
-        if module_name in self.settings:
-            return self.settings[module_name].output_data_name
+        if self.settings.get(module_name):
+            return self.settings.get(module_name).output_data_name
         else:
             return ""
 
