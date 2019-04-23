@@ -209,6 +209,9 @@ class CLI:
                 continue
             self.app.send_message(cat, st)
 
+            if settings.SINGLE_RUN == True:
+                exit(0)
+
     def run_module_locally(self):
         msg_in = self.app.get_message()
         if self.args.modules:
