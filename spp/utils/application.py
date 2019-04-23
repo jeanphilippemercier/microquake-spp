@@ -712,6 +712,7 @@ class Application(object):
         self.logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
 
         (cat, stream) = self.clean_message((cat, stream))
+        self.logger.info("processing event %s", str(cat[0].resource_id))
 
         if not kwargs:
             cat_out, st_out = callback(cat=cat, stream=stream, logger=self.logger)
