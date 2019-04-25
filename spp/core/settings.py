@@ -38,11 +38,17 @@ class Settings(LazySettings):
             os.environ.get(env_prefix, 'DEVELOPMENT').upper()
         )
 
+        dconf['ROOT_PATH_FOR_DYNACONF'] = config_dir
+        # Could also set this to a list of files. If not set dynaconf
+        # will load *ALL* settings.{toml,json,py} files it finds in the dir
+        #dconf['SETTINGS_FILE_FOR_DYNACONF'] = toml_file
+
         super().__init__(**dconf)
 
         self.toml_file = toml_file
         self.config_dir = config_dir
         self.common_dir = self.COMMON
+
 
         self.nll_base = os.path.join(self.common_dir,
                                      self.get('nlloc').nll_base)
