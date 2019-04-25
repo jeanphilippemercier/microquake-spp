@@ -46,6 +46,8 @@ def process(cat=None,
                        debug=False,
                        logger_in=logger)
 
-    calculate_energy_from_flux(cat_out, use_sdr_rad=use_sdr_rad)
+    calculate_energy_from_flux(cat_out,
+                               use_sdr_rad=use_sdr_rad,
+                               logger_in=logger)
 
     return cat_out, st
