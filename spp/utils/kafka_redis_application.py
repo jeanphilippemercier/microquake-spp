@@ -2,6 +2,8 @@ import uuid
 from time import time
 
 from confluent_kafka import Consumer, KafkaError, Producer
+from tenacity import (after_log, before_log, retry, stop_after_attempt,
+                      wait_exponential)
 
 from .application import Application
 
@@ -73,16 +75,27 @@ class KafkaRedisApplication(Application):
                     continue
                 self.logger.info("message received on topic %s", self.consumer_topic)
                 redis_key = msg.value()
-                self.logger.info("getting data from Redis (key: %s)", redis_key)
-                t0 = time()
-                redis_data = self.redis_conn.get(redis_key)
-                t1 = time()
-                self.logger.info("done getting data from Redis in %0.3f seconds", (t1 - t0))
-                yield redis_data
+                yield self.get_redis_msg(redis_key)
                 self.logger.info("awaiting message on topic %s", self.consumer_topic)
 
         except KeyboardInterrupt:
             self.logger.info("received keyboard interrupt")
+
+    @retry(
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        stop=stop_after_attempt(7),
+    )
+    def get_redis_msg(self, redis_key):
+        self.logger.info("getting data from Redis (key: %s)", redis_key)
+        t0 = time()
+        try:
+            redis_data = self.redis_conn.get(redis_key)
+        except Exception as e:
+            self.logger.error("Could not retrieve redis data for key = %s", redis_key)
+            raise e
+        t1 = time()
+        self.logger.info("done getting data from Redis in %0.3f seconds", (t1 - t0))
+        return redis_data
 
     def send_message(self, cat, stream, topic=None):
         msg = super(KafkaRedisApplication, self).send_message(cat, stream, topic)
