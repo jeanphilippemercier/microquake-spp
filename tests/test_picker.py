@@ -8,10 +8,10 @@ from spp.utils.test_application import TestApplication
 
 
 def test_picker():
-    with open('./data/tests/test_input_interloc.xml', "rb") as event_file:
+    with open('/app/data/tests/test_end_to_end.xml', "rb") as event_file:
         catalog = read_events(event_file, format="QUAKEML")
 
-    with open('./data/tests/test_input_interloc.mseed', "rb") as event_file:
+    with open('/app/data/tests/test_end_to_end.mseed', "rb") as event_file:
         waveform_stream = read(event_file, format="MSEED")
 
     test_input = (catalog, waveform_stream)

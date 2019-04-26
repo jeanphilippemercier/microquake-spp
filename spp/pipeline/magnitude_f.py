@@ -1,7 +1,7 @@
 import numpy as np
 
 from microquake.waveform.mag import (calc_magnitudes_from_lambda,
-                                         set_new_event_mag)
+                                     set_new_event_mag)
 
 from ..core.settings import settings
 
@@ -79,8 +79,7 @@ def process(
 
             logger.info("Mw_%s=%.1f len(station_mags)=%d" %
                         (phase, Mws[-1], len(station_mags)))
-
-        Mw = np.mean(Mws)
+        Mw = np.nanmean(Mws)
 
         comment="Average of frequency-domain station moment magnitudes"
         if use_sdr_rad and sdr is not None:

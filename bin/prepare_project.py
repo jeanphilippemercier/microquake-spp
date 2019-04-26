@@ -11,14 +11,14 @@ if __name__ == '__main__':
     # reading application data
     app = Application()
     settings = app.settings
-    logger = app.get_logger(settings.nlloc.log_topic,
-                            settings.nlloc.log_file_name)
+    logger = app.get_logger(settings.get('nlloc.log_topic'),
+                            settings.get('nlloc.log_file_name'))
 
     project_code = settings.PROJECT_CODE
-    base_folder = settings.NLL_BASE
+    base_folder = settings.nll_base
     gridpar = app.nll_velgrids()
     sensors = app.nll_sensors()
-    params = app.settings.nlloc
+    params = app.settings.get('nlloc')
 
     # Preparing NonLinLoc
     logger.info('preparing NonLinLoc')

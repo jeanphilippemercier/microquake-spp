@@ -8,10 +8,10 @@ from spp.utils.test_application import TestApplication
 
 
 def test_focal_mechanism():
-    with open('./data/tests/test_focal_mechanism.xml', "rb") as event_file:
+    with open('/app/data/tests/test_output_smom.xml', "rb") as event_file:
         catalog = read_events(event_file, format="QUAKEML")
 
-    with open('./data/tests/test_focal_mechanism.mseed', "rb") as event_file:
+    with open('/app/data/tests/test_output_smom.mseed', "rb") as event_file:
         waveform_stream = read(event_file, format="MSEED")
 
     test_input = (catalog, waveform_stream)
