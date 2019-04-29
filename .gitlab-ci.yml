@@ -55,6 +55,7 @@ kube:
 test:
   image: docker:stable
   stage: test
+  retry: 2
   services:
     - name: docker:stable-dind
       entrypoint:
