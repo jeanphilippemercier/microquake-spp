@@ -48,6 +48,9 @@ kube:
     - chmod +x kubectl
     - echo "$KUBE" > admin.conf
     - ./kubectl --kubeconfig admin.conf set image deployment.v1.apps/seismic-platform *=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record=true
+  only:
+    refs:
+      - master
 
 test:
   image: docker:stable
