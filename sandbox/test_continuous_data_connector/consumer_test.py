@@ -5,17 +5,32 @@ from microquake.core import read
 from obspy.realtime import RtTrace
 from io import BytesIO
 import faust
+from model import seismic_data
+from datetime import timedelta
 
 app = faust.App('event_detection', broker='broker:9092',
-                value_serializer='raw',
-                topic_partition=4)
+                value_serializer='raw')
 
-continuous_data = app.topic('continuous_data', key_type=str, value_type=bytes)
+views = app.Table('views', default=list).hopping(1.2, 1,
+                                                 expires=timedelta(hours=5),
+                                                 key_index=True).relative_to_field(seismic_data.time)
+
+# print(list(views.keys()))
+# class seismic_data(faust.Record):
+#     site_id: str
+#     mseed: bytes
+
+# continuous_data = app.topic('continuous_data', key_type=str, value_type=bytes)
+continuous_data = app.topic('continuous_data', value_type=seismic_data)
 
 @app.agent(continuous_data)
-async def sta_lta(mseed_chunks):
-    async for mseed_chunk in mseed_chunks.items:
-        print(site)
+async def sta_lta(stream):
+    # async for key, item in stream.group_by(seismic_data.channel_code).items():
+    async for key, item in stream.group_by(seismic_data.channel_code).items():
+        # print(views[key].values())
+        print(views)
+        # print(item.station_code, item.channel_code, item.time)
+        # input()
 
 # rt_trace = RtTrace(max_length=2)
 # # rt_trace.trigger('recstalta', nsta=100, nlta=1000)

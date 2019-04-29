@@ -21,8 +21,6 @@ import toml
 # reading the continuous data connector specific settings (not yet
 # integrated to the settings.toml)
 
-
-
 app = Application()
 kproducer = Producer(
             {"bootstrap.servers": app.settings.get('kafka').brokers}
@@ -37,7 +35,6 @@ end_time = UTCDateTime.now()
 start_time = end_time - 3 * 60
 
 tz = app.get_time_zone()
-
 
 def extract_mseed_header(mseed_bytes):
     record = mseed_bytes
@@ -101,11 +98,6 @@ def write_mseed_chunk(stream, brokers, mseed_chunk_size=4096):
         timestamp = int(header['start_time'].timestamp() * 1e3)
         p.produce('continuous_data', chunk, header['station_code'],
                   timestamp=timestamp)
-        # kproducer.produce(topic='continuous_data', value=chunk,
-        #                   key=header['station_code'])
-        #                   #timestamp=timestamp)
-        # from pdb import set_trace;
-        # set_trace()
     p.flush()
     t1 = time.time()
     print(t1 - t0)
@@ -134,6 +126,12 @@ def extract_data_from_ims(ims_base_url, station_code,
 
     return (station_code, st)
 
+results = ray.get([extract_data_from_ims.remote(base_url, station_code,
+                                                start_time, end_time, tz,
+                                                brokers)
+                   for station_code in station_codes[35:36]])
+
+write_mseed_chunk(results[0][1], brokers, mseed_chunk_size=4096)
 #
 
 #
