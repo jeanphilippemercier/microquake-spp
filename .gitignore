@@ -31,7 +31,6 @@ config/*.toml
 *.s
 *.txt
 *.pdf
-common/*
 *.log.*
 
 
@@ -45,6 +44,7 @@ common/*
 .pytest
 .bootstrap
 *.bak
+common/*
 
 
 # Unit test / coverage reports
@@ -59,3 +59,5 @@ htmlcov
 # Sphinx
 docs/_build
 
+# Override temporarily for tests
+!data/tests/*

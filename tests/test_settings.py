@@ -9,7 +9,7 @@ def test_common_directory(settings):
     assert common_dir == settings.common_dir
 
 def test_nll_base(settings):
-    assert 'NLL' == settings.nll_base
+    assert '/app/common/NLL' == settings.nll_base
 
 def test_project_code(settings):
     assert 'OT' == settings.PROJECT_CODE

@@ -1,6 +1,7 @@
 stages:
   - build
   - docker
+  - test
   - deploy
 
 variables:
@@ -47,5 +48,19 @@ kube:
     - chmod +x kubectl
     - echo "$KUBE" > admin.conf
     - ./kubectl --kubeconfig admin.conf set image deployment.v1.apps/seismic-platform *=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record=true
-# hypocenter-location
-# magnitude-calculation
+
+test:
+  image: docker:stable
+  stage: test
+  services:
+    - name: docker:stable-dind
+      entrypoint:
+        - dockerd-entrypoint.sh
+  before_script:
+    - apk add --update openssh-client make ca-certificates openssl python git bash
+  script:
+    - wget https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
+    - chmod +x kubectl
+    - echo "$KUBE" > admin.conf
+    - ./kubectl --kubeconfig admin.conf set image deployment.v1.apps/seismic-platform-test *=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record=true
+    - ./kubectl --kubeconfig admin.conf exec $(./kubectl --kubeconfig admin.conf get pod -l "app=seismic-platform-test" --namespace=default -o jsonpath='{.items[0].metadata.name}') poetry run pytest ./tests 

@@ -47,8 +47,10 @@ class Settings(LazySettings):
 
         self.toml_file = toml_file
         self.config_dir = config_dir
-        self.common_dir = self.COMMON
-
+        if hasattr(self, "COMMON"):
+            self.common_dir = self.COMMON
+        elif hasattr(self, "SPP_COMMON"):
+            self.common_dir = self.SPP_COMMON
 
         self.nll_base = os.path.join(self.common_dir,
                                      self.get('nlloc').nll_base)
