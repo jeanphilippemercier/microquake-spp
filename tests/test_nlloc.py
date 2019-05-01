@@ -5,9 +5,9 @@ from microquake.core import read_events
 from microquake.core.event import Origin, OriginUncertainty
 from microquake.core.stream import read
 from microquake.core.util.attribdict import AttribDict
-from spp.tests.utils import clean_test_data, get_test_data
 from spp.utils.cli import CLI
 from spp.utils.test_application import TestApplication
+from tests.helpers.data_utils import clean_test_data, get_test_data
 
 test_data_name = "test_output_picker"
 
