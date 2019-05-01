@@ -1,3 +1,5 @@
 # continuous data connector
 
-cdc_connector.
+cdc_connector.source = 'microquake'
+cdc_connector.base_url = 'api.microquake.core'
+cdc_connector.source
