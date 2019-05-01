@@ -67,4 +67,4 @@ test:
     - chmod +x kubectl
     - echo "$KUBE" > admin.conf
     - ./kubectl --kubeconfig admin.conf set image deployment.v1.apps/seismic-platform-test *=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record=true
-    - ./kubectl --kubeconfig admin.conf exec $(./kubectl --kubeconfig admin.conf get pod -l "app=seismic-platform-test" --namespace=default -o jsonpath='{.items[0].metadata.name}') poetry run pytest ./tests 
+    - ./kubectl --kubeconfig admin.conf exec $(./kubectl --kubeconfig admin.conf get pod -l "app=seismic-platform-test" --namespace=default -o jsonpath='{.items[0].metadata.name}') -- poetry run pytest ./tests --workers 4
