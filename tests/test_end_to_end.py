@@ -5,6 +5,7 @@ from microquake.core.stream import read
 from microquake.core.util.attribdict import AttribDict
 from spp.utils.cli import CLI
 from spp.utils.test_application import TestApplication
+from tests.helpers.data_utils import clean_test_data, get_test_data
 from tests.test_focal_mechanism import check_focal_mechanism_data
 from tests.test_interloc import check_interloc_data_end_to_end
 from tests.test_magnitude import check_magnitude_data
@@ -15,14 +16,25 @@ from tests.test_measure_smom import check_smom_data
 from tests.test_nlloc import check_hypocenter_location
 from tests.test_picker import check_picker_data
 
+test_data_name = "test_end_to_end"
 
-def test_end_to_end():
-    with open('/app/data/tests/test_end_to_end.xml', "rb") as event_file:
-        catalog = read_events(event_file, format="QUAKEML")
+@pytest.fixture
+def catalog():
+    file_name = test_data_name + ".xml"
+    test_data = get_test_data(file_name, "QUAKEML")
+    yield test_data
+    clean_test_data(file_name)
 
-    with open('/app/data/tests/test_end_to_end.mseed', "rb") as event_file:
-        waveform_stream = read(event_file, format="MSEED")
 
+@pytest.fixture
+def waveform_stream():
+    file_name = test_data_name + ".mseed"
+    test_data = get_test_data(file_name, "MSEED")
+    yield test_data
+    clean_test_data(file_name)
+
+
+def test_end_to_end(catalog, waveform_stream):
     test_input = (catalog, waveform_stream)
     test_app = TestApplication(module_name='interloc', processing_flow_name="automatic", input_data=test_input)
 
