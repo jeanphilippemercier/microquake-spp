@@ -6,15 +6,27 @@ from microquake.core.stream import read
 from microquake.core.util.attribdict import AttribDict
 from spp.utils.cli import CLI
 from spp.utils.test_application import TestApplication
+from tests.helpers.data_utils import clean_test_data, get_test_data
+
+test_data_name = "test_output_nlloc"
+
+@pytest.fixture
+def catalog():
+    file_name = test_data_name + ".xml"
+    test_data = get_test_data(file_name, "QUAKEML")
+    yield test_data
+    clean_test_data(file_name)
 
 
-def test_measure_amplitudes():
-    with open('/app/data/tests/test_output_nlloc.xml', "rb") as event_file:
-        catalog = read_events(event_file, format="QUAKEML")
+@pytest.fixture
+def waveform_stream():
+    file_name = test_data_name + ".mseed"
+    test_data = get_test_data(file_name, "MSEED")
+    yield test_data
+    clean_test_data(file_name)
 
-    with open('/app/data/tests/test_output_nlloc.mseed', "rb") as event_file:
-        waveform_stream = read(event_file, format="MSEED")
 
+def test_measure_amplitudes(catalog, waveform_stream):
     test_input = (catalog, waveform_stream)
     test_app = TestApplication(module_name='measure_amplitudes', processing_flow_name="automatic", input_data=test_input)
 

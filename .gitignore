@@ -55,6 +55,7 @@ common/*
 nosetests.xml
 coverage.xml
 htmlcov
+data/tests
 
 # Sphinx
 docs/_build

@@ -1,4 +1,6 @@
 [default]
+test_data_location = 'https://permanentdbfilesstorage.blob.core.windows.net/permanentdbfilesblob/spp_test_data'
+local_temp_test_data_location = '/tmp/'
 project_code = 'OT'
 site = 'Oyu Tolgoi'
 site_code = 'OT'
