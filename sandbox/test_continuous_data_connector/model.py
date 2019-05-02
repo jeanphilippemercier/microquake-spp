@@ -41,10 +41,11 @@ class Mseed(codecs.Codec):
         dt = np.dtype(np.float32)
         dt = dt.newbyteorder('>')
         data = np.trim_zeros(np.frombuffer(
-            record[-d['number_of_sample'] * 4:], dtype=dt), 'b')
+            record[d['number_of_sample'] * 4:], dtype=dt), 'b')
 
         # remove zero at the end
         d['number_of_sample'] = len(data)
+        print(mseed_date_from_header(record))
         starttime = mseed_date_from_header(record).datetime.timestamp()
         d['starttime'] = starttime
         d['endtime'] = starttime + (d['number_of_sample'] - 1) / \
