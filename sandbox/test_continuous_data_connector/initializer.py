@@ -16,7 +16,7 @@ from microquake.io.waveform import mseed_date_from_header
 
 
 app = faust.App('event_detection', broker='broker:9092',
-                value_serializer='raw', partition=4)
+                value_serializer='raw', topic_partition=8)
 
 spp_app = Application()
 
@@ -28,9 +28,6 @@ station_codes = [station.code for station in inventory.stations()]
 
 offset = 2 * 60  # offset in second from now to set the starttime this will
 # need to be in a config file
-
-endtime = datetime.now()
-starttime = endtime - timedelta(seconds=offset)
 
 mseed_chunk_size = 4096
 
@@ -123,46 +120,61 @@ async def mseed_window(messages):
         # print (message)
 
 continuous_data = app.topic('continuous_data', value_type=str)
-@app.agent(continuous_data)
+@app.agent(continuous_data, concurrency=8)
 async def data_connector(messages):
     async for message in messages:
         message_list = message.split(',')
         starttime = parse(message_list[0]).replace(tzinfo=tz)
-        endtime = parse(message_list[1]).replace(tzinfo=tz)
+        try:
+            endtime = parse(message_list[1]).replace(tzinfo=tz)
+        except:
+            endtime = datetime.now().replace(tzinfo=tz)
+
         station_code = np.int(message_list[2])
-        st = web_client.get_continuous(base_url, starttime, endtime,
-                                       [station_code], tz)
+        try:
+            st = web_client.get_continuous(base_url, starttime, endtime,
+                                           [station_code], tz)
 
-        bio = BytesIO()
-        st.write(bio, format='mseed')
-        mseed_byte_array = bio.getvalue()
-        starts = np.arange(0, len(mseed_byte_array), mseed_chunk_size)
+            bio = BytesIO()
+            st.write(bio, format='mseed')
+            mseed_byte_array = bio.getvalue()
+            starts = np.arange(0, len(mseed_byte_array), mseed_chunk_size)
 
-        for k, start in enumerate(starts):
-            end = start + mseed_chunk_size
-            chunk = mseed_byte_array[start:end]
-            header = extract_mseed_header(chunk)
-            timestamp = int(header['start_time'].timestamp() * 1e3)
+            for k, start in enumerate(starts):
+                end = start + mseed_chunk_size
+                chunk = mseed_byte_array[start:end]
+                header = extract_mseed_header(chunk)
+                timestamp = int(header['start_time'].timestamp() * 1e3)
 
-            await mseed_station.send(key=str(station_code), value=chunk,
-                                     timestamp=timestamp)
+                await mseed_station.send(key=str(station_code), value=chunk,
+                                         timestamp=timestamp)
 
-            w_timestamp = int(np.floor(timestamp / wlen) * wlen / 1000)
-            await mseed_window.send(key=str(w_timestamp), value=chunk,
-                                    timestamp=w_timestamp)
+                w_timestamp = int(np.floor(timestamp / wlen) * wlen / 1000)
+                await mseed_window.send(key=str(w_timestamp), value=chunk,
+                                        timestamp=w_timestamp)
 
-            if timestamp - w_timestamp < overlap:
-                ts = int((w_timestamp - wlen) / 1000)
-                await mseed_window.send(key=str(ts), value=chunk, timestamp=ts)
+                if timestamp - w_timestamp < overlap:
+                    ts = int((w_timestamp - wlen) / 1000)
+                    await mseed_window.send(key=str(ts), value=chunk,
+                                            timestamp=ts)
 
-        message = '%s, %s, %s' % (starttime, endtime, station_code)
-        await data_connector.send(key=str(station_code), value=message)
+            starttime = st[0].stats.endtime.datetime.replace(
+                tzinfo=utc).astimezone(tz)
+            message = '%s, %s, %s' % (starttime, '', station_code)
+            await data_connector.send(key=str(station_code), value=message)
+            print(st)
 
-        print(st)
+        except:
+            message = '%s, %s, %s' % (starttime, endtime, station_code)
+            await data_connector.send(key=str(station_code), value=message)
+
 
 @app.task(on_leader=True)
 async def initialize():
-    for station_code in station_codes:
+
+    endtime = datetime.now()
+    starttime = endtime - timedelta(seconds=offset)
+    for station_code in station_codes[40:44]:
         print('PUBLISHING ON LEADER!')
         message = '%s, %s, %s' % (starttime, endtime, station_code)
         await data_connector.send(key=station_code, value=message)
