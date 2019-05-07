@@ -102,10 +102,12 @@ wlen = 2000  # window length in mili-second
 overlap = 200  # overlap in mili-second
 
 mseed_stream_station = app.topic('mseed_stream_station',
+                                 key_type=str,
                                  value_type=seismic_data)
 
 mseed_stream_window = app.topic('mseed_stream_window',
-                                 value_type=seismic_data)
+                                key_type=str,
+                                value_type=seismic_data)
 # mseed_stream_time
 @app.agent(mseed_stream_station)
 async def mseed_station(messages):
@@ -113,16 +115,22 @@ async def mseed_station(messages):
         pass
         # print (message)
 
+
+number_of_stream = app.Table('total_number_of_stream', default=int,
+                             partitions=1)
 @app.agent(mseed_stream_window)
 async def mseed_window(messages):
-    async for message in messages:
-        pass
-        # print (message)
+    async for key, message in messages.items():
+        # pass
+        number_of_stream[key] += 1
+        print (key, number_of_stream[key])
+
+
 
 continuous_data = app.topic('continuous_data', value_type=str)
-@app.agent(continuous_data, concurrency=8)
+@app.agent(continuous_data)
 async def data_connector(messages):
-    async for message in messages:
+    async for key, message in messages.items():
         message_list = message.split(',')
         starttime = parse(message_list[0]).replace(tzinfo=tz)
         try:

@@ -255,10 +255,12 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
 
 def post_event_data(api_base_url, event_resource_id, request_files, logger,
                     send_to_bus=False):
-    url = api_base_url + "/%s" % event_resource_id
+    # removing id from URL as no longer used
+    # url = api_base_url + "/%s" % event_resource_id
+    url = api_base_url
     logger.info('posting data on %s' % url)
 
-    result = requests.post(url, data={"send_to_bus":send_to_bus},
+    result = requests.post(url, data={"send_to_bus": send_to_bus},
                            files=request_files)
     print(result)
 
@@ -402,8 +404,8 @@ def get_rays(api_base_url, event_resource_id, origin_resource_id=None,
     return request_rays
 
 
-def get_station2(api_base_url, station_id):
-    url = "{}station2/{}".format(api_base_url, station_id)
+def get_stations(api_base_url):
+    url = "{}/inventory/stations".format(api_base_url)
     session = requests.Session()
     session.trust_env = False
     response = session.get(url)
@@ -412,16 +414,8 @@ def get_station2(api_base_url, station_id):
     return json.loads(response.content)
 
 
-def post_station2(
-    api_base_url, request_data
-):
-    session = requests.Session()
-    session.trust_env = False
-    return session.post("{}station2".format(api_base_url), json=request_data)
-
-
 def post_signal_quality(
-    api_base_url, request_data
+        api_base_url, request_data
 ):
     session = requests.Session()
     session.trust_env = False
