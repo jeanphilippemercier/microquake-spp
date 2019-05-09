@@ -31,7 +31,6 @@ __module_name__ = "initializer"
 def retrieve_local_event(
     local_mseed_location: str,
     local_quakeml_location: str,
-    stations_black_list: List[str],
 ) -> Tuple[Catalog, Stream]:
     """
     Retrieve a catalog and filtered waveform list from the local file system
@@ -82,7 +81,7 @@ if __name__ == "__main__":
         local_quakeml_location,
     )
     catalog, waveform_stream = retrieve_local_event(
-        local_mseed_location, local_quakeml_location, app.settings.sensors.black_list
+        local_mseed_location, local_quakeml_location
     )
 
     logger.info("Sending event to message bus")
