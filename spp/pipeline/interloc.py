@@ -106,7 +106,8 @@ def process(
     method = "%s" % ("INTERLOC",)
     cat[0].origins.append(
         Origin(x=lmax[0], y=lmax[1], z=lmax[2], time=utcdatetime,
-               method_id=method)
+               method_id=method, evalution_status="preliminary",
+               evaluation_mode="automatic")
     )
     cat[0].preferred_origin_id = cat[0].origins[-1].resource_id.id
 
