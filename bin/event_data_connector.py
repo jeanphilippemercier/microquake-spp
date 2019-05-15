@@ -248,9 +248,13 @@ def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz):
         ts.append(arrival.get_pick().time)
     event_time = np.min(ts)
 
-    c_wf = get_and_post_continuous_data(
-        ims_base_url, api_base_url, event_time, event.resource_id, site_ids, tz
+    # c_wf = get_and_post_continuous_data(
+    #     ims_base_url, api_base_url, event_time, event.resource_id, site_ids, tz
+    # )
+    c_wf = web_client.get_continuous(
+        ims_base_url, event_time - 10, event_time + 10, site_ids, tz
     )
+
     context = get_context(c_wf, event.preferred_origin().arrivals)
     get_and_post_event_data(
         ims_base_url,
