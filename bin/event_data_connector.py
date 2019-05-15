@@ -296,14 +296,14 @@ def main():
     interval = args.interval
 
     site = app.get_stations()
-    ims_base_url = app.settings.data_connector.path
-    api_base_url = app.settings.seismic_api.base_url
+    ims_base_url = app.settings.get('data_connector').path
+    api_base_url = app.settings.get('seismic_api').base_url
     tz = app.get_time_zone()
 
     site_ids = [
         int(station.code)
         for station in site.stations()
-        if station.code not in app.settings.sensors.black_list
+        if station.code not in app.settings.get('sensors').black_list
     ]
     if mode == "single":
         logger.info("Retrieving and posting IMS data once")
