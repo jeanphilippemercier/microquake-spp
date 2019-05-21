@@ -70,7 +70,8 @@ def retrieve_IMS_catalogue(
 ):
     logger.info("retrieving IMS catalogue (url:%s)", ims_base_url)
     ims_catalogue = web_client.get_catalogue(
-        ims_base_url, start_time, end_time, site, tz, blast=True
+        ims_base_url, start_time, end_time, site, tz, blast=True, 
+        accepted=False
     )
     if filter_existing_events:
         return filter_events(api_base_url, ims_catalogue, start_time, end_time)
