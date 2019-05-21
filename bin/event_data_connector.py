@@ -169,6 +169,9 @@ def get_and_post_event_data(
     )
 
     t0 = time()
+    send_to_bus = True
+    if event.event_type == 'other event':
+        send_to_bus = False
     seismic_client.post_data_from_objects(
         api_base_url,
         event_id=None,
@@ -176,7 +179,7 @@ def get_and_post_event_data(
         stream=wf,
         context_stream=context,
         variable_length_stream=vs_waveform,
-        send_to_bus=True,
+        send_to_bus=send_to_bus,
         tolerance=None
     )
     t1 = time()
