@@ -43,5 +43,5 @@ with open('vp.rid', 'w') as vp:
     vp.write('initial_1d_vp_velocity_model_2018_01')
 
 with open('vs.rid', 'w') as vs:
-    vp.write('initial_1d_vs_velocity_model_2018_01')
+    vs.write('initial_1d_vs_velocity_model_2018_01')
 
