@@ -41,6 +41,10 @@ def get_and_post_IMS_data(
     )
 
     for event in IMS_events.events[::-1]:
+
+        # Need to check whether the event is in the api database before uploading it
+        # It takes way too much time to upload the events
+
         # terrible solution, but the function crashes for only few rejected events
         try:
             post_event_to_api(
