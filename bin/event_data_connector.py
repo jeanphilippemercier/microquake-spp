@@ -39,14 +39,19 @@ def get_and_post_IMS_data(
         tz,
         filter_existing_events=filter_existing_events,
     )
-    for event in IMS_events:
-        post_event_to_api(
-            event, ims_base_url, api_base_url, site_ids, site, tz
-        )
+
+    for event in IMS_events.events[::-1]:
+        # terrible solution, but the function crashes for only few rejected events
+        try:
+            post_event_to_api(
+                event, ims_base_url, api_base_url, site_ids, site, tz
+            )
+        except:
+            pass
 
 
 def get_times(tz):
-    end_time = UTCDateTime.now() - 3600
+    end_time = UTCDateTime.now() - 1800
     start_time = end_time - 2 * 24 * 3600
     end_time = end_time.datetime.replace(tzinfo=pytz.utc).astimezone(tz=tz)
     start_time = start_time.datetime.replace(tzinfo=pytz.utc).astimezone(tz=tz)
@@ -191,7 +196,7 @@ def get_and_post_event_data(
 
 
 def clean_wf(stream, event):
-    logger.info("Cleaning waveform with %s events", len(stream))
+    logger.info("Cleaning waveform with %s traces", len(stream))
 
     wf = stream.copy()
     # Do some basic data quality tasks
@@ -225,7 +230,7 @@ def clean_wf(stream, event):
         fill_value=0,
     )
 
-    logger.info("Cleaned waveform with %s events", len(stream))
+    logger.info("Cleaned waveform with %s traces", len(stream))
 
     return wf
 
@@ -281,7 +286,8 @@ def process_args():
         default="single",
         help="the mode to run this module in. Options are single, cont (for continuously running this module)",
     )
-    parser.add_argument("--filter-existing-events", default=False, dest='filter_existing_events', action='store_true')
+    parser.add_argument("--filter-existing-events", default=False,
+                        dest='filter_existing_events', action='store_true')
     parser.add_argument(
         "--interval",
         default=1200,
