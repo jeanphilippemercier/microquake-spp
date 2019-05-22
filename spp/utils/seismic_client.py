@@ -374,6 +374,11 @@ def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
     request_data['takeoff_angle'] = str(takeoff_angle)
     request_data['nodes'] = nodes.tolist()
 
+    print("New Ray data:")
+    for key, value in request_data.items():
+        if key not in ["nodes"]:
+            print(key + ":" + value)
+
     result = requests.post(url, json=request_data)
     print(result)
 
