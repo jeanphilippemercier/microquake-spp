@@ -377,12 +377,13 @@ def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
     print("New Ray data:")
     for key, value in request_data.items():
         if key == "nodes":
-            print(key + ":" + len(value))
+            print(key + ":" + str(len(value)))
         else:
-            print(key + ":" + value)
+            print(key + ":" + (str(value) if value else ""))
 
     try:
         result = requests.post(url, json=request_data)
+        print(result)
         result.raise_for_status()
     except requests.exceptions.HTTPError as err_http:
         print("Ray Post HTTP Error:", err_http)
