@@ -38,3 +38,10 @@ z = [vp.transform_from(np.array([0, 0, z_]))[2] for z_ in range(0, lz)]
 
 vp.write('vp', format='NLLOC')
 vs.write('vs', format='NLLOC')
+
+with open('vp.rid', 'w') as vp:
+    vp.write('initial_1d_vp_velocity_model_2018_01')
+
+with open('vs.rid', 'w') as vs:
+    vs.write('initial_1d_vs_velocity_model_2018_01')
+

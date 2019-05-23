@@ -85,8 +85,16 @@ processing_flow.ray_tracing.trigger_data_name = 'ray_tracing'
 processing_flow.ray_tracing.dataset = 'seismic_event'
 processing_flow.ray_tracing.steps = [['ray_tracer']]
 
-processing_flow.interactive.steps=[['location'], ['magnitude'], ['event_database', 'ui_notification']]
+processing_flow.interactive.trigger_data_name = 'interactive'
+processing_flow.interactive.dataset = 'seismic_event'
+processing_flow.interactive.steps=[['nlloc'], ['magnitude'], ['magnitude_f'], ['event_database']]
 
+processing_flow.interactive_accepted.trigger_data_name = 'interactive_accepted'
+processing_flow.interactive_accepted.dataset = 'seismic_event'
+processing_flow.interactive_accepted.steps=[
+['measure_smom'], ['focal_mechanism'], ['measure_energy'],
+['magnitude'], ['magnitude_f'], ['event_database']
+]
 
 data_connector.source  = 'remote'
 data_connector.path    = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'

@@ -39,14 +39,23 @@ def get_and_post_IMS_data(
         tz,
         filter_existing_events=filter_existing_events,
     )
-    for event in IMS_events:
-        post_event_to_api(
-            event, ims_base_url, api_base_url, site_ids, site, tz
-        )
+
+    for event in IMS_events.events[::-1]:
+
+        # Need to check whether the event is in the api database before uploading it
+        # It takes way too much time to upload the events
+
+        # terrible solution, but the function crashes for only few rejected events
+        try:
+            post_event_to_api(
+                event, ims_base_url, api_base_url, site_ids, site, tz
+            )
+        except:
+            pass
 
 
 def get_times(tz):
-    end_time = UTCDateTime.now() - 3600
+    end_time = UTCDateTime.now() - 1800
     start_time = end_time - 2 * 24 * 3600
     end_time = end_time.datetime.replace(tzinfo=pytz.utc).astimezone(tz=tz)
     start_time = start_time.datetime.replace(tzinfo=pytz.utc).astimezone(tz=tz)
@@ -70,7 +79,8 @@ def retrieve_IMS_catalogue(
 ):
     logger.info("retrieving IMS catalogue (url:%s)", ims_base_url)
     ims_catalogue = web_client.get_catalogue(
-        ims_base_url, start_time, end_time, site, tz, blast=False
+        ims_base_url, start_time, end_time, site, tz, blast=True, 
+        accepted=False
     )
     if filter_existing_events:
         return filter_events(api_base_url, ims_catalogue, start_time, end_time)
@@ -168,6 +178,9 @@ def get_and_post_event_data(
     )
 
     t0 = time()
+    send_to_bus = True
+    if event.event_type == 'other event':
+        send_to_bus = False
     seismic_client.post_data_from_objects(
         api_base_url,
         event_id=None,
@@ -175,7 +188,7 @@ def get_and_post_event_data(
         stream=wf,
         context_stream=context,
         variable_length_stream=vs_waveform,
-        send_to_bus=True,
+        send_to_bus=send_to_bus,
         tolerance=None
     )
     t1 = time()
@@ -187,7 +200,7 @@ def get_and_post_event_data(
 
 
 def clean_wf(stream, event):
-    logger.info("Cleaning waveform with %s events", len(stream))
+    logger.info("Cleaning waveform with %s traces", len(stream))
 
     wf = stream.copy()
     # Do some basic data quality tasks
@@ -221,7 +234,7 @@ def clean_wf(stream, event):
         fill_value=0,
     )
 
-    logger.info("Cleaned waveform with %s events", len(stream))
+    logger.info("Cleaned waveform with %s traces", len(stream))
 
     return wf
 
@@ -248,9 +261,13 @@ def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz):
         ts.append(arrival.get_pick().time)
     event_time = np.min(ts)
 
-    c_wf = get_and_post_continuous_data(
-        ims_base_url, api_base_url, event_time, event.resource_id, site_ids, tz
+    # c_wf = get_and_post_continuous_data(
+    #     ims_base_url, api_base_url, event_time, event.resource_id, site_ids, tz
+    # )
+    c_wf = web_client.get_continuous(
+        ims_base_url, event_time - 10, event_time + 10, site_ids, tz
     )
+
     context = get_context(c_wf, event.preferred_origin().arrivals)
     get_and_post_event_data(
         ims_base_url,
@@ -273,7 +290,8 @@ def process_args():
         default="single",
         help="the mode to run this module in. Options are single, cont (for continuously running this module)",
     )
-    parser.add_argument("--filter-existing-events", default=False, dest='filter_existing_events', action='store_true')
+    parser.add_argument("--filter-existing-events", default=False,
+                        dest='filter_existing_events', action='store_true')
     parser.add_argument(
         "--interval",
         default=1200,
@@ -292,14 +310,14 @@ def main():
     interval = args.interval
 
     site = app.get_stations()
-    ims_base_url = app.settings.data_connector.path
-    api_base_url = app.settings.seismic_api.base_url
+    ims_base_url = app.settings.get('data_connector').path
+    api_base_url = app.settings.get('seismic_api').base_url
     tz = app.get_time_zone()
 
     site_ids = [
         int(station.code)
         for station in site.stations()
-        if station.code not in app.settings.sensors.black_list
+        if station.code not in app.settings.get('sensors').black_list
     ]
     if mode == "single":
         logger.info("Retrieving and posting IMS data once")

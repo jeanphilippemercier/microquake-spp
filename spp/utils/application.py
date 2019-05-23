@@ -24,7 +24,6 @@ class Application(object):
     def __init__(self, toml_file=None, module_name=None,
                  processing_flow_name=None, logger=None):
         """
-
         :param toml_file: path to the TOML file containing the project
         parameter. If not set, the function will look for a file named
         settings.toml in the $SPP_CONFIG directory
@@ -37,7 +36,10 @@ class Application(object):
         :return: None
         """
 
+        if not toml_file:
+            toml_file = os.path.join(os.environ['SPP_CONFIG'], 'settings.toml')
         settings.load(toml_file)
+
         self.settings = settings
         self.grids = settings.get('grids')
 

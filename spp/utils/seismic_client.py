@@ -361,12 +361,12 @@ def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
     url = api_base_url + "rays"
 
     request_data = dict()
-    request_data['site_code'] = site_code
-    request_data['network_code'] = network_code
-    request_data['event_resource_id'] = event_id
-    request_data['origin_resource_id'] = origin_id
-    request_data['arrival_resource_id'] = arrival_id
-    request_data['station_code'] = station_code
+    request_data['site'] = site_code
+    request_data['network'] = network_code
+    request_data['event'] = event_id
+    request_data['origin'] = origin_id
+    request_data['arrival'] = arrival_id
+    request_data['station'] = station_code
     request_data['phase'] = phase
     request_data['ray_length'] = str(ray_length)
     request_data['travel_time'] = str(travel_time)
@@ -374,24 +374,36 @@ def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
     request_data['takeoff_angle'] = str(takeoff_angle)
     request_data['nodes'] = nodes.tolist()
 
-    result = requests.post(url, json=request_data)
-    print(result)
+    # print("New Ray data:")
+    # for key, value in request_data.items():
+    #     if key not in ["nodes"]:
+    #         print(key + ":" + value)
+
+    try:
+        result = requests.post(url, json=request_data)
+        result.raise_for_status()
+    except requests.exceptions.HTTPError as err_http:
+        print("Ray Post HTTP Error:", err_http)
+
 
 
 def get_rays(api_base_url, event_resource_id, origin_resource_id=None,
              arrival_resource_id=None):
     import json
 
-    url = api_base_url + "events/%s/" % event_resource_id
-    url_end = "rays"
+    url = api_base_url + "rays?"
+
+    if event_resource_id:
+        url += "event_id=%s&" % event_resource_id
 
     if origin_resource_id:
-        url = url + "origins/%s/" % origin_resource_id
+        url += "origin_id=%s&" % origin_resource_id
 
-    if origin_resource_id and arrival_resource_id:
-        url = url + "arrivals/%s/" % arrival_resource_id
+    if arrival_resource_id:
+        url += "arrival_id=%s&" % arrival_resource_id
 
-    url = url + url_end
+    # remove last extra question mark in the query params
+    url = url[:-1]
 
     response = requests.request("GET", url)
 
