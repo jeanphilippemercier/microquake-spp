@@ -259,7 +259,11 @@ def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz):
     ts = []
     for arrival in event.preferred_origin().arrivals:
         ts.append(arrival.get_pick().time)
-    event_time = np.min(ts)
+
+    if ts:
+        event_time = np.min(ts)
+    else:
+        event_time = UTCDateTime.now()
 
     # c_wf = get_and_post_continuous_data(
     #     ims_base_url, api_base_url, event_time, event.resource_id, site_ids, tz
