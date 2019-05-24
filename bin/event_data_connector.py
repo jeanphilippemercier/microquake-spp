@@ -27,7 +27,7 @@ def get_and_post_IMS_data(
     site,
     site_ids,
     tz,
-    filter_existing_events=False,
+    filter_existing_events=True,
 ):
     start_time, end_time = get_times(tz)
     IMS_events = retrieve_IMS_catalogue(
@@ -75,7 +75,7 @@ def retrieve_IMS_catalogue(
     start_time,
     end_time,
     tz,
-    filter_existing_events=False,
+    filter_existing_events=True,
 ):
     logger.info("retrieving IMS catalogue (url:%s)", ims_base_url)
     ims_catalogue = web_client.get_catalogue(
