@@ -197,7 +197,7 @@ def main():
         scheduler.add_job(
             process_continuous_data,
             "interval",
-            seconds=window_size,
+            seconds=3600, # every hour
             next_run_time=datetime.now(),
             max_instances=10,
             args=[
