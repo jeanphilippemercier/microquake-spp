@@ -353,7 +353,6 @@ def main():
     ims_base_url = app.settings.get('data_connector').path
     api_base_url = app.settings.get('seismic_api').base_url
     tz = app.get_time_zone()
-    import pdb;pdb.set_trace()
     site_ids = [
         int(station.code)
         for station in site.stations()
