@@ -80,7 +80,7 @@ def post_all_stations_signals_analysis(
     logger, api_base_url, signal_quality_data
 ):
     logger.info("Posting all station signal quality data")
-    api_base_url = app.settings.seismic_api.base_url
+    api_base_url = app.settings.get('seismic_api').base_url
     for station in signal_quality_data:
         logger.info(
             "posting data quality information to the API for station: %s"
@@ -164,14 +164,14 @@ def main():
     start_time = args.start_time
 
     site = app.get_stations()
-    ims_base_url = app.settings.data_connector.path
-    api_base_url = app.settings.seismic_api.base_url
+    ims_base_url = app.settings.get('data_connector').path
+    api_base_url = app.settings.get('seismic_api').base_url
     tz = app.get_time_zone()
 
     site_ids = [
         int(station.code)
         for station in site.stations()
-        if station.code not in app.settings.sensors.black_list
+        if station.code not in app.settings.get('sensors').black_list
     ]
 
     app.logger.info(
