@@ -25,7 +25,6 @@ DEFAULT_START_TIME = DEFAULT_END_TIME - DEFAULT_WINDOW_SIZE
 
 
 def process_continuous_data(
-    app,
     logger,
     ims_base_url,
     api_base_url,
@@ -35,7 +34,8 @@ def process_continuous_data(
     site_ids,
     tz,
 ):
-    if end_time is None or start_time is None:
+    logger.info("Processing continuous data")
+    if not end_time or not start_time:
         end_time = UTCDateTime.now() - (3600 * 2)
         start_time = end_time - window_size
     wf = get_continuous_data(
@@ -180,7 +180,6 @@ def main():
     if mode == "single":
         app.logger.info("Processing a single block of data")
         process_continuous_data(
-            app,
             app.logger,
             ims_base_url,
             api_base_url,
@@ -194,19 +193,21 @@ def main():
         app.logger.info("Continuously running and processing all data")
         scheduler = BlockingScheduler()
         scheduler.add_executor("processpool")
+        start_time = False
+        end_time = False
+
         scheduler.add_job(
             process_continuous_data,
             "interval",
             seconds=3600, # every hour
             next_run_time=datetime.now(),
-            max_instances=10,
+            max_instances=3,
             args=[
-                app,
                 app.logger,
                 ims_base_url,
                 api_base_url,
-                None,
-                None,
+                start_time,
+                end_time,
                 window_size,
                 site_ids,
                 tz,
