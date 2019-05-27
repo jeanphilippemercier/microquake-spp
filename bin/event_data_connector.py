@@ -53,6 +53,7 @@ def get_and_post_IMS_data(
         logger.info("A maximum number of events to process is set at %s", max_events_to_process)
         IMS_events = IMS_events[:max_events_to_process]
 
+    logger.info("Processing %s events", len(IMS_events))
     for event in IMS_events:
         try:
             post_event_to_api(
@@ -249,6 +250,12 @@ def clean_wf(stream, event):
 
 
 def get_context(c_wf, arrivals):
+    if not arrivals:
+        return  (
+            c_wf.filter("bandpass", freqmin=60, freqmax=1000)
+            .composite()
+        )
+
     index = np.argmin([arrival.get_pick().time for arrival in arrivals])
     station_code = arrivals[index].get_pick().waveform_id.station_code
 
@@ -260,7 +267,7 @@ def get_context(c_wf, arrivals):
     return context
 
 
-def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz):
+def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz, reject_existing_events=True):
     event = web_client.get_picks_event(ims_base_url, event, site, tz)
 
     logger.info("extracting data for event %s", str(event))
@@ -273,6 +280,24 @@ def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz):
         event_time = np.min(ts)
     else:
         event_time = UTCDateTime.now()
+
+    if reject_existing_events:
+        existing_event = seismic_client.get_event_by_id(api_base_url, event.resource_id.get_quakeml_uri())
+        if existing_event:
+            logger.warning(
+                "event with id: %s already exists in the API, skipping",
+                event.resource_id.get_quakeml_uri()
+            )
+            return None
+
+        api_catalogue = seismic_client.get_events_catalog(
+            api_base_url, event_time - 0.02, event_time + 0.02
+        )
+        if len(api_catalogue) > 0:
+            logger.warning(
+                " %s event(s) already exist within 0.02 of this event in the API, skipping", len(api_catalogue)
+            )
+            return None
 
     # c_wf = get_and_post_continuous_data(
     #     ims_base_url, api_base_url, event_time, event.resource_id, site_ids, tz
