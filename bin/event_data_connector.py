@@ -249,6 +249,12 @@ def clean_wf(stream, event):
 
 
 def get_context(c_wf, arrivals):
+    if not arrivals:
+        return  (
+            c_wf.filter("bandpass", freqmin=60, freqmax=1000)
+            .composite()
+        )
+
     index = np.argmin([arrival.get_pick().time for arrival in arrivals])
     station_code = arrivals[index].get_pick().waveform_id.station_code
 
