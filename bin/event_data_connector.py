@@ -53,6 +53,7 @@ def get_and_post_IMS_data(
         logger.info("A maximum number of events to process is set at %s", max_events_to_process)
         IMS_events = IMS_events[:max_events_to_process]
 
+    logger.info("Processing %s events", len(IMS_events))
     for event in IMS_events:
         try:
             post_event_to_api(
@@ -281,12 +282,20 @@ def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz, rej
         event_time = UTCDateTime.now()
 
     if reject_existing_events:
-        api_catalogue = seismic_client.get_events_catalog(
-            api_base_url, event_time + 0.01, event_time - 0.01
-        )
-        if len(api_catalogue) > 1:
+        existing_event = seismic_client.get_event_by_id(api_base_url, event.resource_id.get_quakeml_uri())
+        if existing_event:
             logger.warning(
-                " %s events already exists within 0.1 of this event in the API, skipping", len(api_catalogue)
+                "event with id: %s already exists in the API, skipping",
+                event.resource_id.get_quakeml_uri()
+            )
+            return None
+
+        api_catalogue = seismic_client.get_events_catalog(
+            api_base_url, event_time - 0.02, event_time + 0.02
+        )
+        if len(api_catalogue) > 0:
+            logger.warning(
+                " %s event(s) already exist within 0.02 of this event in the API, skipping", len(api_catalogue)
             )
             return None
 
