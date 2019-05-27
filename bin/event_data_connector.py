@@ -260,7 +260,7 @@ def get_context(c_wf, arrivals):
     return context
 
 
-def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz):
+def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz, reject_existing_events=True):
     event = web_client.get_picks_event(ims_base_url, event, site, tz)
 
     logger.info("extracting data for event %s", str(event))
@@ -273,6 +273,16 @@ def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz):
         event_time = np.min(ts)
     else:
         event_time = UTCDateTime.now()
+
+    if reject_existing_events:
+        api_catalogue = seismic_client.get_events_catalog(
+            api_base_url, event_time + 0.01, event_time - 0.01
+        )
+        if len(api_catalogue) > 1:
+            logger.warning(
+                " %s events already exists within 0.1 of this event in the API, skipping", len(api_catalogue)
+            )
+            return None
 
     # c_wf = get_and_post_continuous_data(
     #     ims_base_url, api_base_url, event_time, event.resource_id, site_ids, tz
