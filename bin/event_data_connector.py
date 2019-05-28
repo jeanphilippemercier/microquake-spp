@@ -295,7 +295,7 @@ def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz, rej
         )
         if len(api_catalogue) > 0:
             logger.warning(
-                " %s event(s) already exist within 0.02 of this event in the API, skipping", len(api_catalogue)
+                " %s event(s) already exist with very close times compared to this event in the API, skipping", len(api_catalogue)
             )
             return None
 
