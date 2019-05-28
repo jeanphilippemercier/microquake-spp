@@ -291,7 +291,7 @@ def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz, rej
             return None
 
         api_catalogue = seismic_client.get_events_catalog(
-            api_base_url, event_time - 0.02, event_time + 0.02
+            api_base_url, event_time - 0.1, event_time + 0.1
         )
         if len(api_catalogue) > 0:
             logger.warning(
