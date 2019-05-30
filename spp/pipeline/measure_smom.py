@@ -36,7 +36,7 @@ def process(
     inventory = app.get_inventory()
     missing_responses = st.attach_response(inventory)
     for sta in missing_responses:
-        logger.warn("Inventory: Missing response for sta:%s" % sta)
+        logger.warning("Inventory: Missing response for sta:%s" % sta)
 
     for event in cat_out:
         origin = event.preferred_origin()
