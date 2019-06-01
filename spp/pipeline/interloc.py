@@ -118,11 +118,6 @@ def process(
     logger.info(
         "VMAX over threshold (%.3f > %.3f)" % (vmax, detection_threshold))
 
-    logger.info("IMS location %s" % cat[0].origins[0].loc)
-    logger.info("Interloc location %s" % cat[0].origins[1].loc)
-    dist = np.linalg.norm(cat[0].origins[0].loc - cat[0].origins[1].loc)
-    logger.info("distance between two location %0.2f m" % dist)
-
     cat[0].preferred_origin().extra.interloc_vmax \
         = AttribDict({'value': vmax, 'namespace': 'MICROQUAKE'})
 
