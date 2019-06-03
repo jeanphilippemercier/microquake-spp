@@ -11,7 +11,6 @@ __module_name__ = "nlloc"
 
 def main():
     cli = CLI(__module_name__, callback=process, prepare=prepare_nll)
-    cli.prepare_module()
     cli.run_module()
 
 

@@ -55,7 +55,6 @@ def test_end_to_end(catalog, waveform_stream):
     })
     cli = CLI('chain', 'automatic', app=test_app, args=args)
 
-    cli.prepare_module()
 
     cli.run_module()
 

@@ -8,7 +8,6 @@ __module_name__ = "measure_amplitudes"
 
 def main():
     cli = CLI(__module_name__, callback=process)
-    cli.prepare_module()
     cli.run_module()
 
 

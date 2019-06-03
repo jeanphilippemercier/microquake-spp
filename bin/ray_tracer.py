@@ -7,7 +7,6 @@ __module_name__ = "ray_tracer"
 def main():
     cli = CLI(__module_name__, processing_flow_name='ray_tracing',
               callback=process)
-    cli.prepare_module()
     cli.run_module()
 
 

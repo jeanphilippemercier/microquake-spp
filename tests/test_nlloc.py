@@ -48,7 +48,6 @@ def test_hypocenter_location(catalog, waveform_stream):
     })
     cli = CLI('nlloc', 'automatic', app=test_app, args=args)
 
-    cli.prepare_module()
     cli.run_module()
 
     check_hypocenter_location((catalog, waveform_stream), cli.app.output_data)

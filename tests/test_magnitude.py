@@ -46,7 +46,6 @@ def test_magnitude(catalog, waveform_stream):
     })
     cli = CLI('magnitude', 'automatic', app=test_app, args=args)
 
-    cli.prepare_module()
     cli.run_module()
     check_magnitude_data((catalog, waveform_stream), cli.app.output_data)
 

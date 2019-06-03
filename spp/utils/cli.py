@@ -21,7 +21,6 @@ class CLI:
         processing_flow_name="automatic",
         settings_name=None,
         callback=None,
-        prepare=None,
         app=None,
         args=None
     ):
@@ -29,10 +28,8 @@ class CLI:
         self.processing_flow_name = processing_flow_name
         self.settings_name = settings_name
         self.callback = callback
-        self.prepare = prepare
         self.app = app
         self.args = args
-        self.prepared_objects = {}
 
         if not args:
             self.process_arguments()
@@ -93,10 +90,6 @@ class CLI:
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         self.module_settings = settings.get(settings_name)
-        if hasattr(mod, "prepare"):
-            self.prepare = mod.prepare
-        else:
-            self.prepare = None
         if hasattr(mod, "process"):
             self.callback = mod.process
         else:
@@ -154,28 +147,10 @@ class CLI:
                 send_to_api=self.args.send_to_api,
             )
 
-
-    def prepare_module(self):
-        """
-        Some modules require running some code at startup, separate of processing
-        we pass a function into the init as "prepare" and call that here
-        """
-        if self.prepare is None:
-            self.app.logger.info(
-                "no preparation function for module %s", self.module_name
-            )
-            return
-
-        self.app.logger.info("preparing module %s", self.module_name)
-        self.prepared_objects = self.prepare(self.app, self.module_settings)
-        self.app.logger.info("done preparing module %s", self.module_name)
-
     def run_module_chain(self, modules, msg_in):
         cat, stream = self.app.deserialise_message(msg_in)
         for module_file_name in modules:
             self.load_module(module_file_name, module_file_name)
-            if self.prepare:
-                self.prepare_module()
 
             cat, stream = self.app.clean_message((cat, stream))
 
@@ -184,7 +159,6 @@ class CLI:
                 stream=stream,
                 logger=self.app.logger,
                 app=self.app,
-                prepared_objects=self.prepared_objects,
                 module_settings=self.module_settings,
             )
         return cat, stream
@@ -201,7 +175,6 @@ class CLI:
                         msg_in,
                         self.callback,
                         app=self.app,
-                        prepared_objects=self.prepared_objects,
                         module_settings=self.module_settings,
                     )
             except Exception as e:
@@ -224,7 +197,6 @@ class CLI:
                 msg_in,
                 self.callback,
                 app=self.app,
-                prepared_objects=self.prepared_objects,
                 module_settings=self.module_settings,
             )
         self.app.send_message(cat, st)
@@ -240,7 +212,6 @@ class CLI:
                 msg_in,
                 self.callback,
                 app=self.app,
-                prepared_objects=self.prepared_objects,
                 module_settings=self.module_settings,
             )
         self.app.send_message(cat, st)

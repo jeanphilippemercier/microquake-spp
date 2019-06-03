@@ -48,7 +48,6 @@ def test_interloc(catalog, waveform_stream):
     })
     cli = CLI('interloc', 'automatic', app=test_app, args=args)
 
-    cli.prepare_module()
     cli.run_module()
 
     check_interloc_data((catalog, waveform_stream), cli.app.output_data)
@@ -69,7 +68,7 @@ def check_interloc_data(input_data, output_data):
 
     assert output_catalog[0].preferred_origin().extra.interloc_normed_vmax.value is not None
     assert output_catalog[0].preferred_origin().extra.interloc_normed_vmax.namespace == 'MICROQUAKE'
-    
+
     assert len(output_waveform_stream) == len(input_waveform_stream)
 
 # Some interloc data is removed later in the pipeline

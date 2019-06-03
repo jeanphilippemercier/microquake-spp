@@ -46,7 +46,6 @@ def test_measure_smom(catalog, waveform_stream):
     })
     cli = CLI('measure_smom', 'automatic', app=test_app, args=args)
 
-    cli.prepare_module()
     cli.run_module()
     check_smom_data((catalog, waveform_stream), cli.app.output_data)
 

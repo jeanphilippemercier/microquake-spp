@@ -47,7 +47,6 @@ def test_measure_amplitudes(catalog, waveform_stream):
     })
     cli = CLI('measure_amplitudes', 'automatic', app=test_app, args=args)
 
-    cli.prepare_module()
     cli.run_module()
     check_amplitudes_data((catalog, waveform_stream), cli.app.output_data)
 

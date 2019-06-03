@@ -46,7 +46,6 @@ def test_measure_energy(catalog, waveform_stream):
     })
     cli = CLI('measure_energy', 'automatic', app=test_app, args=args)
 
-    cli.prepare_module()
     cli.run_module()
     check_measure_energy_data((catalog, waveform_stream), cli.app.output_data)
 

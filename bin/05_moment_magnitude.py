@@ -9,7 +9,6 @@ __module_name__ = "magnitude"
 
 def main():
     cli = CLI(__module_name__, callback=process, prepare=prepare_velocities)
-    cli.prepare_module()
     cli.run_module()
 
 
