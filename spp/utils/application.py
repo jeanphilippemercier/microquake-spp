@@ -35,9 +35,6 @@ class Application(object):
         setting the processing step to 0.
         :return: None
         """
-
-        if not toml_file:
-            toml_file = os.path.join(os.environ['SPP_CONFIG'], 'settings.toml')
         settings.load(toml_file)
 
         self.settings = settings
