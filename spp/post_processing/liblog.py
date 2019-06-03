@@ -5,7 +5,7 @@ import logging
          ensure the logger handlers only get configured once
 
     Note: I don't use <name> in the format - e.g., logging.getLogger(__name__) since
-          I would have to do this at every level in the module & this still wouldn't give me the 
+          I would have to do this at every level in the module & this still wouldn't give me the
           current def() name in the msg!
 '''
 
@@ -15,11 +15,6 @@ LOGLEVELS = ['CRITICAL','ERROR','WARN','INFO','DEBUG','NOTSET']
 # logging.getLogger() will return the root logger of the parent calling func
 #   if it wasn't configured (no handlers) then we'll add a default console handler
 #   and optionally a file handler
-
-#def get_log_level():
-    #ch = logging.StreamHandler()
-    #return ch.getEffectiveLevel()
-    #return(get_log_level(logger.getEffectiveLevel()))
 
 def getLogger(*args, **kwargs):
     fname = 'getLogger'
@@ -35,7 +30,7 @@ def getLogger(*args, **kwargs):
             #formatter = logging.Formatter('[%(levelname)5s] %(message)s')
 
         # log to stdout by default
-        if 'log_stdout' in kwargs.keys() and not kwargs['log_stdout']: 
+        if 'log_stdout' in kwargs.keys() and not kwargs['log_stdout']:
             pass
         else:
             ch = logging.StreamHandler()
@@ -63,4 +58,3 @@ def getLogger(*args, **kwargs):
             logger.setLevel(logging.getLevelName(kwargs['loglevel']))
 
     return logger
-

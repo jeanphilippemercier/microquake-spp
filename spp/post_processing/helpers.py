@@ -1,21 +1,20 @@
 # from spp.travel_time import core
-from spp.utils import get_stations
-#from microquake.core import read, UTCDateTime
-from microquake.core.event import ResourceIdentifier
-from microquake.waveform.pick import snr_picker, calculate_snr, kurtosis_picker
-from microquake.core.event import Pick, make_pick, Arrival
-import numpy as np
+import copy
 import os
 
-from obspy.core.utcdatetime import UTCDateTime
-
-from microquake.core.stream import Trace, Stream
 import matplotlib.pyplot as plt
-import copy
-#from lib.waveform import WaveformPlotting as wp
+import numpy as np
+
+#from microquake.core import read, UTCDateTime
+from microquake.core.event import Arrival, Pick, ResourceIdentifier, make_pick
+from microquake.core.stream import Stream, Trace
+from microquake.waveform.pick import calculate_snr, kurtosis_picker, snr_picker
 from mth_lib.waveform import WaveformPlotting as wp
+from obspy.core.utcdatetime import UTCDateTime
+from spp.utils import get_stations
 
 from .liblog import getLogger
+
 logger = getLogger()
 
 
@@ -324,8 +323,6 @@ def check_trace_channels_with_picks(stream, picks, return_snr=False, thresh=1.6)
                 logger.debug('%s: Remove sta:%3s ch:%s r1=%6.3f r2=%6.3f r3=%6.3f snr=%5.3f < %.2f' % \
                            ('check_trace', station, ch, r1,r2,r3, snr, thresh))
 
-                #if get_log_level(logger.getEffectiveLevel()) == 'DEBUG':
-                    #plot_channels_with_picks(st, station, picks, title="check_trace: remove chan=[%s] snr=%f" % (tr.get_id(),snr))
                 noisy_chans.append(tr)
                 #stream.remove(tr)
 
@@ -380,7 +377,7 @@ def clean_picks(st, picks, preWl=.03, postWl=.03, thresh_P=5.9, thresh_S=3.7, de
             snrs=[]
             for tr in trs:
                 tr_snr  = calculate_snr(Stream(traces=[tr]), pick_dict[station]['S'].time, preWl, postWl)
-                snrs.append((tr.stats.channel,tr_snr)) 
+                snrs.append((tr.stats.channel,tr_snr))
             logger.debug('%s: sta:%3s [S] snr [%.1f] %s' % (fname, station,s_snr, snrs))
 
             '''
@@ -415,7 +412,7 @@ def clean_picks(st, picks, preWl=.03, postWl=.03, thresh_P=5.9, thresh_S=3.7, de
                 noisy_picks.append(pick_dict[station]['S'])
 
     return noisy_picks
-    
+
     '''
     cleaned_picks = []
     for station in pick_dict:
