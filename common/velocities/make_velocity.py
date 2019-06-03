@@ -18,17 +18,17 @@ origin = app.grids.origin
 
 zis = [int(vp.transform_to([origin[0], origin[1], z_])[2]) for z_ in z]
 
-vp.data[:,:,zis[0]:] = Vp_z[0]
-vs.data[:,:,zis[0]:] = Vs_z[0]
+vp.data[:, :, zis[0]:] = Vp_z[0]
+vs.data[:, :, zis[0]:] = Vs_z[0]
 
-vp.data[:,:,zis[1]:zis[0]] = np.linspace(Vp_z[1], Vp_z[0], zis[0] - zis[1])
-vs.data[:,:,zis[1]:zis[0]] = np.linspace(Vs_z[1], Vs_z[0], zis[0] - zis[1])
+vp.data[:, :, zis[1]:zis[0]] = np.linspace(Vp_z[1], Vp_z[0], zis[0] - zis[1])
+vs.data[:, :, zis[1]:zis[0]] = np.linspace(Vs_z[1], Vs_z[0], zis[0] - zis[1])
 
-vp.data[:,:,zis[2]:zis[1]] = np.linspace(Vp_z[2], Vp_z[1], zis[1] - zis[2])
-vs.data[:,:,zis[2]:zis[1]] = np.linspace(Vs_z[2], Vs_z[1], zis[1] - zis[2])
+vp.data[:, :, zis[2]:zis[1]] = np.linspace(Vp_z[2], Vp_z[1], zis[1] - zis[2])
+vs.data[:, :, zis[2]:zis[1]] = np.linspace(Vs_z[2], Vs_z[1], zis[1] - zis[2])
 
-vp.data[:,:,:zis[2]] = Vp_z[2]
-vs.data[:,:,:zis[2]] = Vs_z[2]
+vp.data[:, :, :zis[2]] = Vp_z[2]
+vs.data[:, :, :zis[2]] = Vs_z[2]
 
 (lx, ly, lz) = vp.shape
 
@@ -44,4 +44,3 @@ with open('vp.rid', 'w') as vp:
 
 with open('vs.rid', 'w') as vs:
     vs.write('initial_1d_vs_velocity_model_2018_01')
-
