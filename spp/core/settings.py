@@ -27,11 +27,11 @@ class Settings(LazySettings):
             toml_file = os.path.join(config_dir, 'settings.toml')
 
         dconf = {}
-        dconf.setdefault('GLOBAL_ENV_FOR_DYNACONF', 'SPP')
+        dconf.setdefault('ENVVAR_PREFIX_FOR_DYNACONF', 'SPP')
 
         env_prefix = '{0}_ENV'.format(
-            dconf['GLOBAL_ENV_FOR_DYNACONF']
-        )  # DJANGO_ENV
+            dconf['ENVVAR_PREFIX_FOR_DYNACONF']
+        )  # SPP_ENV
 
         dconf.setdefault(
             'ENV_FOR_DYNACONF',
