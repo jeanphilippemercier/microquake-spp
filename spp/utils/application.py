@@ -16,6 +16,7 @@ from microquake.core.data.station import read_stations
 from microquake.core.util.attribdict import AttribDict
 from microquake.io import msgpack
 
+from ..core.grid import get_grid, get_ray, get_grid_point
 from ..core.settings import settings
 
 from loguru import logger
@@ -279,58 +280,6 @@ class Application(object):
 
         return tz
 
-    def get_grid(self, station_code, phase, type='time'):
-        """
-        get a travel time grid for a given station and a given phase
-        :param station_code: station code
-        :param phase: Phase ('P' or 'S')
-        :param type: type of grid ('time', 'take_off', 'azimuth')
-        :return:
-        """
-        from microquake.core.data.grid import read_grid
-        import os
-
-        nll_dir = self.settings.nll_base
-        f_tt = os.path.join(nll_dir, 'time', 'OT.%s.%s.%s.buf'
-                            % (phase.upper(), station_code, type))
-        tt_grid = read_grid(f_tt, format='NLLOC')
-
-        return tt_grid
-
-    def get_grid_point(self, station_code, phase, location,
-                       grid_coordinates=False, type='time'):
-        """
-        get value on a grid at a given point inside the grid
-        :param station_code: Station code
-        :param phase: Phase ('P' or 'S')
-        :param location: point where the value is interpolated
-        :param grid_coordinates: whether the location is expressed in grid
-        coordinates or in model coordinates (default True)
-        :param type: type of grid ('time', 'take_off', 'azimuth')
-        :return:
-        """
-
-        tt = self.get_grid(station_code, phase, type=type)
-
-        return tt.interpolate(location, grid_coordinate=grid_coordinates)[0]
-
-    def get_ray(self, station_code, phase, location, grid_coordinate=False):
-        """
-        return a ray for a given location - station pair for a given phase
-        :param station_code: station code
-        :param phase: phase ('P', 'S')
-        :param location: start of the ray
-        :param grid_coordinate: whether start is expressed in  grid
-        coordinates or model coordinates (default False)
-        :return:
-        """
-        from microquake.simul.eik import ray_tracer
-
-        travel_time = self.get_grid(station_code, phase, type='time')
-
-        return ray_tracer(travel_time, location,
-                          grid_coordinates=grid_coordinate)
-
     def get_current_velocity_model_id(self, phase='P'):
         """
         Return the velocity model ID for a specificed phase
@@ -381,8 +330,8 @@ class Application(object):
                 if (phase == 'S') and (dist < 100):
                     continue
 
-                # at = origin_time + self.get_grid_point(station, phase,
-                at = origin_time + self.get_grid_point(station.code, phase,
+                # at = origin_time + get_grid_point(station, phase,
+                at = origin_time + get_grid_point(station.code, phase,
                                                        event_location,
                                                        grid_coordinates=False)
 
@@ -435,7 +384,7 @@ class Application(object):
         for phase in ['P', 'S']:
             for trace in stream.composite():
                 station = trace.stats.station
-                tt = self.get_grid_point(station, phase, event_location)
+                tt = get_grid_point(station, phase, event_location)
                 trace.stats.starttime = trace.stats.starttime - tt
                 data = np.nan_to_num(trace.data)
 
@@ -509,7 +458,7 @@ class Application(object):
             arrival.phase = pick.phase_hint
             phase = pick.phase_hint
 
-            ray = self.get_ray(station_code, phase, event_location)
+            ray = get_ray(station_code, phase, event_location)
             arrival.distance = ray.length()
 
             # TODO: MTH: Gotta think about how to store the ray points. Obspy will not handle
@@ -527,15 +476,15 @@ class Application(object):
 
             #pick.backazimuth = baz*180./np.pi
 
-            predicted_tt = self.get_grid_point(station_code, phase,
+            predicted_tt = get_grid_point(station_code, phase,
                                                event_location)
             predicted_at = origin_time + predicted_tt
             arrival.time_residual = pick.time - predicted_at
             # print("create_arrivals: sta:%3s pha:%s pick.time:%s
 
-            arrival.takeoff_angle = self.get_grid_point(station_code, phase,
+            arrival.takeoff_angle = get_grid_point(station_code, phase,
                                                         event_location, type='take_off')
-            arrival.azimuth = self.get_grid_point(station_code, phase,
+            arrival.azimuth = get_grid_point(station_code, phase,
                                                   event_location, type='azimuth')
             # print("create arrival: type(arrival)=%s type(takeoff_angle)=%s type(azimuth)=%s" % \
             # (type(arrival), type(arrival.takeoff_angle), type(arrival.azimuth)))
