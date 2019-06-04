@@ -30,7 +30,7 @@ class Processor():
         missing_responses = st.attach_response(inventory)
 
         for sta in missing_responses:
-            logger.warn("Inventory: Missing response for sta:%s" % sta)
+            logger.warning("Inventory: Missing response for sta:%s" % sta)
 
         # 1. Rotate traces to ENZ
         st_rot = rotate_to_ENZ(st, inventory)

@@ -34,7 +34,7 @@ class Processor():
             phase_list = [phase_list]
 
         if use_sdr_rad and cat.preferred_focal_mechanism() is None:
-            logger.warn("use_sdr_rad=True but preferred focal mech = None --> Setting use_sdr_rad=False")
+            logger.warning("use_sdr_rad=True but preferred focal mech = None --> Setting use_sdr_rad=False")
             use_sdr_rad = False
 
         for i, event in enumerate(cat_out):
@@ -85,7 +85,7 @@ class Processor():
                 comment += " Use_sdr_rad: sdr=(%.1f,%.1f,%.1f)" % (sdr[0], sdr[1], sdr[2])
 
             if np.isnan(Mw):
-                logger.warn("Mw is nan, cannot set on event")
+                logger.warning("Mw is nan, cannot set on event")
 
                 continue
 
