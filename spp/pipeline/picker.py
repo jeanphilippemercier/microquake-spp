@@ -24,11 +24,11 @@ class Processor():
         self.p_wave_window_resolution = module_settings.p_wave.search_window.resolution
         self.p_wave_noise = module_settings.p_wave.snr_window.noise
         self.p_wave_signal = module_settings.p_wave.snr_window.signal
-        self.s_wave_window_start = module_settings.s_wave.search_window.start,
-        self.s_wave_window_end = module_settings.s_wave.search_window.end,
-        self.s_wave_window_resolution = module_settings.s_wave.search_window.resolution,
-        self.s_wave_noise = module_settings.s_wave.snr_window.noise,
-        self.s_wave_signal = module_settings.s_wave.snr_window.signal,
+        self.s_wave_window_start = module_settings.s_wave.search_window.start
+        self.s_wave_window_end = module_settings.s_wave.search_window.end
+        self.s_wave_window_resolution = module_settings.s_wave.search_window.resolution
+        self.s_wave_noise = module_settings.s_wave.snr_window.noise
+        self.s_wave_signal = module_settings.s_wave.snr_window.signal
         self.snr_threshold = module_settings.snr_threshold
 
     def process(
