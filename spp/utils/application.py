@@ -18,11 +18,13 @@ from microquake.io import msgpack
 
 from ..core.settings import settings
 
+from loguru import logger
+
 
 class Application(object):
 
     def __init__(self, toml_file=None, module_name=None,
-                 processing_flow_name=None, logger=None):
+                 processing_flow_name=None):
         """
         :param toml_file: path to the TOML file containing the project
         parameter. If not set, the function will look for a file named
@@ -52,14 +54,6 @@ class Application(object):
             self.processing_flow_steps = processing_flow.steps
 
         self.inventory = None
-
-        if logger:
-            self.logger = logger
-        elif self.__module_name__ and self.settings.get(self.__module_name__):
-            self.logger = self.get_logger(self.settings.get(self.__module_name__).log_topic,
-                                          self.settings.get(self.__module_name__).log_file_name)
-        else:
-            self.logger = self.get_logger('application', './application.log')
 
     def get_consumer_topic(self, processing_flow, dataset, module_name, trigger_data_name, input_data_name=None):
         if input_data_name:
@@ -150,8 +144,7 @@ class Application(object):
                 #fpath = os.path.join(settings.common_dir, params.path)
                 #self.inventory = load_inventory(fpath, format='CSV')
 
-                if self.logger:
-                    self.logger.info("Application: Load Inventory from:[%s]" % fpath)
+                logger.info("Application: Load Inventory from:[%s]" % fpath)
 
             elif settings.get('sensors').source == 'remote':
                 pass
@@ -232,26 +225,28 @@ class Application(object):
         returns velocity models
         """
 
-        if self.grids.velocities.homogeneous:
-            vp = create(**self.grids)
-            vp.data *= self.grids.velocities.vp
+        grids = settings.grids
+
+        if grids.velocities.homogeneous:
+            vp = create(**grids)
+            vp.data *= grids.velocities.vp
             vp.resource_id = self.get_current_velocity_model_id('P')
-            vs = create(**self.grids)
-            vs.data *= self.grids.velocities.vs
+            vs = create(**grids)
+            vs.data *= grids.velocities.vs
             vs.resource_id = self.get_current_velocity_model_id('S')
 
         else:
-            if self.grids.velocities.source == 'local':
-                format = self.grids.velocities.format
+            if grids.velocities.source == 'local':
+                format = grids.velocities.format
                 vp_path = os.path.join(settings.common_dir,
-                                       self.grids.velocities.vp)
+                                       grids.velocities.vp)
                 vp = read_grid(vp_path, format=format)
                 vp.resource_id = self.get_current_velocity_model_id('P')
                 vs_path = os.path.join(settings.common_dir,
-                                       self.grids.velocities.vs)
+                                       grids.velocities.vs)
                 vs = read_grid(vs_path, format=format)
                 vs.resource_id = self.get_current_velocity_model_id('S')
-            elif self.settings['grids.velocities.local']:
+            elif settings['grids.velocities.local']:
                 # TODO: read the velocity grids from the server
                 pass
 
@@ -354,58 +349,6 @@ class Application(object):
         with open(v_path) as ris:
             return ris.read()
 
-    def __get_console_handler(self):
-        """
-        get logger console handler
-        Returns: console_handler
-
-        """
-        console_handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter(self.settings.get('logging').log_format)
-        console_handler.setFormatter(formatter)
-
-        return console_handler
-
-    def __get_file_handler(self, log_filename):
-        """
-        get logger file handler
-        Returns: file handler
-
-        """
-        log_dir = self.settings.get('logging').log_directory
-        formatter = logging.Formatter(self.settings.get('logging').log_format)
-
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
-        logger_file = os.path.join(log_dir, log_filename)
-        file_handler = TimedRotatingFileHandler(logger_file,
-                                                when='midnight')
-        file_handler.setFormatter(formatter)
-
-        return file_handler
-
-    def get_logger(self, logger_name, log_filename):
-        logger = logging.getLogger(logger_name)
-        log_level = self.settings.get('logging').log_level
-
-        if len(logger.handlers) == 0:
-
-            final_log_level = log_level
-
-            if log_level is not None:
-                final_log_level = log_level
-            elif log_level is not None:
-                final_log_level = log_level
-            logger.setLevel(final_log_level)
-
-            logger.addHandler(self.__get_console_handler())
-            logger.addHandler(self.__get_file_handler(log_filename))
-
-        # Disable the extra console logging:
-        logger.propagate = False
-
-        return logger
-
     def synthetic_arrival_times(self, event_location, origin_time):
         """
         calculate synthetic arrival time for all the station and returns a
@@ -420,16 +363,16 @@ class Application(object):
 
         picks = []
 
-        #stations = self.get_stations().stations()
-        #site = self.get_stations()
+        # stations = self.get_stations().stations()
+        # site = self.get_stations()
 
         inventory = self.get_inventory()
         stations = inventory.stations()
 
         for phase in ['P', 'S']:
             for station in stations:
-                #station = station.code
-                #st_loc = site.select(station=station).stations()[0].loc
+                # station = station.code
+                # st_loc = site.select(station=station).stations()[0].loc
 
                 st_loc = station.loc
 
@@ -703,16 +646,16 @@ class Application(object):
         return waveform_stream
 
     def close(self):
-        self.logger.info('closing application...')
+        logger.info('closing application...')
 
     @abstractmethod
     def send_message(self, cat, stream, topic=None):
         """
         send message
         """
-        self.logger.info('preparing data')
+        logger.info('preparing data')
         msg = self.serialise_message(cat, stream)
-        self.logger.info('done preparing data')
+        logger.info('done preparing data')
 
         return msg
 
@@ -721,19 +664,19 @@ class Application(object):
         """
         receive message
         """
-        self.logger.info('unpacking data')
+        logger.info('unpacking data')
         t2 = time()
         cat, stream = self.deserialise_message(msg_in)
         t3 = time()
-        self.logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
+        logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
 
         (cat, stream) = self.clean_message((cat, stream))
-        self.logger.info("processing event %s", str(cat[0].resource_id))
+        logger.info("processing event %s", str(cat[0].resource_id))
 
         if not kwargs:
-            cat_out, st_out = callback(cat=cat, stream=stream, logger=self.logger)
+            cat_out, st_out = callback(cat=cat, stream=stream)
         else:
-            cat_out, st_out = callback(cat=cat, stream=stream, logger=self.logger,
+            cat_out, st_out = callback(cat=cat, stream=stream,
                                        **kwargs)
 
         return cat_out, st_out

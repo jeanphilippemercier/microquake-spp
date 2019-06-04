@@ -6,6 +6,7 @@ from microquake.core.stream import read
 
 from .application import Application
 
+from loguru import logger
 
 class TestApplication(Application):
     def __init__(
@@ -21,7 +22,7 @@ class TestApplication(Application):
             processing_flow_name=processing_flow_name,
         )
         self.input_data = input_data
-        self.logger.info("running tests for module %s", module_name)
+        logger.info("running tests for module %s", module_name)
 
     def get_message(self):
         catalog, waveform_stream = self.input_data
@@ -33,7 +34,7 @@ class TestApplication(Application):
         msg_bytes = super(TestApplication, self).send_message(cat, stream)
         self.output_bytes = msg_bytes
         self.output_data = self.clean_message((cat, stream))
-        
+
 
 
     def receive_message(self, msg_in, callback, **kwargs):
@@ -47,16 +48,16 @@ class TestApplication(Application):
 
         # If the catalog is copied too many times in a row, it will cause the
         # arrivals to lose their reference to pick_id and obspy creates new ones
-        # (that don't point to any picks). 
+        # (that don't point to any picks).
         # Write and then read the catalog here locally to avoid this.
 
-        self.logger.info("Testing, writing to local file to reset category")
+        logger.info("Testing, writing to local file to reset category")
         tmp_location = './tmp_test_cat.xml'
         tmp_copy_location = './tmp_test_cat_%s.xml'.format(int(datetime.now(tz=timezone.utc).timestamp() * 1000))
         catalog.write(tmp_location, format="QUAKEML")
         copyfile(tmp_location, tmp_copy_location)
         with open(tmp_copy_location, "rb") as event_file:
             new_catalog = read_events(event_file, format="QUAKEML")
-            self.logger.info("Testing, reading from local file to reset category")
-        
+            logger.info("Testing, reading from local file to reset category")
+
         return (new_catalog, waveform_stream)
