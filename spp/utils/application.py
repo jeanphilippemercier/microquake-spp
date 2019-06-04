@@ -41,10 +41,10 @@ class Application(object):
         self.grids = settings.get('grids')
 
         self.__module_name__ = module_name
+
         if self.__module_name__ is None:
             #print("No module name, application cannot initialise")
             pass
-
 
         if processing_flow_name:
             processing_flow = self.settings.get('processing_flow')[processing_flow_name]
@@ -58,10 +58,9 @@ class Application(object):
             self.logger = logger
         elif self.__module_name__ and self.settings.get(self.__module_name__):
             self.logger = self.get_logger(self.settings.get(self.__module_name__).log_topic,
-                            self.settings.get(self.__module_name__).log_file_name)
+                                          self.settings.get(self.__module_name__).log_file_name)
         else:
             self.logger = self.get_logger('application', './application.log')
-
 
     def get_consumer_topic(self, processing_flow, dataset, module_name, trigger_data_name, input_data_name=None):
         if input_data_name:
@@ -73,32 +72,39 @@ class Application(object):
         if len(processing_flow) == 0:
             raise ValueError("Empty processing_flow, cannot determine consumer topic")
         processing_step = -1
+
         for i, flow_step in enumerate(processing_flow):
             if module_name in flow_step:
                 processing_step = i
+
                 break
+
         if self.get_output_data_name(module_name) == trigger_data_name:
             # This module is triggering the processing flow. It is not consuming on any topics.
+
             return ""
+
         if processing_step == -1:
-            raise ValueError("Module {} does not exist in processing_flow, cannot determine consumer topic".format(module_name) )
+            raise ValueError(
+                "Module {} does not exist in processing_flow, cannot determine consumer topic".format(module_name))
+
         if processing_step == 0:
             # The first module always consumes from the triggering
+
             return self.get_topic(dataset, trigger_data_name)
+
         if len(processing_flow) < 2:
             raise ValueError("Processing flow is malformed and only has one step {}".format(processing_flow))
         input_module_name = processing_flow[processing_step - 1][0]
         input_data_name = self.get_output_data_name(input_module_name)
-        return self.get_topic(dataset, input_data_name)
 
+        return self.get_topic(dataset, input_data_name)
 
     def get_producer_topic(self, dataset, module_name):
         return self.get_topic(dataset, self.get_output_data_name(module_name))
 
-
     def get_topic(self, dataset, data_name):
         return "seismic_processing.{}.{}".format(dataset, data_name)
-
 
     def get_output_data_name(self, module_name):
         if self.settings.get(module_name):
@@ -106,19 +112,20 @@ class Application(object):
         else:
             return ""
 
-
     @property
     def nll_tts_dir(self):
         """
         returns the path where the travel time grids are stored
         :return: path
         """
+
         return os.path.join(self.settings.nll_base, 'time')
 
     def get_ttable_h5(self):
         from microquake.core.data import ttable
         fname = os.path.join(settings.common_dir,
                              self.grids.travel_time_h5.fname)
+
         return ttable.H5TTable(fname)
 
     def write_ttable_h5(self, fname=None):
@@ -143,12 +150,13 @@ class Application(object):
                 self.inventory = Inventory.load_from_xml(fpath)
                 #fpath = os.path.join(settings.common_dir, params.path)
                 #self.inventory = load_inventory(fpath, format='CSV')
+
                 if self.logger:
                     self.logger.info("Application: Load Inventory from:[%s]" % fpath)
 
             elif self.settings.get('sensors').source == 'remote':
                 pass
-        #else:
+        # else:
             #print("app.get_inventory: INVENTORY FILE ALREADY LOADED")
 
         return self.inventory
@@ -156,6 +164,7 @@ class Application(object):
     def get_stations(self):
 
         params = self.settings.get('sensors')
+
         if params.source == 'local':
             fpath = os.path.join(settings.common_dir, params.path)
             site = read_stations(fpath, format='CSV')
@@ -200,9 +209,9 @@ class Application(object):
         out_dict = AttribDict()
 
         inventory = self.get_inventory()
-        stations  = inventory.stations()
+        stations = inventory.stations()
         out_dict.name = array([station.code for station in stations])
-        out_dict.pos  = array([station.loc for station in stations])
+        out_dict.pos = array([station.loc for station in stations])
         out_dict.site = "THIS IS NOT SET"
 
         '''
@@ -223,6 +232,7 @@ class Application(object):
         """
         returns velocity models
         """
+
         if self.grids.velocities.homogeneous:
             vp = create(**self.grids)
             vp.data *= self.grids.velocities.vp
@@ -266,6 +276,7 @@ class Application(object):
         elif tz_settings.type == "time_zone":
             import pytz
             valid_time_zones = pytz.all_timezones
+
             if tz_settings.time_zone_code not in valid_time_zones:
                 # raise an exception
                 pass
@@ -306,6 +317,7 @@ class Application(object):
         """
 
         tt = self.get_grid(station_code, phase, type=type)
+
         return tt.interpolate(location, grid_coordinate=grid_coordinates)[0]
 
     def get_ray(self, station_code, phase, location, grid_coordinate=False):
@@ -323,7 +335,7 @@ class Application(object):
         travel_time = self.get_grid(station_code, phase, type='time')
 
         return ray_tracer(travel_time, location,
-                         grid_coordinates=grid_coordinate)
+                          grid_coordinates=grid_coordinate)
 
     def get_current_velocity_model_id(self, phase='P'):
         """
@@ -334,13 +346,14 @@ class Application(object):
         """
         common_dir = settings.common_dir
         velocity_dir = self.grids.velocities
+
         if phase.upper() == 'P':
             v_path = os.path.join(settings.common_dir,
                                   self.grids.velocities.vp) + '.rid'
 
         elif phase.upper() == 'S':
-             v_path = os.path.join(settings.common_dir,
-                                   self.grids.velocities.vs) + '.rid'
+            v_path = os.path.join(settings.common_dir,
+                                  self.grids.velocities.vs) + '.rid'
 
         with open(v_path) as ris:
             return ris.read()
@@ -354,6 +367,7 @@ class Application(object):
         console_handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter(self.settings.get('logging').log_format)
         console_handler.setFormatter(formatter)
+
         return console_handler
 
     def __get_file_handler(self, log_filename):
@@ -364,12 +378,14 @@ class Application(object):
         """
         log_dir = self.settings.get('logging').log_directory
         formatter = logging.Formatter(self.settings.get('logging').log_format)
+
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
         logger_file = os.path.join(log_dir, log_filename)
         file_handler = TimedRotatingFileHandler(logger_file,
                                                 when='midnight')
         file_handler.setFormatter(formatter)
+
         return file_handler
 
     def get_logger(self, logger_name, log_filename):
@@ -379,6 +395,7 @@ class Application(object):
         if len(logger.handlers) == 0:
 
             final_log_level = log_level
+
             if log_level is not None:
                 final_log_level = log_level
             elif log_level is not None:
@@ -411,20 +428,21 @@ class Application(object):
         #site = self.get_stations()
 
         inventory = self.get_inventory()
-        stations  = inventory.stations()
+        stations = inventory.stations()
 
         for phase in ['P', 'S']:
             for station in stations:
                 #station = station.code
                 #st_loc = site.select(station=station).stations()[0].loc
 
-                st_loc   = station.loc
+                st_loc = station.loc
 
                 dist = norm(st_loc - event_location)
+
                 if (phase == 'S') and (dist < 100):
                     continue
 
-                #at = origin_time + self.get_grid_point(station, phase,
+                # at = origin_time + self.get_grid_point(station, phase,
                 at = origin_time + self.get_grid_point(station.code, phase,
                                                        event_location,
                                                        grid_coordinates=False)
@@ -432,7 +450,7 @@ class Application(object):
                 wf_id = WaveformStreamID(
                     network_code=self.settings.get('project_code'),
                     station_code=station.code)
-                    #station_code=station)
+                # station_code=station)
                 pk = Pick(time=at, method='predicted', phase_hint=phase,
                           evaluation_mode='automatic',
                           evaluation_status='preliminary', waveform_id=wf_id)
@@ -461,6 +479,7 @@ class Application(object):
         end_times = []
         sampling_rates = []
         stream = stream.detrend('demean')
+
         for trace in stream:
             start_times.append(trace.stats.starttime.datetime)
             end_times.append(trace.stats.endtime.datetime)
@@ -488,7 +507,7 @@ class Application(object):
                 # data /= np.max(np.abs(data))
                 sr = trace.stats.sampling_rate
                 startsamp = int((trace.stats.starttime - min_starttime) *
-                            trace.stats.sampling_rate)
+                                trace.stats.sampling_rate)
                 endsamp = startsamp + trace.stats.npts
                 t = np.arange(startsamp, endsamp) / sr
                 try:
@@ -525,6 +544,7 @@ class Application(object):
 
         origin_time = min_starttime + o_i / max_sampling_rate
         # Tracer()()
+
         return origin_time
 
     def create_arrivals_from_picks(self, picks, event_location, origin_time):
@@ -538,10 +558,11 @@ class Application(object):
         from microquake.core.event import Arrival
         from IPython.core.debugger import Tracer
 
-        #print("create_arrival_from_picks: event_location:<%.1f, %.1f, %.1f>" % \
-              #(event_location[0], event_location[1], event_location[2]))
+        # print("create_arrival_from_picks: event_location:<%.1f, %.1f, %.1f>" % \
+        # (event_location[0], event_location[1], event_location[2]))
 
         arrivals = []
+
         for pick in picks:
             station_code = pick.waveform_id.station_code
 
@@ -555,15 +576,15 @@ class Application(object):
             # TODO: MTH: Gotta think about how to store the ray points. Obspy will not handle
             #       a list in the extra dict, so you won't be able to do something like event.copy() later
             #arrival.ray = list(ray.nodes)
-            #for node in ray.nodes:
-                #print(node)
+            # for node in ray.nodes:
+            # print(node)
 
             #xoff = ray.nodes[-2][0] - ray.nodes[-1][0]
             #yoff = ray.nodes[-2][1] - ray.nodes[-1][1]
             #zoff = ray.nodes[-2][2] - ray.nodes[-1][2]
             #baz = np.arctan2(xoff,yoff)
-            #if baz < 0:
-                #baz += 2.*np.pi
+            # if baz < 0:
+            #baz += 2.*np.pi
 
             #pick.backazimuth = baz*180./np.pi
 
@@ -571,18 +592,19 @@ class Application(object):
                                                event_location)
             predicted_at = origin_time + predicted_tt
             arrival.time_residual = pick.time - predicted_at
-            #print("create_arrivals: sta:%3s pha:%s pick.time:%s
+            # print("create_arrivals: sta:%3s pha:%s pick.time:%s
 
             arrival.takeoff_angle = self.get_grid_point(station_code, phase,
-                                           event_location, type='take_off')
+                                                        event_location, type='take_off')
             arrival.azimuth = self.get_grid_point(station_code, phase,
-                                          event_location, type='azimuth')
-            #print("create arrival: type(arrival)=%s type(takeoff_angle)=%s type(azimuth)=%s" % \
-                  #(type(arrival), type(arrival.takeoff_angle), type(arrival.azimuth)))
+                                                  event_location, type='azimuth')
+            # print("create arrival: type(arrival)=%s type(takeoff_angle)=%s type(azimuth)=%s" % \
+            # (type(arrival), type(arrival.takeoff_angle), type(arrival.azimuth)))
 
             # MTH: arrival azimuth/takeoff should be in degrees - I'm pretty sure the grids
             #  store them in radians (?)
             arrival.azimuth *= 180./np.pi
+
             if arrival.azimuth < 0:
                 arrival.azimuth += 360.
             arrival.takeoff_angle *= 180./np.pi
@@ -592,7 +614,6 @@ class Application(object):
             arrivals.append(arrival)
 
         return arrivals
-
 
     def fix_arr_takeoff_and_azimuth(self, cat):
         """
@@ -616,6 +637,7 @@ class Application(object):
             vs = vs_grid.interpolate(ev_loc)[0]
 
             picks = []
+
             for arr in origin.arrivals:
                 picks.append(arr.pick_id.get_referred_object())
 
@@ -642,8 +664,8 @@ class Application(object):
                 yoff = ev_loc[1]-st_loc[1]
                 zoff = np.abs(ev_loc[2]-st_loc[2])
                 H = np.sqrt(xoff*xoff + yoff*yoff)
-                alpha = np.arctan2(zoff,H)
-                beta  = np.pi/2. - alpha
+                alpha = np.arctan2(zoff, H)
+                beta = np.pi/2. - alpha
                 takeoff_straight = alpha * 180./np.pi + 90.
                 inc_straight = beta * 180./np.pi
 
@@ -658,15 +680,16 @@ class Application(object):
 
                 v_sta = v_grid.interpolate(st_loc)[0]
 
-                inc_p  = np.arcsin(p*v_sta) * 180./np.pi
+                inc_p = np.arcsin(p*v_sta) * 180./np.pi
 
                 # I have the incidence angle now, need backazimuth so rotate to P,SV,SH
-                back_azimuth = np.arctan2(xoff,yoff) * 180./np.pi
+                back_azimuth = np.arctan2(xoff, yoff) * 180./np.pi
+
                 if back_azimuth < 0:
                     back_azimuth += 360.
 
                 arr.backazimuth = back_azimuth
-                arr.inc_angle   = inc_p
+                arr.inc_angle = inc_p
 
                 '''
                 print("%3s: [%s] takeoff:%6.2f [stx=%6.2f] inc_p:%.2f [inc_stx:%.2f] baz:%.1f [az:%.1f]" % \
@@ -678,13 +701,12 @@ class Application(object):
 
         return
 
-
     def clean_waveform_stream(self, waveform_stream, stations_black_list):
         for trace in waveform_stream:
             if trace.stats.station in stations_black_list:
                 waveform_stream.remove(trace)
-        return waveform_stream
 
+        return waveform_stream
 
     def close(self):
         self.logger.info('closing application...')
@@ -697,6 +719,7 @@ class Application(object):
         self.logger.info('preparing data')
         msg = self.serialise_message(cat, stream)
         self.logger.info('done preparing data')
+
         return msg
 
     @abstractmethod
@@ -717,31 +740,33 @@ class Application(object):
             cat_out, st_out = callback(cat=cat, stream=stream, logger=self.logger)
         else:
             cat_out, st_out = callback(cat=cat, stream=stream, logger=self.logger,
-                               **kwargs)
+                                       **kwargs)
 
         return cat_out, st_out
 
     def clean_message(self, msg_in):
         (catalog, waveform_stream) = msg_in
+
         if self.settings.get('sensors').black_list is not None:
             self.clean_waveform_stream(
                 waveform_stream, self.settings.get('sensors').black_list
             )
-        return (catalog, waveform_stream)
 
+        return (catalog, waveform_stream)
 
     def serialise_message(self, cat, stream):
         ev_io = BytesIO()
+
         if cat is not None:
             cat[0].write(ev_io, format='QUAKEML')
-        return msgpack.pack([stream, ev_io.getvalue()])
 
+        return msgpack.pack([stream, ev_io.getvalue()])
 
     def deserialise_message(self, data):
         stream, quake_ml_bytes = msgpack.unpack(data)
         cat = read_events(BytesIO(quake_ml_bytes), format='QUAKEML')
-        return cat, stream
 
+        return cat, stream
 
 
 def plot_nodes(sta_code, phase, nodes, event_location):
@@ -750,6 +775,7 @@ def plot_nodes(sta_code, phase, nodes, event_location):
     z = []
     h = []
     print(event_location[0], event_location[1])
+
     for node in nodes:
         x.append(node[0] - event_location[0])
         y.append(node[1] - event_location[1])
