@@ -20,14 +20,12 @@ class CLI:
         module_name,
         processing_flow_name="automatic",
         settings_name=None,
-        callback=None,
         app=None,
         args=None
     ):
         self.module_name = module_name
         self.processing_flow_name = processing_flow_name
         self.settings_name = settings_name
-        self.callback = callback
         self.app = app
         self.args = args
 
@@ -56,6 +54,7 @@ class CLI:
         if not self.module_settings:
             print("Module name {} not found in settings and not running module chain, exiting".format(module_name))
             exit()
+
 
     def process_arguments(self):
         """
@@ -87,17 +86,16 @@ class CLI:
         self.args = parser.parse_args()
 
     def load_module(self, module_file_name, settings_name):
+        self.module_settings = settings.get(settings_name)
+
         spec = importlib.util.spec_from_file_location(
             "spp.pipeline." + module_file_name, "./spp/pipeline/" + module_file_name + ".py"
         )
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
-        self.module_settings = settings.get(settings_name)
-
-        if hasattr(mod, "process"):
-            self.callback = mod.process
-        else:
-            self.callback = None
+        processor = getattr(mod, 'Processor')
+        self.processor = processor(app=self.app,
+                                   module_settings=self.module_settings)
 
     def set_defaults(self):
         # If there is a CLI arg for module_name, use it!
@@ -162,12 +160,9 @@ class CLI:
 
             cat, stream = self.app.clean_message((cat, stream))
 
-            cat, stream = self.callback(
+            cat, stream = self.processor.process(
                 cat=cat,
                 stream=stream,
-                logger=self.app.logger,
-                app=self.app,
-                module_settings=self.module_settings,
             )
 
         return cat, stream
@@ -182,12 +177,10 @@ class CLI:
                 else:
                     cat, st = self.app.receive_message(
                         msg_in,
-                        self.callback,
-                        app=self.app,
-                        module_settings=self.module_settings,
+                        self.processor,
                     )
             except Exception as e:
-                self.app.logger.error(e, exc_info=True)
+                logger.error(e, exc_info=True)
 
                 continue
             self.app.send_message(cat, st)
@@ -205,9 +198,7 @@ class CLI:
         else:
             cat, st = self.app.receive_message(
                 msg_in,
-                self.callback,
-                app=self.app,
-                module_settings=self.module_settings,
+                self.processor,
             )
         self.app.send_message(cat, st)
 
@@ -221,9 +212,7 @@ class CLI:
         else:
             cat, st = self.app.receive_message(
                 msg_in,
-                self.callback,
-                app=self.app,
-                module_settings=self.module_settings,
+                self.processor,
             )
         self.app.send_message(cat, st)
 
@@ -239,7 +228,7 @@ class CLI:
         elif self.args.mode == "api":
             self.run_module_with_api()
         else:
-            self.app.logger.error(
+            logger.error(
                 "Running module in unknown mode %s", self.args.mode
             )
 
