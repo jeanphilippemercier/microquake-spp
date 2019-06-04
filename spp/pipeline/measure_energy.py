@@ -10,7 +10,7 @@ def process(cat=None,
             app=None,
             module_settings=None,
             prepared_objects=None,
-           ):
+            ):
 
     # reading application data
     params = settings.get('measure_energy')
@@ -27,6 +27,7 @@ def process(cat=None,
         use_sdr_rad = False
 
     phase_list = params.phase_list
+
     if not isinstance(phase_list, list):
         phase_list = [phase_list]
 
@@ -35,6 +36,7 @@ def process(cat=None,
 
     inventory = app.get_inventory()
     missing_responses = st.attach_response(inventory)
+
     for sta in missing_responses:
         logger.warn("Inventory: Missing response for sta:%s" % sta)
 

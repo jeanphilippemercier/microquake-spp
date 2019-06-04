@@ -16,9 +16,11 @@ def process(
     network_code = app.settings.NETWORK_CODE
 
     event_id = str(cat[0].resource_id)
+
     for phase in ['P', 'S']:
         for origin in cat[0].origins:
             origin_id = str(origin.resource_id)
+
             for station in inventory.stations():
                 logger.info('calculating ray for station %s and location %s'
                             % (station.code, origin.loc))
@@ -29,12 +31,14 @@ def process(
                 azimuth = gd.get_grid_point(station.code, phase, origin.loc,
                                             type='azimuth')
                 toa = gd.get_grid_point(station.code, phase, origin.loc,
-                                            type='take_off')
+                                        type='take_off')
                 station_id = station.code
 
                 arrival_id = None
+
                 for arrival in origin.arrivals:
                     pick = arrival.get_pick()
+
                     if pick.waveform_id.station_code == station.code:
                         if arrival.phase == phase:
                             arrival_id = str(arrival.resource_id)

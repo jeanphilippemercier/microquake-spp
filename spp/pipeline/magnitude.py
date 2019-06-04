@@ -1,7 +1,7 @@
 import numpy as np
 
 from microquake.waveform.mag import (calc_magnitudes_from_lambda,
-                                         set_new_event_mag)
+                                     set_new_event_mag)
 
 from ..core.settings import settings
 
@@ -18,7 +18,6 @@ def process(
     if logger is None:
         print("Set logger to app.logger")
         logger = app.logger
-
 
     vp_grid = prepared_objects["vp_grid"]
     vs_grid = prepared_objects["vs_grid"]
@@ -41,22 +40,24 @@ def process(
         logger.warn("use_sdr_rad=True but preferred focal mech = None --> Setting use_sdr_rad=False")
         use_sdr_rad = False
 
-    for i,event in enumerate(cat_out):
+    for i, event in enumerate(cat_out):
 
         ev_loc = event.preferred_origin().loc
         vp = vp_grid.interpolate(ev_loc)[0]
         vs = vs_grid.interpolate(ev_loc)[0]
 
         sdr = None
+
         if use_sdr_rad:
             focal_mech = event.preferred_focal_mechanism()
+
             if focal_mech is not None:
                 nodal_plane = focal_mech.nodal_planes.nodal_plane_1
                 strike = nodal_plane.strike
                 dip = nodal_plane.dip
                 rake = nodal_plane.rake
                 sdr = (strike, dip, rake)
-                logger.info("use_sdr_rad=True (s,d,r)=(%.1f,%.1f,%.1f)" % \
+                logger.info("use_sdr_rad=True (s,d,r)=(%.1f,%.1f,%.1f)" %
                             (strike, dip, rake))
 
         Mws = []
@@ -65,35 +66,39 @@ def process(
         for phase in phase_list:
 
             Mw, sta_mags = calc_magnitudes_from_lambda(
-                                [event],
-                                vp=vp,
-                                vs=vs,
-                                density=density,
-                                P_or_S=phase,
-                                use_smom=False,
-                                use_sdr_rad=use_sdr_rad,
-                                use_free_surface_correction=use_free_surface_correction,
-                                sdr=sdr,
-                                min_dist=min_dist,
-                                logger_in=logger)
+                [event],
+                vp=vp,
+                vs=vs,
+                density=density,
+                P_or_S=phase,
+                use_smom=False,
+                use_sdr_rad=use_sdr_rad,
+                use_free_surface_correction=use_free_surface_correction,
+                sdr=sdr,
+                min_dist=min_dist,
+                logger_in=logger)
 
             Mws.append(Mw)
             station_mags.extend(sta_mags)
 
         Mw = np.mean(Mws)
-        comment="Average of time-domain station moment magnitudes"
+        comment = "Average of time-domain station moment magnitudes"
+
         if use_sdr_rad and sdr is not None:
-            comment += " Use_sdr_rad: sdr=(%.1f,%.1f,%.1f)" % (sdr[0],sdr[1],sdr[2])
+            comment += " Use_sdr_rad: sdr=(%.1f,%.1f,%.1f)" % (sdr[0], sdr[1], sdr[2])
+
         if np.isnan(Mw):
             logger.warn("Mw is nan, cannot set on event")
+
             continue
 
         set_new_event_mag(event, station_mags, Mw, comment, make_preferred=make_preferred)
 
-
     return cat_out, stream
+
 
 def prepare(app=None, module_settings=None):
     vp_grid, vs_grid = app.get_velocities()
     site = app.get_stations()
+
     return {"vp_grid": vp_grid, "vs_grid": vs_grid, "site": site}

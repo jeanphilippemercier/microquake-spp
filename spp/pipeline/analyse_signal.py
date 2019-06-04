@@ -20,19 +20,20 @@ def process(cat=None, stream=None, logger=None, app=None, module_settings=None, 
             energy = amplitude * 1e6
             integrity = non_missing_ratio
             signal_quality_data.append({
-                'station_code':sta,
-                'energy':energy,
-                'integrity':integrity,
+                'station_code': sta,
+                'energy': energy,
+                'integrity': integrity,
                 'sampling_rate': trace.stats.sampling_rate,
                 'num_samples': nsamp,
                 'amplitude': amplitude,
             })
             logger.info('Done analysing signal for station %s, energy: %0.3f, integrity: %0.2f' % (sta, amplitude * 1e6,
-                                                            non_missing_ratio))
+                                                                                                   non_missing_ratio))
 
     except Exception as e:
         logger.error(e)
 
     return signal_quality_data
+
 
 __module_name__ = 'signal_analysis'

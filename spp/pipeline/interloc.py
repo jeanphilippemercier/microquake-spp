@@ -46,6 +46,7 @@ def process(
 
     # remove channels which do not have matching ttable entries
     # This should be handled upstream
+
     for trace in stream:
         if trace.stats.station not in htt.stations:
             logger.info('removing trace for station %s' % trace.stats.station)

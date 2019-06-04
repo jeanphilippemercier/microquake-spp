@@ -4,7 +4,6 @@ import numpy as np
 
 from microquake.core import UTCDateTime
 from microquake.core.event import CreationInfo, Origin
-from microquake.core.stream import is_valid
 from microquake.waveform.pick import snr_picker
 
 
@@ -45,11 +44,13 @@ def process(
     logger.info("done calculating origin time in %0.3f seconds" % (t1 - t0))
 
     ot_utc_interloc = None
+
     for origin in cat[0].origins:
         if origin.method_id == 'smi:local/INTERLOC':
             ot_utc_interloc = origin.time
 
     # only appending the last one
+
     if ot_utc_interloc is not None:
         ot_utcs.append(ot_utc_interloc)
 
@@ -110,7 +111,9 @@ def process(
 
         snr_picks_filtered = [
             snr_pick
+
             for (snr_pick, snr) in zip(snr_picks, snrs)
+
             if snr > module_settings.snr_threshold
         ]
 
@@ -122,27 +125,28 @@ def process(
     index = np.argmax(snr_picks_len)
     snr_picks_filtered = snr_picks_filtered_list[index]
     origin_time_calculation_method = 'Interloc'
+
     if index == 0:
         origin_time_calculation_method = 'SPP'
 
     logger.info('Origin time yielding to the most picks is %s' %
                 origin_time_calculation_method)
 
-    logger.info('SSP: %d picks' %snr_picks_len[0])
+    logger.info('SSP: %d picks' % snr_picks_len[0])
+
     if len(snr_picks_len) > 1:
         logger.info('Interloc: %d picks' % snr_picks_len[1])
 
     logger.info("correcting bias in origin time")
     t0 = time()
     residuals = []
+
     for snr_pk in snr_picks_filtered:
         for pk in picks:
             if (pk.phase_hint == snr_pk.phase_hint) and (
                 pk.waveform_id.station_code == snr_pk.waveform_id.station_code
             ):
                 residuals.append(pk.time - snr_pk.time)
-
-
 
     ot_utc -= np.mean(residuals)
 

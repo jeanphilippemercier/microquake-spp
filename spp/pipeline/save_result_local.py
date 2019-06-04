@@ -3,19 +3,12 @@
 # [catalog, stream, context_stream, event_id]
 
 import os
-from io import BytesIO
-from time import time
-
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.signal import hilbert
 from tqdm import tqdm
 
 from microquake.core import Stream
-from microquake.io import msgpack
-from spp.utils import seismic_client
 from spp.utils.cli import CLI
-from spp.utils.seismic_client import post_data_from_objects
 
 
 def process(
@@ -47,6 +40,7 @@ def process(
     trs_auto = []
     starttimes = []
     endtimes = []
+
     for tr in tqdm(stream):
         station = tr.stats.station
         ptt_auto_p = app.get_grid_point(station, "P", ev_loc_auto)
@@ -97,6 +91,7 @@ def process(
     lentr = len(st_auto[0].data) - 100
     stack_auto = np.zeros(lentr)
     im_auto = []
+
     for tr in st_auto:
         data = np.nan_to_num(tr.data[:lentr])
         # data /= np.max(np.abs(data))
@@ -107,6 +102,7 @@ def process(
     # lentr = len(st_man[0].data) - 100
     stack_man = np.zeros(lentr)
     im_man = []
+
     for tr in st_man:
         data = np.nan_to_num(tr.data[:lentr])
         # data /= np.max(np.abs(data))
@@ -132,6 +128,7 @@ def process(
     #     tr.data = tr.data ** 4 * np.sign(tr.data)
 
     residuals = []
+
     for arrival in cat[0].preferred_origin().arrivals:
         residuals.append(arrival.time_residual)
 
@@ -150,6 +147,7 @@ def process(
     plt.figure(2)
     plt.clf()
     cat[0].preferred_origin_id = cat[0].origins[1].resource_id
+
     for arrival in cat[0].preferred_origin().arrivals:
         residuals.append(arrival.time_residual)
 
