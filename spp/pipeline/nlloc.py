@@ -10,18 +10,21 @@ from loguru import logger
 from microquake.nlloc import NLL, calculate_uncertainty
 
 from ..core.settings import settings
+from ..core.velocity import get_velocities
+from ..core.nlloc import nll_velgrids, nll_sensors
+from ..core.grid import fix_arr_takeoff_and_azimuth
 
 
 class Processor():
     def __init__(self, app, module_settings):
         self.app = app
         self.module_settings = module_settings
-        self.vp_grid, self.vs_grid = app.get_velocities()
+        self.vp_grid, self.vs_grid = get_velocities()
 
         project_code = settings.PROJECT_CODE
         base_folder = settings.nll_base
-        gridpar = app.nll_velgrids()
-        sensors = app.nll_sensors()
+        gridpar = nll_velgrids()
+        sensors = nll_sensors()
 
         logger.info("preparing NonLinLoc")
         self.nll = NLL(
@@ -69,7 +72,7 @@ class Processor():
             logger.info("done calculating uncertainty in %0.3f seconds" % (t3 - t2))
 
         # Fix the source angles (takeoff, azimuth) and add receiver angles (incidence, backazimuth)
-        self.app.fix_arr_takeoff_and_azimuth(cat_out, self.vp_grid, self.vs_grid)
+        fix_arr_takeoff_and_azimuth(cat_out, self.vp_grid, self.vs_grid)
 
         # Just to reinforce that these are hypocentral distance in meters ... to be used by moment_mag calc
         # ie, obspy.arrival.distance = epicenteral distance in degrees

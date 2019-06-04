@@ -1,7 +1,9 @@
 import os
 
+from microquake.core.data.inventory import Inventory
 from dynaconf import LazySettings, settings
 
+from loguru import logger
 
 class Settings(LazySettings):
     def __init__(self):
@@ -55,6 +57,21 @@ class Settings(LazySettings):
         self.nll_base = os.path.join(self.common_dir,
                                      self.get('nlloc').nll_base)
         self.grids = settings.get('grids')
+
+        sensors = settings.get('sensors')
+        if sensors.source == 'local':
+            # MTH: let's read in the stationxml directly for now!
+            fpath = os.path.join(settings.common_dir, sensors.stationXML)
+            self.inventory = Inventory.load_from_xml(fpath)
+
+            # fpath = os.path.join(settings.common_dir, sensors.path)
+            # self.inventory = load_inventory(fpath, format='CSV')
+
+            logger.info("Application: Load Inventory from:[%s]" % fpath)
+
+        elif settings.get('sensors').source == 'remote':
+            self.inventory = None
+            pass
 
 
 settings = Settings()

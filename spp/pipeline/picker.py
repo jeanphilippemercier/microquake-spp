@@ -7,6 +7,10 @@ from microquake.core import UTCDateTime
 from microquake.core.event import CreationInfo, Origin
 from microquake.waveform.pick import snr_picker
 
+from ..core.grid import estimate_origin_time
+from ..core.grid import synthetic_arrival_times
+from ..core.grid import create_arrivals_from_picks
+
 
 class Processor():
     """
@@ -52,7 +56,7 @@ class Processor():
         logger.info("calculating origin time")
         t0 = time()
         loc = cat[0].preferred_origin().loc
-        ot_utcs.append(self.app.estimate_origin_time(stream, loc))
+        ot_utcs.append(estimate_origin_time(stream, loc))
         t1 = time()
         logger.info("done calculating origin time in %0.3f seconds" % (t1 - t0))
 
@@ -74,7 +78,7 @@ class Processor():
             logger.info("predicting picks for origin time %s" % ot_utc)
             t2 = time()
             o_loc = cat[0].preferred_origin().loc
-            picks = self.app.synthetic_arrival_times(o_loc, ot_utc)
+            picks = synthetic_arrival_times(o_loc, ot_utc)
             t3 = time()
             logger.info("done predicting picks in %0.3f seconds" % (t3 - t2))
 
@@ -174,7 +178,7 @@ class Processor():
 
         logger.info("creating arrivals")
         t8 = time()
-        arrivals = self.app.create_arrivals_from_picks(snr_picks_filtered, loc, ot_utc)
+        arrivals = create_arrivals_from_picks(snr_picks_filtered, loc, ot_utc)
         # import pdb; pdb.set_trace()
 
         t9 = time()
