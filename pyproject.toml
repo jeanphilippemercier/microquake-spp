@@ -43,9 +43,9 @@ pathos = "^0.2.3"
 numpy = "^1.16"
 h5py = "^2.9"
 pandas = "^0.24.2"
-microquake-hashwrap = "^0.0.3"
 pytest-parallel = "^0.0.9"
 loguru = "^0.2.5"
+microquake-hashwrap = "^0.0.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
