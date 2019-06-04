@@ -16,6 +16,8 @@ class Processor():
     def __init__(self, app, module_settings):
         self.app = app
         self.module_settings = module_settings
+        self.vp_grid, self.vs_grid = app.get_velocities()
+
         project_code = settings.PROJECT_CODE
         base_folder = settings.nll_base
         gridpar = app.nll_velgrids()
