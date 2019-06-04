@@ -52,7 +52,7 @@ class Processor():
                                                       debug_level=1,
                                                       logger_in=logger)
                 except Exception as e:
-                    logger.warn("Error in measure_pick_smom. Continuing to next phase in phase_list: \n %s", e)
+                    logger.warning("Error in measure_pick_smom. Continuing to next phase in phase_list: \n %s", e)
 
                     continue
 
