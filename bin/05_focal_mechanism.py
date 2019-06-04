@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
 from spp.utils.cli import CLI
-from spp.pipeline.focal_mechanism import process
 
 __module_name__ = "focal_mechanism"
 
 
 def main():
-    cli = CLI(__module_name__, callback=process)
+    cli = CLI(__module_name__)
     cli.run_module()
 
 

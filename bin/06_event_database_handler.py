@@ -2,14 +2,13 @@
 # This modules expect to receive a message containing the following:
 # [catalog, stream, context_stream, event_id]
 
-from spp.pipeline.event_database import process
 from spp.utils.cli import CLI
 
 __module_name__ = 'event_database'
 
 
 def main():
-    cli = CLI(__module_name__, callback=process)
+    cli = CLI(__module_name__)
     cli.run_module()
 
 
