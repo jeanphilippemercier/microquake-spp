@@ -1,53 +1,56 @@
+from loguru import logger
 from microquake.core.stream import Stream
 from microquake.waveform.amp_measures import measure_pick_amps
 from microquake.waveform.transforms import rotate_to_ENZ, rotate_to_P_SV_SH
 
 
-def process(
-    cat=None,
-    stream=None,
-    logger=None,
-    app=None,
-    module_settings=None,
-    prepared_objects=None,
-):
+class Process():
+    def __init__(self, app, module_settings):
+        self.app = app
+        self.module_settings = module_settings
 
-    pulse_min_width = module_settings.pulse_min_width
-    pulse_min_snr_P = module_settings.pulse_min_snr_P
-    pulse_min_snr_S = module_settings.pulse_min_snr_S
-    phase_list = module_settings.phase_list
+    def process(
+        self,
+        cat=None,
+        stream=None,
+    ):
 
-    if not isinstance(phase_list, list):
-        phase_list = [phase_list]
+        pulse_min_width = self.module_settings.pulse_min_width
+        pulse_min_snr_P = self.module_settings.pulse_min_snr_P
+        pulse_min_snr_S = self.module_settings.pulse_min_snr_S
+        phase_list = self.module_settings.phase_list
 
-    st = stream.copy()
-    cat_out = cat.copy()
+        if not isinstance(phase_list, list):
+            phase_list = [phase_list]
 
-    inventory = app.get_inventory()
-    missing_responses = st.attach_response(inventory)
+        st = stream.copy()
+        cat_out = cat.copy()
 
-    for sta in missing_responses:
-        logger.warn("Inventory: Missing response for sta:%s" % sta)
+        inventory = self.app.get_inventory()
+        missing_responses = st.attach_response(inventory)
 
-    # 1. Rotate traces to ENZ
-    st_rot = rotate_to_ENZ(st, inventory)
-    st = st_rot
+        for sta in missing_responses:
+            logger.warn("Inventory: Missing response for sta:%s" % sta)
 
-    # 2. Rotate traces to P,SV,SH wrt event location
-    st_new = rotate_to_P_SV_SH(st, cat_out)
-    st = st_new
+        # 1. Rotate traces to ENZ
+        st_rot = rotate_to_ENZ(st, inventory)
+        st = st_rot
 
-    # 3. Measure polarities, displacement areas, etc for each pick from instrument deconvolved traces
-    trP = [tr for tr in st if tr.stats.channel == 'P' or tr.stats.channel.upper() == 'Z']
+        # 2. Rotate traces to P,SV,SH wrt event location
+        st_new = rotate_to_P_SV_SH(st, cat_out)
+        st = st_new
 
-    measure_pick_amps(Stream(traces=trP),
-                      # measure_pick_amps(st_rot,
-                      cat_out,
-                      phase_list=phase_list,
-                      pulse_min_width=pulse_min_width,
-                      pulse_min_snr_P=pulse_min_snr_P,
-                      pulse_min_snr_S=pulse_min_snr_S,
-                      debug=False,
-                      logger_in=logger)
+        # 3. Measure polarities, displacement areas, etc for each pick from instrument deconvolved traces
+        trP = [tr for tr in st if tr.stats.channel == 'P' or tr.stats.channel.upper() == 'Z']
 
-    return cat_out, stream
+        measure_pick_amps(Stream(traces=trP),
+                          # measure_pick_amps(st_rot,
+                          cat_out,
+                          phase_list=phase_list,
+                          pulse_min_width=pulse_min_width,
+                          pulse_min_snr_P=pulse_min_snr_P,
+                          pulse_min_snr_S=pulse_min_snr_S,
+                          debug=False,
+                          logger_in=logger)
+
+        return cat_out, stream

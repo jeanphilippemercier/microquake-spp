@@ -1,104 +1,94 @@
 import numpy as np
 
+from loguru import logger
 from microquake.waveform.mag import (calc_magnitudes_from_lambda,
                                      set_new_event_mag)
 
 from ..core.settings import settings
 
 
-def process(
-    cat=None,
-    stream=None,
-    logger=None,
-    app=None,
-    module_settings=None,
-    prepared_objects=None,
-):
+class Process():
+    def __init__(self, app, module_settings):
+        self.app = app
+        self.module_settings = module_settings
+        self.vp_grid, self.vs_grid = app.get_velocities()
 
-    if logger is None:
-        logger = app.logger
+    def process(
+        self,
+        cat=None,
+        stream=None,
+    ):
+        params = settings.get('magnitude')
 
-    vp_grid = prepared_objects["vp_grid"]
-    vs_grid = prepared_objects["vs_grid"]
+        density = params.density
+        use_free_surface_correction = params.use_free_surface_correction
+        use_sdr_rad = params.smom.use_sdr_rad
+        make_preferred = params.smom.make_preferred
+        phase_list = params.smom.phase_list
 
-    params = settings.get('magnitude')
+        if not isinstance(phase_list, list):
+            phase_list = [phase_list]
 
-    density = params.density
-    use_free_surface_correction = params.use_free_surface_correction
-    use_sdr_rad = params.smom.use_sdr_rad
-    make_preferred = params.smom.make_preferred
-    phase_list = params.smom.phase_list
+        if use_sdr_rad and cat.preferred_focal_mechanism() is None:
+            logger.warn("use_sdr_rad=True but preferred focal mech = None --> Setting use_sdr_rad=False")
+            use_sdr_rad = False
 
-    if not isinstance(phase_list, list):
-        phase_list = [phase_list]
+        cat_out = cat.copy()
 
-    if use_sdr_rad and cat.preferred_focal_mechanism() is None:
-        logger.warn("use_sdr_rad=True but preferred focal mech = None --> Setting use_sdr_rad=False")
-        use_sdr_rad = False
+        for i, event in enumerate(cat_out):
 
-    cat_out = cat.copy()
+            ev_loc = event.preferred_origin().loc
+            vp = self.vp_grid.interpolate(ev_loc)[0]
+            vs = self.vs_grid.interpolate(ev_loc)[0]
 
-    for i, event in enumerate(cat_out):
+            sdr = None
 
-        ev_loc = event.preferred_origin().loc
-        vp = vp_grid.interpolate(ev_loc)[0]
-        vs = vs_grid.interpolate(ev_loc)[0]
+            if use_sdr_rad:
+                focal_mech = event.preferred_focal_mechanism()
 
-        sdr = None
+                if focal_mech is not None:
+                    nodal_plane = focal_mech.nodal_planes.nodal_plane_1
+                    strike = nodal_plane.strike
+                    dip = nodal_plane.dip
+                    rake = nodal_plane.rake
+                    sdr = (strike, dip, rake)
+                    logger.info("use_sdr_rad=True (s,d,r)=(%.1f,%.1f,%.1f)" %
+                                (strike, dip, rake))
 
-        if use_sdr_rad:
-            focal_mech = event.preferred_focal_mechanism()
+            Mws = []
+            station_mags = []
 
-            if focal_mech is not None:
-                nodal_plane = focal_mech.nodal_planes.nodal_plane_1
-                strike = nodal_plane.strike
-                dip = nodal_plane.dip
-                rake = nodal_plane.rake
-                sdr = (strike, dip, rake)
-                logger.info("use_sdr_rad=True (s,d,r)=(%.1f,%.1f,%.1f)" %
-                            (strike, dip, rake))
+            for phase in phase_list:
 
-        Mws = []
-        station_mags = []
+                Mw, sta_mags = calc_magnitudes_from_lambda(
+                    [event],
+                    vp=vp,
+                    vs=vs,
+                    density=density,
+                    P_or_S=phase,
+                    use_smom=True,
+                    use_sdr_rad=use_sdr_rad,
+                    use_free_surface_correction=use_free_surface_correction,
+                    sdr=sdr,
+                    logger_in=logger)
 
-        for phase in phase_list:
+                Mws.append(Mw)
+                station_mags.extend(sta_mags)
 
-            Mw, sta_mags = calc_magnitudes_from_lambda(
-                [event],
-                vp=vp,
-                vs=vs,
-                density=density,
-                P_or_S=phase,
-                use_smom=True,
-                use_sdr_rad=use_sdr_rad,
-                use_free_surface_correction=use_free_surface_correction,
-                sdr=sdr,
-                logger_in=logger)
+                logger.info("Mw_%s=%.1f len(station_mags)=%d" %
+                            (phase, Mws[-1], len(station_mags)))
+            Mw = np.nanmean(Mws)
 
-            Mws.append(Mw)
-            station_mags.extend(sta_mags)
+            comment = "Average of frequency-domain station moment magnitudes"
 
-            logger.info("Mw_%s=%.1f len(station_mags)=%d" %
-                        (phase, Mws[-1], len(station_mags)))
-        Mw = np.nanmean(Mws)
+            if use_sdr_rad and sdr is not None:
+                comment += " Use_sdr_rad: sdr=(%.1f,%.1f,%.1f)" % (sdr[0], sdr[1], sdr[2])
 
-        comment = "Average of frequency-domain station moment magnitudes"
+            if np.isnan(Mw):
+                logger.warn("Mw is nan, cannot set on event")
 
-        if use_sdr_rad and sdr is not None:
-            comment += " Use_sdr_rad: sdr=(%.1f,%.1f,%.1f)" % (sdr[0], sdr[1], sdr[2])
+                continue
 
-        if np.isnan(Mw):
-            logger.warn("Mw is nan, cannot set on event")
+            set_new_event_mag(event, station_mags, Mw, comment, make_preferred=make_preferred)
 
-            continue
-
-        set_new_event_mag(event, station_mags, Mw, comment, make_preferred=make_preferred)
-
-    return cat_out, stream
-
-
-def prepare(app=None, module_settings=None):
-    vp_grid, vs_grid = app.get_velocities()
-    site = app.get_stations()
-
-    return {"vp_grid": vp_grid, "vs_grid": vs_grid, "site": site}
+        return cat_out, stream
