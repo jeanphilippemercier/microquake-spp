@@ -35,20 +35,24 @@ class CLI:
             self.process_arguments()
 
         self.set_defaults()
+
         if not self.module_name:
             print("No module specified, exiting")
             exit()
 
         self.set_app()
+
         if not self.app:
             print("No application mode specified, exiting")
             exit()
 
         # If we're running a chain of modules, no need to load the module and settings
+
         if self.args.modules:
             return
 
         self.load_module(self.module_name, self.settings_name)
+
         if not self.module_settings:
             print("Module name {} not found in settings and not running module chain, exiting".format(module_name))
             exit()
@@ -82,7 +86,6 @@ class CLI:
 
         self.args = parser.parse_args()
 
-
     def load_module(self, module_file_name, settings_name):
         spec = importlib.util.spec_from_file_location(
             "spp.pipeline." + module_file_name, "./spp/pipeline/" + module_file_name + ".py"
@@ -90,22 +93,25 @@ class CLI:
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         self.module_settings = settings.get(settings_name)
+
         if hasattr(mod, "process"):
             self.callback = mod.process
         else:
             self.callback = None
 
-
     def set_defaults(self):
         # If there is a CLI arg for module_name, use it!
+
         if self.args.module and not self.module_name:
             self.module_name = self.args.module
 
         # If we are running a chain of modules, use the name 'chain'
+
         if self.args.modules and not self.module_name:
             self.module_name = 'chain'
 
         # If there is a CLI arg for settings_name, use it! Otherwise use module_name
+
         if self.args.settings_name and not self.settings_name:
             self.settings_name = self.args.settings_name
         elif not self.args.settings_name and not self.settings_name:
@@ -117,6 +123,7 @@ class CLI:
     def set_app(self):
         if self.app:
             return
+
         if self.args.mode == "cont":
             from spp.utils.kafka_redis_application import KafkaRedisApplication
 
@@ -149,6 +156,7 @@ class CLI:
 
     def run_module_chain(self, modules, msg_in):
         cat, stream = self.app.deserialise_message(msg_in)
+
         for module_file_name in modules:
             self.load_module(module_file_name, module_file_name)
 
@@ -161,6 +169,7 @@ class CLI:
                 app=self.app,
                 module_settings=self.module_settings,
             )
+
         return cat, stream
 
     def run_module_continuously(self):
@@ -179,15 +188,16 @@ class CLI:
                     )
             except Exception as e:
                 self.app.logger.error(e, exc_info=True)
+
                 continue
             self.app.send_message(cat, st)
 
             if settings.SINGLE_RUN:
                 exit(0)
 
-
     def run_module_locally(self):
         msg_in = self.app.get_message()
+
         if self.args.modules:
             cat, st = self.run_module_chain(
                 self.args.modules.split(","), msg_in
@@ -203,6 +213,7 @@ class CLI:
 
     def run_module_with_api(self):
         msg_in = self.app.get_message()
+
         if self.args.modules:
             cat, st = self.run_module_chain(
                 self.args.modules.split(","), msg_in
