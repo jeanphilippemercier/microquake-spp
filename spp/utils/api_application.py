@@ -51,5 +51,5 @@ class APIApplication(Application):
         if self.send_to_api:
             self.send_api_data(cat, stream)
 
-    def receive_message(self, msg_in, callback, **kwargs):
-        return super(APIApplication, self).receive_message(msg_in, callback, **kwargs)
+    def receive_message(self, msg_in, processor, **kwargs):
+        return super(APIApplication, self).receive_message(msg_in, processor, **kwargs)

@@ -660,7 +660,7 @@ class Application(object):
         return msg
 
     @abstractmethod
-    def receive_message(self, msg_in, callback, **kwargs):
+    def receive_message(self, msg_in, processor, **kwargs):
         """
         receive message
         """
@@ -674,9 +674,9 @@ class Application(object):
         logger.info("processing event %s", str(cat[0].resource_id))
 
         if not kwargs:
-            cat_out, st_out = callback(cat=cat, stream=stream)
+            cat_out, st_out = processor.process(cat=cat, stream=stream)
         else:
-            cat_out, st_out = callback(cat=cat, stream=stream,
+            cat_out, st_out = processor.process(cat=cat, stream=stream,
                                        **kwargs)
 
         return cat_out, st_out

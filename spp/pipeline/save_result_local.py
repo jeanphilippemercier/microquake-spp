@@ -165,7 +165,7 @@ __module_name__ = "event_database"
 
 
 def main():
-    cli = CLI(__module_name__, callback=process)
+    cli = CLI(__module_name__)
     cli.run_module()
 
 

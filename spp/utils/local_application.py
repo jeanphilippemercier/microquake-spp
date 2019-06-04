@@ -90,8 +90,8 @@ class LocalApplication(Application):
             self.output_quakeml,
         )
 
-    def receive_message(self, msg_in, callback, **kwargs):
-        return super(LocalApplication, self).receive_message(msg_in, callback, **kwargs)
+    def receive_message(self, msg_in, processor, **kwargs):
+        return super(LocalApplication, self).receive_message(msg_in, processor, **kwargs)
 
     def clean_message(self, msg_in):
         msg_in = super(LocalApplication, self).clean_message(msg_in)

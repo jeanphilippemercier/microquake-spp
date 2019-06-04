@@ -112,7 +112,7 @@ class KafkaRedisApplication(Application):
         self.producer.produce(topic, redis_key)
         logger.info("done sending message to kafka on topic %s", topic)
 
-    def receive_message(self, msg_in, callback, **kwargs):
+    def receive_message(self, msg_in, processor, **kwargs):
         """
         receive message
         :param callback: callback function signature must be as follows:
@@ -122,5 +122,5 @@ class KafkaRedisApplication(Application):
         :return: what callback function returns
         """
         return super(KafkaRedisApplication, self).receive_message(
-            msg_in, callback, **kwargs
+            msg_in, processor, **kwargs
         )
