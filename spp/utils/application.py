@@ -38,7 +38,6 @@ class Application(object):
         settings.load(toml_file)
 
         self.settings = settings
-        self.grids = settings.get('grids')
 
         self.__module_name__ = module_name
 
@@ -124,7 +123,7 @@ class Application(object):
     def get_ttable_h5(self):
         from microquake.core.data import ttable
         fname = os.path.join(settings.common_dir,
-                             self.grids.travel_time_h5.fname)
+                             settings.grids.travel_time_h5.fname)
 
         return ttable.H5TTable(fname)
 
@@ -132,7 +131,7 @@ class Application(object):
         from microquake.core.data import ttable
 
         if fname is None:
-            fname = self.grids.travel_time_h5.fname
+            fname = settings.grids.travel_time_h5.fname
 
         ttp = ttable.array_from_nll_grids(self.nll_tts_dir, 'P', prefix='OT')
         tts = ttable.array_from_nll_grids(self.nll_tts_dir, 'S', prefix='OT')
@@ -140,7 +139,7 @@ class Application(object):
         ttable.write_h5(fpath, ttp, tdict2=tts)
 
     def get_inventory(self):
-        params = self.settings.get('sensors')
+        params = settings.get('sensors')
 
         if self.inventory is None:
 
@@ -154,7 +153,7 @@ class Application(object):
                 if self.logger:
                     self.logger.info("Application: Load Inventory from:[%s]" % fpath)
 
-            elif self.settings.get('sensors').source == 'remote':
+            elif settings.get('sensors').source == 'remote':
                 pass
         # else:
             #print("app.get_inventory: INVENTORY FILE ALREADY LOADED")
@@ -185,10 +184,10 @@ class Application(object):
         vp, vs = self.get_velocities()
 
         out_dict = AttribDict()
-        out_dict.vp = self.grids.velocities.vp
-        out_dict.vs = self.grids.velocities.vs
+        out_dict.vp = settings.grids.velocities.vp
+        out_dict.vs = settings.grids.velocities.vs
         out_dict.homogeneous = \
-            self.grids.velocities.homogeneous
+            settings.grids.velocities.homogeneous
         out_dict.grids = AttribDict()
         out_dict.grids.vp = vp
         out_dict.grids.vs = vs
@@ -344,16 +343,13 @@ class Application(object):
         :return: resource_identifier
 
         """
-        common_dir = settings.common_dir
-        velocity_dir = self.grids.velocities
-
         if phase.upper() == 'P':
             v_path = os.path.join(settings.common_dir,
-                                  self.grids.velocities.vp) + '.rid'
+                                  settings.grids.velocities.vp) + '.rid'
 
         elif phase.upper() == 'S':
             v_path = os.path.join(settings.common_dir,
-                                  self.grids.velocities.vs) + '.rid'
+                                  settings.grids.velocities.vs) + '.rid'
 
         with open(v_path) as ris:
             return ris.read()
@@ -615,7 +611,7 @@ class Application(object):
 
         return arrivals
 
-    def fix_arr_takeoff_and_azimuth(self, cat):
+    def fix_arr_takeoff_and_azimuth(self, cat, vp_grid, vs_grid):
         """
         Currently NLLoc is *not* calculating the takeoff angles at the source.
         These default to -1 so that when microquake.nlloc reads last.hyp it
@@ -626,8 +622,6 @@ class Application(object):
         Also, we add the relevant angles at the receiver (backazimuth and incidence)
         to the arrivals.
         """
-
-        vp_grid, vs_grid = self.get_velocities()
 
         for event in cat:
             origin = event.preferred_origin()
