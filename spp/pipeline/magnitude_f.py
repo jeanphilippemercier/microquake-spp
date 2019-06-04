@@ -5,13 +5,13 @@ from microquake.waveform.mag import (calc_magnitudes_from_lambda,
                                      set_new_event_mag)
 
 from ..core.settings import settings
+from ..core.velocity import get_velocities
 
 
 class Processor():
     def __init__(self, app, module_settings):
-        self.app = app
         self.module_settings = module_settings
-        self.vp_grid, self.vs_grid = app.get_velocities()
+        self.vp_grid, self.vs_grid = get_velocities()
 
     def process(
         self,

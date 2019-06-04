@@ -17,7 +17,6 @@ from ..core.grid import fix_arr_takeoff_and_azimuth
 
 class Processor():
     def __init__(self, app, module_settings):
-        self.app = app
         self.module_settings = module_settings
         self.vp_grid, self.vs_grid = get_velocities()
 

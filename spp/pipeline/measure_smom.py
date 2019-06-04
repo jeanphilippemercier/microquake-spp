@@ -2,12 +2,13 @@ from loguru import logger
 from microquake.waveform.smom_measure import measure_pick_smom
 from obspy.core.event.base import Comment
 
+from ..core.grid import synthetic_arrival_times
+from ..core.settings import settings
+
 
 class Processor():
     def __init__(self, app, module_settings):
-        self.app = app
         self.module_settings = module_settings
-        self.inventory = app.get_inventory()
 
     def process(
         self,
@@ -29,21 +30,21 @@ class Processor():
         st = stream.copy()
         cat_out = cat.copy()
 
-        missing_responses = st.attach_response(self.inventory)
+        missing_responses = st.attach_response(settings.inventory)
 
         for sta in missing_responses:
             logger.warning("Inventory: Missing response for sta:%s" % sta)
 
         for event in cat_out:
             origin = event.preferred_origin()
-            synthetic_picks = self.app.synthetic_arrival_times(origin.loc, origin.time)
+            synthetic_picks = synthetic_arrival_times(origin.loc, origin.time)
 
             for phase in phase_list:
 
                 logger.info("Call measure_pick_smom for phase=[%s]" % phase)
 
                 try:
-                    smom_dict, fc = measure_pick_smom(st, self.inventory, event,
+                    smom_dict, fc = measure_pick_smom(st, settings.inventory, event,
                                                       synthetic_picks,
                                                       P_or_S=phase,
                                                       fmin=fmin, fmax=fmax,

@@ -9,7 +9,6 @@ from ..core.settings import settings
 
 class Processor():
     def __init__(self, app, module_settings):
-        self.app = app
         self.module_settings = module_settings
 
     def process(

@@ -18,7 +18,6 @@ class Processor():
     """
 
     def __init__(self, app, module_settings):
-        self.app = app
         self.module_settings = module_settings
         self.freq_min = module_settings.waveform_filter.frequency_min
         self.freq_max = module_settings.waveform_filter.frequency_max

@@ -7,9 +7,7 @@ from ..core.settings import settings
 
 class Processor():
     def __init__(self, app, module_settings):
-        self.app = app
         self.module_settings = module_settings
-        self.inventory = app.get_inventory()
         self.site_code = settings.SITE_CODE
         self.network_code = settings.NETWORK_CODE
 
@@ -26,7 +24,7 @@ class Processor():
             for origin in cat[0].origins:
                 origin_id = str(origin.resource_id)
 
-                for station in self.inventory.stations():
+                for station in settings.inventory.stations():
                     logger.info('calculating ray for station %s and location %s'
                                 % (station.code, origin.loc))
                     ray = gd.get_ray(station.code, phase,

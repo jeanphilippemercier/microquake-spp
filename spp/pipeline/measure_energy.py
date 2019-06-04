@@ -7,7 +7,6 @@ from ..core.settings import settings
 
 class Processor():
     def __init__(self, app, module_settings):
-        self.app = app
         self.module_settings = module_settings
 
     def process(
@@ -34,8 +33,7 @@ class Processor():
         cat_out = cat.copy()
         st = stream.copy()
 
-        inventory = self.app.get_inventory()
-        missing_responses = st.attach_response(inventory)
+        missing_responses = st.attach_response(settings.inventory)
 
         for sta in missing_responses:
             logger.warning("Inventory: Missing response for sta:%s" % sta)
