@@ -4,7 +4,7 @@ from loguru import logger
 from microquake.core import UTCDateTime
 
 
-class Process():
+class Processor():
     def __init__(self, app, module_settings):
         self.app = app
         self.module_settings = module_settings

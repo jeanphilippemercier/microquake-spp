@@ -3,7 +3,7 @@ from microquake.focmec.core import calc_focal_mechanisms
 from obspy.core.event.base import ResourceIdentifier
 
 
-class Process():
+class Processor():
     def __init__(self, app, module_settings):
         self.app = app
         self.module_settings = module_settings

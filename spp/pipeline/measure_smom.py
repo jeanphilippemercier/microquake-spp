@@ -3,7 +3,7 @@ from microquake.waveform.smom_measure import measure_pick_smom
 from obspy.core.event.base import Comment
 
 
-class Process():
+class Processor():
     def __init__(self, app, module_settings):
         self.app = app
         self.module_settings = module_settings

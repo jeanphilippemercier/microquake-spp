@@ -8,7 +8,7 @@ from microquake.core.event import CreationInfo, Origin
 from microquake.waveform.pick import snr_picker
 
 
-class Process():
+class Processor():
     """
     Predict picks for event
     """

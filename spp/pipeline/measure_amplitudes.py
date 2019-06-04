@@ -4,7 +4,7 @@ from microquake.waveform.amp_measures import measure_pick_amps
 from microquake.waveform.transforms import rotate_to_ENZ, rotate_to_P_SV_SH
 
 
-class Process():
+class Processor():
     def __init__(self, app, module_settings):
         self.app = app
         self.module_settings = module_settings

@@ -6,13 +6,13 @@ from time import time
 
 import numpy as np
 
+from loguru import logger
 from microquake.nlloc import NLL, calculate_uncertainty
 
 from ..core.settings import settings
-from loguru import logger
 
 
-class Process():
+class Processor():
     def __init__(self, app, module_settings):
         self.app = app
         self.module_settings = module_settings
@@ -67,7 +67,7 @@ class Process():
             logger.info("done calculating uncertainty in %0.3f seconds" % (t3 - t2))
 
         # Fix the source angles (takeoff, azimuth) and add receiver angles (incidence, backazimuth)
-        self.app.fix_arr_takeoff_and_azimuth(cat_out)
+        self.app.fix_arr_takeoff_and_azimuth(cat_out, self.vp_grid, self.vs_grid)
 
         # Just to reinforce that these are hypocentral distance in meters ... to be used by moment_mag calc
         # ie, obspy.arrival.distance = epicenteral distance in degrees
