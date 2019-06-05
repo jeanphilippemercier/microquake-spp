@@ -14,6 +14,7 @@ from spp.utils.application import Application
 from microquake.core.util import tools
 from microquake.core.util import plotting as qplot
 from microquake.io import msgpack
+from spp.core.hdf5 import get_ttable_h5
 from spp.utils.kafka import KafkaHandler
 import os
 plt.ion()
@@ -36,7 +37,7 @@ st = read(mseed_file)
 stcomp = st.composite()
 keys = stcomp.unique_stations()
 
-htt = app.get_ttable_h5()
+htt = get_ttable_h5()
 
 ix_grid2 = htt.xyz_to_icol(sloc)
 

@@ -5,6 +5,7 @@
 
 from microquake.nlloc import NLL
 from spp.utils.application import Application
+from spp.core.hdf5 import write_ttable_h5
 
 if __name__ == '__main__':
 
@@ -32,4 +33,4 @@ if __name__ == '__main__':
 
     # creating H5 grid from NLL grids
     logger.info('writing h5 travel time table')
-    app.write_ttable_h5()
+    write_ttable_h5()

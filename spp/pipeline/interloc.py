@@ -11,6 +11,7 @@ from microquake.core.event import Origin
 from microquake.core.util import tools
 
 from ..core.settings import settings
+from ..core.hdf5 import get_ttable_h5
 
 
 class Processor():
@@ -36,7 +37,7 @@ class Processor():
         whiten_corner_freqs = np.array(self.module_settings.whiten_corner_freqs,
                                        dtype=np.float32)
 
-        htt = self.app.get_ttable_h5()
+        htt = get_ttable_h5()
         stalocs = htt.locations
         ttable = (htt.hf["ttp"][:] * samplerate_decimated).astype(np.uint16)
         ngrid = ttable.shape[1]
@@ -45,7 +46,6 @@ class Processor():
 
         logger.info("preparing data for Interloc")
         t4 = time()
-        st_out = stream.copy()
 
         # remove channels which do not have matching ttable entries
         # This should be handled upstream
@@ -130,4 +130,4 @@ class Processor():
         cat[0].preferred_origin().extra.interloc_normed_vmax \
             = AttribDict({'value': normed_vmax, 'namespace': 'MICROQUAKE'})
 
-        return cat, st_out
+        return cat, stream
