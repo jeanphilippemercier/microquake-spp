@@ -9,44 +9,54 @@ from ..core.velocity import get_velocities
 
 
 class Processor():
-    def __init__(self, app, module_settings):
+    def __init__(self, module_name, app=None, module_type=None):
+        self.__module_name = module_name
+        self.params = settings.get(self.module_name)
         self.vp_grid, self.vs_grid = get_velocities()
-        self.module_type = 'magnitude'
 
-    """
-    calculates magnitude in frequency or time domain
-    catalog:
-    - various measures
-    - requires the arrivals
+    @property
+    def module_name(self):
+        return self.__module_name
 
-    returns catalog:
-    few parameters related to the magitude
-    list of magnitudes for each stations
-    """
     def process(
         self,
         cat=None,
-        stream=None,
     ):
+        """
+        process(catalog)
 
+        Calculates the Magnitude in Frequency or Time domain
+
+        - various measures
+        - requires the arrivals
+
+        Parameters
+        ----------
+        catalog: str
+
+        Returns
+        -------
+        catalog: str
+
+        few parameters related to the magitude
+        list of magnitudes for each stations
+        """
         cat_out = cat.copy()
 
-        params = settings.get(self.module_type)
+        density = self.params.density
+        min_dist = self.params.min_dist
+        use_sdr_rad = self.params.use_sdr_rad
+        use_free_surface_correction = self.params.use_free_surface_correction
+        make_preferred = self.params.make_preferred
+        phase_list = self.params.phase_list
+        use_smom = False
 
-        density = params.density
-        min_dist = params.min_dist
-        use_sdr_rad = params.use_sdr_rad
-        use_free_surface_correction = params.use_free_surface_correction
-        make_preferred = params.make_preferred
-        phase_list = params.phase_list
-        use_smom=False
-
-        if self.module_type == "magnitude_f":
+        if self.module_name == "magnitude_f":
             min_dist = 20
-            use_sdr_rad = params.smom.use_sdr_rad
-            make_preferred = params.smom.make_preferred
-            phase_list = params.smom.phase_list
-            use_smom=True
+            use_sdr_rad = self.params.smom.use_sdr_rad
+            make_preferred = self.params.smom.make_preferred
+            phase_list = self.params.smom.phase_list
+            use_smom = True
 
         if not isinstance(phase_list, list):
             phase_list = [phase_list]
@@ -98,11 +108,12 @@ class Processor():
 
                 logger.info("Mw_%s=%.1f len(station_mags)=%d" %
                             (phase, Mws[-1], len(station_mags)))
-            if module_type == "magnitude":
+
+            if self.module_type == "magnitude_f":
+                Mw = np.mean(Mws)
+            elif self.module_name == "magnitude":
                 Mw = np.mean(Mws)
                 comment = "Average of time-domain station moment magnitudes"
-            elif self.module_type == "magnitude_f":
-                Mw = np.mean(Mws)
 
             if use_sdr_rad and sdr is not None:
                 comment += " Use_sdr_rad: sdr=(%.1f,%.1f,%.1f)" % (sdr[0], sdr[1], sdr[2])
