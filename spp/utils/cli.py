@@ -85,17 +85,17 @@ class CLI:
 
         self.args = parser.parse_args()
 
-    def load_module(self, module_file_name, settings_name):
+    def load_module(self, module_name, settings_name):
         self.module_settings = settings.get(settings_name)
 
         spec = importlib.util.spec_from_file_location(
-            "spp.pipeline." + module_file_name, "./spp/pipeline/" + module_file_name + ".py"
+            "spp.pipeline." + module_name, "./spp/pipeline/" + module_name + ".py"
         )
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         processor = getattr(mod, 'Processor')
         self.processor = processor(app=self.app,
-                                   module_settings=self.module_settings)
+                                   module_name=module_name)
 
     def set_defaults(self):
         # If there is a CLI arg for module_name, use it!

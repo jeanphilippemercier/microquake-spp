@@ -10,9 +10,19 @@ from ..core.velocity import get_velocities
 
 class Processor():
     def __init__(self, app, module_settings):
-        self.module_settings = module_settings
         self.vp_grid, self.vs_grid = get_velocities()
+        self.module_type = 'magnitude'
 
+    """
+    calculates magnitude in frequency or time domain
+    catalog:
+    - various measures
+    - requires the arrivals
+
+    returns catalog:
+    few parameters related to the magitude
+    list of magnitudes for each stations
+    """
     def process(
         self,
         cat=None,
@@ -21,7 +31,7 @@ class Processor():
 
         cat_out = cat.copy()
 
-        params = settings.get('magnitude')
+        params = settings.get(self.module_type)
 
         density = params.density
         min_dist = params.min_dist
@@ -29,6 +39,14 @@ class Processor():
         use_free_surface_correction = params.use_free_surface_correction
         make_preferred = params.make_preferred
         phase_list = params.phase_list
+        use_smom=False
+
+        if self.module_type == "magnitude_f":
+            min_dist = 20
+            use_sdr_rad = params.smom.use_sdr_rad
+            make_preferred = params.smom.make_preferred
+            phase_list = params.smom.phase_list
+            use_smom=True
 
         if not isinstance(phase_list, list):
             phase_list = [phase_list]
@@ -68,7 +86,7 @@ class Processor():
                     vs=vs,
                     density=density,
                     P_or_S=phase,
-                    use_smom=False,
+                    use_smom=use_smom,
                     use_sdr_rad=use_sdr_rad,
                     use_free_surface_correction=use_free_surface_correction,
                     sdr=sdr,
@@ -78,8 +96,13 @@ class Processor():
                 Mws.append(Mw)
                 station_mags.extend(sta_mags)
 
-            Mw = np.mean(Mws)
-            comment = "Average of time-domain station moment magnitudes"
+                logger.info("Mw_%s=%.1f len(station_mags)=%d" %
+                            (phase, Mws[-1], len(station_mags)))
+            if module_type == "magnitude":
+                Mw = np.mean(Mws)
+                comment = "Average of time-domain station moment magnitudes"
+            elif self.module_type == "magnitude_f":
+                Mw = np.mean(Mws)
 
             if use_sdr_rad and sdr is not None:
                 comment += " Use_sdr_rad: sdr=(%.1f,%.1f,%.1f)" % (sdr[0], sdr[1], sdr[2])

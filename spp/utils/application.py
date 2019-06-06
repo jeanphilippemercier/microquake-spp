@@ -6,12 +6,36 @@ from time import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-from microquake.core import read_events
+from loguru import logger
+from microquake.core import AttribDict, read_events
+from microquake.core.event import Origin
 from microquake.io import msgpack
 
 from ..core.settings import settings
 
-from loguru import logger
+
+def interloc_cat(x, y, z, vmax, normed_vmax, imax, iot, time, method, cat):
+    cat[0].origins.append(
+        Origin(x=x, y=y, z=z, time=time,
+               method_id=method, evalution_status="preliminary",
+               evaluation_mode="automatic")
+    )
+    cat[0].preferred_origin_id = cat[0].origins[-1].resource_id.id
+
+    logger.info("power: %.3f, ix_grid: %d, ix_ot: %d" % (vmax, imax, iot))
+    logger.info("utm_loc: %d %d %d", x, y, z)
+
+    logger.info("=======================================\n")
+    logger.info(
+        "VMAX over threshold (%.3f)" % (vmax))
+
+    cat[0].preferred_origin().extra.interloc_vmax \
+        = AttribDict({'value': vmax, 'namespace': 'MICROQUAKE'})
+
+    cat[0].preferred_origin().extra.interloc_normed_vmax \
+        = AttribDict({'value': normed_vmax, 'namespace': 'MICROQUAKE'})
+
+    return cat
 
 
 class Application(object):
@@ -158,11 +182,18 @@ class Application(object):
         (cat, stream) = self.clean_message((cat, stream))
         logger.info("processing event %s", str(cat[0].resource_id))
 
-        if not kwargs:
+        if processor.module_name == 'interloc':
+            st_out = stream.copy()
+            x, y, z, vmax, normed_vmax, imax, iot, utctime, method = processor.process(stream=stream)
+            # TODO: check if pass by reference
+            interloc_cat(x, y, z, vmax, normed_vmax, imax, iot, utctime, method, cat)
+            cat_out = cat
+
+        elif not kwargs:
             cat_out, st_out = processor.process(cat=cat, stream=stream)
         else:
             cat_out, st_out = processor.process(cat=cat, stream=stream,
-                                       **kwargs)
+                                                **kwargs)
 
         return cat_out, st_out
 

@@ -14,44 +14,47 @@ from ..core.settings import settings
 
 
 class Processor():
-    def __init__(self, app, module_settings):
-        self.app = app
-        self.module_settings = module_settings
+    def __init__(self, module_name, app=None, module_type=None):
+        self.__module_name = module_name
+        self.params = settings.get(self.module_name)
+        self.htt = app.get_ttable_h5()
+
+    @property
+    def module_name(self):
+        return self.__module_name
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        stream=None
     ):
-        detection_threshold = self.module_settings.detection_threshold
-        nthreads = self.module_settings.nthreads
-        fixed_wlen_sec = self.module_settings.fixed_wlen_sec
-        samplerate_decimated = self.module_settings.samplerate_decimated
-        pair_dist_min = self.module_settings.pair_dist_min
-        pair_dist_max = self.module_settings.pair_dist_max
-        cc_smooth_length_sec = self.module_settings.cc_smooth_length_sec
-        debug_level = self.module_settings.debug_level
-        debug_file_dir = self.module_settings.debug_file_dir
+        debug_level = settings.DEBUG_LEVEL
+        debug_file_dir = settings.DEBUG_FILE_DIR
 
-        whiten_corner_freqs = np.array(self.module_settings.whiten_corner_freqs,
+        detection_threshold = self.params.detection_threshold
+        nthreads = self.params.nthreads
+        fixed_wlen_sec = self.params.fixed_wlen_sec
+        samplerate_decimated = self.params.samplerate_decimated
+        pair_dist_min = self.params.pair_dist_min
+        pair_dist_max = self.params.pair_dist_max
+        cc_smooth_length_sec = self.params.cc_smooth_length_sec
+
+        whiten_corner_freqs = np.array(self.params.whiten_corner_freqs,
                                        dtype=np.float32)
 
-        htt = self.app.get_ttable_h5()
-        stalocs = htt.locations
-        ttable = (htt.hf["ttp"][:] * samplerate_decimated).astype(np.uint16)
+        stalocs = self.htt.locations
+        ttable = (self.htt.hf["ttp"][:] * samplerate_decimated).astype(np.uint16)
         ngrid = ttable.shape[1]
         ttable_row_ptrs = np.array(
             [row.__array_interface__["data"][0] for row in ttable])
 
         logger.info("preparing data for Interloc")
         t4 = time()
-        st_out = stream.copy()
 
         # remove channels which do not have matching ttable entries
         # This should be handled upstream
 
         for trace in stream:
-            if trace.stats.station not in htt.stations:
+            if trace.stats.station not in self.htt.stations:
                 logger.info('removing trace for station %s' % trace.stats.station)
                 stream.remove(trace)
             elif np.max(trace.data) == 0:
@@ -68,7 +71,7 @@ class Processor():
         data = tools.decimate(data, samplerate, decimate_factor)
         channel_map = stream.channel_map().astype(np.uint16)
 
-        ikeep = htt.index_sta(stream.unique_stations())
+        ikeep = self.htt.index_sta(stream.unique_stations())
         debug_file = os.path.join(debug_file_dir, "iloc_" + str(t0) + ".npz")
         t5 = time()
         logger.info(
@@ -99,7 +102,8 @@ class Processor():
         )
 
         vmax, imax, iot = out
-        lmax = htt.icol_to_xyz(imax)
+        normed_vmax = vmax * fixed_wlen_sec
+        lmax = self.htt.icol_to_xyz(imax)
         t7 = time()
         logger.info(
             "Done locating event with Interloc in %0.3f seconds" % (t7 - t6))
@@ -108,26 +112,5 @@ class Processor():
             (t0 + iot / samplerate_decimated).datetime)
         utcdatetime = UTCDateTime(datetime.fromtimestamp((ot_epoch)))
         method = "%s" % ("INTERLOC",)
-        cat[0].origins.append(
-            Origin(x=lmax[0], y=lmax[1], z=lmax[2], time=utcdatetime,
-                   method_id=method, evalution_status="preliminary",
-                   evaluation_mode="automatic")
-        )
-        cat[0].preferred_origin_id = cat[0].origins[-1].resource_id.id
 
-        logger.info("power: %.3f, ix_grid: %d, ix_ot: %d" % (vmax, imax, iot))
-        logger.info("utm_loc: %r", lmax.astype(int))
-
-        logger.info("=======================================\n")
-        logger.info(
-            "VMAX over threshold (%.3f > %.3f)" % (vmax, detection_threshold))
-
-        cat[0].preferred_origin().extra.interloc_vmax \
-            = AttribDict({'value': vmax, 'namespace': 'MICROQUAKE'})
-
-        normed_vmax = vmax * fixed_wlen_sec
-
-        cat[0].preferred_origin().extra.interloc_normed_vmax \
-            = AttribDict({'value': normed_vmax, 'namespace': 'MICROQUAKE'})
-
-        return cat, st_out
+        return (lmax[0], lmax[1], lmax[2], vmax, normed_vmax, imax, iot, utcdatetime, method)
