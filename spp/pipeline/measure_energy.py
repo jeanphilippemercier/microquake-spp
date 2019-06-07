@@ -6,26 +6,28 @@ from ..core.settings import settings
 
 
 class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+    def __init__(self, module_name, app=None, module_type=None):
+        self.__module_name = module_name
+        self.params = settings.get(self.module_name)
+
+    @property
+    def module_name(self):
+        return self.__module_name
 
     def process(
         self,
         cat=None,
         stream=None,
     ):
-        # reading application data
-        params = settings.get('measure_energy')
-
-        correct_attenuation = params.correct_attenuation
-        Q = params.attenuation_Q
-        use_sdr_rad = params.use_sdr_rad
+        correct_attenuation = self.params.correct_attenuation
+        Q = self.params.attenuation_Q
+        use_sdr_rad = self.params.use_sdr_rad
 
         if use_sdr_rad and cat.preferred_focal_mechanism() is None:
             logger.warning("use_sdr_rad=True but preferred focal mech = None --> Setting use_sdr_rad=False")
             use_sdr_rad = False
 
-        phase_list = params.phase_list
+        phase_list = self.params.phase_list
 
         if not isinstance(phase_list, list):
             phase_list = [phase_list]

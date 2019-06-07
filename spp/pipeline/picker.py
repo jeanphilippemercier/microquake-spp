@@ -7,38 +7,50 @@ from microquake.core import UTCDateTime
 from microquake.core.event import CreationInfo, Origin
 from microquake.waveform.pick import snr_picker
 
-from ..core.grid import estimate_origin_time
-from ..core.grid import synthetic_arrival_times
-from ..core.grid import create_arrivals_from_picks
+from ..core.grid import (create_arrivals_from_picks, estimate_origin_time,
+                         synthetic_arrival_times)
+from ..core.settings import settings
 
 
 class Processor():
-    """
-    Predict picks for event
-    """
 
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
-        self.freq_min = module_settings.waveform_filter.frequency_min
-        self.freq_max = module_settings.waveform_filter.frequency_max
-        self.residual_tolerance = module_settings.residual_tolerance
-        self.p_wave_window_start = module_settings.p_wave.search_window.start
-        self.p_wave_window_end = module_settings.p_wave.search_window.end
-        self.p_wave_window_resolution = module_settings.p_wave.search_window.resolution
-        self.p_wave_noise = module_settings.p_wave.snr_window.noise
-        self.p_wave_signal = module_settings.p_wave.snr_window.signal
-        self.s_wave_window_start = module_settings.s_wave.search_window.start
-        self.s_wave_window_end = module_settings.s_wave.search_window.end
-        self.s_wave_window_resolution = module_settings.s_wave.search_window.resolution
-        self.s_wave_noise = module_settings.s_wave.snr_window.noise
-        self.s_wave_signal = module_settings.s_wave.snr_window.signal
-        self.snr_threshold = module_settings.snr_threshold
+    def __init__(self, module_name, app=None, module_type=None):
+        self.__module_name = module_name
+        self.params = settings.get(self.module_name)
+
+        self.freq_min = self.params.waveform_filter.frequency_min
+        self.freq_max = self.params.waveform_filter.frequency_max
+        self.residual_tolerance = self.params.residual_tolerance
+        self.p_wave_window_start = self.params.p_wave.search_window.start
+        self.p_wave_window_end = self.params.p_wave.search_window.end
+        self.p_wave_window_resolution = self.params.p_wave.search_window.resolution
+        self.p_wave_noise = self.params.p_wave.snr_window.noise
+        self.p_wave_signal = self.params.p_wave.snr_window.signal
+        self.s_wave_window_start = self.params.s_wave.search_window.start
+        self.s_wave_window_end = self.params.s_wave.search_window.end
+        self.s_wave_window_resolution = self.params.s_wave.search_window.resolution
+        self.s_wave_noise = self.params.s_wave.snr_window.noise
+        self.s_wave_signal = self.params.s_wave.snr_window.signal
+        self.snr_threshold = self.params.snr_threshold
+
+    @property
+    def module_name(self):
+        return self.__module_name
 
     def process(
         self,
         cat=None,
         stream=None,
     ):
+        """
+        Predict picks for event
+        takes waveform and location
+
+        takes preferred origin as location
+
+        list of picks
+        list of phase and time
+        """
         st_in = stream.copy().detrend("demean")
 
         logger.info('cleaning the input stream')

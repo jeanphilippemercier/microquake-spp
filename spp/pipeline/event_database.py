@@ -8,17 +8,23 @@ from ..core.settings import settings
 
 
 class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+    def __init__(self, module_name, app=None, module_type=None):
+        self.__module_name = module_name
+        self.params = settings.get(self.module_name)
+        self.api_base_url = settings.get('seismic_api').base_url
+
+    @property
+    def module_name(self):
+        return self.__module_name
+
 
     def process(
         self,
         cat=None,
         stream=None,
     ):
-        api_base_url = settings.get('seismic_api').base_url
         logger.info('posting data to the API')
-        result = post_data_from_objects(api_base_url, event_id=None, event=cat,
+        result = post_data_from_objects(self.api_base_url, event_id=None, event=cat,
                                         stream=stream, context_stream=None, tolerance=None)
         logger.info('posting seismic data')
 

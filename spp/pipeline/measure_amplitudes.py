@@ -7,19 +7,40 @@ from ..core.settings import settings
 
 
 class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+    def __init__(self, module_name, app=None, module_type=None):
+        self.__module_name = module_name
+        self.params = settings.get(self.module_name)
+
+    @property
+    def module_name(self):
+        return self.__module_name
 
     def process(
         self,
         cat=None,
         stream=None,
     ):
+        """
+        input:
+        cat and stream
 
-        pulse_min_width = self.module_settings.pulse_min_width
-        pulse_min_snr_P = self.module_settings.pulse_min_snr_P
-        pulse_min_snr_S = self.module_settings.pulse_min_snr_S
-        phase_list = self.module_settings.phase_list
+        obspy modifies the stream in place
+
+        - trace
+        - arrivals
+        - picks
+
+        then measures amplitude for the first motion
+
+        - adds information to the arrivals
+
+        returns: catalog
+        """
+
+        pulse_min_width = self.params.pulse_min_width
+        pulse_min_snr_P = self.params.pulse_min_snr_P
+        pulse_min_snr_S = self.params.pulse_min_snr_S
+        phase_list = self.params.phase_list
 
         if not isinstance(phase_list, list):
             phase_list = [phase_list]

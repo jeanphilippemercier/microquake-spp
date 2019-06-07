@@ -1,18 +1,32 @@
+from obspy.core.event.base import ResourceIdentifier
+
 from loguru import logger
 from microquake.focmec.core import calc_focal_mechanisms
-from obspy.core.event.base import ResourceIdentifier
 
 
 class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+    def __init__(self, module_name, app=None, module_type=None):
+        self.__module_name = module_name
+        self.save_figs = True
+
+    @property
+    def module_name(self):
+        return self.__module_name
 
     def process(
         self,
         cat=None,
         stream=None,
     ):
-        save_figs = True
+        """
+        Needs the catalog
+        - Origin
+        - Picks and Arrivals associated to the Origin
+
+        Returns the focal mechanism
+        - list of angles
+        - two focal planes
+        """
 
         cat_out = cat.copy()
 
@@ -30,7 +44,7 @@ class Processor():
                                                                         referred_object=focal_mechanism)
                 logger.info(event.preferred_focal_mechanism())
 
-            if save_figs:
+            if self.save_figs:
                 for i, fig in enumerate(figs):
                     fig.savefig('foc_mech_%d.png' % i)
 

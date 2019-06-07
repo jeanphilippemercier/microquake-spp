@@ -5,8 +5,12 @@ from microquake.core import UTCDateTime
 
 
 class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+    def __init__(self, module_name, app=None, module_type=None):
+        self.__module_name = module_name
+
+    @property
+    def module_name(self):
+        return self.__module_name
 
     def process(
         self,
@@ -36,8 +40,8 @@ class Processor():
                     'num_samples': nsamp,
                     'amplitude': amplitude,
                 })
-                logger.info('Done analysing signal for station %s, energy: %0.3f, integrity: %0.2f' % (sta, amplitude * 1e6,
-                                                                                                       non_missing_ratio))
+                logger.info('Done analysing signal for station %s, energy: %0.3f, integrity: %0.2f' %
+                            (sta, amplitude * 1e6, non_missing_ratio))
 
         except Exception as e:
             logger.error(e)

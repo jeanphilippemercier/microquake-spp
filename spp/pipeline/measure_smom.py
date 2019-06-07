@@ -7,23 +7,36 @@ from ..core.settings import settings
 
 
 class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+    def __init__(self, module_name, app=None, module_type=None):
+        self.__module_name = module_name
+        self.params = settings.get(self.module_name)
+
+        self.use_fixed_fmin_fmax = self.params.use_fixed_fmin_fmax
+        self.fmin = self.params.fmin
+        self.fmax = self.params.fmax
+        self.phase_list = self.params.phase_list
+
+    @property
+    def module_name(self):
+        return self.__module_name
 
     def process(
         self,
         cat=None,
         stream=None,
     ):
+        """
+        input: catalog, stream
 
-        params = self.module_settings
-        use_fixed_fmin_fmax = params.use_fixed_fmin_fmax
-        fmin = params.fmin
-        fmax = params.fmax
-        phase_list = params.phase_list
+        - origin and picks
 
-        if not isinstance(phase_list, list):
-            phase_list = [phase_list]
+
+        list of corner frequencies for the arrivals
+        returns catalog
+        """
+
+        if not isinstance(self.phase_list, list):
+            phase_list = [self.phase_list]
 
         plot_fit = False
 
@@ -47,8 +60,8 @@ class Processor():
                     smom_dict, fc = measure_pick_smom(st, settings.inventory, event,
                                                       synthetic_picks,
                                                       P_or_S=phase,
-                                                      fmin=fmin, fmax=fmax,
-                                                      use_fixed_fmin_fmax=use_fixed_fmin_fmax,
+                                                      fmin=self.fmin, fmax=self.fmax,
+                                                      use_fixed_fmin_fmax=self.use_fixed_fmin_fmax,
                                                       plot_fit=plot_fit,
                                                       debug_level=1,
                                                       logger_in=logger)

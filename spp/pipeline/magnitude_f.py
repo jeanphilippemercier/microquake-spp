@@ -9,20 +9,39 @@ from ..core.velocity import get_velocities
 
 
 class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+    def __init__(self, module_name, app=None, module_type=None):
+        self.__module_name = module_name
+        self.params = settings.get(self.module_name)
         self.vp_grid, self.vs_grid = get_velocities()
+
+    @property
+    def module_name(self):
+        return self.__module_name
 
     def process(
         self,
         cat=None,
         stream=None,
     ):
+        """
+        calculates magnitude in frequency domain
+        catalog:
+        - various measures
+        - requires the arrivals
+
+        returns catalog:
+        few parameters related to the magitude
+        list of magnitudes for each stations
+        """
+
+        cat_out = cat.copy()
+
         params = settings.get('magnitude')
 
         density = params.density
-        use_free_surface_correction = params.use_free_surface_correction
+        min_dist = 20
         use_sdr_rad = params.smom.use_sdr_rad
+        use_free_surface_correction = params.use_free_surface_correction
         make_preferred = params.smom.make_preferred
         phase_list = params.smom.phase_list
 
@@ -32,8 +51,6 @@ class Processor():
         if use_sdr_rad and cat.preferred_focal_mechanism() is None:
             logger.warning("use_sdr_rad=True but preferred focal mech = None --> Setting use_sdr_rad=False")
             use_sdr_rad = False
-
-        cat_out = cat.copy()
 
         for i, event in enumerate(cat_out):
 
@@ -70,6 +87,7 @@ class Processor():
                     use_sdr_rad=use_sdr_rad,
                     use_free_surface_correction=use_free_surface_correction,
                     sdr=sdr,
+                    min_dist=min_dist,
                     logger_in=logger)
 
                 Mws.append(Mw)
@@ -78,7 +96,6 @@ class Processor():
                 logger.info("Mw_%s=%.1f len(station_mags)=%d" %
                             (phase, Mws[-1], len(station_mags)))
             Mw = np.nanmean(Mws)
-
             comment = "Average of frequency-domain station moment magnitudes"
 
             if use_sdr_rad and sdr is not None:

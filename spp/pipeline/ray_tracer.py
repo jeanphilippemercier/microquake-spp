@@ -6,10 +6,16 @@ from ..core.settings import settings
 
 
 class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+    def __init__(self, module_name, app=None, module_type=None):
+        self.__module_name = module_name
+        self.params = settings.get(self.module_name)
         self.site_code = settings.SITE_CODE
         self.network_code = settings.NETWORK_CODE
+        self.api_url = settings.get('seismic_api').base_url
+
+    @property
+    def module_name(self):
+        return self.__module_name
 
     def process(
         self,
@@ -47,7 +53,7 @@ class Processor():
                                 arrival_id = str(arrival.resource_id)
 
                     # post ray data to api
-                    seismic_client.post_ray(settings.get('seismic_api').base_url,
+                    seismic_client.post_ray(self.api_base_url,
                                             self.site_code, self.network_code, event_id,
                                             origin_id, arrival_id, station_id,
                                             phase, ray.length(), travel_time,

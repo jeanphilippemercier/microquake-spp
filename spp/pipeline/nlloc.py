@@ -9,40 +9,57 @@ import numpy as np
 from loguru import logger
 from microquake.nlloc import NLL, calculate_uncertainty
 
+from ..core.grid import fix_arr_takeoff_and_azimuth
+from ..core.nlloc import nll_sensors, nll_velgrids
 from ..core.settings import settings
 from ..core.velocity import get_velocities
-from ..core.nlloc import nll_velgrids, nll_sensors
-from ..core.grid import fix_arr_takeoff_and_azimuth
 
 
 class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+    def __init__(self, module_name, app=None, module_type=None):
+        self.__module_name = module_name
+        self.params = settings.get(self.module_name)
         self.vp_grid, self.vs_grid = get_velocities()
 
-        project_code = settings.PROJECT_CODE
-        base_folder = settings.nll_base
+        self.project_code = settings.PROJECT_CODE
+        self.base_folder = settings.nll_base
         gridpar = nll_velgrids()
         sensors = nll_sensors()
 
         logger.info("preparing NonLinLoc")
         self.nll = NLL(
-            project_code,
-            base_folder=base_folder,
+            self.project_code,
+            base_folder=self.base_folder,
             gridpar=gridpar,
             sensors=sensors,
-            params=self.module_settings,
+            params=self.params,
         )
         logger.info("done preparing NonLinLoc")
+
+    @property
+    def module_name(self):
+        return self.__module_name
 
     def process(
         self,
         cat=None,
         stream=None,
     ):
-        project_code = settings.PROJECT_CODE
-        base_folder = settings.nll_base
+        """
+        requires an event
+        input: catalog
 
+        montecarlo sampling, change the input get many locations
+        many locations will form a point cloud
+
+        change the x, y,z many times
+
+        returns: x,y,z,time, uncertainty
+        uncertainty measure the effect of errors of the measurements on the results
+        measurement picks, results is the location
+
+        returns point cloud
+        """
         logger.info("running NonLinLoc")
         t0 = time()
         cat_out = self.nll.run_event(cat[0].copy())
@@ -56,11 +73,11 @@ class Processor():
 
         logger.info("calculating Uncertainty")
         t2 = time()
-        picking_error = self.module_settings.picking_error
+        picking_error = self.params.picking_error
         origin_uncertainty = calculate_uncertainty(
             cat_out[0],
-            base_folder,
-            project_code,
+            self.base_folder,
+            self.project_code,
             perturbation=5,
             pick_uncertainty=picking_error,
         )
