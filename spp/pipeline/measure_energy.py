@@ -16,9 +16,11 @@ class Processor():
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
+
         correct_attenuation = self.params.correct_attenuation
         Q = self.params.attenuation_Q
         use_sdr_rad = self.params.use_sdr_rad

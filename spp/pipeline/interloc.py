@@ -18,8 +18,9 @@ class Processor(ProcessingUnit):
 
     def process(
         self,
-        stream=None
+        **kwargs
     ):
+        stream = kwargs["stream"]
 
         detection_threshold = self.params.detection_threshold
         nthreads = self.params.nthreads

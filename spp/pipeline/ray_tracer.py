@@ -19,9 +19,11 @@ class Processor():
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
+
         gd = Grid()
 
         event_id = str(cat[0].resource_id)

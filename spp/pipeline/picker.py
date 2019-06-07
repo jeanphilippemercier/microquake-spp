@@ -39,8 +39,7 @@ class Processor():
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
         """
         Predict picks for event
@@ -51,6 +50,9 @@ class Processor():
         list of picks
         list of phase and time
         """
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
+
         st_in = stream.copy().detrend("demean")
 
         logger.info('cleaning the input stream')

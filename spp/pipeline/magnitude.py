@@ -18,7 +18,7 @@ class Processor(ProcessingUnit):
 
     def process(
         self,
-        cat=None,
+        **kwargs
     ):
         """
         process(catalog)
@@ -39,6 +39,9 @@ class Processor(ProcessingUnit):
         few parameters related to the magitude
         list of magnitudes for each stations
         """
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
+
         cat_out = cat.copy()
 
         density = self.params.density

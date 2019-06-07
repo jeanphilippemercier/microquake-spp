@@ -20,8 +20,7 @@ class Processor():
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
         """
         calculates magnitude in frequency domain
@@ -33,6 +32,8 @@ class Processor():
         few parameters related to the magitude
         list of magnitudes for each stations
         """
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
 
         cat_out = cat.copy()
 

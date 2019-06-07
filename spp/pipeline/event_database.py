@@ -20,9 +20,11 @@ class Processor():
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
+
         logger.info('posting data to the API')
         result = post_data_from_objects(self.api_base_url, event_id=None, event=cat,
                                         stream=stream, context_stream=None, tolerance=None)

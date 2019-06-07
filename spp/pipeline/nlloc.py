@@ -42,8 +42,7 @@ class Processor():
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
         """
         requires an event
@@ -60,6 +59,9 @@ class Processor():
 
         returns point cloud
         """
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
+
         logger.info("running NonLinLoc")
         t0 = time()
         cat_out = self.nll.run_event(cat[0].copy())

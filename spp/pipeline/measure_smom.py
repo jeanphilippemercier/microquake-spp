@@ -22,8 +22,7 @@ class Processor():
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
         """
         input: catalog, stream
@@ -34,6 +33,9 @@ class Processor():
         list of corner frequencies for the arrivals
         returns catalog
         """
+
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
 
         if not isinstance(self.phase_list, list):
             phase_list = [self.phase_list]

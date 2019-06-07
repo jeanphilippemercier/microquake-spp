@@ -2,6 +2,7 @@ import numpy as np
 
 from loguru import logger
 from microquake.core import UTCDateTime
+
 from .processing_unit import ProcessingUnit
 
 
@@ -9,8 +10,11 @@ class Processor(ProcessingUnit):
     def process(
         self,
         cat=None,
-        stream=None,
+        **kwargs
     ):
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
+
         signal_quality_data = []
 
         try:

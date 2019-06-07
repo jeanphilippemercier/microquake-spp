@@ -15,8 +15,7 @@ class Processor():
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
         """
         Needs the catalog
@@ -27,6 +26,9 @@ class Processor():
         - list of angles
         - two focal planes
         """
+
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
 
         cat_out = cat.copy()
 

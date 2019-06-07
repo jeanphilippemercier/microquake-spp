@@ -17,8 +17,7 @@ class Processor():
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
         """
         input:
@@ -36,6 +35,9 @@ class Processor():
 
         returns: catalog
         """
+
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
 
         pulse_min_width = self.params.pulse_min_width
         pulse_min_snr_P = self.params.pulse_min_snr_P
