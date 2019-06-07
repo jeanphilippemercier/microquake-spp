@@ -2,16 +2,10 @@ import numpy as np
 
 from loguru import logger
 from microquake.core import UTCDateTime
+from .processing_unit import ProcessingUnit
 
 
-class Processor():
-    def __init__(self, module_name, app=None, module_type=None):
-        self.__module_name = module_name
-
-    @property
-    def module_name(self):
-        return self.__module_name
-
+class Processor(ProcessingUnit):
     def process(
         self,
         cat=None,

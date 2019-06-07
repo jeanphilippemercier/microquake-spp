@@ -6,29 +6,20 @@ import numpy as np
 from xseis2 import xspy
 
 from loguru import logger
-from microquake.core import AttribDict, UTCDateTime
-from microquake.core.event import Origin
+from microquake.core import UTCDateTime
 from microquake.core.util import tools
 
-from ..core.settings import settings
+from .processing_unit import ProcessingUnit
 
 
-class Processor():
-    def __init__(self, module_name, app=None, module_type=None):
-        self.__module_name = module_name
-        self.params = settings.get(self.module_name)
-        self.htt = app.get_ttable_h5()
-
-    @property
-    def module_name(self):
-        return self.__module_name
+class Processor(ProcessingUnit):
+    def initializer(self):
+        self.htt = self.app.get_ttable_h5()
 
     def process(
         self,
         stream=None
     ):
-        debug_level = settings.DEBUG_LEVEL
-        debug_file_dir = settings.DEBUG_FILE_DIR
 
         detection_threshold = self.params.detection_threshold
         nthreads = self.params.nthreads
@@ -60,7 +51,7 @@ class Processor():
             elif np.max(trace.data) == 0:
                 logger.info('removing trace for station %s' % trace.stats.station)
                 stream.remove(trace)
-            elif trace.stats.station in settings.get('sensors').black_list:
+            elif trace.stats.station in self.sensors.black_list:
                 logger.info('removing trace for station %s' % trace.stats.station)
                 stream.remove(trace)
 
@@ -72,7 +63,7 @@ class Processor():
         channel_map = stream.channel_map().astype(np.uint16)
 
         ikeep = self.htt.index_sta(stream.unique_stations())
-        debug_file = os.path.join(debug_file_dir, "iloc_" + str(t0) + ".npz")
+        debug_file = os.path.join(self.debug_file_dir, "iloc_" + str(t0) + ".npz")
         t5 = time()
         logger.info(
             "done preparing data for Interloc in %0.3f seconds" % (t5 - t4))
@@ -83,7 +74,7 @@ class Processor():
             "data %s,samplerate_decimated %s,channel_map %s,stalocs[ikeep] %s,"
             " ttable_row_ptrs[ikeep] %s,ngrid %s,nthreads %s,debug %s,debug_"
             "file %s", data, samplerate_decimated, channel_map, stalocs[ikeep],
-            ttable_row_ptrs[ikeep], ngrid, nthreads, debug_level, debug_file)
+            ttable_row_ptrs[ikeep], ngrid, nthreads, self.debug_level, debug_file)
 
         out = xspy.pySearchOnePhase(
             data,
@@ -97,7 +88,7 @@ class Processor():
             pair_dist_max,
             cc_smooth_length_sec,
             nthreads,
-            debug_level,
+            self.debug_level,
             debug_file
         )
 
