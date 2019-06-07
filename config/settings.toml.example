@@ -7,6 +7,8 @@ site_code = 'OT'
 network = 'Hugo North Lift 1 Underground Network'
 network_code = 'HNL1'
 single_run = false
+DEBUG_LEVEL = 0
+DEBUG_FILE_DIR = '.'
 
 # nlloc
 nlloc.nll_base = 'NLL'
