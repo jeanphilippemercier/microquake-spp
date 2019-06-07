@@ -10,7 +10,7 @@ class ProcessingUnit(ABC):
         self.module_type = module_type
         self.debug_level = settings.DEBUG_LEVEL
         self.debug_file_dir = settings.DEBUG_FILE_DIR
-        self.settings = settings.sensors
+        self.settings = settings
         self.params = settings.get(self.module_name)
 
         super(ProcessingUnit, self).__init__()
