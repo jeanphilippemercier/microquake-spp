@@ -10,8 +10,8 @@ from ..core.settings import settings
 class Processor():
     def __init__(self, module_name, app=None, module_type=None):
         self.__module_name = module_name
+        self.api_base_url = settings.API_BASE_URL
         self.params = settings.get(self.module_name)
-        self.api_base_url = settings.get('seismic_api').base_url
 
     @property
     def module_name(self):

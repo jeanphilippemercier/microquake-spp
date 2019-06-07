@@ -21,7 +21,7 @@ class APIApplication(Application):
         logger.info("running module with the API")
         self.event_id = event_id
         self.send_to_api = send_to_api
-        self.api_base_url = self.settings.seismic_api.base_url
+        self.api_base_url = self.settings.API_BASE_URL
 
     def retrieve_api_data(self, event_id):
         logger.info("Retrieving data from web_api")

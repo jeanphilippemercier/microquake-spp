@@ -10,7 +10,7 @@ class Processor(ProcessingUnit):
     def initializer(self):
         self.site_code = settings.SITE_CODE
         self.network_code = settings.NETWORK_CODE
-        self.api_url = settings.get('seismic_api').base_url
+        self.api_url = settings.API_BASE_URL
 
     def process(
         self,

@@ -17,12 +17,14 @@ import logging
 import sys
 import time
 from typing import List, Tuple
+from loguru import logger
 
 from obspy.core.event.catalog import Catalog
 
 from microquake.core.stream import Stream
 from spp.utils.kafka_redis_application import KafkaRedisApplication
 from spp.utils.seismic_client import get_event_by_id
+from spp.core.settings import settings
 
 __module_name__ = "initializer"
 
@@ -69,14 +71,13 @@ if __name__ == "__main__":
     app = KafkaRedisApplication(
         module_name=__module_name__, processing_flow_name="automatic"
     )
-    logger = app.get_logger("send_api_data_to_channel", "send_api_data_to_channel.log")
     logger.info("Initialised application")
 
     event_id = sys.argv[1:][0]
 
     logger.info("Retrieving event and waveforms from API: %s", event_id)
     catalog, waveform_stream = retrieve_api_event(
-        app.settings.seismic_api.base_url, event_id, app.settings.sensors.black_list
+        settings.API_BASE_URL, event_id, settings.sensors.black_list
     )
 
     logger.info("Sending event to message bus")

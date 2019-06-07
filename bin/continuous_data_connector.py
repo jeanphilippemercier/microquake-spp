@@ -3,17 +3,19 @@ import logging
 from datetime import datetime
 
 import numpy as np
-from apscheduler.schedulers.background import BlockingScheduler
-from tenacity import after_log, retry, stop_after_attempt, wait_exponential
 
+from apscheduler.schedulers.background import BlockingScheduler
 from microquake.core import UTCDateTime
 from microquake.IMS import web_client
 from spp.pipeline.analyse_signal import \
-    __module_name__ as analyse_signal_module_name
+  __module_name__ as analyse_signal_module_name
 from spp.pipeline.analyse_signal import process as analyse_signal
 from spp.utils import seismic_client
 from spp.utils.application import Application
 from spp.utils.seismic_client import post_signal_quality
+from tenacity import after_log, retry, stop_after_attempt, wait_exponential
+
+from ..core.settings import settings
 
 __module_name__ = "continuous_data_connector"
 app = Application(module_name=__module_name__)
@@ -35,6 +37,7 @@ def process_continuous_data(
     tz,
 ):
     logger.info("Processing continuous data")
+
     if not end_time or not start_time:
         end_time = UTCDateTime.now() - (3600 * 2)
         start_time = end_time - window_size
@@ -59,6 +62,7 @@ def get_continuous_data(
     )
 
     logger.info("Retrieved continuous data from IMS")
+
     return wf
 
 
@@ -70,9 +74,10 @@ def process_signal_analysis(app, logger, stream):
         logger=logger,
         app=app,
         prepared_objects=None,
-        module_settings=app.settings[analyse_signal_module_name],
+        module_settings=settings[analyse_signal_module_name],
     )
     logger.info("Analysed signal quality")
+
     return signal_quality_data
 
 
@@ -80,7 +85,8 @@ def post_all_stations_signals_analysis(
     logger, api_base_url, signal_quality_data
 ):
     logger.info("Posting all station signal quality data")
-    api_base_url = app.settings.get('seismic_api').base_url
+    api_base_url = settings.API_BASE_URL
+
     for station in signal_quality_data:
         logger.info(
             "posting data quality information to the API for station: %s"
@@ -106,7 +112,7 @@ def post_all_stations_signals_analysis(
 )
 def post_station_signals_analysis(
     api_base_url, station_code, energy, integrity, sampling_rate, num_samples, amplitude
-):  
+):
     signal_quality = {
         "energy": str(np.nan_to_num(energy)),
         "integrity": str(np.nan_to_num(integrity)),
@@ -116,6 +122,7 @@ def post_station_signals_analysis(
         "station": station_code,
     }
     result = post_signal_quality(api_base_url, signal_quality)
+
     if result.status_code != 201:
         raise Exception(
             "Could not post signals analysis data to api, status code {}".format(
@@ -164,19 +171,22 @@ def main():
     start_time = args.start_time
 
     site = app.get_stations()
-    ims_base_url = app.settings.get('data_connector').path
-    api_base_url = app.settings.get('seismic_api').base_url
+    ims_base_url = settings.get('data_connector').path
+    api_base_url = settings.API_BASE_URL
     tz = app.get_time_zone()
 
     site_ids = [
         int(station.code)
+
         for station in site.stations()
-        if station.code not in app.settings.get('sensors').black_list
+
+        if station.code not in settings.sensors.black_list
     ]
 
     app.logger.info(
         "Retrieving continuous data, analysing signals, and posting to API"
     )
+
     if mode == "single":
         app.logger.info("Processing a single block of data")
         process_continuous_data(
@@ -199,7 +209,7 @@ def main():
         scheduler.add_job(
             process_continuous_data,
             "interval",
-            seconds=3600, # every hour
+            seconds=3600,  # every hour
             next_run_time=datetime.now(),
             max_instances=3,
             args=[
