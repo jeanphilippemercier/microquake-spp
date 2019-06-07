@@ -58,10 +58,10 @@ class Settings(LazySettings):
                                      self.get('nlloc').nll_base)
         self.grids = settings.get('grids')
 
-        sensors = settings.get('sensors')
-        if sensors.source == 'local':
+        self.sensors = settings.get('sensors')
+        if self.sensors.source == 'local':
             # MTH: let's read in the stationxml directly for now!
-            fpath = os.path.join(settings.common_dir, sensors.stationXML)
+            fpath = os.path.join(settings.common_dir, self.sensors.stationXML)
             self.inventory = Inventory.load_from_xml(fpath)
 
             # fpath = os.path.join(settings.common_dir, sensors.path)
@@ -69,7 +69,7 @@ class Settings(LazySettings):
 
             logger.info("Application: Load Inventory from:[%s]" % fpath)
 
-        elif settings.get('sensors').source == 'remote':
+        elif self.sensors.get('sensors').source == 'remote':
             self.inventory = None
             pass
 

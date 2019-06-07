@@ -183,10 +183,10 @@ class Application(object):
         logger.info("processing event %s", str(cat[0].resource_id))
 
         if processor.module_name == 'interloc':
-            st_out = stream.copy()
             x, y, z, vmax, normed_vmax, imax, iot, utctime, method = processor.process(stream=stream)
             # TODO: check if pass by reference
             interloc_cat(x, y, z, vmax, normed_vmax, imax, iot, utctime, method, cat)
+            _, st_out = self.deserialise_message(msg_in)
             cat_out = cat
 
         elif not kwargs:
