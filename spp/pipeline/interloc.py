@@ -102,7 +102,15 @@ class Processor(ProcessingUnit):
 
         ot_epoch = tools.datetime_to_epoch_sec(
             (t0 + iot / samplerate_decimated).datetime)
-        utcdatetime = UTCDateTime(datetime.fromtimestamp((ot_epoch)))
+        event_time = UTCDateTime(datetime.fromtimestamp((ot_epoch)))
         method = "%s" % ("INTERLOC",)
 
-        return (lmax[0], lmax[1], lmax[2], vmax, normed_vmax, imax, iot, utcdatetime, method)
+        response = {'x': lmax[0],
+                    'y': lmax[1],
+                    'z': lmax[2],
+                    'vmax': vmax,
+                    'normed_vmax': normed_vmax,
+                    'event_time': event_time,
+                    'method': method}
+
+        return response
