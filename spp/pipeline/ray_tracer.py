@@ -3,19 +3,14 @@ from spp.utils import seismic_client
 from spp.utils.grid import Grid
 
 from ..core.settings import settings
+from .processing_unit import ProcessingUnit
 
 
-class Processor():
-    def __init__(self, module_name, app=None, module_type=None):
-        self.__module_name = module_name
-        self.params = settings.get(self.module_name)
+class Processor(ProcessingUnit):
+    def initializer(self):
         self.site_code = settings.SITE_CODE
         self.network_code = settings.NETWORK_CODE
         self.api_url = settings.get('seismic_api').base_url
-
-    @property
-    def module_name(self):
-        return self.__module_name
 
     def process(
         self,

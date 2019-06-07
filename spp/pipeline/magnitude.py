@@ -12,10 +12,6 @@ class Processor(ProcessingUnit):
     def initializer(self):
         self.vp_grid, self.vs_grid = get_velocities()
 
-    @property
-    def module_name(self):
-        return self.__module_name
-
     def process(
         self,
         **kwargs

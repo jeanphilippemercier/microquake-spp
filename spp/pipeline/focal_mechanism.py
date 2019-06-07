@@ -1,17 +1,11 @@
-from obspy.core.event.base import ResourceIdentifier
-
 from loguru import logger
 from microquake.focmec.core import calc_focal_mechanisms
+from obspy.core.event.base import ResourceIdentifier
 
 
 class Processor():
-    def __init__(self, module_name, app=None, module_type=None):
-        self.__module_name = module_name
+    def initializer(self):
         self.save_figs = True
-
-    @property
-    def module_name(self):
-        return self.__module_name
 
     def process(
         self,
@@ -32,11 +26,8 @@ class Processor():
 
         cat_out = cat.copy()
 
-        logger.info("Calculate focal mechanisms")
-
-        focal_mechanisms, figs = calc_focal_mechanisms(cat_out, self.module_settings, logger_in=logger)
-
-        logger.info("Calculate focal mechanisms [DONE]")
+        focal_mechanisms, figs = calc_focal_mechanisms(cat, self.params,
+                                                       logger_in=logger)
 
         if len(focal_mechanisms) > 0:
             for i, event in enumerate(cat_out):

@@ -4,17 +4,10 @@ from microquake.waveform.amp_measures import measure_pick_amps
 from microquake.waveform.transforms import rotate_to_ENZ, rotate_to_P_SV_SH
 
 from ..core.settings import settings
+from .processing_unit import ProcessingUnit
 
 
-class Processor():
-    def __init__(self, module_name, app=None, module_type=None):
-        self.__module_name = module_name
-        self.params = settings.get(self.module_name)
-
-    @property
-    def module_name(self):
-        return self.__module_name
-
+class Processor(ProcessingUnit):
     def process(
         self,
         **kwargs

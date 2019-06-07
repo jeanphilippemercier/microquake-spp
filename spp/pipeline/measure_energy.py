@@ -3,16 +3,13 @@ from microquake.waveform.amp_measures import calc_velocity_flux
 from microquake.waveform.mag import calculate_energy_from_flux
 
 from ..core.settings import settings
+from .processing_unit import ProcessingUnit
 
 
-class Processor():
+class Processor(ProcessingUnit):
     def __init__(self, module_name, app=None, module_type=None):
         self.__module_name = module_name
         self.params = settings.get(self.module_name)
-
-    @property
-    def module_name(self):
-        return self.__module_name
 
     def process(
         self,

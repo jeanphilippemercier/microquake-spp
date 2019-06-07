@@ -11,18 +11,16 @@ from microquake.nlloc import NLL, calculate_uncertainty
 
 from ..core.grid import fix_arr_takeoff_and_azimuth
 from ..core.nlloc import nll_sensors, nll_velgrids
-from ..core.settings import settings
 from ..core.velocity import get_velocities
+from .processing_unit import ProcessingUnit
 
 
-class Processor():
-    def __init__(self, module_name, app=None, module_type=None):
-        self.__module_name = module_name
-        self.params = settings.get(self.module_name)
+class Processor(ProcessingUnit):
+    def initializer(self):
         self.vp_grid, self.vs_grid = get_velocities()
 
-        self.project_code = settings.PROJECT_CODE
-        self.base_folder = settings.nll_base
+        self.project_code = self.settings.PROJECT_CODE
+        self.base_folder = self.settings.nll_base
         gridpar = nll_velgrids()
         sensors = nll_sensors()
 
@@ -35,10 +33,6 @@ class Processor():
             params=self.params,
         )
         logger.info("done preparing NonLinLoc")
-
-    @property
-    def module_name(self):
-        return self.__module_name
 
     def process(
         self,

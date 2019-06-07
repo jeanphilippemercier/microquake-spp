@@ -9,15 +9,12 @@ from microquake.waveform.pick import snr_picker
 
 from ..core.grid import (create_arrivals_from_picks, estimate_origin_time,
                          synthetic_arrival_times)
-from ..core.settings import settings
+from .processing_unit import ProcessingUnit
 
 
-class Processor():
+class Processor(ProcessingUnit):
 
-    def __init__(self, module_name, app=None, module_type=None):
-        self.__module_name = module_name
-        self.params = settings.get(self.module_name)
-
+    def initializer(self):
         self.freq_min = self.params.waveform_filter.frequency_min
         self.freq_max = self.params.waveform_filter.frequency_max
         self.residual_tolerance = self.params.residual_tolerance
@@ -32,10 +29,6 @@ class Processor():
         self.s_wave_noise = self.params.s_wave.snr_window.noise
         self.s_wave_signal = self.params.s_wave.snr_window.signal
         self.snr_threshold = self.params.snr_threshold
-
-    @property
-    def module_name(self):
-        return self.__module_name
 
     def process(
         self,

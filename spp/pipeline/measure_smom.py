@@ -4,21 +4,15 @@ from obspy.core.event.base import Comment
 
 from ..core.grid import synthetic_arrival_times
 from ..core.settings import settings
+from .processing_unit import ProcessingUnit
 
 
-class Processor():
-    def __init__(self, module_name, app=None, module_type=None):
-        self.__module_name = module_name
-        self.params = settings.get(self.module_name)
-
+class Processor(ProcessingUnit):
+    def initializer(self):
         self.use_fixed_fmin_fmax = self.params.use_fixed_fmin_fmax
         self.fmin = self.params.fmin
         self.fmax = self.params.fmax
         self.phase_list = self.params.phase_list
-
-    @property
-    def module_name(self):
-        return self.__module_name
 
     def process(
         self,
