@@ -7,6 +7,7 @@ import argparse
 import importlib.util
 
 from ..core.settings import settings
+from loguru import logger
 
 
 class CLI:
