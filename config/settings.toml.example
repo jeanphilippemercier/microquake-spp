@@ -7,6 +7,10 @@ site_code = 'OT'
 network = 'Hugo North Lift 1 Underground Network'
 network_code = 'HNL1'
 single_run = false
+debug_level = 0
+debug_file_dir = './common'
+api_base_url = 'https://api.microquake.org/api/v1/'
+# api_base_url = 'http://127.0.0.1:8000/api/v1/'
 
 # nlloc
 nlloc.nll_base = 'NLL'
@@ -22,21 +26,6 @@ nlloc.output_data_name = 'hypocenter_location_set'
 nlloc.log_file_name = 'hypocenter_location_nlloc.log'
 nlloc.log_topic = 'hypocenter Location NonLinLoc'
 nlloc.picking_error = 0.001
-
-# nlloc_adjustment
-nlloc_adjustment.nll_base = 'NLL'
-nlloc_adjustment.locsig = 'Oyu Tolgoi Geotechnical Monitoring Team'
-nlloc_adjustment.loccom = 'Prototype'
-nlloc_adjustment.residual_tolerance = 10e-3
-# locsearch = 'OCT 20 20 30 1e-6 50000 1000 0 1'
-# locsearch = 'OCT 10 10 10 1e-6 20000 1000 0 1'
-nlloc_adjustment.locsearch = 'OCT 5 5 5 1e-6 5000 500 0 1'
-nlloc_adjustment.locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
-nlloc_adjustment.locgau = ''
-nlloc_adjustment.output_data_name = 'hypocenter_location_adjusted'
-nlloc_adjustment.log_file_name = 'hypocenter_location_nlloc.log'
-nlloc_adjustment.log_topic = 'hypocenter Location NonLinLoc'
-nlloc_adjustment.picking_error = 0.001
 
 time_zone.type = 'UTC_offset'                # either 'UTC_offset or 'time_zone'
 time_zone.time_zone_code = 'ULN'             # time zone code. If type=time_zone, time_zone_code must be a valid pytz timezone
@@ -129,8 +118,6 @@ interloc.pair_dist_min = 0.0
 interloc.pair_dist_max = 2000.0
 interloc.cc_smooth_length_sec = 0.005
 interloc.detection_threshold = 0.2
-interloc.debug_level = 0
-interloc.debug_file_dir = './common'
 interloc.output_data_name = 'event_located'
 interloc.log_topic = 'interloc'
 interloc.log_file_name = 'interloc.log'
@@ -276,8 +263,6 @@ continuous_db.events_inuse_collection = 'events_inuse'
 continuous_db.filestore_base_dir = '/Users/hanee/Rio_Tinto/data/'
 continuous_db.inuse_ttl = 300
 
-seismic_api.base_url = 'https://api.microquake.org/api/v1/'
-# base_url = 'http://127.0.0.1:8000/api/v1/'
 
 redis_db.host = 'spp-redis-dev-master'
 # redis_db.password = ''
