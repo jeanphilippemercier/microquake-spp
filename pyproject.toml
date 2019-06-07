@@ -45,7 +45,8 @@ h5py = "^2.9"
 pandas = "^0.24.2"
 pytest-parallel = "^0.0.9"
 loguru = "^0.2.5"
-microquake-hashwrap = "^0.0.4"
+grpcio-tools = "*"
+microquake-hashwrap = "^0.0.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
