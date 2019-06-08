@@ -24,15 +24,12 @@ class Processor(ProcessingUnit):
         """
 
         cat = kwargs["cat"]
-        stream = kwargs["stream"]
-
-        cat_out = cat.copy()
 
         focal_mechanisms, figs = calc_focal_mechanisms(cat, self.params,
                                                        logger_in=logger)
 
         if len(focal_mechanisms) > 0:
-            for i, event in enumerate(cat_out):
+            for i, event in enumerate(cat):
                 focal_mechanism = focal_mechanisms[i]
                 event.focal_mechanisms = [focal_mechanism]
                 event.preferred_focal_mechanism_id = ResourceIdentifier(id=focal_mechanism.resource_id.id,
@@ -43,11 +40,13 @@ class Processor(ProcessingUnit):
                 for i, fig in enumerate(figs):
                     fig.savefig('foc_mech_%d.png' % i)
 
-        return {'cat': cat_out, 'stream': stream}
+        return {'cat': cat}
 
     def legacy_pipeline_handler(
         self,
         msg_in,
         res
     ):
-        return res['cat'], res['stream']
+        _, stream = self.app.deserialise_message(msg_in)
+
+        return res['cat'], stream
