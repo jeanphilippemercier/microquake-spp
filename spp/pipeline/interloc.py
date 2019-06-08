@@ -107,10 +107,15 @@ class Processor(ProcessingUnit):
         logger.info("=======================================\n")
         logger.info("VMAX over threshold (%.3f)" % (vmax))
 
-        return {
-            'x': lmax[0], 'y': lmax[1], 'z': lmax[2], 'vmax': vmax, 'normed_vmax': normed_vmax,
-            'imax': imax, 'iot': iot, 'time': ot_epoch, 'method': method
-        }
+        response = {'x': lmax[0],
+                    'y': lmax[1],
+                    'z': lmax[2],
+                    'vmax': vmax,
+                    'normed_vmax': normed_vmax,
+                    'event_time': ot_epoch,
+                    'method': method}
+
+        return response
 
     def legacy_pipeline_handler(
         self,
@@ -125,10 +130,10 @@ class Processor(ProcessingUnit):
         vmax = res['vmax']
         normed_vmax = res['normed_vmax']
         method = res['method']
-        time = UTCDateTime(datetime.fromtimestamp(res['time']))
+        event_time = UTCDateTime(datetime.fromtimestamp(res['event_time']))
 
         cat[0].origins.append(
-            Origin(x=x, y=y, z=z, time=time,
+            Origin(x=x, y=y, z=z, time=event_time,
                    method_id=method, evalution_status="preliminary",
                    evaluation_mode="automatic")
         )
