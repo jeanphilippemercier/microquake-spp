@@ -22,7 +22,7 @@ class TestApplication(Application):
             processing_flow_name=processing_flow_name,
         )
         self.input_data = input_data
-        logger.info("running tests for module %s", module_name)
+        logger.info("running tests for module {}", module_name)
 
     def get_message(self):
         catalog, waveform_stream = self.input_data

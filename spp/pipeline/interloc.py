@@ -6,7 +6,8 @@ import numpy as np
 from xseis2 import xspy
 
 from loguru import logger
-from microquake.core import UTCDateTime
+from microquake.core import AttribDict, UTCDateTime
+from microquake.core.event import Origin
 from microquake.core.util import tools
 
 from .processing_unit import ProcessingUnit
@@ -57,7 +58,6 @@ class Processor(ProcessingUnit):
                 stream.remove(trace)
 
         data, samplerate, t0 = stream.as_array(fixed_wlen_sec)
-        logger.info("data: %s", data)
         data = np.nan_to_num(data)
         decimate_factor = int(samplerate / samplerate_decimated)
         data = tools.decimate(data, samplerate, decimate_factor)
@@ -72,10 +72,8 @@ class Processor(ProcessingUnit):
         logger.info("Locating event with Interloc")
         t6 = time()
         logger.info(
-            "data %s,samplerate_decimated %s,channel_map %s,stalocs[ikeep] %s,"
-            " ttable_row_ptrs[ikeep] %s,ngrid %s,nthreads %s,debug %s,debug_"
-            "file %s", data, samplerate_decimated, channel_map, stalocs[ikeep],
-            ttable_row_ptrs[ikeep], ngrid, nthreads, self.debug_level, debug_file)
+            "samplerate_decimated {}, ngrid {}, nthreads {}, debug {}, debug_file {}",
+            samplerate_decimated, ngrid, nthreads, self.debug_level, debug_file)
 
         out = xspy.pySearchOnePhase(
             data,
@@ -97,12 +95,49 @@ class Processor(ProcessingUnit):
         normed_vmax = vmax * fixed_wlen_sec
         lmax = self.htt.icol_to_xyz(imax)
         t7 = time()
-        logger.info(
-            "Done locating event with Interloc in %0.3f seconds" % (t7 - t6))
+        logger.info("Done locating event with Interloc in %0.3f seconds" % (t7 - t6))
 
         ot_epoch = tools.datetime_to_epoch_sec(
             (t0 + iot / samplerate_decimated).datetime)
-        utcdatetime = UTCDateTime(datetime.fromtimestamp((ot_epoch)))
+
         method = "%s" % ("INTERLOC",)
 
-        return (lmax[0], lmax[1], lmax[2], vmax, normed_vmax, imax, iot, utcdatetime, method)
+        logger.info("power: %.3f, ix_grid: %d, ix_ot: %d" % (vmax, imax, iot))
+        logger.info("utm_loc: {}", lmax)
+        logger.info("=======================================\n")
+        logger.info("VMAX over threshold (%.3f)" % (vmax))
+
+        return {
+            'x': lmax[0], 'y': lmax[1], 'z': lmax[2], 'vmax': vmax, 'normed_vmax': normed_vmax,
+            'imax': imax, 'iot': iot, 'time': ot_epoch, 'method': method
+        }
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        cat, stream = self.app.deserialise_message(msg_in)
+
+        x = res['x']
+        y = res['y']
+        z = res['z']
+        vmax = res['vmax']
+        normed_vmax = res['normed_vmax']
+        method = res['method']
+        time = UTCDateTime(datetime.fromtimestamp(res['time']))
+
+        cat[0].origins.append(
+            Origin(x=x, y=y, z=z, time=time,
+                   method_id=method, evalution_status="preliminary",
+                   evaluation_mode="automatic")
+        )
+        cat[0].preferred_origin_id = cat[0].origins[-1].resource_id.id
+
+        cat[0].preferred_origin().extra.interloc_vmax \
+            = AttribDict({'value': vmax, 'namespace': 'MICROQUAKE'})
+
+        cat[0].preferred_origin().extra.interloc_normed_vmax \
+            = AttribDict({'value': normed_vmax, 'namespace': 'MICROQUAKE'})
+
+        return cat, stream

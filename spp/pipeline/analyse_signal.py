@@ -9,7 +9,6 @@ from .processing_unit import ProcessingUnit
 class Processor(ProcessingUnit):
     def process(
         self,
-        cat=None,
         **kwargs
     ):
         cat = kwargs["cat"]

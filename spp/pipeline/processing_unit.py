@@ -23,3 +23,7 @@ class ProcessingUnit(ABC):
     @abstractmethod
     def initializer(self):
         """ initialize processing unit """
+
+    def legacy_pipeline_handler(self, msg_in, res):
+        cat, stream = self.app.deserialise_message(msg_in)
+        return cat, stream
