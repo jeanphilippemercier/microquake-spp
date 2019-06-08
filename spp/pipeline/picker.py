@@ -46,12 +46,8 @@ class Processor(ProcessingUnit):
         cat = kwargs["cat"]
         stream = kwargs["stream"]
 
-        st_in = stream.copy().detrend("demean")
-
         logger.info('cleaning the input stream')
-        # st = is_valid(st_in, return_stream=True, freqmin=freq_min,
-        #               freqmax=freq_max)
-        st = st_in.copy()
+        st = stream.detrend("demean")
         logger.info('done cleaning the input stream. %d of %d stations kept.' %
                     (len(st.unique_stations()), len(stream.unique_stations())))
 
@@ -81,7 +77,7 @@ class Processor(ProcessingUnit):
         snr_picks_len = []
 
         for ot_utc in ot_utcs:
-            logger.info("predicting picks for origin time %s" % ot_utc)
+            logger.info("predicting picks for origin time {}", ot_utc)
             t2 = time()
             o_loc = cat[0].preferred_origin().loc
             picks = synthetic_arrival_times(o_loc, ot_utc)
@@ -185,7 +181,6 @@ class Processor(ProcessingUnit):
         logger.info("creating arrivals")
         t8 = time()
         arrivals = create_arrivals_from_picks(snr_picks_filtered, loc, ot_utc)
-        # import pdb; pdb.set_trace()
 
         t9 = time()
         logger.info("done creating arrivals in %0.3f seconds" % (t9 - t8))
@@ -195,7 +190,7 @@ class Processor(ProcessingUnit):
 
         t11 = time()
 
-        logger.info("Origin time: %s" % ot_utc)
+        logger.info("Origin time: {}", ot_utc)
         logger.info("Total number of picks: %d" % len(arrivals))
 
         logger.info(
@@ -214,8 +209,25 @@ class Processor(ProcessingUnit):
         origin.creation_info = CreationInfo(creation_time=UTCDateTime.now())
         origin.method_id = "PICKER_FOR_HOLDING_ARRIVALS"
 
-        cat[0].picks += snr_picks_filtered
-        cat[0].origins += [origin]
-        cat[0].preferred_origin_id = origin.resource_id.id
+        response = {'picks': snr_picks_filtered,
+                    'origins': [origin],
+                    'preferred_origin_id': origin.resource_id.id}
+
+        return response
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        cat, stream = self.app.deserialise_message(msg_in)
+
+        picks = res['picks']
+        origins = res['origins']
+        preferred_origin_id = res['preferred_origin_id']
+
+        cat[0].picks += picks
+        cat[0].origins += origins
+        cat[0].preferred_origin_id = preferred_origin_id
 
         return cat, stream

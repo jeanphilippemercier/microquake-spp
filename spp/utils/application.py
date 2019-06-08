@@ -157,15 +157,9 @@ class Application(object):
         (cat, stream) = self.clean_message((cat, stream))
         logger.info("processing event %s", str(cat[0].resource_id))
 
-        if processor.module_name == 'interloc':
-            res = processor.process(stream=stream)
+        res = processor.process(cat=cat, stream=stream)
 
-            cat_out, st_out = processor.legacy_pipeline_handler(msg_in, res)
-        elif not kwargs:
-            cat_out, st_out = processor.process(cat=cat, stream=stream)
-        else:
-            cat_out, st_out = processor.process(cat=cat, stream=stream,
-                                                **kwargs)
+        cat_out, st_out = processor.legacy_pipeline_handler(msg_in, res)
 
         return cat_out, st_out
 
