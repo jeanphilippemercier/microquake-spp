@@ -8,15 +8,8 @@ from ..core.settings import settings
 
 
 class Processor():
-    def __init__(self, module_name, app=None, module_type=None):
-        self.__module_name = module_name
+    def initializer(self):
         self.api_base_url = settings.API_BASE_URL
-        self.params = settings.get(self.module_name)
-
-    @property
-    def module_name(self):
-        return self.__module_name
-
 
     def process(
         self,
@@ -36,4 +29,11 @@ class Processor():
             logger.error('Error in postion data to the API. Returned with '
                          'error code %d' % result.status_code)
 
-        return cat, stream
+        return kwargs
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        return res['cat'], res['stream']
