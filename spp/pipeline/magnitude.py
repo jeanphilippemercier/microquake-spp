@@ -36,9 +36,6 @@ class Processor(ProcessingUnit):
         list of magnitudes for each stations
         """
         cat = kwargs["cat"]
-        stream = kwargs["stream"]
-
-        cat_out = cat.copy()
 
         density = self.params.density
         min_dist = self.params.min_dist
@@ -62,7 +59,7 @@ class Processor(ProcessingUnit):
             logger.warning("use_sdr_rad=True but preferred focal mech = None --> Setting use_sdr_rad=False")
             use_sdr_rad = False
 
-        for i, event in enumerate(cat_out):
+        for i, event in enumerate(cat):
 
             ev_loc = event.preferred_origin().loc
             vp = self.vp_grid.interpolate(ev_loc)[0]
@@ -122,4 +119,13 @@ class Processor(ProcessingUnit):
 
             set_new_event_mag(event, station_mags, Mw, comment, make_preferred=make_preferred)
 
-        return cat_out, stream
+        return {'cat': cat}
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        _, stream = self.app.deserialise_message(msg_in)
+
+        return res['cat'], stream

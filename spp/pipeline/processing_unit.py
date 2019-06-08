@@ -1,9 +1,7 @@
-from abc import ABC, abstractmethod
-
 from ..core.settings import settings
 
 
-class ProcessingUnit(ABC):
+class ProcessingUnit(object):
     def __init__(self, module_name, app=None, module_type=None):
         self.__module_name = module_name
         self.app = app
@@ -20,7 +18,6 @@ class ProcessingUnit(ABC):
     def module_name(self):
         return self.__module_name
 
-    @abstractmethod
     def initializer(self):
         """ initialize processing unit """
 

@@ -17,7 +17,6 @@ class Processor(ProcessingUnit):
         **kwargs
     ):
         cat = kwargs["cat"]
-        stream = kwargs["stream"]
 
         gd = Grid()
 
@@ -56,4 +55,13 @@ class Processor(ProcessingUnit):
                                             phase, ray.length(), travel_time,
                                             azimuth, toa, ray.nodes)
 
-        return cat, stream
+        return {'cat': cat}
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        _, stream = self.app.deserialise_message(msg_in)
+
+        return res['cat'], stream

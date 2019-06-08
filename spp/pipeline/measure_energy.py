@@ -7,10 +7,6 @@ from .processing_unit import ProcessingUnit
 
 
 class Processor(ProcessingUnit):
-    def __init__(self, module_name, app=None, module_type=None):
-        self.__module_name = module_name
-        self.params = settings.get(self.module_name)
-
     def process(
         self,
         **kwargs
@@ -31,24 +27,30 @@ class Processor(ProcessingUnit):
         if not isinstance(phase_list, list):
             phase_list = [phase_list]
 
-        cat_out = cat.copy()
-        st = stream.copy()
-
-        missing_responses = st.attach_response(settings.inventory)
+        missing_responses = stream.attach_response(settings.inventory)
 
         for sta in missing_responses:
             logger.warning("Inventory: Missing response for sta:%s" % sta)
 
-        calc_velocity_flux(st,
-                           cat_out,
+        calc_velocity_flux(stream,
+                           cat,
                            phase_list=phase_list,
                            correct_attenuation=correct_attenuation,
                            Q=Q,
                            debug=False,
                            logger_in=logger)
 
-        calculate_energy_from_flux(cat_out,
+        calculate_energy_from_flux(cat,
                                    use_sdr_rad=use_sdr_rad,
                                    logger_in=logger)
 
-        return cat_out, st
+        return {'cat': cat}
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        _, stream = self.app.deserialise_message(msg_in)
+
+        return res['cat'], stream

@@ -31,29 +31,23 @@ class Processor(ProcessingUnit):
         cat = kwargs["cat"]
         stream = kwargs["stream"]
 
-        if not isinstance(self.phase_list, list):
-            phase_list = [self.phase_list]
-
         plot_fit = False
 
-        st = stream.copy()
-        cat_out = cat.copy()
-
-        missing_responses = st.attach_response(settings.inventory)
+        missing_responses = stream.attach_response(settings.inventory)
 
         for sta in missing_responses:
             logger.warning("Inventory: Missing response for sta:%s" % sta)
 
-        for event in cat_out:
+        for event in cat:
             origin = event.preferred_origin()
             synthetic_picks = synthetic_arrival_times(origin.loc, origin.time)
 
-            for phase in phase_list:
+            for phase in self.phase_list:
 
                 logger.info("Call measure_pick_smom for phase=[%s]" % phase)
 
                 try:
-                    smom_dict, fc = measure_pick_smom(st, settings.inventory, event,
+                    smom_dict, fc = measure_pick_smom(stream, settings.inventory, event,
                                                       synthetic_picks,
                                                       P_or_S=phase,
                                                       fmin=self.fmin, fmax=self.fmax,
@@ -70,4 +64,13 @@ class Processor(ProcessingUnit):
                                   (phase, fc, phase))
                 origin.comments.append(comment)
 
-        return cat_out, stream
+        return {'cat': cat}
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        _, stream = self.app.deserialise_message(msg_in)
+
+        return res['cat'], stream
