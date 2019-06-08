@@ -7,7 +7,7 @@ ENV PATH="/ve/bin:${PATH}"
 
 RUN bash -c ". /ve/bin/activate ; cd libs/microquake; pip install -e ."
 # WARNING: private_token should not be in here
-RUN curl -o xseis2-0.1.1-cp37-cp37m-linux_x86_64.whl -J -L "https://git.microquake.org/api/v4/projects/13/jobs/3036/artifacts/dist/xseis2-0.1.1-cp37-cp37m-linux_x86_64.whl?private_token=A9kAyWM7-Qa57QLpwt66"
+RUN curl -o xseis2-0.1.1-cp37-cp37m-linux_x86_64.whl -J -L "https://git.microquake.org/api/v4/projects/13/jobs/3650/artifacts/dist/xseis2-0.1.3-cp37-cp37m-linux_x86_64.whl?private_token=A9kAyWM7-Qa57QLpwt66"
 RUN bash -c ". /ve/bin/activate ; pip install xseis*whl ; rm *whl"
 RUN bash -c ". /ve/bin/activate ; poetry install"
 RUN bash -c ". /ve/bin/activate ; pip install confluent-kafka"
