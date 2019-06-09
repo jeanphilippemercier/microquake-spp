@@ -40,7 +40,6 @@ class Processor(ProcessingUnit):
         if not isinstance(phase_list, list):
             phase_list = [phase_list]
 
-
         missing_responses = stream.attach_response(settings.inventory)
 
         for sta in missing_responses:
@@ -51,7 +50,7 @@ class Processor(ProcessingUnit):
         st = st_rot
 
         # 2. Rotate traces to P,SV,SH wrt event location
-        st_new = rotate_to_P_SV_SH(stream, cat)
+        st_new = rotate_to_P_SV_SH(st, cat)
         st = st_new
 
         # 3. Measure polarities, displacement areas, etc for each pick from instrument deconvolved traces
