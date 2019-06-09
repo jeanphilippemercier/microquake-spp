@@ -107,4 +107,13 @@ class Processor(ProcessingUnit):
             )
             logger.info("distance between two location %0.2f m" % dist)
 
-        return cat_out, stream
+        return {'cat': cat_out}
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        _, stream = self.app.deserialise_message(msg_in)
+
+        return res['cat'], stream
