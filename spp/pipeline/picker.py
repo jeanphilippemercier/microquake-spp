@@ -43,6 +43,8 @@ class Processor(ProcessingUnit):
         list of picks
         list of phase and time
         """
+        logger.info("pipeline: picker")
+
         cat = kwargs["cat"]
         stream = kwargs["stream"]
 

@@ -23,6 +23,8 @@ class Processor(ProcessingUnit):
         - two focal planes
         """
 
+        logger.info("pipeline: focal_mechanism")
+
         cat = kwargs["cat"]
 
         focal_mechanisms, figs = calc_focal_mechanisms(cat, self.params,

@@ -28,6 +28,8 @@ class Processor(ProcessingUnit):
         returns catalog
         """
 
+        logger.info("pipeline: measure smom")
+
         cat = kwargs["cat"]
         stream = kwargs["stream"]
 

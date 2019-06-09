@@ -16,6 +16,8 @@ class Processor(ProcessingUnit):
         self,
         **kwargs
     ):
+        logger.info("pipeline: raytracer")
+
         cat = kwargs["cat"]
 
         gd = Grid()

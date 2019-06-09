@@ -35,6 +35,8 @@ class Processor(ProcessingUnit):
         few parameters related to the magitude
         list of magnitudes for each stations
         """
+        logger.info("pipeline: magnitude")
+
         cat = kwargs["cat"]
 
         density = self.params.density

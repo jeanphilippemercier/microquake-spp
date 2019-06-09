@@ -53,6 +53,8 @@ class Processor(ProcessingUnit):
 
         returns point cloud
         """
+        logger.info("pipeline: nlloc")
+
         cat = kwargs["cat"]
         stream = kwargs["stream"]
 

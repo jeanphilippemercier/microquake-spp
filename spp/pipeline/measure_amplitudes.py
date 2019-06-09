@@ -29,6 +29,8 @@ class Processor(ProcessingUnit):
         returns: catalog
         """
 
+        logger.info("pipeline: measure_amplitudes")
+
         cat = kwargs["cat"]
         stream = kwargs["stream"]
 

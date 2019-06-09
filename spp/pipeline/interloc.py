@@ -21,6 +21,8 @@ class Processor(ProcessingUnit):
         self,
         **kwargs
     ):
+        logger.info("pipeline: interloc")
+
         stream = kwargs["stream"]
 
         detection_threshold = self.params.detection_threshold

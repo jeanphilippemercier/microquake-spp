@@ -11,6 +11,8 @@ class Processor(ProcessingUnit):
         self,
         **kwargs
     ):
+        logger.info("pipeline: measure energy")
+
         cat = kwargs["cat"]
         stream = kwargs["stream"]
 

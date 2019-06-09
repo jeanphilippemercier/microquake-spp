@@ -27,6 +27,8 @@ class Processor(ProcessingUnit):
         few parameters related to the magitude
         list of magnitudes for each stations
         """
+        logger.info("pipeline: magnitude_f")
+
         cat = kwargs["cat"]
 
         params = settings.get('magnitude')
