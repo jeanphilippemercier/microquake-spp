@@ -42,8 +42,8 @@ class RequestEvent:
 
     def get_context_waveforms(self):
         waveform_context_file = requests.request('GET',
-                                                 self.context_waveform_file)
-        byte_stream = BytesIO(waveform_context_file)
+                                                 self.waveform_context_file)
+        byte_stream = BytesIO(waveform_context_file.content)
         return read(byte_stream)
 
     def get_variable_length_waveforms(self):
