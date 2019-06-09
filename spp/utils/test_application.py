@@ -1,12 +1,12 @@
 from datetime import datetime, timezone
 from shutil import copyfile
 
+from loguru import logger
 from microquake.core import read_events
 from microquake.core.stream import read
 
 from .application import Application
 
-from loguru import logger
 
 class TestApplication(Application):
     def __init__(
@@ -29,22 +29,17 @@ class TestApplication(Application):
 
         return self.serialise_message(catalog, waveform_stream)
 
-
     def send_message(self, cat, stream, topic=None):
         msg_bytes = super(TestApplication, self).send_message(cat, stream)
         self.output_bytes = msg_bytes
         self.output_data = self.clean_message((cat, stream))
 
-
-
     def receive_message(self, msg_in, callback, **kwargs):
         return super(TestApplication, self).receive_message(msg_in, callback, **kwargs)
-
 
     def clean_message(self, msg_in):
         msg_in = super(TestApplication, self).clean_message(msg_in)
         (catalog, waveform_stream) = msg_in
-
 
         # If the catalog is copied too many times in a row, it will cause the
         # arrivals to lose their reference to pick_id and obspy creates new ones
