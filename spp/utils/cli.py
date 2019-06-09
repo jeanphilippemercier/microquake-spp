@@ -6,8 +6,9 @@ CLI-related classes and functions
 import argparse
 import importlib.util
 
-from ..core.settings import settings
 from loguru import logger
+
+from ..core.settings import settings
 
 
 class CLI:
@@ -55,7 +56,6 @@ class CLI:
         if not self.module_settings:
             print("Module name {} not found in settings and not running module chain, exiting".format(module_name))
             exit()
-
 
     def process_arguments(self):
         """
@@ -161,10 +161,9 @@ class CLI:
 
             cat, stream = self.app.clean_message((cat, stream))
 
-            cat, stream = self.processor.process(
-                cat=cat,
-                stream=stream,
-            )
+            res = self.processor.process(cat=cat, stream=stream)
+
+            cat_out, st_out = self.processor.legacy_pipeline_handler(msg_in, res)
 
         return cat, stream
 
