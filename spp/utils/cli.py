@@ -66,6 +66,7 @@ class CLI:
         parser.add_argument("--module", help="the name of the module to run")
         parser.add_argument("--settings_name", help="to override the name of the module when loading settings")
         parser.add_argument("--processing_flow", help="the name of the processing flow to run")
+        parser.add_argument("--once", help="stop a module after a message has been processed", type=bool)
         parser.add_argument(
             "--modules", help="a list of modules to chain together"
         )
@@ -185,8 +186,8 @@ class CLI:
                 continue
             self.app.send_message(cat, st)
 
-            if settings.SINGLE_RUN:
-                exit(0)
+            if self.args.once:
+                return
 
     def run_module_locally(self):
         msg_in = self.app.get_message()
