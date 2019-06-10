@@ -2,10 +2,12 @@ from ..core.settings import settings
 
 
 class ProcessingUnit(object):
-    def __init__(self, module_name, app=None, module_type=None):
+    def __init__(self, module_name, input=None, output=None, app=None, module_type=None):
         self.__module_name = module_name
-        self.app = app
+        self.__input = input
+        self.__output = output
         self.module_type = module_type
+        self.app = app
         self.debug_level = settings.DEBUG_LEVEL
         self.debug_file_dir = settings.DEBUG_FILE_DIR
         self.settings = settings
@@ -17,6 +19,14 @@ class ProcessingUnit(object):
     @property
     def module_name(self):
         return self.__module_name
+
+    @property
+    def input(self):
+        return self.__input
+
+    @property
+    def output(self):
+        return self.__output
 
     def initializer(self):
         """ initialize processing unit """
