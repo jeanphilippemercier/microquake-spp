@@ -20,6 +20,8 @@ packages = [
     { include = "spp", from ="./" },
 ]
 
+[tool.poetry.scripts]
+seismic_platform = 'spp.core.cli:cli'
 
 [tool.poetry.dependencies]
 python = "^3.6 || ^3.7"
@@ -47,6 +49,7 @@ pytest-parallel = "^0.0.9"
 loguru = "^0.2.5"
 grpcio-tools = "*"
 microquake-hashwrap = "^0.0.3"
+click = "^7.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
