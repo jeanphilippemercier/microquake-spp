@@ -47,7 +47,7 @@ class Processor(ProcessingUnit):
         phase_list = self.params.phase_list
         use_smom = False
 
-        if self.module_name == "magnitude_f":
+        if self.module_name == "frequency":
             min_dist = 20
             use_sdr_rad = self.params.smom.use_sdr_rad
             make_preferred = self.params.smom.make_preferred
@@ -105,8 +105,8 @@ class Processor(ProcessingUnit):
                 logger.info("Mw_%s=%.1f len(station_mags)=%d" %
                             (phase, Mws[-1], len(station_mags)))
 
-            if self.module_type == "magnitude_f":
-                Mw = np.mean(Mws)
+            if self.module_type == "frequency":
+                Mw = np.nanmean(Mws)
             elif self.module_name == "magnitude":
                 Mw = np.mean(Mws)
                 comment = "Average of time-domain station moment magnitudes"

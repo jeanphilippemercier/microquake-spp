@@ -65,24 +65,43 @@ data_local.xml_10s   = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.xml'
 # this describes the kafka channel to which the message should be routed
 processing_flow.automatic.trigger_data_name = 'created'
 processing_flow.automatic.dataset = 'seismic_event'
-processing_flow.automatic.steps = [['interloc'], ['picker'], ['nlloc'], ['measure_amplitudes'],
-['measure_smom'], ['focal_mechanism'], ['measure_energy'],
-['magnitude'], ['magnitude_f'], ['event_database']
+processing_flow.automatic.steps = [
+{ 'interloc': { 'input': 'data_automatic', 'output': 'picker'}},
+{ 'picker': { 'input': 'picker', 'output': 'nlloc' }},
+{ 'nlloc': { 'input': 'nlloc', 'output': 'measure_amplitudes' }},
+{ 'measure_amplitudes': { 'input': 'measure_amplitudes', 'output': 'measure_smom' }},
+{ 'measure_smom': { 'measure_smom': 'picker', 'output': 'focal_mechanism' }},
+{ 'focal_mechanism': { 'focal_mechanism': 'picker', 'output': 'measure_energy' }},
+{ 'measure_energy': { 'measure_energy': 'picker', 'output': 'magnitude' }},
+{ 'magnitude': { 'magnitude': 'picker', 'output': 'magnitude_frequency' }},
+{ 'magnitude': { 'type': 'frequency', 'input': 'magnitude_frequency', 'output': 'event_database' }},
+{ 'event_database': { 'input': 'event_database' }}
 ]
 
 processing_flow.ray_tracing.trigger_data_name = 'ray_tracing'
 processing_flow.ray_tracing.dataset = 'seismic_event'
-processing_flow.ray_tracing.steps = [['ray_tracer']]
+processing_flow.ray_tracing.steps = [
+{ 'ray_tracer': { 'input': 'data_ray_tracer' }}
+]
 
 processing_flow.interactive.trigger_data_name = 'interactive'
 processing_flow.interactive.dataset = 'seismic_event'
-processing_flow.interactive.steps=[['nlloc'], ['magnitude'], ['magnitude_f'], ['event_database']]
+processing_flow.interactive.steps=[
+{ 'nlloc': { 'input': 'data_interactive', 'output': 'magnitude' }},
+{ 'magnitude': { 'input': 'magnitude', 'output': 'magnitude_frequency' }},
+{ 'magnitude': { , 'type': 'frequency', 'input': 'magnitude_frequency', 'output': 'event_database' }},
+{ 'event_database': { , 'input': 'event_database' }}
+]
 
 processing_flow.interactive_accepted.trigger_data_name = 'interactive_accepted'
 processing_flow.interactive_accepted.dataset = 'seismic_event'
 processing_flow.interactive_accepted.steps=[
-['measure_smom'], ['focal_mechanism'], ['measure_energy'],
-['magnitude'], ['magnitude_f'], ['event_database']
+{ 'measure_smom': { 'input': 'data', 'output': 'focal_mechanism' }},
+{ 'focal_mechanism': { 'input': 'focal_mechanism', 'output': 'measure_energy' }},
+{ 'measure_energy': { 'input': 'measure_energy', 'output': 'magnitude' }},
+{ 'magnitude': { 'input': 'magnitude', 'output': 'magnitude_frequency' }},
+{ 'magnitude': { 'type': 'frequency', 'input': 'magnitude_frequency', 'output': 'event_database' }},
+{ 'event_database': { 'input': 'event_database' }}
 ]
 
 data_connector.source  = 'remote'
