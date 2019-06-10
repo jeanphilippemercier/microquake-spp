@@ -3,6 +3,7 @@ from abc import abstractmethod
 from io import BytesIO
 from time import time
 
+from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -15,8 +16,8 @@ from ..core.settings import settings
 
 class Application(object):
 
-    def __init__(self, toml_file=None, module_name=None,
-                 processing_flow_name=None):
+    def __init__(self, toml_file=None, step_number=None, module_name=None,
+                 processing_flow_name='automatic', **kwargs):
         """
         :param toml_file: path to the TOML file containing the project
         parameter. If not set, the function will look for a file named
@@ -35,56 +36,34 @@ class Application(object):
 
         self.__module_name__ = module_name
 
-        if self.__module_name__ is None:
-            # print("No module name, application cannot initialise")
-            pass
+        self.step_number = step_number
 
-        if processing_flow_name:
-            processing_flow = self.settings.get('processing_flow')[processing_flow_name]
-            self.trigger_data_name = processing_flow.trigger_data_name
-            self.dataset = processing_flow.dataset
-            self.processing_flow_steps = processing_flow.steps
+        processing_flow = self.settings.get('processing_flow')[processing_flow_name]
+        self.trigger_data_name = processing_flow.trigger_data_name
+        self.dataset = processing_flow.dataset
+        steps = []
+        logger.info(len(processing_flow.steps))
+        for idx, step in enumerate(processing_flow.steps):
+            s = defaultdict(lambda: None, step)
+
+            input = f"{processing_flow_name}.{s['module']}.{idx}"
+            output = f"{processing_flow_name}.{s['module']}.{idx+1}"
+
+            if idx == (len(processing_flow.steps)-1):
+                output = f"{processing_flow_name}.{s['module']}.output"
+
+            s['input'] = s['input'] or input
+            s['output'] = s['output'] or output
+
+            steps.append(s)
+
+        self.processing_flow_steps = steps
 
     def get_consumer_topic(self, processing_flow, dataset, module_name, trigger_data_name, input_data_name=None):
-        if input_data_name:
-            return self.get_topic(dataset, input_data_name)
-
-        if module_name == 'chain':
-            return self.get_topic(dataset, trigger_data_name)
-
-        if len(processing_flow) == 0:
-            raise ValueError("Empty processing_flow, cannot determine consumer topic")
-        processing_step = -1
-
-        for i, flow_step in enumerate(processing_flow):
-            if module_name in flow_step:
-                processing_step = i
-
-                break
-
-        if self.get_output_data_name(module_name) == trigger_data_name:
-            # This module is triggering the processing flow. It is not consuming on any topics.
-
-            return ""
-
-        if processing_step == -1:
-            raise ValueError(
-                "Module {} does not exist in processing_flow, cannot determine consumer topic".format(module_name))
-
-        if processing_step == 0:
-            # The first module always consumes from the triggering
-
-            return self.get_topic(dataset, trigger_data_name)
-
-        if len(processing_flow) < 2:
-            raise ValueError("Processing flow is malformed and only has one step {}".format(processing_flow))
-        input_module_name = processing_flow[processing_step - 1][0]
-        input_data_name = self.get_output_data_name(input_module_name)
-
-        return self.get_topic(dataset, input_data_name)
+        return self.processing_flow_steps[self.step_number]['input']
 
     def get_producer_topic(self, dataset, module_name):
-        return self.get_topic(dataset, self.get_output_data_name(module_name))
+        return self.processing_flow_steps[self.step_number]['output']
 
     def get_topic(self, dataset, data_name):
         return "seismic_processing.{}.{}".format(dataset, data_name)
@@ -155,7 +134,7 @@ class Application(object):
         logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
 
         (cat, stream) = self.clean_message((cat, stream))
-        logger.info("processing event %s", str(cat[0].resource_id))
+        logger.info("processing event {}", str(cat[0].resource_id))
 
         res = processor.process(cat=cat, stream=stream)
 
@@ -209,7 +188,7 @@ def plot_nodes(sta_code, phase, nodes, event_location):
     ax.set_xlabel('horiz offset')
     ax.set_ylabel('y offset = Northing')
     ax.set_ylabel('z offset wrt ev dep')
-    #ax.plot(x, y, 'b')
+    # ax.plot(x, y, 'b')
     ax.plot(h, z, 'b')
     plt.show()
     print("sta:%s phase:%s node.x[-2]=%f node.x[-1]=%f" % (sta_code, phase, nodes[-2][0], nodes[-1][0]))

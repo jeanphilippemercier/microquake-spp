@@ -48,6 +48,7 @@ class Info(object):
         self.once: bool = False
         self.processing_flow: str = "automatic"
         self.module_name: str
+        self.step: int
 
 
 # pass_info is a decorator for functions that pass 'Info' objects.
@@ -60,13 +61,15 @@ pass_info = click.make_pass_decorator(
 
 @click.group()
 @click.option('--verbose', '-v', count=True, is_eager=True, help="Enable verbose output.")
-@click.option('--module_name', '-m', required=True, default="interloc", help="Module name")
+@click.option('--module_name', '-m', help="Module name")
+@click.option('--step', '-s', type=int, required=True, help="Step number")
 @click.option('--processing_flow', '-p', default="automatic", is_eager=True, help="Processing flow")
 @click.option('--once', '-1', is_flag=True, default=False, help="Run loop only once")
 @pass_info
 def cli(info: Info,
         verbose: int,
         module_name: str,
+        step: int,
         processing_flow: str,
         once: bool
         ):
@@ -91,6 +94,7 @@ def cli(info: Info,
         )
     info.verbose = verbose
     info.module_name = module_name
+    info.step = step
     info.processing_flow = processing_flow
     info.once = once
 
@@ -106,15 +110,19 @@ def run(info: Info):
     app = KafkaRedisApplication(
         module_name=info.module_name,
         processing_flow_name=info.processing_flow,
+        step_number=info.step,
     )
 
+    module_name = app.processing_flow_steps[info.step]['module']
+    module_type = app.processing_flow_steps[info.step]['type']
+
     spec = importlib.util.spec_from_file_location(
-        "spp.pipeline." + info.module_name, "./spp/pipeline/" + info.module_name + ".py"
+        "spp.pipeline." + module_name, "./spp/pipeline/" + module_name + ".py"
     )
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     processor = getattr(mod, 'Processor')
-    processor = processor(app=app, module_name=info.module_name)
+    processor = processor(app=app, module_name=module_name, module_type=module_type)
 
     for msg_in in app.consumer_msg_iter():
         try:
