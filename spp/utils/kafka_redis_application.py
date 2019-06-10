@@ -2,11 +2,11 @@ import uuid
 from time import time
 
 from confluent_kafka import Consumer, KafkaError, Producer
-from tenacity import (after_log, before_log, retry, stop_after_attempt,
-                      wait_exponential)
+from loguru import logger
+from redis import StrictRedis
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from .application import Application
-from loguru import logger
 
 
 class KafkaRedisApplication(Application):
@@ -27,7 +27,8 @@ class KafkaRedisApplication(Application):
             self.__module_name__,
             self.trigger_data_name,
         )
-        if self.consumer_topic is not "":
+
+        if self.consumer_topic != "":
             self.consumer.subscribe([self.consumer_topic])
         logger.info("done setting up Kafka")
 
@@ -36,8 +37,6 @@ class KafkaRedisApplication(Application):
         logger.info("connection to redis database successfully initated")
 
     def init_redis(self):
-        from redis import StrictRedis
-
         return StrictRedis(**self.settings.get('redis_db'))
 
     def get_kafka_producer(self, logger=None, **kwargs):
@@ -66,13 +65,16 @@ class KafkaRedisApplication(Application):
         try:
             while True:
                 msg = self.consumer.poll(timeout)
+
                 if msg is None:
                     continue
+
                 if msg.error():
                     if msg.error().code() == KafkaError._PARTITION_EOF:
                         logger.info("Reached end of queue!: %s", msg.error())
                     else:
                         logger.error("consumer error: %s", msg.error())
+
                     continue
                 logger.info("message received on topic %s", self.consumer_topic)
                 redis_key = msg.value()
@@ -96,6 +98,7 @@ class KafkaRedisApplication(Application):
             raise e
         t1 = time()
         logger.info("done getting data from Redis in %0.3f seconds", (t1 - t0))
+
         return redis_data
 
     def send_message(self, cat, stream, topic=None):
@@ -121,6 +124,7 @@ class KafkaRedisApplication(Application):
         :param msg_in: message read from kafka
         :return: what callback function returns
         """
+
         return super(KafkaRedisApplication, self).receive_message(
             msg_in, processor, **kwargs
         )
