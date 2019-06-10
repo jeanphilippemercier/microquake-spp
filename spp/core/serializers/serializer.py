@@ -1,4 +1,3 @@
-from ..utils import timing
 from ..settings import settings
 
 

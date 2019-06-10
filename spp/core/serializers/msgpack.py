@@ -4,7 +4,6 @@ from microquake.core import read_events
 from microquake.io import msgpack
 
 from ..utils import timing
-from ..settings import settings
 
 from .serializer import Serializer
 
