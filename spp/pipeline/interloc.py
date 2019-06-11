@@ -10,12 +10,13 @@ from microquake.core import AttribDict, UTCDateTime
 from microquake.core.event import Origin
 from microquake.core.util import tools
 
+from ..core.hdf5 import get_ttable_h5
 from .processing_unit import ProcessingUnit
 
 
 class Processor(ProcessingUnit):
     def initializer(self):
-        self.htt = self.app.get_ttable_h5()
+        self.htt = get_ttable_h5()
 
     def process(
         self,
@@ -23,7 +24,8 @@ class Processor(ProcessingUnit):
     ):
         logger.info("pipeline: interloc")
 
-        stream = kwargs["stream"]
+        # TODO: copy not necessary testapplication is broken
+        stream = kwargs["stream"].copy()
 
         detection_threshold = self.params.detection_threshold
         nthreads = self.params.nthreads
@@ -109,15 +111,39 @@ class Processor(ProcessingUnit):
         logger.info("=======================================\n")
         logger.info("VMAX over threshold (%.3f)" % (vmax))
 
-        response = {'x': lmax[0],
-                    'y': lmax[1],
-                    'z': lmax[2],
-                    'vmax': vmax,
-                    'normed_vmax': normed_vmax,
-                    'event_time': ot_epoch,
-                    'method': method}
+        self.response = {'x': lmax[0],
+                         'y': lmax[1],
+                         'z': lmax[2],
+                         'vmax': vmax,
+                         'normed_vmax': normed_vmax,
+                         'event_time': ot_epoch,
+                         'method': method}
 
-        return response
+        return self.response
+
+    def output_catalog(self, catalog):
+        x = self.response['x']
+        y = self.response['y']
+        z = self.response['z']
+        vmax = self.response['vmax']
+        normed_vmax = self.response['normed_vmax']
+        method = self.response['method']
+        event_time = UTCDateTime(datetime.fromtimestamp(self.response['event_time']))
+
+        catalog[0].origins.append(
+            Origin(x=x, y=y, z=z, time=event_time,
+                   method_id=method, evalution_status="preliminary",
+                   evaluation_mode="automatic")
+        )
+        catalog[0].preferred_origin_id = catalog[0].origins[-1].self.responseource_id.id
+
+        catalog[0].preferred_origin().extra.interloc_vmax \
+            = AttribDict({'value': vmax, 'namespace': 'MICROQUAKE'})
+
+        catalog[0].preferred_origin().extra.interloc_normed_vmax \
+            = AttribDict({'value': normed_vmax, 'namespace': 'MICROQUAKE'})
+
+        return catalog
 
     def legacy_pipeline_handler(
         self,
@@ -126,25 +152,6 @@ class Processor(ProcessingUnit):
     ):
         cat, stream = self.app.deserialise_message(msg_in)
 
-        x = res['x']
-        y = res['y']
-        z = res['z']
-        vmax = res['vmax']
-        normed_vmax = res['normed_vmax']
-        method = res['method']
-        event_time = UTCDateTime(datetime.fromtimestamp(res['event_time']))
-
-        cat[0].origins.append(
-            Origin(x=x, y=y, z=z, time=event_time,
-                   method_id=method, evalution_status="preliminary",
-                   evaluation_mode="automatic")
-        )
-        cat[0].preferred_origin_id = cat[0].origins[-1].resource_id.id
-
-        cat[0].preferred_origin().extra.interloc_vmax \
-            = AttribDict({'value': vmax, 'namespace': 'MICROQUAKE'})
-
-        cat[0].preferred_origin().extra.interloc_normed_vmax \
-            = AttribDict({'value': normed_vmax, 'namespace': 'MICROQUAKE'})
+        cat = self.output_catalog(cat)
 
         return cat, stream

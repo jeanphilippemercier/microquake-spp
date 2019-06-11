@@ -74,33 +74,6 @@ class Application(object):
         else:
             return ""
 
-    @property
-    def nll_tts_dir(self):
-        """
-        returns the path where the travel time grids are stored
-        :return: path
-        """
-
-        return os.path.join(self.settings.nll_base, 'time')
-
-    def get_ttable_h5(self):
-        from microquake.core.data import ttable
-        fname = os.path.join(settings.common_dir,
-                             settings.grids.travel_time_h5.fname)
-
-        return ttable.H5TTable(fname)
-
-    def write_ttable_h5(self, fname=None):
-        from microquake.core.data import ttable
-
-        if fname is None:
-            fname = settings.grids.travel_time_h5.fname
-
-        ttp = ttable.array_from_nll_grids(self.nll_tts_dir, 'P', prefix='OT')
-        tts = ttable.array_from_nll_grids(self.nll_tts_dir, 'S', prefix='OT')
-        fpath = os.path.join(settings.common_dir, fname)
-        ttable.write_h5(fpath, ttp, tdict2=tts)
-
     def clean_waveform_stream(self, waveform_stream, stations_black_list):
         for trace in waveform_stream:
             if trace.stats.station in stations_black_list:
