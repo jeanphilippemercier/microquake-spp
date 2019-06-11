@@ -1,13 +1,25 @@
-from datetime import datetime
-
+import numpy as np
 import pytest
 from tests.helpers.data_utils import get_test_data
 
-import numpy as np
 from microquake.core.event import Origin
 from spp.pipeline.interloc import Processor
 
 test_data_name = "test_end_to_end"
+
+
+@pytest.fixture
+def catalog():
+    file_name = test_data_name + ".xml"
+    test_data = get_test_data(file_name, "QUAKEML")
+    yield test_data
+
+
+@pytest.fixture
+def waveform_stream():
+    file_name = test_data_name + ".mseed"
+    test_data = get_test_data(file_name, "MSEED")
+    yield test_data
 
 
 def test_interloc(catalog, waveform_stream):
