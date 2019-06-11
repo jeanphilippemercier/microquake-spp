@@ -14,7 +14,6 @@ def catalog():
     file_name = test_data_name + ".xml"
     test_data = get_test_data(file_name, "QUAKEML")
     yield test_data
-    clean_test_data(file_name)
 
 
 @pytest.fixture
@@ -22,7 +21,6 @@ def waveform_stream():
     file_name = test_data_name + ".mseed"
     test_data = get_test_data(file_name, "MSEED")
     yield test_data
-    clean_test_data(file_name)
 
 
 def test_magnitude(catalog, waveform_stream):

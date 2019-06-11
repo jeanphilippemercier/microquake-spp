@@ -16,7 +16,6 @@ def catalog():
     file_name = test_data_name + ".xml"
     test_data = get_test_data(file_name, "QUAKEML")
     yield test_data
-    clean_test_data(file_name)
 
 
 @pytest.fixture
