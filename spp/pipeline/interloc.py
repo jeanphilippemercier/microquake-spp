@@ -122,6 +122,8 @@ class Processor(ProcessingUnit):
         return self.response
 
     def output_catalog(self, catalog):
+        catalog = catalog.copy()
+
         x = self.response['x']
         y = self.response['y']
         z = self.response['z']
