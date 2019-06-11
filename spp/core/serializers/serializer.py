@@ -1,10 +1,8 @@
 from redis import StrictRedis
-from io import BytesIO
-from microquake.core import read, read_events
 import pickle
 
 
-class Seismic():
+class Seismic:
     def __init__(self, redis_key, redis_settings, types):
         """
 
@@ -13,7 +11,7 @@ class Seismic():
         :param types: list of types to serialize or deserialize
         """
         self.accepted_types = ['fixed_length', 'variable_length', 'context',
-                          'continuous', 'catalog']
+                               'continuous', 'catalog']
 
         if type(types) is str:
             if types not in self.accepted_types:
@@ -38,7 +36,7 @@ class Seismic():
     def serialize(self, input_dictionary):
         for key in input_dictionary.keys():
             if key not in self.types:
-                raise ValueError('%s is not a valid <type>! \n '
+                raise ValueError('%s is not a valid <type>! \n'
                                  'valid types are %s'
                                  % (key, self.accepted_types))
 
@@ -47,7 +45,6 @@ class Seismic():
             self.redis_conn.set(redis_key,
                                 pickle.dumps(input_dictionary[key]))
             # from pdb import set_trace; set_trace()
-
 
     def deserialize(self):
         output_dict = {}

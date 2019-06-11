@@ -148,3 +148,7 @@ class Processor(ProcessingUnit):
             = AttribDict({'value': normed_vmax, 'namespace': 'MICROQUAKE'})
 
         return cat, stream
+
+
+
+
