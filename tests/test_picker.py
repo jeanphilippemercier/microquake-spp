@@ -22,7 +22,7 @@ def waveform_stream():
 
 def test_picker(catalog, waveform_stream):
     processor = Processor(module_name="picker")
-    processor.process(stream=waveform_stream)
+    processor.process(cat=catalog, stream=waveform_stream)
     output_catalog = processor.output_catalog(catalog)
 
     check_picker_data((catalog, waveform_stream), output_catalog)
