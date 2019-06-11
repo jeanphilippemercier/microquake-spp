@@ -135,7 +135,7 @@ class Processor(ProcessingUnit):
                    method_id=method, evalution_status="preliminary",
                    evaluation_mode="automatic")
         )
-        catalog[0].preferred_origin_id = catalog[0].origins[-1].self.responseource_id.id
+        catalog[0].preferred_origin_id = catalog[0].origins[-1].resource_id.id
 
         catalog[0].preferred_origin().extra.interloc_vmax \
             = AttribDict({'value': vmax, 'namespace': 'MICROQUAKE'})
