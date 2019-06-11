@@ -25,9 +25,6 @@ class Settings(LazySettings):
         else:
             config_dir = os.getcwd()
 
-        if toml_file is None:
-            toml_file = os.path.join(config_dir, 'settings.toml')
-
         dconf = {}
         dconf.setdefault('ENVVAR_PREFIX_FOR_DYNACONF', 'SPP')
 
@@ -43,7 +40,8 @@ class Settings(LazySettings):
         dconf['ROOT_PATH_FOR_DYNACONF'] = config_dir
         # Could also set SETTINGS_FILE to a list of files. If not set, dynaconf
         # will load *ALL* settings.{toml,json,py} files it finds in the root dir
-        # dconf['SETTINGS_FILE_FOR_DYNACONF'] = toml_file
+        if toml_file is not None:
+            dconf['SETTINGS_FILE_FOR_DYNACONF'] = toml_file
 
         super().__init__(**dconf)
 
@@ -66,8 +64,6 @@ class Settings(LazySettings):
 
             # fpath = os.path.join(settings.common_dir, sensors.path)
             # self.inventory = load_inventory(fpath, format='CSV')
-
-            logger.info("Application: Load Inventory from:[%s]" % fpath)
 
         elif self.sensors.get('sensors').source == 'remote':
             self.inventory = None
