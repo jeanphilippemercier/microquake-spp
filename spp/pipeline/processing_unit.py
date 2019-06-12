@@ -22,7 +22,7 @@ class ProcessingUnit(ABC):
         if module_type:
             extra_params = settings.get(f"{self.module_name}.{module_type}")
             if extra_params:
-                self.params = extra_params
+                self.params.update(extra_params)
 
         logger.info("pipeline unit: {}", self.module_name)
 
