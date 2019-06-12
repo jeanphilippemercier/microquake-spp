@@ -49,14 +49,7 @@ class Processor(ProcessingUnit):
         use_free_surface_correction = self.params.use_free_surface_correction
         make_preferred = self.params.make_preferred
         phase_list = self.params.phase_list
-        use_smom = False
-
-        if self.module_type == "frequency":
-            min_dist = 20
-            use_sdr_rad = self.params.smom.use_sdr_rad
-            make_preferred = self.params.smom.make_preferred
-            phase_list = self.params.smom.phase_list
-            use_smom = True
+        use_smom = self.params.use_smom
 
         if not isinstance(phase_list, list):
             phase_list = [phase_list]
