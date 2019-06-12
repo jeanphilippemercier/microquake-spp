@@ -107,9 +107,12 @@ class Processor(ProcessingUnit):
 
             if self.module_type == "frequency":
                 Mw = np.nanmean(Mws)
+                comment = "frequency"
             else:
                 Mw = np.mean(Mws)
-                comment = "Average of time-domain station moment magnitudes"
+                comment = "time-domain"
+
+            comment = f"Average of {comment} station moment magnitudes"
 
             if use_sdr_rad and sdr is not None:
                 comment += " Use_sdr_rad: sdr=(%.1f,%.1f,%.1f)" % (sdr[0], sdr[1], sdr[2])
