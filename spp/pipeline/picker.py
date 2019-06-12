@@ -43,8 +43,6 @@ class Processor(ProcessingUnit):
         list of picks
         list of phase and time
         """
-        logger.info("pipeline: picker")
-
         cat = kwargs["cat"]
         stream = kwargs["stream"]
 
@@ -211,11 +209,23 @@ class Processor(ProcessingUnit):
         origin.creation_info = CreationInfo(creation_time=UTCDateTime.now())
         origin.method_id = "PICKER_FOR_HOLDING_ARRIVALS"
 
-        response = {'picks': snr_picks_filtered,
-                    'origins': [origin],
-                    'preferred_origin_id': origin.resource_id.id}
+        self.response = {'picks': snr_picks_filtered,
+                         'origins': [origin],
+                         'preferred_origin_id': origin.resource_id.id}
 
-        return response
+        return self.response
+
+    def output_catalog(self, catalog):
+        catalog = catalog.copy()
+        picks = self.response['picks']
+        origins = self.response['origins']
+        preferred_origin_id = self.response['preferred_origin_id']
+
+        catalog[0].picks += picks
+        catalog[0].origins += origins
+        catalog[0].preferred_origin_id = preferred_origin_id
+
+        return catalog
 
     def legacy_pipeline_handler(
         self,
@@ -224,12 +234,6 @@ class Processor(ProcessingUnit):
     ):
         cat, stream = self.app.deserialise_message(msg_in)
 
-        picks = res['picks']
-        origins = res['origins']
-        preferred_origin_id = res['preferred_origin_id']
-
-        cat[0].picks += picks
-        cat[0].origins += origins
-        cat[0].preferred_origin_id = preferred_origin_id
+        cat = self.output_catalog(cat)
 
         return cat, stream
