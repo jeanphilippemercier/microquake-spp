@@ -56,7 +56,6 @@ class Processor(ProcessingUnit):
         logger.info("pipeline: nlloc")
 
         cat = kwargs["cat"]
-        stream = kwargs["stream"]
 
         logger.info("running NonLinLoc")
         t0 = time()
