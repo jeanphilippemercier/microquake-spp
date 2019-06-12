@@ -14,6 +14,16 @@ class ProcessingUnit(ABC):
         self.debug_file_dir = settings.DEBUG_FILE_DIR
         self.settings = settings
         self.params = settings.get(self.module_name)
+
+        """
+        override parameters by module_type subparameters
+        modulename.moduletype
+        """
+        if module_type:
+            extra_params = settings.get(f"{self.module_name}.{module_type}")
+            if extra_params:
+                self.params = extra_params
+
         logger.info("pipeline unit: {}", self.module_name)
 
         super(ProcessingUnit, self).__init__()
