@@ -21,7 +21,7 @@ def waveform_stream():
 
 
 def test_magnitude(catalog, waveform_stream):
-    processor = Processor(module_name="magnitude")
+    processor = Processor()
     res = processor.process(cat=catalog.copy())
 
     check_magnitude_data((catalog, waveform_stream), res['cat'])

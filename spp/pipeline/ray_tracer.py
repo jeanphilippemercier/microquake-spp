@@ -7,6 +7,10 @@ from .processing_unit import ProcessingUnit
 
 
 class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "ray_tracer"
+
     def initializer(self):
         self.site_code = settings.SITE_CODE
         self.network_code = settings.NETWORK_CODE

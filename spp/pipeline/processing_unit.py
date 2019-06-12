@@ -1,9 +1,11 @@
+from loguru import logger
+
+from abc import abstractmethod, ABC
 from ..core.settings import settings
 
 
-class ProcessingUnit(object):
-    def __init__(self, module_name, input=None, output=None, app=None, module_type=None):
-        self.__module_name = module_name
+class ProcessingUnit(ABC):
+    def __init__(self, input=None, output=None, app=None, module_type=None):
         self.__input = input
         self.__output = output
         self.module_type = module_type
@@ -12,13 +14,14 @@ class ProcessingUnit(object):
         self.debug_file_dir = settings.DEBUG_FILE_DIR
         self.settings = settings
         self.params = settings.get(self.module_name)
+        logger.info("pipeline unit: {}", self.module_name)
 
         super(ProcessingUnit, self).__init__()
         self.initializer()
 
-    @property
+    @abstractmethod
     def module_name(self):
-        return self.__module_name
+        pass
 
     @property
     def input(self):
@@ -33,4 +36,5 @@ class ProcessingUnit(object):
 
     def legacy_pipeline_handler(self, msg_in, res):
         cat, stream = self.app.deserialise_message(msg_in)
+
         return cat, stream

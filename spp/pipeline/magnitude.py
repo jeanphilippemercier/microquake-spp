@@ -9,6 +9,10 @@ from .processing_unit import ProcessingUnit
 
 
 class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "magnitude"
+
     def initializer(self):
         self.vp_grid, self.vs_grid = get_velocities()
 

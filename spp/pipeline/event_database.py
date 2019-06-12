@@ -8,6 +8,10 @@ from ..core.settings import settings
 
 
 class Processor():
+    @property
+    def module_name(self):
+        return "event_database"
+
     def initializer(self):
         self.api_base_url = settings.API_BASE_URL
 

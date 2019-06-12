@@ -22,7 +22,7 @@ def waveform_stream():
 
 
 def test_measure_amplitudes(catalog, waveform_stream):
-    processor = Processor(module_name="measure_amplitudes")
+    processor = Processor()
     res = processor.process(cat=catalog, stream=waveform_stream)
 
     check_amplitudes_data((catalog, waveform_stream), res['cat'])

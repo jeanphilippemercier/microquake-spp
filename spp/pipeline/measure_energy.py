@@ -7,6 +7,10 @@ from .processing_unit import ProcessingUnit
 
 
 class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "measure_energy"
+
     def process(
         self,
         **kwargs
