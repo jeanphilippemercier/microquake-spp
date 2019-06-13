@@ -3,7 +3,7 @@ from time import time
 
 from confluent_kafka import Consumer, KafkaError, Producer
 from loguru import logger
-from redis import StrictRedis
+from redis import Redis
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from .application import Application
@@ -19,7 +19,6 @@ class KafkaRedisApplication(Application):
             processing_flow_name=processing_flow_name,
             **kwargs
         )
-        logger.info("setting up Kafka")
         self.producer = self.get_kafka_producer(logger=logger)
         self.consumer = self.get_kafka_consumer(logger=logger)
         self.consumer_topic = self.get_consumer_topic(
@@ -33,12 +32,11 @@ class KafkaRedisApplication(Application):
             self.consumer.subscribe([self.consumer_topic])
         logger.info("done setting up Kafka")
 
-        logger.info("init connection to redis")
         self.redis_conn = self.init_redis()
         logger.info("connection to redis database successfully initated")
 
     def init_redis(self):
-        return StrictRedis(**self.settings.get('redis_db'))
+        return Redis(**self.settings.get('redis_db'))
 
     def get_kafka_producer(self, logger=None, **kwargs):
         return Producer(

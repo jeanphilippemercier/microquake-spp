@@ -1,7 +1,5 @@
-import os
 from abc import abstractmethod
 from io import BytesIO
-from time import time
 
 from collections import defaultdict
 import matplotlib.pyplot as plt
@@ -12,6 +10,7 @@ from microquake.core import read_events
 from microquake.io import msgpack
 
 from ..core.settings import settings
+from ..core.utils import timing
 
 
 class Application(object):
@@ -37,7 +36,6 @@ class Application(object):
         self.trigger_data_name = processing_flow.trigger_data_name
         self.dataset = processing_flow.dataset
         steps = []
-        logger.info(len(processing_flow.steps))
         for idx, step in enumerate(processing_flow.steps):
             s = defaultdict(lambda: None, step)
 
@@ -85,7 +83,6 @@ class Application(object):
         """
         send message
         """
-        logger.info('preparing data')
         msg = self.serialise_message(cat, stream)
         logger.info('done preparing data')
 
@@ -96,11 +93,7 @@ class Application(object):
         """
         receive message
         """
-        logger.info('unpacking data')
-        t2 = time()
         cat, stream = self.deserialise_message(msg_in)
-        t3 = time()
-        logger.info('done unpacking data in %0.3f seconds' % (t3 - t2))
 
         (cat, stream) = self.clean_message((cat, stream))
         logger.info("processing event {}", str(cat[0].resource_id))
@@ -129,6 +122,7 @@ class Application(object):
 
         return msgpack.pack([stream, ev_io.getvalue()])
 
+    @timing
     def deserialise_message(self, data):
         stream, quake_ml_bytes = msgpack.unpack(data)
         cat = read_events(BytesIO(quake_ml_bytes), format='QUAKEML')

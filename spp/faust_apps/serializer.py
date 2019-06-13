@@ -1,4 +1,4 @@
-from redis import StrictRedis
+from redis import Redis
 import pickle
 
 
@@ -33,7 +33,7 @@ class Seismic:
             raise TypeError('types must either be a <str> or a '
                             '<list>')
 
-        self.redis_conn = StrictRedis(**redis_settings)
+        self.redis_conn = Redis(**redis_settings)
         self.redis_base_key = redis_key
 
     def serialize(self, input_dictionary):
@@ -57,5 +57,3 @@ class Seismic:
             output_dict[key] = pickle.loads(self.redis_conn.get(redis_key))
 
         return output_dict
-
-
