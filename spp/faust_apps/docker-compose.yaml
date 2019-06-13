@@ -38,52 +38,6 @@ services:
       CONFLUENT_METRICS_ENABLE: 'true'
       CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
 
-  broker1:
-    image: confluentinc/cp-kafka:5.0.0
-    hostname: broker1
-    container_name: broker1
-    depends_on:
-    - zookeeper
-    ports:
-    - "9092:9092"
-    - "29092:29092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broke1r:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_MESSAGE_MAX_BYTES: 1000000
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker1:9092
-      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-      CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
-
-  broker2:
-    image: confluentinc/cp-kafka:5.0.0
-    hostname: broker2
-    container_name: broker2
-    depends_on:
-    - zookeeper
-    ports:
-    - "9092:9092"
-    - "29092:29092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker2:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_MESSAGE_MAX_BYTES: 1000000
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker2:9092
-      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-      CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
-
   schema-registry:
     image: confluentinc/cp-schema-registry:5.0.0
     hostname: schema-registry
@@ -104,6 +58,9 @@ services:
     ports:
     - "6533:6533"
     container_name: faust
+    depends_on:
+      - zookeeper
+      - broker
     volumes:
     - $SPP_COMMON/:/data/common
     - $SPP_CONFIG/:/data/config
@@ -112,6 +69,8 @@ services:
       SPP_COMMON: "/data/common"
       SPP_CONFIG: "/data/config"
     #    command: bash -c "cd /services && python foo.py"
+    working_dir:
+      /faust_app
     command: >
       bash -c "pip install faust
       && cd /faust_app
