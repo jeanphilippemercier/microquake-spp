@@ -1,6 +1,5 @@
 import os
 
-from loguru import logger
 from dynaconf import LazySettings
 from microquake.core.data.inventory import Inventory
 
@@ -18,7 +17,6 @@ class Settings(LazySettings):
         else:
             config_dir = os.getcwd()
 
-        logger.info(config_dir)
         dconf = {}
         dconf.setdefault('ENVVAR_PREFIX_FOR_DYNACONF', 'SPP')
 
@@ -46,7 +44,6 @@ class Settings(LazySettings):
         dconf['ROOT_PATH_FOR_DYNACONF'] = config_dir
 
         super().__init__(**dconf)
-        logger.info(self.ENVVAR_PREFIX_FOR_DYNACONF)
 
         self.config_dir = config_dir
 
