@@ -142,16 +142,18 @@ magnitude.log_topic = 'moment magnitude calculation'
 magnitude.use_sdr_rad = false
 magnitude.use_free_surface_correction = false
 magnitude.make_preferred = true
+magnitude.use_smom = false
 
-magnitude.smom.phase_list = ['P', 'S']
 # If you run freq domain mag mod *after focal mech, and use_sdr_rad is True,
 #    then it will calc/use rad pattern computed for preferred focal mech
-magnitude.smom.use_sdr_rad = false
-magnitude.smom.make_preferred = false
-
-magnitude_f.output_data_name = 'magnitude_f'
-magnitude_f.log_file_name = 'magnitude_f.log'
-magnitude_f.log_topic = 'magnitude f'
+magnitude.frequency.phase_list = ['P', 'S']
+magnitude.frequency.use_sdr_rad = false
+magnitude.frequency.make_preferred = false
+magnitude.frequency.use_smom = true
+magnitude.frequency.output_data_name = 'magnitude_f'
+magnitude.frequency.log_file_name = 'magnitude_f.log'
+magnitude.frequency.log_topic = 'magnitude f'
+magnitude.frequency.min_dist = 20
 
 focal_mechanism.npolmin = 8
 focal_mechanism.max_agap = 180
@@ -221,35 +223,6 @@ event_database.output_data_name = 'saved_to_db'
 event_database.log_file_name = 'event_database.log'
 event_database.log_topic = 'event database'
 
-event_db.uri = 'mongodb://localhost:27017/'
-event_db.name = 'OT'
-event_db.trace_collection = 'traces'
-event_db.event_collection = 'events'
-event_db.events_inuse_collection = 'event_in_use'
-event_db.in_use_ttl = 1
-event_db.filestore_base_dir = '/var/ot/'
-event_db.kafka_topic = 'event_database'
-event_db.log_file_name = 'event_db_insertion_update.log'
-event_db.log_topic = 'insertion and update into event DB'
-
-continuous_db.uri = 'mongodb://mongo-node-001:27017/'
-continuous_db.db_name = 'seismic'
-continuous_db.traces_collection = 'traces_json'
-continuous_db.events_collection = 'events'
-continuous_db.events_inuse_collection = 'events_inuse'
-continuous_db.filestore_base_dir = '/Users/hanee/Rio_Tinto/data/'
-continuous_db.inuse_ttl = 300
-
-
-redis_db.host = 'spp-redis-dev-master'
-# redis_db.password = ''
-# host = 'localhost'
-# host = 'redisdb'
-# password = ''
-redis_db.port = 6379
-redis_db.db = 0
-
-redis_extra.ttl=600
 
 signal_analysis.log_file_name = 'signal_analysis.log'
 signal_analysis.log_topic = 'signal analysis'
@@ -258,28 +231,28 @@ signal_analysis.log_topic = 'signal analysis'
 processing_flow.automatic.trigger_data_name = 'created'
 processing_flow.automatic.dataset = 'seismic_event'
 processing_flow.automatic.steps = [
-{ module='interloc', input='data_automatic', output='picker'},
-{ module='picker', input='picker', output='nlloc'},
-{ module='nlloc', input='nlloc', output='measure_amplitudes'},
-{ module='measure_amplitudes', input='measure_amplitudes', output='measure_smom'},
-{ module='measure_smom', input='measure_smom', output='focal_mechanism'},
-{ module='focal_mechanism', input='focal_mechanism', output='measure_energy'},
-{ module='measure_energy', input='measure_energy', output='magnitude'},
-{ module='magnitude', input='magnitude', output='magnitude_frequency'},
-{ module='magnitude', type='frequency', input='magnitude_frequency', output='event_database'},
-{ module='event_database', input='event_database'}
+{ module='interloc', input='seismic_event'},
+{ module='picker'},
+{ module='nlloc'},
+{ module='measure_amplitudes'},
+{ module='measure_smom'},
+{ module='focal_mechanism'},
+{ module='measure_energy'},
+{ module='magnitude'},
+{ module='magnitude', type='frequency'},
+{ module='event_database'}
 ]
 
 processing_flow.ray_tracing.trigger_data_name = 'ray_tracing'
 processing_flow.ray_tracing.dataset = 'seismic_event'
 processing_flow.ray_tracing.steps = [
-{ module='ray_tracer', input='data_ray_tracer'},
+{ module='ray_tracer', input='ray_tracing'},
 ]
 
 processing_flow.interactive.trigger_data_name = 'interactive'
 processing_flow.interactive.dataset = 'seismic_event'
 processing_flow.interactive.steps=[
-{ module='nlloc', input='data_interactive', output='magnitude'},
+{ module='nlloc', input='interactive', output='magnitude'},
 { module='magnitude', input='magnitude', output='magnitude_frequency'},
 { module='magnitude', type='frequency', input='magnitude_frequency', output='event_database'},
 { module='event_database', input='event_database'}

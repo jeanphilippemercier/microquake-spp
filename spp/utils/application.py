@@ -16,12 +16,9 @@ from ..core.settings import settings
 
 class Application(object):
 
-    def __init__(self, toml_file=None, step_number=None, module_name=None,
+    def __init__(self, step_number=None, module_name=None,
                  processing_flow_name='automatic', **kwargs):
         """
-        :param toml_file: path to the TOML file containing the project
-        parameter. If not set, the function will look for a file named
-        settings.toml in the $SPP_CONFIG directory
         :param module_name: name of the module, the name must be coherent
         with a section in the config file.
         :param processing_flow: Name of the processing flow. This must
@@ -30,8 +27,6 @@ class Application(object):
         setting the processing step to 0.
         :return: None
         """
-        settings.load(toml_file)
-
         self.settings = settings
 
         self.__module_name__ = module_name
@@ -64,9 +59,6 @@ class Application(object):
 
     def get_producer_topic(self, dataset, module_name):
         return self.processing_flow_steps[self.step_number]['output']
-
-    def get_topic(self, dataset, data_name):
-        return "seismic_processing.{}.{}".format(dataset, data_name)
 
     def get_output_data_name(self, module_name):
         if self.settings.get(module_name):

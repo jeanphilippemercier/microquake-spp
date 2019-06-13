@@ -16,6 +16,10 @@ from .processing_unit import ProcessingUnit
 
 
 class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "nlloc"
+
     def initializer(self):
         self.vp_grid, self.vs_grid = get_velocities()
 
@@ -56,7 +60,6 @@ class Processor(ProcessingUnit):
         logger.info("pipeline: nlloc")
 
         cat = kwargs["cat"]
-        stream = kwargs["stream"]
 
         logger.info("running NonLinLoc")
         t0 = time()

@@ -15,6 +15,10 @@ from .processing_unit import ProcessingUnit
 
 
 class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "interloc"
+
     def initializer(self):
         self.htt = get_ttable_h5()
 

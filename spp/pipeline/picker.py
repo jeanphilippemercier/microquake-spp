@@ -13,6 +13,9 @@ from .processing_unit import ProcessingUnit
 
 
 class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "picker"
 
     def initializer(self):
         self.freq_min = self.params.waveform_filter.frequency_min

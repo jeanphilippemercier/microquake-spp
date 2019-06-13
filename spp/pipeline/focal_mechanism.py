@@ -6,6 +6,10 @@ from .processing_unit import ProcessingUnit
 
 
 class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "focal_mechanism"
+
     def initializer(self):
         self.save_figs = True
 

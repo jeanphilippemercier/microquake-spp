@@ -21,7 +21,7 @@ def waveform_stream():
 
 
 def test_measure_energy(catalog, waveform_stream):
-    processor = Processor(module_name="measure_energy")
+    processor = Processor()
     res = processor.process(cat=catalog, stream=waveform_stream)
 
     check_measure_energy_data((catalog, waveform_stream), res['cat'])

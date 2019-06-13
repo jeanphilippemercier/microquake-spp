@@ -1,23 +1,15 @@
 import os
 
+from dynaconf import LazySettings
 from microquake.core.data.inventory import Inventory
-from dynaconf import LazySettings, settings
 
-from loguru import logger
 
 class Settings(LazySettings):
     def __init__(self):
         """
         Init function currently just initializes the object allowing
         """
-        pass
-
-    def load(self, toml_file=None):
-        """
-        Keyword Arguments:
-        toml_file -- (default None)
-        """
-        config_dir = toml_file = None
+        config_dir = None
 
         if "SPP_CONFIG" in os.environ:
             # keep thpis as legacy behavior
@@ -37,16 +29,24 @@ class Settings(LazySettings):
             os.environ.get(env_prefix, 'DEVELOPMENT').upper()
         )
 
+        default_paths = (
+            "connectors.toml,connectors.tml,.connectors.toml,.connectors.tml,"
+            "connectors.json,"
+            "settings.py,.secrets.py,"
+            "settings.toml,settings.tml,.secrets.toml,.secrets.tml,"
+            "settings.yaml,settings.yml,.secrets.yaml,.secrets.yml,"
+            "settings.ini,settings.conf,settings.properties,"
+            ".secrets.ini,.secrets.conf,.secrets.properties,"
+            "settings.json,.secrets.json"
+        )
+
+        dconf['SETTINGS_FILE_FOR_DYNACONF'] = default_paths
         dconf['ROOT_PATH_FOR_DYNACONF'] = config_dir
-        # Could also set SETTINGS_FILE to a list of files. If not set, dynaconf
-        # will load *ALL* settings.{toml,json,py} files it finds in the root dir
-        if toml_file is not None:
-            dconf['SETTINGS_FILE_FOR_DYNACONF'] = toml_file
 
         super().__init__(**dconf)
 
-        self.toml_file = toml_file
         self.config_dir = config_dir
+
         if hasattr(self, "COMMON"):
             self.common_dir = self.COMMON
         elif hasattr(self, "SPP_COMMON"):
@@ -54,12 +54,13 @@ class Settings(LazySettings):
 
         self.nll_base = os.path.join(self.common_dir,
                                      self.get('nlloc').nll_base)
-        self.grids = settings.get('grids')
+        self.grids = self.get('grids')
 
-        self.sensors = settings.get('sensors')
+        self.sensors = self.get('sensors')
+
         if self.sensors.source == 'local':
             # MTH: let's read in the stationxml directly for now!
-            fpath = os.path.join(settings.common_dir, self.sensors.stationXML)
+            fpath = os.path.join(self.common_dir, self.sensors.stationXML)
             self.inventory = Inventory.load_from_xml(fpath)
 
             # fpath = os.path.join(settings.common_dir, sensors.path)
@@ -67,7 +68,6 @@ class Settings(LazySettings):
 
         elif self.sensors.get('sensors').source == 'remote':
             self.inventory = None
-            pass
 
 
 settings = Settings()

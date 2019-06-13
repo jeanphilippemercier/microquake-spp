@@ -21,7 +21,7 @@ def waveform_stream():
 
 
 def test_focal_mechanism(catalog, waveform_stream):
-    processor = Processor(module_name="focal_mechanism")
+    processor = Processor()
     res = processor.process(cat=catalog, stream=waveform_stream)
 
     check_focal_mechanism_data((catalog, waveform_stream), res['cat'])

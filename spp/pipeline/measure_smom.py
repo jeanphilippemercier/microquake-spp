@@ -8,6 +8,10 @@ from .processing_unit import ProcessingUnit
 
 
 class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "measure_smom"
+
     def initializer(self):
         self.use_fixed_fmin_fmax = self.params.use_fixed_fmin_fmax
         self.fmin = self.params.fmin

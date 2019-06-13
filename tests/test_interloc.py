@@ -23,7 +23,7 @@ def waveform_stream():
 
 
 def test_interloc(catalog, waveform_stream):
-    processor = Processor(module_name="interloc")
+    processor = Processor()
     processor.process(stream=waveform_stream)
     output_catalog = processor.output_catalog(catalog)
 

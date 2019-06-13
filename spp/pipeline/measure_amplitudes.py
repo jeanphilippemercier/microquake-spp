@@ -8,6 +8,10 @@ from .processing_unit import ProcessingUnit
 
 
 class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "measure_amplitudes"
+
     def process(
         self,
         **kwargs

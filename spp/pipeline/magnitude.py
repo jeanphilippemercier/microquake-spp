@@ -9,6 +9,10 @@ from .processing_unit import ProcessingUnit
 
 
 class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "magnitude"
+
     def initializer(self):
         self.vp_grid, self.vs_grid = get_velocities()
 
@@ -45,14 +49,7 @@ class Processor(ProcessingUnit):
         use_free_surface_correction = self.params.use_free_surface_correction
         make_preferred = self.params.make_preferred
         phase_list = self.params.phase_list
-        use_smom = False
-
-        if self.module_type == "frequency":
-            min_dist = 20
-            use_sdr_rad = self.params.smom.use_sdr_rad
-            make_preferred = self.params.smom.make_preferred
-            phase_list = self.params.smom.phase_list
-            use_smom = True
+        use_smom = self.params.use_smom
 
         if not isinstance(phase_list, list):
             phase_list = [phase_list]
@@ -107,9 +104,12 @@ class Processor(ProcessingUnit):
 
             if self.module_type == "frequency":
                 Mw = np.nanmean(Mws)
+                comment = "frequency"
             else:
                 Mw = np.mean(Mws)
-                comment = "Average of time-domain station moment magnitudes"
+                comment = "time-domain"
+
+            comment = f"Average of {comment} station moment magnitudes"
 
             if use_sdr_rad and sdr is not None:
                 comment += " Use_sdr_rad: sdr=(%.1f,%.1f,%.1f)" % (sdr[0], sdr[1], sdr[2])
