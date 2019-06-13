@@ -47,7 +47,7 @@ class Processor(ProcessingUnit):
                 for i, fig in enumerate(figs):
                     fig.savefig('foc_mech_%d.png' % i)
 
-        self.result = {'cat': cat_out}
+        self.result = {'cat': cat}
         return self.result
 
     def legacy_pipeline_handler(

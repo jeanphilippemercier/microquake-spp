@@ -71,7 +71,7 @@ class Processor(ProcessingUnit):
                                   (phase, fc, phase))
                 origin.comments.append(comment)
 
-        self.result = {'cat': cat_out}
+        self.result = {'cat': cat}
         return self.result
 
     def legacy_pipeline_handler(

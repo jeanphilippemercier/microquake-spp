@@ -121,7 +121,7 @@ class Processor(ProcessingUnit):
 
             set_new_event_mag(event, station_mags, Mw, comment, make_preferred=make_preferred)
 
-        self.result = {'cat': cat_out}
+        self.result = {'cat': cat}
         return self.result
 
     def legacy_pipeline_handler(
