@@ -51,4 +51,4 @@ class ProcessingUnit(ABC):
         return cat, stream
 
     def output_catalog(self, catalog):
-        return self.result['cat'].copy()
+        return self.result['cat']
