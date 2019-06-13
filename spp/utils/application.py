@@ -50,6 +50,10 @@ class Application(object):
             s['input'] = s['input'] or input
             s['output'] = s['output'] or output
 
+            env = settings.current_env.lower()
+            s['input'] = f"seismic_platform.{env}.{s['input']}"
+            s['output'] = f"seismic_platform.{env}.{s['output']}"
+
             steps.append(s)
 
         self.processing_flow_steps = steps
