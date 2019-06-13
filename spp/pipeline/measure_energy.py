@@ -50,7 +50,8 @@ class Processor(ProcessingUnit):
                                    use_sdr_rad=use_sdr_rad,
                                    logger_in=logger)
 
-        return {'cat': cat}
+        self.result = {'cat': cat_out}
+        return self.result
 
     def legacy_pipeline_handler(
         self,

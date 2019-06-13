@@ -1,6 +1,7 @@
+from abc import ABC, abstractmethod
+
 from loguru import logger
 
-from abc import abstractmethod, ABC
 from ..core.settings import settings
 
 
@@ -48,3 +49,6 @@ class ProcessingUnit(ABC):
         cat, stream = self.app.deserialise_message(msg_in)
 
         return cat, stream
+
+    def output_catalog(self, catalog):
+        return self.result['cat'].copy()

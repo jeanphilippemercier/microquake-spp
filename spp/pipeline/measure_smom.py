@@ -1,6 +1,7 @@
+from obspy.core.event.base import Comment
+
 from loguru import logger
 from microquake.waveform.smom_measure import measure_pick_smom
-from obspy.core.event.base import Comment
 
 from ..core.grid import synthetic_arrival_times
 from ..core.settings import settings
@@ -70,7 +71,8 @@ class Processor(ProcessingUnit):
                                   (phase, fc, phase))
                 origin.comments.append(comment)
 
-        return {'cat': cat}
+        self.result = {'cat': cat_out}
+        return self.result
 
     def legacy_pipeline_handler(
         self,

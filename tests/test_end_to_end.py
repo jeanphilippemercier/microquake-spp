@@ -1,10 +1,4 @@
 import pytest
-
-from microquake.core import read_events
-from microquake.core.stream import read
-from microquake.core.util.attribdict import AttribDict
-from spp.utils.cli import CLI
-from spp.utils.test_application import TestApplication
 from tests.helpers.data_utils import clean_test_data, get_test_data
 from tests.test_focal_mechanism import check_focal_mechanism_data
 from tests.test_interloc import check_interloc_data_end_to_end
@@ -15,6 +9,17 @@ from tests.test_measure_energy import check_measure_energy_data
 from tests.test_measure_smom import check_smom_data
 from tests.test_nlloc import check_hypocenter_location
 from tests.test_picker import check_picker_data
+
+from microquake.core import read_events
+from microquake.core.stream import read
+from microquake.core.util.attribdict import AttribDict
+from spp.pipeline import (AnalyseSignalProcessor, EventDatabaseProcessor,
+                          FocalMechanismProcessor, InterlocProcessor,
+                          MagnitudeProcessor, MeasureAmplitudesProcessor,
+                          MeasureEnergyProcessor, MeasureSmomProcessor,
+                          NLLocProcessor, PickerProcessor, RayTracerProcessor)
+from spp.utils.cli import CLI
+from spp.utils.test_application import TestApplication
 
 test_data_name = "test_end_to_end"
 
@@ -37,36 +42,44 @@ def test_end_to_end(catalog, waveform_stream):
     test_input = (catalog, waveform_stream)
     test_app = TestApplication(module_name='interloc', processing_flow_name="automatic", input_data=test_input)
 
-    args = AttribDict({
-        'mode': 'local',
-        'module': None,
-        'modules':'interloc,picker,nlloc,measure_amplitudes,measure_smom,focal_mechanism,measure_energy,magnitude,magnitude_f',
-        'settings_name':None,
-        'processing_flow':'automatic',
-        'input_bytes':None,
-        'input_mseed':None,
-        'input_quakeml':None,
-        'output_bytes':None,
-        'output_mseed':None,
-        'output_quakeml':None,
-        'event_id':None,
-        'send_to_api':None,
-    })
-    cli = CLI('chain', 'automatic', app=test_app, args=args)
+    processor = InterlocProcessor()
+    processor.process(stream=waveform_stream, cat=catalog)
+    catalog = processor.output_catalog(catalog)
 
+    processor = PickerProcessor()
+    processor.process(stream=waveform_stream, cat=catalog)
+    catalog = processor.output_catalog(catalog)
 
-    cli.run_module()
-
+    processor = NLLocProcessor()
+    processor.process(stream=waveform_stream, cat=catalog)
+    catalog = processor.output_catalog(catalog)
+    processor = MeasureAmplitudesProcessor()
+    processor.process(stream=waveform_stream, cat=catalog)
+    catalog = processor.output_catalog(catalog)
+    processor = MeasureSmomProcessor()
+    processor.process(stream=waveform_stream, cat=catalog)
+    catalog = processor.output_catalog(catalog)
+    processor = FocalMechanismProcessor()
+    processor.process(stream=waveform_stream, cat=catalog)
+    catalog = processor.output_catalog(catalog)
+    processor = MeasureEnergyProcessor()
+    processor.process(stream=waveform_stream, cat=catalog)
+    catalog = processor.output_catalog(catalog)
+    processor = MagnitudeProcessor()
+    processor.process(stream=waveform_stream, cat=catalog)
+    catalog = processor.output_catalog(catalog)
+    processor = MagnitudeProcessor(module_type='frequency')
+    processor.process(stream=waveform_stream, cat=catalog)
+    catalog = processor.output_catalog(catalog)
     # We seem to lose the preferred_origin() reference, so run this test separately
-    output_data = test_app.clean_message(cli.app.output_data)
     input_data = test_app.clean_message((catalog, waveform_stream))
-    check_hypocenter_location(input_data, output_data)
+    check_hypocenter_location(input_data, output_catalog)
 
     input_data = test_app.clean_message((catalog, waveform_stream))
-    check_end_to_end_data(input_data, cli.app.output_data)
+    check_end_to_end_data(input_data, output_catalog)
 
 
-def check_end_to_end_data(input_data, output_data):
+def check_end_to_end_data(input_data, output_catalog):
     check_interloc_data_end_to_end(input_data, output_data)
     check_picker_data(input_data, output_data)
     check_amplitudes_data(input_data, output_data)

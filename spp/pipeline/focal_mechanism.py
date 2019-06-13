@@ -1,6 +1,7 @@
+from obspy.core.event.base import ResourceIdentifier
+
 from loguru import logger
 from microquake.focmec.core import calc_focal_mechanisms
-from obspy.core.event.base import ResourceIdentifier
 
 from .processing_unit import ProcessingUnit
 
@@ -46,7 +47,8 @@ class Processor(ProcessingUnit):
                 for i, fig in enumerate(figs):
                     fig.savefig('foc_mech_%d.png' % i)
 
-        return {'cat': cat}
+        self.result = {'cat': cat_out}
+        return self.result
 
     def legacy_pipeline_handler(
         self,

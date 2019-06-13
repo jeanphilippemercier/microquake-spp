@@ -33,6 +33,7 @@ class Processor():
             logger.error('Error in postion data to the API. Returned with '
                          'error code %d' % result.status_code)
 
+        self.result = kwargs
         return kwargs
 
     def legacy_pipeline_handler(

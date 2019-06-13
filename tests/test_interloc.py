@@ -48,12 +48,10 @@ def check_interloc_data(input_data, output_catalog):
 # Some interloc data is removed later in the pipeline
 
 
-def check_interloc_data_end_to_end(input_data, output_data):
+def check_interloc_data_end_to_end(input_data, output_catalog):
     (input_catalog, input_waveform_stream) = input_data
-    (output_catalog, output_waveform_stream) = output_data
     assert isinstance(output_catalog[0].origins[0], Origin)
     assert output_catalog[0].preferred_origin_id is not None
 
     dist = np.linalg.norm(output_catalog[0].origins[0].loc - output_catalog[0].origins[1].loc)
     assert 21 < dist < 22
-    assert len(output_waveform_stream) == len(input_waveform_stream)

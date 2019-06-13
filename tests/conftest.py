@@ -15,6 +15,4 @@ def execute_before_any_test():
 
 @pytest.fixture(scope="module", autouse=True)
 def settings():
-    sppsettings.settings.load()
-
     return sppsettings.settings

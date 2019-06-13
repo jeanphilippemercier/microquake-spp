@@ -72,7 +72,8 @@ class Processor(ProcessingUnit):
                           debug=False,
                           logger_in=logger)
 
-        return {'cat': cat}
+        self.result = {'cat': cat}
+        return self.result
 
     def legacy_pipeline_handler(
         self,

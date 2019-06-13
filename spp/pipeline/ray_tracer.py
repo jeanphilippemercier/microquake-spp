@@ -61,7 +61,8 @@ class Processor(ProcessingUnit):
                                             phase, ray.length(), travel_time,
                                             azimuth, toa, ray.nodes)
 
-        return {'cat': cat}
+        self.result = {'cat': cat_out}
+        return self.result
 
     def legacy_pipeline_handler(
         self,
