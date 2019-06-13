@@ -23,9 +23,10 @@ def waveform_stream():
 
 def test_hypocenter_location(catalog, waveform_stream):
     processor = Processor()
-    res = processor.process(cat=catalog, stream=waveform_stream)
+    processor.process(cat=catalog, stream=waveform_stream)
+    output_catalog = processor.output_catalog(catalog)
 
-    check_hypocenter_location((catalog, waveform_stream), res['cat'])
+    check_hypocenter_location((catalog, waveform_stream), output_catalog)
 
 
 def check_hypocenter_location(input_data, output_catalog):
