@@ -11,7 +11,6 @@ from loguru import logger
 class LocalApplication(Application):
     def __init__(
         self,
-        toml_file=None,
         module_name=None,
         processing_flow_name="automatic",
         input_bytes=None,
@@ -22,7 +21,6 @@ class LocalApplication(Application):
         output_quakeml=None,
     ):
         super(LocalApplication, self).__init__(
-            toml_file=toml_file,
             module_name=module_name,
             processing_flow_name=processing_flow_name,
         )

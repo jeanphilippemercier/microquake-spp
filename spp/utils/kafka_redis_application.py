@@ -11,10 +11,9 @@ from .application import Application
 
 class KafkaRedisApplication(Application):
     def __init__(
-        self, toml_file=None, step_number=None, module_name=None, processing_flow_name="automatic", **kwargs
+        self, step_number=None, module_name=None, processing_flow_name="automatic", **kwargs
     ):
         super(KafkaRedisApplication, self).__init__(
-            toml_file=toml_file,
             module_name=module_name,
             step_number=step_number,
             processing_flow_name=processing_flow_name,

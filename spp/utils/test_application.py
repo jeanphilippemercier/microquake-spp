@@ -11,13 +11,11 @@ from .application import Application
 class TestApplication(Application):
     def __init__(
         self,
-        toml_file=None,
         module_name=None,
         processing_flow_name=None,
         input_data=None,
     ):
         super(TestApplication, self).__init__(
-            toml_file=toml_file,
             module_name=module_name,
             processing_flow_name=processing_flow_name,
         )

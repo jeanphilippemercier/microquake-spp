@@ -122,7 +122,7 @@ def run(info: Info):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     processor = getattr(mod, 'Processor')
-    processor = processor(app=app, module_name=module_name, module_type=module_type)
+    processor = processor(app=app, module_type=module_type)
 
     for msg_in in app.consumer_msg_iter():
         try:
