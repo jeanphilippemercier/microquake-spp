@@ -79,6 +79,60 @@ services:
     restart: always
     tty: true
 
+  faust_2:
+    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
+    hostname: faust_2
+    ports:
+      - "6534:6534"
+    container_name: faust_2
+    depends_on:
+      - zookeeper
+      - broker
+    volumes:
+      - $SPP_COMMON/:/data/common
+      - $SPP_CONFIG/:/data/config
+      - .:/faust_app
+    environment:
+      SPP_COMMON: "/data/common"
+      SPP_CONFIG: "/data/config"
+    #    command: bash -c "cd /services && python foo.py"
+    working_dir:
+      /faust_app
+    command: >
+      bash -c "pip install faust
+      && cd /faust_app
+      && python dummy.py"
+    #    command: bash -c "cd /services && nameko run interloc_service --broker amqp://rabbitmq:5672"
+    restart: always
+    tty: true
+
+  faust_3:
+    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
+    hostname: faust_3
+    ports:
+      - "6535:6535"
+    container_name: faust_3
+    depends_on:
+      - zookeeper
+      - broker
+    volumes:
+      - $SPP_COMMON/:/data/common
+      - $SPP_CONFIG/:/data/config
+      - .:/faust_app
+    environment:
+      SPP_COMMON: "/data/common"
+      SPP_CONFIG: "/data/config"
+    #    command: bash -c "cd /services && python foo.py"
+    working_dir:
+      /faust_app
+    command: >
+      bash -c "pip install faust
+      && cd /faust_app
+      && python dummy.py"
+    #    command: bash -c "cd /services && nameko run interloc_service --broker amqp://rabbitmq:5672"
+    restart: always
+    tty: true
+
   redisdb:
     image: redis:4
     hostname: redisdb

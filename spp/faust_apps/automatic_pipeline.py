@@ -12,14 +12,13 @@ from microquake.core import read, read_events, UTCDateTime
 from microquake.core.event import Origin, AttribDict
 from typing import AsyncIterable
 import pickle
-
-from faust.serializers import codecs
-
+from models import PipelineMessage
+import numpy as np
 
 spp_app = Application()
 
 app = faust.App('spp_automatic_pipeline', reply_create_topic=True,
-                broker='broker')
+                broker='broker', topic_partitions=10)
 
 modules = ['interloc', 'picker', 'nlloc', 'measure_amplitudes', 'measure_smom',
            'measure_smom', 'focal_mechanism', 'measure_energy', 'magnitude',
@@ -28,126 +27,114 @@ modules = ['interloc', 'picker', 'nlloc', 'measure_amplitudes', 'measure_smom',
 # partition = spp_app.settings.get('kafka').topic_partition
 redis_settings = spp_app.settings.get('redis_db')
 
+# !!!!! IT WILL BE CRUCIAL TO MANAGE MEMORY ISSUE RELATED TO REDIS. THE
+# OBJECT IN THE DATABASE DO NOT HAVE EXPIRATION.
+source = Seismic(redis_settings)
 
-class PipelineMessage(faust.Record):
-    process_id: str
-    processing_step: int
-    configuration: bytes
+@app.agent()
+async def orchestrator(events) -> None:
+    async for event in events:
 
+        # STEP - 1: INTERLOC, preliminary event location
+        logger.info('Pipeline STEP - 1: Interloc')
+        await interloc_agent.ask(value=event)
 
-def origin_from_response(response):
-    res = response
-    x = res['x']
-    y = res['y']
-    z = res['z']
-    vmax = res['vmax']
-    normed_vmax = res['normed_vmax']
-    method = res['method']
-    event_time = UTCDateTime(datetime.fromtimestamp(res['event_time']))
+        # # STEP - 2: PICKERS, P- and S- wave arrival picking
+        logger.info('Pipeline STEP - 2: Pickers')
 
-    origin = Origin(x=x, y=y, z=z, time=event_time,
-                    method_id=method, evalution_status="preliminary",
-                    evaluation_mode="automatic")
+        await pickers_election_agent.ask(value=event)
 
-    origin.extra.interloc_vmax = \
-       AttribDict({'value': vmax, 'namespace': 'MICROQUAKE'})
+        # # STEP - 3: NONLINLOC, Non linear location method using picks
 
-    origin.extra.interloc_normed_vmax \
-        = AttribDict({'value': normed_vmax, 'namespace': 'MICROQUAKE'})
-
-    return origin
-
-
-topics = {}
-for module in modules:
-    topics[module] = app.topic(module, value_type=PipelineMessage)
-
-@app.agent(topics['interloc'])
+@app.agent()
 async def interloc_agent(events) -> None:
     processor = interloc.Processor('interloc', app=spp_app)
     async for event in events:
-        print(event)
-        source = Seismic(event.process_id, redis_settings,
-                         types=['fixed_length', 'catalog'])
-        data = source.deserialize()
-        print(data.keys())
-        print(data)
+        process_id = event['process_id']
+        data = source.deserialize(process_id, ['fixed_length', 'catalog'])
         response = processor.process(stream=data['fixed_length'])
 
         cat = data['catalog']
 
-        origin = origin_from_response(response)
-        cat[0].origins.append(origin)
-        cat[0].preferred_origin_id = origin.resource_id.id
+        cat_out = processor.output_catalog(cat)
 
-        seismic_data = {'catalog': cat}
-        source.serialize(seismic_data)
+        seismic_data = {'catalog': cat_out}
+        source.serialize(process_id, seismic_data)
 
-        event.processing_step += 1
-
-        print(response)
-
-        from picker_settings import settings as picker_settings
-        picker1_settings = pickle.dumps(picker_settings.get('picker1'))
-        picker2_settings = pickle.dumps(picker_settings.get('picker2'))
-        picker3_settings = pickle.dumps(picker_settings.get('picker3'))
-
-        msg_picker1 = PipelineMessage(process_id=event.process_id,
-                                      processing_step =
-                                      event.processing_step + 1,
-                                      configuration=picker1_settings)
-
-        msg_picker2 = PipelineMessage(process_id=event.process_id,
-                                      processing_step=
-                                      event.processing_step + 1,
-                                      configuration=picker2_settings)
-
-        msg_picker3 = PipelineMessage(process_id=event.process_id,
-                                      processing_step=
-                                      event.processing_step + 1,
-                                      configuration=picker3_settings)
-
-        # print(picker3_settings)
+        yield response
 
 
-        response = await picker_agent.join([msg_picker1, msg_picker2,
-                                            msg_picker3])
-        print(response)
-
-        # print(value)
-        # yield 'bubu'
-
-        # async for reply in picker.map([event, event, event]):
-        #     print(f'RECEIVED REPLY: {reply!r}')
-        #
-        # await topics['picker'].send(value=event)
-
-
-
-@app.agent(topics['picker'])
-async def picker_agent(events):
-    processor = picker.Processor('picker', app=spp_app)
+@app.agent()
+async def pickers_election_agent(events):
     async for event in events:
-        print('tourlou')
-        # print(event)
-        print(event['configuration'])
-        print(type(event['configuration'])
-        conf = event['configuration']
-        # pickle.loads(conf)
-        # pickle.loads(event['configuration'])
-        # print(pickle.loads(event['configuration']))
-        yield 10
+
+        process_id = event['process_id']
+        msg_pk_hf = PipelineMessage(process_id=process_id,
+                                    module_type='high_frequencies')
+        msg_pk_mf = PipelineMessage(process_id=process_id,
+                                    module_type='medium_frequencies')
+        msg_pk_lf = PipelineMessage(process_id=process_id,
+                                    module_type='low_frequencies')
+        msg_list = [msg_pk_hf, msg_pk_mf, msg_pk_lf]
+        results = await picker_agent.join(msg_list)
+
+        nb_picks = [result['nb_picks'] for result in results]
+        res_keys = [result['result_catalog_key'] for result in results]
+        imax = np.argsmax(nb_picks)
+        res_key = res_key[imax]
+        data = source.deserialize(process_id, res_key)
+
+        pickers = ['high_frequencies', 'medium_frequencies', 'low_frequencies']
+
+        logger.info('and the best picker was ... the % picker' % pickers[imax])
+
+        source.serialize(process_id, {'catalog': data['catalog']})
+
+        yield pickers[imax]
+
+
+@app.agent()
+async def picker_agent(events):
+    async for event in events:
+        print(event)
+        processor = picker.Processor('picker', app=spp_app,
+                                     module_type=event['module_type'])
+        source = Seismic(redis_settings)
+        process_id = event['process_id']
+        data = source.deserialize(process_id, ['fixed_length', 'catalog'])
+        print(data.keys())
+        response = processor.process(stream=data['fixed_length'],
+                                     cat=data['catalog'])
+        # print(response)
+        catalog_key = '%s_picker_%s' % (process_id, event['module_type'])
+        cat = processor.output_catalog(data['catalog'])
+        output_dict = {'catalog' : cat}
+
+        logger.info('%s picker yielded %d picks' % (event['module_type'],
+                                                    len(response['picks'])))
+
+        source.serialize(process_id, output_dict)
+
+        result = {'nb_picks': len(response['picks']),
+                  'result_catalog_key': catalog_key}
+
+        yield result
+
+
+@app.agent()
+async def nll_agent(events):
+    async for event in events:
+        pass
 
 
 
-@app.timer(10, on_leader=True)
+@app.timer(30, on_leader=True)
 async def create_message():
     process_id = str(uuid4())
-    pm = PipelineMessage(process_id=process_id, processing_step=0,
-                         configuration=None)
+    pm = PipelineMessage(process_id=process_id,
+                         module_type=None)
 
-    seismic = Seismic(process_id, redis_settings,
-                    ['fixed_length', 'catalog'])
+    seismic = Seismic(redis_settings)
 
     logger.info('loading mseed data')
     # mseed_bytes = requests.get("https://permanentdbfilesstorage.blob.core"
@@ -183,9 +170,9 @@ async def create_message():
                     'catalog': cat}
 
     # from pdb import set_trace; set_trace()
-    seismic.serialize(seismic_data)
+    seismic.serialize(process_id, seismic_data)
 
-    await topics['interloc'].send(value=pm)
+    await orchestrator.send(value=pm)
 
 import asyncio
 if __name__ == '__main__':

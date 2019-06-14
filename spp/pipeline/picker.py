@@ -102,7 +102,8 @@ class Processor(ProcessingUnit):
 
             st_c = st.copy().composite()
             snrs_p, p_snr_picks = snr_picker(
-                st_c, picks, snr_dt=search_window, snr_window=snr_window, filter="P"
+                st_c, picks, snr_dt=search_window, snr_window=snr_window,
+                filter="P"
             )
             t5 = time()
             logger.info("done picking P-wave in %0.3f seconds" % (t5 - t4))
@@ -122,7 +123,8 @@ class Processor(ProcessingUnit):
             )
 
             snrs_s, s_snr_picks = snr_picker(
-                st_c, picks, snr_dt=search_window, snr_window=snr_window, filter="S"
+                st_c, picks, snr_dt=search_window, snr_window=snr_window,
+                filter="S"
             )
             t7 = time()
 
