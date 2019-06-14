@@ -108,21 +108,17 @@ picker.p_s_tolerance = 5e-3  # P and S must be at least separated by p_s_toleran
 picker.output_data_name  = 'picks_set'
 picker.log_topic = 'automatic picker'
 picker.log_file_name = 'automatic_picker.log'
-
+picker.min_num_picks = 10
 picker.waveform_filter.frequency_min = 100
 picker.waveform_filter.frequency_max = 1000
 
 picker.p_wave.search_window.start = -100e-3        # start of search window relative to predicted arrival time (s)
 picker.p_wave.search_window.end = 20e-3           # end of the search window relative to predicted arrival time (s)
 picker.p_wave.search_window.resolution = 0.001   # time resolution of search window (s)
-picker.p_wave.snr_window.noise = 0.005         # length of the window for noise energy measurement
-picker.p_wave.snr_window.signal = 0.01        # length of the window for signal energy measurement
 
 picker.s_wave.search_window.start = -100e-3        # start of search window relative to predicted arrival time (s)
 picker.s_wave.search_window.end = 20e-3           # end of the search window relative to predicted arrival time (s)
 picker.s_wave.search_window.resolution = 0.001   # time resolution of search window (s)
-picker.s_wave.snr_window.noise = 0.005         # length of the window for noise energy measurement
-picker.s_wave.snr_window.signal = 0.01        # length of the window for signal energy measurement
 
 picker.high_frequencies.waveform_filter.frequency_min = 100
 picker.high_frequencies.waveform_filter.frequency_max = 1000
