@@ -60,7 +60,7 @@ class Processor(ProcessingUnit):
         ot_utcs = []
         logger.info("calculating origin time")
         t0 = time()
-        loc = cat[0].preferred_origin().loc
+        loc = cat[0].origins[-1].loc
         ot_utcs.append(estimate_origin_time(stream, loc))
         t1 = time()
         logger.info("done calculating origin time in %0.3f seconds" % (t1 - t0))
@@ -82,7 +82,7 @@ class Processor(ProcessingUnit):
         for ot_utc in ot_utcs:
             logger.info("predicting picks for origin time {}", ot_utc)
             t2 = time()
-            o_loc = cat[0].preferred_origin().loc
+            o_loc = cat[0].origins[-1].loc
             picks = synthetic_arrival_times(o_loc, ot_utc)
             t3 = time()
             logger.info("done predicting picks in %0.3f seconds" % (t3 - t2))

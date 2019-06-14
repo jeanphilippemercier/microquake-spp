@@ -88,29 +88,13 @@ class Processor(ProcessingUnit):
             t3 = time()
             logger.info("done calculating uncertainty in %0.3f seconds" % (t3 - t2))
 
-        # Fix the source angles (takeoff, azimuth) and add receiver angles (incidence, backazimuth)
         fix_arr_takeoff_and_azimuth(cat_out, self.vp_grid, self.vs_grid)
-
-        # Just to reinforce that these are hypocentral distance in meters ... to be used by moment_mag calc
-        # ie, obspy.arrival.distance = epicenteral distance in degrees
 
         if cat_out[0].preferred_origin():
             origin = cat_out[0].preferred_origin()
 
             for arr in origin.arrivals:
                 arr.hypo_dist_in_m = arr.distance
-
-        # cat_out.write("cat_nlloc.xml", format="QUAKEML")
-
-        if cat_out[0].preferred_origin():
-            logger.info("IMS   origin:  %s" % cat_out[0].origins[0].time)
-            logger.info("NLLoc origin:  %s" % cat_out[0].preferred_origin().time)
-            logger.info("IMS   location %s" % cat_out[0].origins[0].loc)
-            logger.info("NLLoc location %s" % cat_out[0].preferred_origin().loc)
-            dist = np.linalg.norm(
-                cat_out[0].origins[0].loc - cat_out[0].preferred_origin().loc
-            )
-            logger.info("distance between two location %0.2f m" % dist)
 
         self.result = {'cat': cat_out}
         return self.result
