@@ -1,7 +1,7 @@
 import faust
 from datetime import datetime
 from spp.utils.application import Application
-from spp.pipeline import interloc, picker
+from spp.pipeline import interloc, picker, nlloc
 # from spp.core.serializers.serializer import Seismic
 from serializer import Seismic
 from uuid import uuid4
@@ -12,6 +12,7 @@ from microquake.core import read, read_events, UTCDateTime
 from microquake.core.event import Origin, AttribDict
 from typing import AsyncIterable
 import pickle
+from spp.core.settings import settings
 from models import PipelineMessage
 import numpy as np
 
@@ -32,19 +33,22 @@ redis_settings = spp_app.settings.get('redis_db')
 source = Seismic(redis_settings)
 
 @app.agent()
-async def orchestrator(events) -> None:
+async def automatic_pipeline_orchestrator(events) -> None:
     async for event in events:
+        process_id = event.process_id
 
         # STEP - 1: INTERLOC, preliminary event location
-        logger.info('Pipeline STEP - 1: Interloc')
+        logger.info('Automatic Pipeline STEP - 1: Interloc')
         await interloc_agent.ask(value=event)
-
-        # # STEP - 2: PICKERS, P- and S- wave arrival picking
-        logger.info('Pipeline STEP - 2: Pickers')
+        # STEP - 2: PICKERS, P- and S- wave arrival picking
+        logger.info('Automatic Pipeline STEP - 2: Pickers')
 
         await pickers_election_agent.ask(value=event)
 
-        # # STEP - 3: NONLINLOC, Non linear location method using picks
+        # STEP - 3: NONLINLOC, Non linear location method using picks
+        logger.info('Automatic Pipeline STEP - 3: NLLOC')
+        await nll_agent.ask(value=event)
+
 
 @app.agent()
 async def interloc_agent(events) -> None:
@@ -80,17 +84,28 @@ async def pickers_election_agent(events):
 
         nb_picks = [result['nb_picks'] for result in results]
         res_keys = [result['result_catalog_key'] for result in results]
-        imax = np.argsmax(nb_picks)
-        res_key = res_key[imax]
-        data = source.deserialize(process_id, res_key)
+        imax = np.argmax(nb_picks)
+
+        if nb_picks[imax] < settings.get('picker').min_num_picks:
+            logger.warning('Number of picks (%s) too low aborting... The '
+                           'results from the previous step will be retained'
+                           % nb_picks)
+            yield False
+            break
+
+        res_key = res_keys[imax]
+        print(res_key)
+        data = source.deserialize(res_key, ['catalog'])
 
         pickers = ['high_frequencies', 'medium_frequencies', 'low_frequencies']
 
-        logger.info('and the best picker was ... the % picker' % pickers[imax])
+        logger.info('and the best picker was ... the %s picker' % pickers[
+            imax])
+
 
         source.serialize(process_id, {'catalog': data['catalog']})
 
-        yield pickers[imax]
+        yield True
 
 
 @app.agent()
@@ -106,29 +121,49 @@ async def picker_agent(events):
         response = processor.process(stream=data['fixed_length'],
                                      cat=data['catalog'])
         # print(response)
-        catalog_key = '%s_picker_%s' % (process_id, event['module_type'])
+        catalog_key = 'picker_%s_%s' % (process_id, event['module_type'])
         cat = processor.output_catalog(data['catalog'])
-        output_dict = {'catalog' : cat}
 
         logger.info('%s picker yielded %d picks' % (event['module_type'],
                                                     len(response['picks'])))
 
-        source.serialize(process_id, output_dict)
+        source.serialize(catalog_key, {'catalog' : cat})
 
-        result = {'nb_picks': len(response['picks']),
+        nb_picks = len(response['picks'])
+        result = {'nb_picks': nb_picks,
                   'result_catalog_key': catalog_key}
+
+        del data
+        del cat
 
         yield result
 
 
 @app.agent()
 async def nll_agent(events):
+    processor = nlloc.Processor()
+    processor.initializer()
+    async for event in events:
+        process_id = event['process_id']
+        cat = source.deserialize(process_id, ['catalog'])['catalog']
+        cat_out = processor.process(cat=cat)
+
+        # test if cat_out is not empty
+        if not cat_out:
+            yield False
+            break
+
+        source.serialize(process_id, {'catalog': cat_out})
+        yield True
+
+@app.agent()
+async def measure_amplitudes_agend(events):
     async for event in events:
         pass
 
 
 
-@app.timer(30, on_leader=True)
+@app.timer(10, on_leader=True)
 async def create_message():
     process_id = str(uuid4())
     pm = PipelineMessage(process_id=process_id,
@@ -172,7 +207,7 @@ async def create_message():
     # from pdb import set_trace; set_trace()
     seismic.serialize(process_id, seismic_data)
 
-    await orchestrator.send(value=pm)
+    await automatic_pipeline_orchestrator.send(value=pm)
 
 import asyncio
 if __name__ == '__main__':

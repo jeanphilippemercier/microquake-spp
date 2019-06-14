@@ -1,5 +1,6 @@
 from redis import StrictRedis
 import pickle
+from loguru import logger
 
 
 class Seismic:
@@ -22,11 +23,15 @@ class Seismic:
                                 pickle.dumps(input_dictionary[key]))
             # from pdb import set_trace; set_trace()
 
-    def deserialize(self, process_id: str, output_keys: list):
+    def deserialize(self, process_id: str, object_types: list):
         output_dict = {}
-        for key in output_keys:
-            redis_key = '%s.%s' % (process_id, key)
-            output_dict[key] = pickle.loads(self.redis_conn.get(redis_key))
+        for object_type in object_types:
+            redis_key = '%s.%s' % (process_id, object_type)
+            logger.info('Getting data for the following redis_key: %s' %
+                        redis_key)
+            obj = self.redis_conn.get(redis_key)
+            logger.info('The size of the object retrieved is %d' % len(obj))
+            output_dict[object_type] = pickle.loads(obj)
 
         return output_dict
 
