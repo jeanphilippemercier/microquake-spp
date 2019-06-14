@@ -115,16 +115,35 @@ picker.waveform_filter.frequency_max = 1000
 picker.p_wave.search_window.start = -100e-3        # start of search window relative to predicted arrival time (s)
 picker.p_wave.search_window.end = 20e-3           # end of the search window relative to predicted arrival time (s)
 picker.p_wave.search_window.resolution = 0.001   # time resolution of search window (s)
-
 picker.p_wave.snr_window.noise = 0.005         # length of the window for noise energy measurement
 picker.p_wave.snr_window.signal = 0.01        # length of the window for signal energy measurement
 
 picker.s_wave.search_window.start = -100e-3        # start of search window relative to predicted arrival time (s)
 picker.s_wave.search_window.end = 20e-3           # end of the search window relative to predicted arrival time (s)
 picker.s_wave.search_window.resolution = 0.001   # time resolution of search window (s)
-
 picker.s_wave.snr_window.noise = 0.005         # length of the window for noise energy measurement
 picker.s_wave.snr_window.signal = 0.01        # length of the window for signal energy measurement
+
+picker.high_frequencies.waveform_filter.frequency_min = 100
+picker.high_frequencies.waveform_filter.frequency_max = 1000
+picker.high_frequencies.p_wave.snr_window.noise = 0.005
+picker.high_frequencies.p_wave.snr_window.signal = 0.01
+picker.high_frequencies.s_wave.snr_window.noise = 0.005
+picker.high_frequencies.s_wave.snr_window.signal = 0.01
+
+picker.medium_frequencies.waveform_filter.frequency_min = 50
+picker.medium_frequencies.waveform_filter.frequency_max = 500
+picker.medium_frequencies.p_wave.snr_window.noise = 0.01
+picker.medium_frequencies.p_wave.snr_window.signal = 0.02
+picker.medium_frequencies.s_wave.snr_window.noise = 0.01
+picker.medium_frequencies.s_wave.snr_window.signal = 0.02
+
+picker.low_frequencieswaveform_filter.frequency_min = 20
+picker.low_frequencieswaveform_filter.frequency_max = 200
+picker.low_frequencies.p_wave.snr_window.noise = 0.02
+picker.low_frequencies.p_wave.snr_window.signal = 0.04
+picker.low_frequencies.s_wave.snr_window.noise = 0.02
+picker.low_frequencies.s_wave.snr_window.signal = 0.04
 
 magnitude.ttpath = 'None'
 magnitude.only_triaxial = true
