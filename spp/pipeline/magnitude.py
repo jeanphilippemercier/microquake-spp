@@ -119,7 +119,8 @@ class Processor(ProcessingUnit):
 
                 continue
 
-            set_new_event_mag(event, station_mags, Mw, comment, make_preferred=make_preferred)
+            set_new_event_mag(event, station_mags, Mw, comment,
+                              make_preferred=make_preferred)
 
         self.result = {'cat': cat}
         return self.result

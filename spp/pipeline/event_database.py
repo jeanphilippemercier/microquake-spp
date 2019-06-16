@@ -19,12 +19,30 @@ class Processor():
         self,
         **kwargs
     ):
-        cat = kwargs["cat"]
-        stream = kwargs["stream"]
+        cat = None
+        stream = None
+        variable_length = None
+        contest = None
+
+        if 'cat' in kwargs.keys():
+            cat = kwargs['cat']
+        if 'fixed_length' in kwargs.keys():
+            stream = kwargs['fixed_length']
+        if 'variable_length' in kwargs.keys():
+            variable_length = kwargs['variable_length']
+        if 'context' in kwargs.keys():
+            context = kwargs['context']
+
 
         logger.info('posting data to the API')
-        result = post_data_from_objects(self.api_base_url, event_id=None, event=cat,
-                                        stream=stream, context_stream=None, tolerance=None)
+
+        post_data_from_objects(self.api_base_url, event_id=None, event=cat,
+                               stream=stream, context_stream=context,
+                               variable_length_stream=variable_length,
+                               tolerance=None,
+                               send_to_bus=False,
+                               logger=logger)
+
         logger.info('posting seismic data')
 
         if result.status_code == 200:
