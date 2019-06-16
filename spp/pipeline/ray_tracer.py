@@ -28,6 +28,8 @@ class Processor(ProcessingUnit):
 
         event_id = str(cat[0].resource_id)
 
+        self.result = []
+
         for phase in ['P', 'S']:
             for origin in cat[0].origins:
                 origin_id = str(origin.resource_id)
@@ -48,20 +50,47 @@ class Processor(ProcessingUnit):
                     arrival_id = None
 
                     for arrival in origin.arrivals:
+                        if not arrival:
+                            continue
                         pick = arrival.get_pick()
+
+                        if not pick:
+                            continue
 
                         if pick.waveform_id.station_code == station.code:
                             if arrival.phase == phase:
                                 arrival_id = str(arrival.resource_id)
 
                     # post ray data to api
-                    seismic_client.post_ray(self.api_base_url,
-                                            self.site_code, self.network_code, event_id,
-                                            origin_id, arrival_id, station_id,
-                                            phase, ray.length(), travel_time,
-                                            azimuth, toa, ray.nodes)
+                    result = {'event_id': event_id,
+                              'origin_id': origin_id,
+                              'arrival_id': arrival_id,
+                              'station_id': station_id,
+                              'phase': phase,
+                              'length': ray.length,
+                              'travel_time': travel_time,
+                              'azimuth': azimuth,
+                              'toa': toa,
+                              'ray_nodes': ray.nodes}
 
-        self.result = {'cat': cat_out}
+                    # we may want to move the connection to the API
+                    # somewhere else
+                    response = seismic_client.post_ray(self.api_url,
+                                                       self.site_code,
+                                                       self.network_code,
+                                                       event_id,
+                                                       origin_id,
+                                                       arrival_id,
+                                                       station_id,
+                                                       phase,
+                                                       ray.length(),
+                                                       travel_time,
+                                                       azimuth,
+                                                       toa,
+                                                       ray.nodes)
+
+                    self.result.append(result)
+
         return self.result
 
     def legacy_pipeline_handler(

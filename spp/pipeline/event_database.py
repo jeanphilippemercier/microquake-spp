@@ -22,7 +22,7 @@ class Processor():
         cat = None
         stream = None
         variable_length = None
-        contest = None
+        context = None
 
         if 'cat' in kwargs.keys():
             cat = kwargs['cat']
@@ -36,14 +36,15 @@ class Processor():
 
         logger.info('posting data to the API')
 
-        post_data_from_objects(self.api_base_url, event_id=None, event=cat,
-                               stream=stream, context_stream=context,
-                               variable_length_stream=variable_length,
-                               tolerance=None,
-                               send_to_bus=False,
-                               logger=logger)
-
         logger.info('posting seismic data')
+        result = post_data_from_objects(self.api_base_url, event_id=None,
+                                        event=cat,
+                                        stream=stream, context_stream=context,
+                                        variable_length_stream=variable_length,
+                                        tolerance=None,
+                                        send_to_bus=False,
+                                        logger=logger)
+
 
         if result.status_code == 200:
             logger.info('successfully posting data to the API')
@@ -51,8 +52,8 @@ class Processor():
             logger.error('Error in postion data to the API. Returned with '
                          'error code %d' % result.status_code)
 
-        self.result = kwargs
-        return kwargs
+        self.result = result
+        return result
 
     def legacy_pipeline_handler(
         self,

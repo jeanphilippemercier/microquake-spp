@@ -2,15 +2,23 @@ from datetime import datetime
 from spp.utils.application import Application
 from spp.pipeline import (interloc, picker, nlloc, measure_amplitudes,
                           measure_smom, focal_mechanism, measure_energy,
-                          magnitude, event_database)
+                          magnitude, event_database, ray_tracer)
 # from spp.core.serializers.serializer import Seismic
 from loguru import logger
 from microquake.core import read, read_events, UTCDateTime
-from microquake.core.event import Origin, AttribDict
+from microquake.core.event import (Catalog, Event, Origin, AttribDict)
 from spp.core.settings import settings
 import numpy as np
 from io import BytesIO
 import asyncio
+from redis import StrictRedis
+import pickle
+
+redis = StrictRedis(**settings.get('redis_db'))
+ray_tracer_message_queue = settings.get(
+    'processing_flow').ray_tracing.message_queue
+automatic_message_queue = settings.get(
+    'processing_flow').automatic.message_queue
 
 
 def test_automatic_pipeline():
@@ -44,10 +52,19 @@ def test_automatic_pipeline():
 
     cat = read_events(BytesIO(catalog_bytes), format='quakeml')
 
-    automatic_pipeline(cat, fixed_length_wf)
+    # bytes_out = BytesIO()
+    # fixed_length_wf.write(bytes_out, format='mseed')
+    #
+    # logger.info('sending request to the ray tracer on channel %s'
+    #             % ray_tracer_message_queue)
+    # redis.rpush(automatic_message_queue, bytes_out.getvalue())
+
+    automatic_pipeline(fixed_length_wf)
 
 
-def picker_election(cat, fixed_length):
+
+
+def picker_election(location, event_time_utc, cat, fixed_length):
     """
     Calculates the picks using 1 method but different
     parameters and then retains the best set of picks. The function is
@@ -62,9 +79,12 @@ def picker_election(cat, fixed_length):
     picker_mf_processor = picker.Processor(module_type='medium_frequencies')
     picker_lf_processor = picker.Processor(module_type='low_frequencies')
 
-    picker_hf_processor.process(stream=fixed_length, cat=cat)
-    picker_mf_processor.process(stream=fixed_length, cat=cat)
-    picker_lf_processor.process(stream=fixed_length, cat=cat)
+    picker_hf_processor.process(stream=fixed_length, location=location,
+                                event_time_utc=event_time_utc)
+    picker_mf_processor.process(stream=fixed_length, location=location,
+                                event_time_utc=event_time_utc)
+    picker_lf_processor.process(stream=fixed_length, location=location,
+                                event_time_utc=event_time_utc)
 
     cat_picker_hf = picker_hf_processor.output_catalog(cat.copy())
     cat_picker_mf = picker_mf_processor.output_catalog(cat.copy())
@@ -81,12 +101,6 @@ def picker_election(cat, fixed_length):
                 'Low Frequencies picker    : %d \n' % (len_arrivals[0],
                                                        len_arrivals[1],
                                                        len_arrivals[2]))
-
-
-
-    #
-    # residuals = [catalog[0].preferred_origin().residual
-    #              for catalog in cat_pickers]
 
     imax = np.argmax(len_arrivals)
 
@@ -106,36 +120,59 @@ def automatic_pipeline(fixed_length, cat=None, context=None,
     :return: None
     """
 
+    if not cat:
+        cat = Catalog(events=[Event()])
+
     eventdb_processor = event_database.Processor()
 
     interloc_processor = interloc.Processor()
-    interloc_processor.process(stream=fixed_length)
+    interloc_results = interloc_processor.process(stream=fixed_length)
+    loc = [interloc_results['x'],
+           interloc_results['y'],
+           interloc_results['z']]
+    event_time_utc = UTCDateTime(interloc_results['event_time'])
     cat_interloc = interloc_processor.output_catalog(cat)
 
-    result = eventdb_processor.process(cat=cat_interloc)
+    eventdb_processor.initializer()
+
+    # Error in postion data to the API. Returned with error code 400: bad
+    # request
+    result = eventdb_processor.process(cat=cat_interloc, stream=fixed_length)
 
     # send to database
 
-    cat_picker = picker_election(cat_interloc, fixed_length)
+    cat_picker = picker_election(loc, event_time_utc, cat_interloc,
+                                 fixed_length)
     nlloc_processor = nlloc.Processor()
     nlloc_processor.initializer()
     cat_nlloc = nlloc_processor.process(cat=cat_picker)['cat']
 
     # Removing the Origin object used to hold the picks
-    del cat_nll[0].Origins[-2]
+    del cat_nlloc[0].origins[-2]
 
-    result = eventdb_processor.process(cat=cat_nlloc)
+    bytes_out = BytesIO()
+    cat_nlloc.write(bytes_out, format='QUAKEML')
+
+    logger.info('sending request to the ray tracer on channel %s'
+                % ray_tracer_message_queue)
+    redis.rpush(ray_tracer_message_queue, bytes_out.getvalue())
 
     # send to data base
+    result = eventdb_processor.process(cat=cat_nlloc)
+
 
     measure_amplitudes_processor = measure_amplitudes.Processor()
     cat_amplitude = measure_amplitudes_processor.process(cat=cat_nlloc,
                                              stream=fixed_length)['cat']
 
+
+
     smom_processor = measure_smom.Processor()
     cat_smom = smom_processor.process(cat=cat_amplitude,
                                       stream=fixed_length)['cat']
 
+    # TESTED UP TO THIS POINT, THE CONTAINER DOES NOT CONTAIN THE MOST
+    # RECENT VERSION OF THE HASHWRAPPER LIBRARY AND CANNOT RUN
     fmec_processor = focal_mechanism.Processor()
     cat_fmec = fmec_processor.process(cat=cat_smom,
                                       stream=fixed_length)['cat']

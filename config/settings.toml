@@ -4,8 +4,8 @@ local_temp_test_data_location = '/tmp/'
 project_code = 'OT'
 site = 'Oyu Tolgoi'
 site_code = 'OT'
-network = 'Hugo North Lift 1 Underground Network'
-network_code = 'HNL1'
+network = 'Hugo North Ungerground Network'
+network_code = 'HNUG'
 single_run = false
 debug_level = 0
 debug_file_dir = './common'
@@ -112,6 +112,11 @@ picker.min_num_picks = 10
 picker.waveform_filter.frequency_min = 100
 picker.waveform_filter.frequency_max = 1000
 
+picker.p_wave.snr_window.noise = 0.005
+picker.p_wave.snr_window.signal = 0.01
+picker.s_wave.snr_window.noise = 0.005
+picker.s_wave.snr_window.signal = 0.01
+
 picker.p_wave.search_window.start = -100e-3        # start of search window relative to predicted arrival time (s)
 picker.p_wave.search_window.end = 20e-3           # end of the search window relative to predicted arrival time (s)
 picker.p_wave.search_window.resolution = 0.001   # time resolution of search window (s)
@@ -186,6 +191,8 @@ focal_mechanism.log_file_name = 'focal_mechanism_calculation.log'
 focal_mechanism.log_topic = 'focal mechanism calculation'
 focal_mechanism.plot_focal_mechs = false
 
+ray_tracer.message_queue = 'spp.services.ray_tracing'
+
 measure_amplitudes.pulse_min_snr_P = 9
 measure_amplitudes.pulse_min_snr_S = 6
 measure_amplitudes.pulse_min_width = 0.0014
@@ -242,7 +249,17 @@ event_database.log_topic = 'event database'
 signal_analysis.log_file_name = 'signal_analysis.log'
 signal_analysis.log_topic = 'signal analysis'
 
+services.channel.interloc = 'spp.services.interloc'
+services.channel.picker = 'spp.services.picker'
+services.channel.nlloc = 'spp.services.nlloc'
+services.channel.magnitude = 'spp.services.magnitude'
+
+
 # this describes the kafka channel to which the message should be routed
+processing_flow.automatic.message_queue = 'spp.processing_flow.automatic'
+processing_flow.manual.message_queue = 'spp.processing_flow.manual'
+processing_flow.ray_tracing.message_queue = 'spp.processing_flow.ray_tracer'
+
 processing_flow.automatic.trigger_data_name = 'created'
 processing_flow.automatic.dataset = 'seismic_event'
 processing_flow.automatic.steps = [
