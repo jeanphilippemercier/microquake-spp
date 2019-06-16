@@ -52,14 +52,14 @@ def test_automatic_pipeline():
 
     cat = read_events(BytesIO(catalog_bytes), format='quakeml')
 
-    # bytes_out = BytesIO()
-    # fixed_length_wf.write(bytes_out, format='mseed')
-    #
-    # logger.info('sending request to the ray tracer on channel %s'
-    #             % ray_tracer_message_queue)
-    # redis.rpush(automatic_message_queue, bytes_out.getvalue())
+    bytes_out = BytesIO()
+    fixed_length_wf.write(bytes_out, format='mseed')
 
-    automatic_pipeline(fixed_length_wf)
+    logger.info('sending request to the ray tracer on channel %s'
+                % ray_tracer_message_queue)
+    redis.rpush(automatic_message_queue, bytes_out.getvalue())
+
+    # automatic_pipeline(fixed_length_wf)
 
 
 
