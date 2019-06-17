@@ -30,7 +30,7 @@ spp:
     - update-ca-certificates
 
     - docker login -u deploy -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build . -t $CI_REGISTRY_IMAGE/spp:latest -t $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY
+    - docker build . -t $CI_REGISTRY_IMAGE/spp:latest -t $CI_REGISTRY_IMAGE/spp:$CI_COMMIT_SHA -t $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY
     - docker push $CI_REGISTRY_IMAGE/spp:latest
     - docker push $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA | cut -c1-8)
     - docker push $CI_REGISTRY_IMAGE/spp:$CI_COMMIT_SHA
