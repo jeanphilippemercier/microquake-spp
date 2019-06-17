@@ -8,6 +8,7 @@ variables:
   DOCKER_DRIVER: overlay2
   CI_APPLICATION_TAG: $(echo ${CI_COMMIT_SHA} | cut -c1-8)
   KUBE_VERSION: v1.12.1
+  SPP_COMMON: /app/common
 
 spp:
   image: docker:stable
@@ -72,7 +73,7 @@ kube:
 test:
   image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$CI_COMMIT_SHA
   stage: test
-  retry: 2
   script:
     - bash -c ". /ve/bin/activate ; poetry install"
+    - bash -c ". /ve/bin/activate ; poetry run python bin/prepare_project.py"
     - bash -c ". /ve/bin/activate ; pytest tests"
