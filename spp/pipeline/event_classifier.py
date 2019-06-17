@@ -20,7 +20,7 @@ from keras.losses import mean_absolute_error, mean_squared_error
 from keras.models import load_model, model_from_json
 from loguru import logger
 
-from ..classifer.resnet import Resnet
+from ..classifer.resnet import SeismicClassifierModel
 from .processing_unit import ProcessingUnit
 
 
@@ -30,16 +30,16 @@ class Processor(ProcessingUnit):
         return "event_classifier"
 
     def initializer(self):
-        self.resnet = Resnet(lr=0.0001, batch_size=50, epochs=1000)
+        self.siesmic_model = SeismicClassifierModel()
 
     def process(
         self,
         **kwargs
-    ):
+        ):
         stream = kwargs["stream"]
 
-        self.resnet.create_model()
-        self.resnet.fit()
+        self.siesmic_model.create_model()
+        self.response = self.siesmic_model.predict(stream)
 
         return self.response
 
