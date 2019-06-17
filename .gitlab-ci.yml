@@ -33,6 +33,7 @@ spp:
     - docker build . -t $CI_REGISTRY_IMAGE/spp:latest -t $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY
     - docker push $CI_REGISTRY_IMAGE/spp:latest
     - docker push $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - docker push $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA)
 
 kube:
   image: docker:stable
@@ -69,7 +70,7 @@ kube:
 #     - ./kubectl --kubeconfig admin.conf set image deployment.v1.apps/seismic-platform-test *=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record=true
 #     - ./kubectl --kubeconfig admin.conf exec $(./kubectl --kubeconfig admin.conf get pod -l "app=seismic-platform-test" --namespace=default -o jsonpath='{.items[0].metadata.name}') -- poetry run pytest ./tests --workers 4
 test:
-  image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8)
+  image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$CI_COMMIT_SHA
   stage: test
   retry: 2
   script:
