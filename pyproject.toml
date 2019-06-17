@@ -50,6 +50,7 @@ loguru = "^0.2.5"
 grpcio-tools = "*"
 click = "^7.0"
 microquake-hashwrap = "^0.0.4"
+confluent-kafka = "^1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
