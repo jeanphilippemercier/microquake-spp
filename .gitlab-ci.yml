@@ -33,7 +33,7 @@ spp:
     - docker build . -t $CI_REGISTRY_IMAGE/spp:latest -t $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY
     - docker push $CI_REGISTRY_IMAGE/spp:latest
     - docker push $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA | cut -c1-8)
-    - docker push $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA)
+    - docker push $CI_REGISTRY_IMAGE/spp:$CI_COMMIT_SHA
 
 kube:
   image: docker:stable
