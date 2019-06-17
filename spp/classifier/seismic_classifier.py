@@ -66,8 +66,8 @@ class seismic_classifier_model:
         :param output_dir: directory to save spectrogram.png such as SPEC_BLAST_UG
         :return: RBG image array
         """
-        rate = SeismicClassifierModel.get_norm_trace(tr).stats.sampling_rate
-        data = SeismicClassifierModel.get_norm_trace(tr).data
+        rate = seismic_classifier_model.get_norm_trace(tr).stats.sampling_rate
+        data = seismic_classifier_model.get_norm_trace(tr).data
 
         fig, ax = plt.subplots(1)
         fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
