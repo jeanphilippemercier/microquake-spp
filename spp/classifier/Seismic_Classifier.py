@@ -1,25 +1,10 @@
 import os
 from pathlib import Path
-
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import confusion_matrix
-
-import h5py
-import keras
-# import librosa as lr
-from keras import Model
-
-from keras.layers import ( Add, BatchNormalization, Conv2D, Dense, Dropout, Flatten, Input, Lambda,
-                          MaxPooling2D, Multiply)
-from keras.losses import mean_absolute_error, mean_squared_error
-from keras.models import Sequential, load_model, model_from_json
-from keras.optimizers import Adam, RMSprop
-from keras.preprocessing.image import ImageDataGenerator
-from keras.utils import Sequence
-from loguru import logger
-
-
+from keras.models import Model
+from keras.layers import (Add, BatchNormalization, Conv2D, Dense, Dropout, Flatten, Input, 
+                          MaxPooling2D)
 class SeismicClassifierModel:
     '''
     Class to classify mseed stream into one of the classes
@@ -32,7 +17,7 @@ class SeismicClassifierModel:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def __init__(self,model_name: str='best_model.hdf5'):
+    def __init__(self, model_name = 'best_model.hdf5'):
         '''
             :param model_name: Name of the model weight file name.            
         '''
@@ -42,7 +27,6 @@ class SeismicClassifierModel:
         self.class_names = ['Blast UG', 'Blast OP', 'Blast C2S', 'Seismic', 'Noise']
         self.num_classes = len(self.class_names)
         self.model_file = self.base_directory/f"{model_name}"
-        self.logger = log
         self.create_model()  
 
             
@@ -74,7 +58,7 @@ class SeismicClassifierModel:
         return tr[0]
 
     @staticmethod
-    def get_spectrogram(tr, nfft=512, noverlap=511, output_dir=''):
+    def get_spectrogram(tr, nfft=512, noverlap=511):
         """
         :param tr: mseed stream
         :param nfft: The number of data points used in each block for the FFT
@@ -82,27 +66,23 @@ class SeismicClassifierModel:
         :param output_dir: directory to save spectrogram.png such as SPEC_BLAST_UG
         :return: RBG image array
         """
-        rate = event_classification.get_norm_trace(tr).stats.sampling_rate
-        data = event_classification.get_norm_trace(tr).data
+        rate = SeismicClassifierModel.get_norm_trace(tr).stats.sampling_rate
+        data = SeismicClassifierModel.get_norm_trace(tr).data
 
         fig, ax = plt.subplots(1)
         fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
         ax.axis('off')
-        pxx, freqs, bins, im = ax.specgram(x=data, Fs=rate,
+        _, _, _, _ = ax.specgram(x=data, Fs=rate,
                                         noverlap=noverlap, NFFT=nfft)
         ax.axis('off')
-        
-        #plt.rcParams['figure.figsize'] = [0.64, 0.64]
-        fig.set_size_inches(.64,.64)
+        fig.set_size_inches(.64, .64)
         
         fig.canvas.draw()
         size_inches = fig.get_size_inches()
         dpi = fig.get_dpi()
         width, height = fig.get_size_inches() * fig.get_dpi()
-        #width, height = 64,64
-        # print(size_inches, dpi, width, height)
         mplimage = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-        # print("MPLImage Shape: ", np.shape(mplimage))
+
         imarray = np.reshape(mplimage, (int(height), int(width), 3))
         plt.close(fig)
         return imarray
@@ -125,11 +105,13 @@ class SeismicClassifierModel:
         return (array - array.min()) / (array.max() - array.min())
 
     def create_model(self):
-        i =  Input(shape=self.D, name="input")
+        """
+        Create model and load weights
+        """
+        i = Input(shape=self.D, name="input")
         dim = 128
-        
         n_res = 2
-        kern_size = (3,3)
+        kern_size = (3, 3)
 
         dim = 64
         x = Conv2D(filters=16, kernel_size=2, padding='same', activation='relu')(i)
@@ -157,6 +139,10 @@ class SeismicClassifierModel:
         self.model.load_weights(self.model_file)
 
     def predict(self, tr):
+        """
+        :param tr: Obspy stream object
+        :return: Normalized gray colored image
+        """
         spectrogram = self.get_spectrogram(tr)
         graygram = self.rgb2gray(spectrogram)
         normgram = self.normalize_gray(graygram)
