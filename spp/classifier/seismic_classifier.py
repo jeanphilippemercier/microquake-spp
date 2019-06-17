@@ -6,7 +6,7 @@ from keras.models import Model
 from keras.layers import (Add, BatchNormalization, Conv2D, Dense, Dropout, Flatten, Input, 
                           MaxPooling2D)
 
-class SeismicClassifierModel:
+class seismic_classifier_model:
     '''
     Class to classify mseed stream into one of the classes
     Blast UG, Blast OP, Blast C2S, Seismic, Noise
@@ -66,8 +66,8 @@ class SeismicClassifierModel:
         :param output_dir: directory to save spectrogram.png such as SPEC_BLAST_UG
         :return: RBG image array
         """
-        rate = SeismicClassifierModel.get_norm_trace(tr).stats.sampling_rate
-        data = SeismicClassifierModel.get_norm_trace(tr).data
+        rate = seismic_classifier_model.get_norm_trace(tr).stats.sampling_rate
+        data = seismic_classifier_model.get_norm_trace(tr).data
 
         fig, ax = plt.subplots(1)
         fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
