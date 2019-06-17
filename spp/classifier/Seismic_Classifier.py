@@ -5,6 +5,7 @@ import numpy as np
 from keras.models import Model
 from keras.layers import (Add, BatchNormalization, Conv2D, Dense, Dropout, Flatten, Input, 
                           MaxPooling2D)
+
 class SeismicClassifierModel:
     '''
     Class to classify mseed stream into one of the classes
@@ -12,7 +13,7 @@ class SeismicClassifierModel:
     '''
 
     def __enter__(self):
-        return (self)
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
@@ -27,9 +28,8 @@ class SeismicClassifierModel:
         self.class_names = ['Blast UG', 'Blast OP', 'Blast C2S', 'Seismic', 'Noise']
         self.num_classes = len(self.class_names)
         self.model_file = self.base_directory/f"{model_name}"
-        self.create_model()  
+        self.create_model()
 
-            
     #############################################
     # Data preparation
     #############################################
@@ -78,8 +78,7 @@ class SeismicClassifierModel:
         fig.set_size_inches(.64, .64)
         
         fig.canvas.draw()
-        size_inches = fig.get_size_inches()
-        dpi = fig.get_dpi()
+
         width, height = fig.get_size_inches() * fig.get_dpi()
         mplimage = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
 
@@ -121,21 +120,20 @@ class SeismicClassifierModel:
         x = Conv2D(filters=64, kernel_size=2, padding='same', activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
         x = Dropout(0.3)(x)
-              
+
         X_shortcut = BatchNormalization()(x)
         for _ in range(n_res):
-            y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(X_shortcut)
+            y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu', padding='same')(X_shortcut)
             y = BatchNormalization()(y)
             #y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(y)
-            y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(y)
-            
-            X_shortcut = Add()([y,X_shortcut])
-            
+            y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu', padding='same')(y)
+            X_shortcut = Add()([y, X_shortcut])
+
         x = Flatten()(x)
         x = Dense(500, activation='relu')(x)
         x = Dropout(0.4)(x)
         x = Dense(self.num_classes, activation='softmax')(x)
-        self.model = Model(i,x)
+        self.model = Model(i, x)
         self.model.load_weights(self.model_file)
 
     def predict(self, tr):
@@ -146,6 +144,6 @@ class SeismicClassifierModel:
         spectrogram = self.get_spectrogram(tr)
         graygram = self.rgb2gray(spectrogram)
         normgram = self.normalize_gray(graygram)
-        img = normgram[None,...,None]
-        a =  self.model.predict(img)
+        img = normgram[None, ..., None]
+        a = self.model.predict(img)
         return self.class_names[np.argmax(a)]
