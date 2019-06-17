@@ -75,3 +75,4 @@ test:
   retry: 2
   script:
     - bash -c ". /ve/bin/activate ; poetry install"
+    - bash -c ". /ve/bin/activate ; pytest tests"
