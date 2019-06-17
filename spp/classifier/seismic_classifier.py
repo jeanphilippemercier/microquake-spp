@@ -6,7 +6,7 @@ from keras.models import Model
 from keras.layers import (Add, BatchNormalization, Conv2D, Dense, Dropout, Flatten, Input, 
                           MaxPooling2D)
 
-class SeismicClassifierModel:
+class seismic_classifier_model:
     '''
     Class to classify mseed stream into one of the classes
     Blast UG, Blast OP, Blast C2S, Seismic, Noise
