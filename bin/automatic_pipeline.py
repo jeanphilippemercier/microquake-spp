@@ -19,5 +19,7 @@ while 1:
     message_queue, message = redis.blpop(message_queue)
     logger.info('message received')
 
+    print(message.keys)
+
     fixed_length = read(BytesIO(message), format='mseed')
     automatic_pipeline(fixed_length)

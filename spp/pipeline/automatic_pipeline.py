@@ -57,6 +57,8 @@ def test_automatic_pipeline():
 
     logger.info('sending request to the ray tracer on channel %s'
                 % ray_tracer_message_queue)
+
+
     redis.rpush(automatic_message_queue, bytes_out.getvalue())
 
     # automatic_pipeline(fixed_length_wf)
@@ -107,7 +109,7 @@ def picker_election(location, event_time_utc, cat, fixed_length):
     return cat_pickers[imax]
 
 
-def automatic_pipeline(fixed_length, cat=None, context=None,
+def automatic_pipeline(stream=None, cat=None, context=None,
                        variable_length=None):
     """
     The pipeline for the automatic processing of the seismic data
@@ -120,7 +122,11 @@ def automatic_pipeline(fixed_length, cat=None, context=None,
     :return: None
     """
 
+    if not stream:
+        raise ValueError('A stream object is required')
+
     if not cat:
+        logger.info('No catalog was provided creating new')
         cat = Catalog(events=[Event()])
 
     eventdb_processor = event_database.Processor()
