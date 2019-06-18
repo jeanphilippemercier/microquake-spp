@@ -51,8 +51,16 @@ class Processor(ProcessingUnit):
         """
         # cat = kwargs["cat"]
         stream = kwargs['stream']
-        o_loc = kwargs['location']  # a list containing the location
-        ot_utc = kwargs['event_time_utc']
+
+        if "location" and "ot_utc" in kwargs:
+            o_loc = kwargs['location']  # a list containing the location
+            ot_utc = kwargs['event_time_utc']
+        elif "cat" in kwargs:
+            cat = kwargs["cat"]
+            o_loc = cat[0].origins[-1].loc
+            ot_utc = estimate_origin_time(stream, o_loc)
+        else:
+            raise Exception("Missing parameters to run this module.")
 
         logger.info('cleaning the input stream')
         st = stream.detrend("demean")

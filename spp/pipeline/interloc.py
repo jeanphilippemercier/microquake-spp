@@ -31,7 +31,6 @@ class Processor(ProcessingUnit):
         # TODO: copy not necessary testapplication is broken
         stream = kwargs["stream"].copy()
 
-        detection_threshold = self.params.detection_threshold
         nthreads = self.params.nthreads
         fixed_wlen_sec = self.params.fixed_wlen_sec
         samplerate_decimated = self.params.samplerate_decimated
@@ -161,7 +160,3 @@ class Processor(ProcessingUnit):
         cat = self.output_catalog(cat)
 
         return cat, stream
-
-
-
-
