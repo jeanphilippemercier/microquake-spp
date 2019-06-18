@@ -16,16 +16,12 @@ manual_message_queue = settings.get(
     'processing_flow').manual.message_queue
 
 
-def manual_pipeline(stream=None, cat=None, context=None,
-                    variable_length=None):
+def manual_pipeline(stream=None, cat=None):
     """
     The pipeline for the automatic processing of the seismic data
     :param fixed_length: fixed length seismogram
     (microquake.core.stream.Stream, or bytes)
     :param cat: catalog (microquake.core.event.Catalog)
-    :param context: context trace (microquake.core.stream.Stream)
-    :param variable_length: variable length seismogram (
-    microquake.core.stream.Stream)
     :return: None
     """
 

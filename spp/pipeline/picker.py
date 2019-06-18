@@ -17,7 +17,7 @@ class Processor(ProcessingUnit):
     def module_name(self):
         return "picker"
 
-    def __set_params(self, params):
+    def initializer(self):
         self.freq_min = self.params.waveform_filter.frequency_min
         self.freq_max = self.params.waveform_filter.frequency_max
         self.residual_tolerance = self.params.residual_tolerance
@@ -32,9 +32,6 @@ class Processor(ProcessingUnit):
         self.s_wave_noise = self.params.s_wave.snr_window.noise
         self.s_wave_signal = self.params.s_wave.snr_window.signal
         self.snr_threshold = self.params.snr_threshold
-
-    def initializer(self):
-        self.__set_params(self.params)
 
     def process(
         self,

@@ -1,11 +1,6 @@
 import json
-import urllib
-from io import BytesIO
-
 import requests
 from dateutil import parser
-from IPython.core.debugger import Tracer
-
 from microquake.core import AttribDict, UTCDateTime, read_events
 from microquake.core.event import Ray
 from microquake.core.stream import *

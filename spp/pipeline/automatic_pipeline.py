@@ -1,18 +1,14 @@
-from datetime import datetime
-from spp.utils.application import Application
 from spp.pipeline import (interloc, picker, nlloc, measure_amplitudes,
                           measure_smom, focal_mechanism, measure_energy,
-                          magnitude, event_database, ray_tracer)
-# from spp.core.serializers.serializer import Seismic
+                          magnitude, event_database)
 from loguru import logger
 from microquake.core import read, read_events, UTCDateTime
-from microquake.core.event import (Catalog, Event, Origin, AttribDict)
+from microquake.core.event import (Catalog, Event)
+from microquake.core.stream import (Stream)
 from spp.core.settings import settings
 import numpy as np
 from io import BytesIO
-import asyncio
 from redis import StrictRedis
-import pickle
 
 redis = StrictRedis(**settings.get('redis_db'))
 ray_tracer_message_queue = settings.get(
@@ -64,8 +60,6 @@ def test_automatic_pipeline():
     # automatic_pipeline(fixed_length_wf)
 
 
-
-
 def picker_election(location, event_time_utc, cat, fixed_length):
     """
     Calculates the picks using 1 method but different
@@ -109,30 +103,29 @@ def picker_election(location, event_time_utc, cat, fixed_length):
     return cat_pickers[imax]
 
 
-def automatic_pipeline(stream=None, cat=None, context=None,
-                       variable_length=None):
+def automatic_pipeline(stream=None, cat=None):
     """
     The pipeline for the automatic processing of the seismic data
     :param fixed_length: fixed length seismogram
     (microsquake.core.stream.Stream)
     :param cat: catalog (microquake.core.event.Catalog)
-    :param context: context trace (microquake.core.stream.Stream)
-    :param variable_length: variable length seismogram (
-    microquake.core.stream.Stream)
     :return: None
     """
 
-    if not stream:
-        raise ValueError('A stream object is required')
+    if not isinstance(stream, Stream):
+        stream = read(BytesIO(stream), format='mseed')
 
     if not cat:
         logger.info('No catalog was provided creating new')
         cat = Catalog(events=[Event()])
+    else:
+        if not isinstance(cat, Catalog):
+            cat = read_events(BytesIO(cat), format='quakeml')
 
     eventdb_processor = event_database.Processor()
 
     interloc_processor = interloc.Processor()
-    interloc_results = interloc_processor.process(stream=fixed_length)
+    interloc_results = interloc_processor.process(stream=stream)
     loc = [interloc_results['x'],
            interloc_results['y'],
            interloc_results['z']]
@@ -143,12 +136,12 @@ def automatic_pipeline(stream=None, cat=None, context=None,
 
     # Error in postion data to the API. Returned with error code 400: bad
     # request
-    result = eventdb_processor.process(cat=cat_interloc, stream=fixed_length)
+    result = eventdb_processor.process(cat=cat_interloc, stream=stream)
 
     # send to database
 
     cat_picker = picker_election(loc, event_time_utc, cat_interloc,
-                                 fixed_length)
+                                 stream)
     nlloc_processor = nlloc.Processor()
     nlloc_processor.initializer()
     cat_nlloc = nlloc_processor.process(cat=cat_picker)['cat']
@@ -169,31 +162,31 @@ def automatic_pipeline(stream=None, cat=None, context=None,
 
     measure_amplitudes_processor = measure_amplitudes.Processor()
     cat_amplitude = measure_amplitudes_processor.process(cat=cat_nlloc,
-                                             stream=fixed_length)['cat']
+                                             stream=stream)['cat']
 
 
 
     smom_processor = measure_smom.Processor()
     cat_smom = smom_processor.process(cat=cat_amplitude,
-                                      stream=fixed_length)['cat']
+                                      stream=stream)['cat']
 
     # TESTED UP TO THIS POINT, THE CONTAINER DOES NOT CONTAIN THE MOST
     # RECENT VERSION OF THE HASHWRAPPER LIBRARY AND CANNOT RUN
     fmec_processor = focal_mechanism.Processor()
     cat_fmec = fmec_processor.process(cat=cat_smom,
-                                      stream=fixed_length)['cat']
+                                      stream=stream)['cat']
 
     energy_processor = measure_energy.Processor()
     cat_energy = energy_processor.process(cat=cat_fmec,
-                                          stream=fixed_length)['cat']
+                                          stream=stream)['cat']
 
     magnitude_processor = magnitude.Processor()
     cat_magnitude = magnitude_processor.process(cat=cat_energy,
-                                                stream=fixed_length)['cat']
+                                                stream=stream)['cat']
 
     magnitude_f_processor = magnitude.Processor(module_type = 'frequency')
     cat_magnitude_f = magnitude_f_processor.process(cat=cat_magnitude,
-                                                    stream=fixed_length)['cat']
+                                                    stream=stream)['cat']
 
     result = eventdb_processor.process(cat=cat_magnitude_f)
 
