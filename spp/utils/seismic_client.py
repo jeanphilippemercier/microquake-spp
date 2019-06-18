@@ -278,8 +278,6 @@ def get_events_catalog(api_base_url, start_time, end_time):
     :param end_time:
     :return:
     """
-    from IPython.core.debugger import Tracer
-    from microquake.core import AttribDict
     url = api_base_url + "catalog"
 
     # request work in UTC, time will need to be converted from whatever

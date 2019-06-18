@@ -1,9 +1,8 @@
 from redis import StrictRedis
 from spp.core.settings import settings
-from microquake.core import read
-from io import BytesIO
 from loguru import logger
 from spp.pipeline.automatic_pipeline import automatic_pipeline
+import msgpack
 
 logger.info('initializing connection to Redis')
 redis_settings = settings.get('redis_db')
@@ -19,7 +18,9 @@ while 1:
     message_queue, message = redis.blpop(message_queue)
     logger.info('message received')
 
-    print(message.keys)
+    tmp = msgpack.loads(message)
+    data = {}
+    for key in tmp.keys():
+        data[key.decode('utf-8')] = tmp[key]
 
-    fixed_length = read(BytesIO(message), format='mseed')
-    automatic_pipeline(fixed_length)
+    automatic_pipeline(**data)
