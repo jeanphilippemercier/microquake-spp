@@ -49,7 +49,7 @@ class ProcessingUnit(ABC):
     def output_catalog(self, catalog):
         return self.result['cat']
 
-    def update_module_type(self, module_type):
+    def set_module_type(self, module_type):
         self.module_type = module_type
         extra_params = settings.get(f"{self.module_name}.{module_type}")
 
