@@ -73,21 +73,19 @@ class Processor(ProcessingUnit):
                               'toa': toa,
                               'ray_nodes': ray.nodes}
 
-                    we may want to move the connection to the API
-                    somewhere else
-                    response = seismic_client.post_ray(self.api_url,
-                                                       self.site_code,
-                                                       self.network_code,
-                                                       event_id,
-                                                       origin_id,
-                                                       arrival_id,
-                                                       station_id,
-                                                       phase,
-                                                       ray.length(),
-                                                       travel_time,
-                                                       azimuth,
-                                                       toa,
-                                                       ray.nodes)
+                    seismic_client.post_ray(self.api_url,
+                                            self.site_code,
+                                            self.network_code,
+                                            event_id,
+                                            origin_id,
+                                            arrival_id,
+                                            station_id,
+                                            phase,
+                                            ray.length(),
+                                            travel_time,
+                                            azimuth,
+                                            toa,
+                                            ray.nodes)
 
                     self.result.append(result)
 
