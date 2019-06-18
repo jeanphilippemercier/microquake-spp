@@ -4,6 +4,7 @@ ADD ./ /app
 WORKDIR /app
 
 ENV PATH="/ve/bin:${PATH}"
+ENV SPP_COMMON="/app/common"
 
 RUN bash -c ". /ve/bin/activate ; cd libs/microquake; pip install -e ."
 # WARNING: private_token should not be in here
