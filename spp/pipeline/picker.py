@@ -54,9 +54,6 @@ class Processor(ProcessingUnit):
         o_loc = kwargs['location']  # a list containing the location
         ot_utc = kwargs['event_time_utc']
 
-        if 'module_type' in kwargs.keys():
-            self.update_module_type(kwargs)
-
         logger.info('cleaning the input stream')
         st = stream.detrend("demean")
         logger.info('done cleaning the input stream. %d of %d stations kept.' %
