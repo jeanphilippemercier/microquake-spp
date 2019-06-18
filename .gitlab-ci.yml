@@ -8,6 +8,7 @@ variables:
   DOCKER_DRIVER: overlay2
   CI_APPLICATION_TAG: $(echo ${CI_COMMIT_SHA} | cut -c1-8)
   KUBE_VERSION: v1.12.1
+  SPP_COMMON: /app/common
 
 spp:
   image: docker:stable
@@ -30,9 +31,10 @@ spp:
     - update-ca-certificates
 
     - docker login -u deploy -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build . -t $CI_REGISTRY_IMAGE/spp:latest -t $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY
+    - docker build . -t $CI_REGISTRY_IMAGE/spp:latest -t $CI_REGISTRY_IMAGE/spp:$CI_COMMIT_SHA -t $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --build-arg SSH_PRIVATE_KEY
     - docker push $CI_REGISTRY_IMAGE/spp:latest
     - docker push $CI_REGISTRY_IMAGE/spp:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - docker push $CI_REGISTRY_IMAGE/spp:$CI_COMMIT_SHA
 
 kube:
   image: docker:stable
@@ -52,19 +54,28 @@ kube:
     refs:
       - master
 
+# test:
+#   image: docker:stable
+#   stage: test
+#   retry: 2
+#   services:
+#     - name: docker:stable-dind
+#       entrypoint:
+#         - dockerd-entrypoint.sh
+#   before_script:
+#     - apk add --update openssh-client make ca-certificates openssl python git bash
+#   script:
+#     - wget https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
+#     - chmod +x kubectl
+#     - echo "$KUBE" > admin.conf
+#     - ./kubectl --kubeconfig admin.conf set image deployment.v1.apps/seismic-platform-test *=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record=true
+#     - ./kubectl --kubeconfig admin.conf exec $(./kubectl --kubeconfig admin.conf get pod -l "app=seismic-platform-test" --namespace=default -o jsonpath='{.items[0].metadata.name}') -- poetry run pytest ./tests --workers 4
 test:
-  image: docker:stable
+  image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$CI_COMMIT_SHA
   stage: test
-  retry: 2
-  services:
-    - name: docker:stable-dind
-      entrypoint:
-        - dockerd-entrypoint.sh
-  before_script:
-    - apk add --update openssh-client make ca-certificates openssl python git bash
   script:
-    - wget https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
-    - chmod +x kubectl
-    - echo "$KUBE" > admin.conf
-    - ./kubectl --kubeconfig admin.conf set image deployment.v1.apps/seismic-platform-test *=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record=true
-    - ./kubectl --kubeconfig admin.conf exec $(./kubectl --kubeconfig admin.conf get pod -l "app=seismic-platform-test" --namespace=default -o jsonpath='{.items[0].metadata.name}') -- poetry run pytest ./tests --workers 4
+    - bash -c ". /ve/bin/activate ; pip install poetry"
+    - bash -c ". /ve/bin/activate ; poetry install"
+    - bash -c ". /ve/bin/activate ; (cd /app/common/velocities ; poetry run python make_velocity.py)"
+    - bash -c ". /ve/bin/activate ; poetry run python bin/prepare_project.py"
+    - bash -c ". /ve/bin/activate ; pytest tests"
