@@ -272,7 +272,8 @@ processing_flow.automatic.steps = [
 { module='measure_energy'},
 { module='magnitude'},
 { module='magnitude', type='frequency'},
-{ module='event_database'}
+{ module='event_database'},
+{ module='ray_tracer'}
 ]
 
 processing_flow.ray_tracing.trigger_data_name = 'ray_tracing'
