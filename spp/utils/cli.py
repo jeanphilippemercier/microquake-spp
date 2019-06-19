@@ -6,6 +6,8 @@ CLI-related classes and functions
 import argparse
 import importlib.util
 
+from loguru import logger
+
 from ..core.settings import settings
 
 
@@ -20,38 +22,37 @@ class CLI:
         module_name,
         processing_flow_name="automatic",
         settings_name=None,
-        callback=None,
-        prepare=None,
         app=None,
         args=None
     ):
         self.module_name = module_name
         self.processing_flow_name = processing_flow_name
         self.settings_name = settings_name
-        self.callback = callback
-        self.prepare = prepare
         self.app = app
         self.args = args
-        self.prepared_objects = {}
 
         if not args:
             self.process_arguments()
 
         self.set_defaults()
+
         if not self.module_name:
             print("No module specified, exiting")
             exit()
 
         self.set_app()
+
         if not self.app:
             print("No application mode specified, exiting")
             exit()
 
         # If we're running a chain of modules, no need to load the module and settings
+
         if self.args.modules:
             return
 
         self.load_module(self.module_name, self.settings_name)
+
         if not self.module_settings:
             print("Module name {} not found in settings and not running module chain, exiting".format(module_name))
             exit()
@@ -65,6 +66,7 @@ class CLI:
         parser.add_argument("--module", help="the name of the module to run")
         parser.add_argument("--settings_name", help="to override the name of the module when loading settings")
         parser.add_argument("--processing_flow", help="the name of the processing flow to run")
+        parser.add_argument("--once", help="stop a module after a message has been processed", type=bool)
         parser.add_argument(
             "--modules", help="a list of modules to chain together"
         )
@@ -85,34 +87,31 @@ class CLI:
 
         self.args = parser.parse_args()
 
+    def load_module(self, module_name, settings_name):
+        self.module_settings = settings.get(settings_name)
 
-    def load_module(self, module_file_name, settings_name):
         spec = importlib.util.spec_from_file_location(
-            "spp.pipeline." + module_file_name, "./spp/pipeline/" + module_file_name + ".py"
+            "spp.pipeline." + module_name, "./spp/pipeline/" + module_name + ".py"
         )
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
-        self.module_settings = settings.get(settings_name)
-        if hasattr(mod, "prepare"):
-            self.prepare = mod.prepare
-        else:
-            self.prepare = None
-        if hasattr(mod, "process"):
-            self.callback = mod.process
-        else:
-            self.callback = None
-
+        processor = getattr(mod, 'Processor')
+        self.processor = processor(app=self.app,
+                                   module_name=module_name)
 
     def set_defaults(self):
         # If there is a CLI arg for module_name, use it!
+
         if self.args.module and not self.module_name:
             self.module_name = self.args.module
 
         # If we are running a chain of modules, use the name 'chain'
+
         if self.args.modules and not self.module_name:
             self.module_name = 'chain'
 
         # If there is a CLI arg for settings_name, use it! Otherwise use module_name
+
         if self.args.settings_name and not self.settings_name:
             self.settings_name = self.args.settings_name
         elif not self.args.settings_name and not self.settings_name:
@@ -124,6 +123,7 @@ class CLI:
     def set_app(self):
         if self.app:
             return
+
         if self.args.mode == "cont":
             from spp.utils.kafka_redis_application import KafkaRedisApplication
 
@@ -154,39 +154,18 @@ class CLI:
                 send_to_api=self.args.send_to_api,
             )
 
-
-    def prepare_module(self):
-        """
-        Some modules require running some code at startup, separate of processing
-        we pass a function into the init as "prepare" and call that here
-        """
-        if self.prepare is None:
-            self.app.logger.info(
-                "no preparation function for module %s", self.module_name
-            )
-            return
-
-        self.app.logger.info("preparing module %s", self.module_name)
-        self.prepared_objects = self.prepare(self.app, self.module_settings)
-        self.app.logger.info("done preparing module %s", self.module_name)
-
     def run_module_chain(self, modules, msg_in):
         cat, stream = self.app.deserialise_message(msg_in)
+
         for module_file_name in modules:
             self.load_module(module_file_name, module_file_name)
-            if self.prepare:
-                self.prepare_module()
 
             cat, stream = self.app.clean_message((cat, stream))
 
-            cat, stream = self.callback(
-                cat=cat,
-                stream=stream,
-                logger=self.app.logger,
-                app=self.app,
-                prepared_objects=self.prepared_objects,
-                module_settings=self.module_settings,
-            )
+            res = self.processor.process(cat=cat, stream=stream)
+
+            cat_out, st_out = self.processor.legacy_pipeline_handler(msg_in, res)
+
         return cat, stream
 
     def run_module_continuously(self):
@@ -199,22 +178,20 @@ class CLI:
                 else:
                     cat, st = self.app.receive_message(
                         msg_in,
-                        self.callback,
-                        app=self.app,
-                        prepared_objects=self.prepared_objects,
-                        module_settings=self.module_settings,
+                        self.processor,
                     )
             except Exception as e:
-                self.app.logger.error(e, exc_info=True)
+                logger.error(e, exc_info=True)
+
                 continue
             self.app.send_message(cat, st)
 
-            if settings.SINGLE_RUN:
-                exit(0)
-
+            if self.args.once:
+                return
 
     def run_module_locally(self):
         msg_in = self.app.get_message()
+
         if self.args.modules:
             cat, st = self.run_module_chain(
                 self.args.modules.split(","), msg_in
@@ -222,15 +199,13 @@ class CLI:
         else:
             cat, st = self.app.receive_message(
                 msg_in,
-                self.callback,
-                app=self.app,
-                prepared_objects=self.prepared_objects,
-                module_settings=self.module_settings,
+                self.processor,
             )
         self.app.send_message(cat, st)
 
     def run_module_with_api(self):
         msg_in = self.app.get_message()
+
         if self.args.modules:
             cat, st = self.run_module_chain(
                 self.args.modules.split(","), msg_in
@@ -238,10 +213,7 @@ class CLI:
         else:
             cat, st = self.app.receive_message(
                 msg_in,
-                self.callback,
-                app=self.app,
-                prepared_objects=self.prepared_objects,
-                module_settings=self.module_settings,
+                self.processor,
             )
         self.app.send_message(cat, st)
 
@@ -257,7 +229,7 @@ class CLI:
         elif self.args.mode == "api":
             self.run_module_with_api()
         else:
-            self.app.logger.error(
+            logger.error(
                 "Running module in unknown mode %s", self.args.mode
             )
 

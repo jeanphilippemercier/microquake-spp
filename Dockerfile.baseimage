@@ -44,4 +44,6 @@ RUN rm /root/.ssh/id_rsa
 RUN rm -rf /root/.cache
 RUN rm -rf /usr/local/lib/python3.6/site-packages/microquake/examples
 
+RUN pip install flask
+
 # CMD ["python", "app.py"]

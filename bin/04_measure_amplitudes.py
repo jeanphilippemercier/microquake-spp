@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
 from spp.utils.cli import CLI
-from spp.pipeline.measure_amplitudes import process
 
 __module_name__ = "measure_amplitudes"
 
 
 def main():
-    cli = CLI(__module_name__, callback=process)
-    cli.prepare_module()
+    cli = CLI(__module_name__)
     cli.run_module()
 
 

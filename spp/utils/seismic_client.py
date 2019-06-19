@@ -1,11 +1,6 @@
 import json
-import urllib
-from io import BytesIO
-
 import requests
 from dateutil import parser
-from IPython.core.debugger import Tracer
-
 from microquake.core import AttribDict, UTCDateTime, read_events
 from microquake.core.event import Ray
 from microquake.core.stream import *
@@ -42,8 +37,8 @@ class RequestEvent:
 
     def get_context_waveforms(self):
         waveform_context_file = requests.request('GET',
-                                                 self.context_waveform_file)
-        byte_stream = BytesIO(waveform_context_file)
+                                                 self.waveform_context_file)
+        byte_stream = BytesIO(waveform_context_file.content)
         return read(byte_stream)
 
     def get_variable_length_waveforms(self):
@@ -283,8 +278,6 @@ def get_events_catalog(api_base_url, start_time, end_time):
     :param end_time:
     :return:
     """
-    from IPython.core.debugger import Tracer
-    from microquake.core import AttribDict
     url = api_base_url + "catalog"
 
     # request work in UTC, time will need to be converted from whatever
