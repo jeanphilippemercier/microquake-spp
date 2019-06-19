@@ -1,54 +1,64 @@
+from obspy.core.event.base import Comment
+
 from loguru import logger
 from microquake.waveform.smom_measure import measure_pick_smom
-from obspy.core.event.base import Comment
 
 from ..core.grid import synthetic_arrival_times
 from ..core.settings import settings
+from .processing_unit import ProcessingUnit
 
 
-class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "measure_smom"
+
+    def initializer(self):
+        self.use_fixed_fmin_fmax = self.params.use_fixed_fmin_fmax
+        self.fmin = self.params.fmin
+        self.fmax = self.params.fmax
+        self.phase_list = self.params.phase_list
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
+        """
+        input: catalog, stream
 
-        params = self.module_settings
-        use_fixed_fmin_fmax = params.use_fixed_fmin_fmax
-        fmin = params.fmin
-        fmax = params.fmax
-        phase_list = params.phase_list
+        - origin and picks
 
-        if not isinstance(phase_list, list):
-            phase_list = [phase_list]
+
+        list of corner frequencies for the arrivals
+        returns catalog
+        """
+
+        logger.info("pipeline: measure smom")
+
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
 
         plot_fit = False
 
-        st = stream.copy()
-        cat_out = cat.copy()
-
-        missing_responses = st.attach_response(settings.inventory)
+        missing_responses = stream.attach_response(settings.inventory)
 
         for sta in missing_responses:
             logger.warning("Inventory: Missing response for sta:%s" % sta)
 
-        for event in cat_out:
+        for event in cat:
             origin = event.preferred_origin()
             synthetic_picks = synthetic_arrival_times(origin.loc, origin.time)
 
-            for phase in phase_list:
+            for phase in self.phase_list:
 
                 logger.info("Call measure_pick_smom for phase=[%s]" % phase)
 
                 try:
-                    smom_dict, fc = measure_pick_smom(st, settings.inventory, event,
+                    smom_dict, fc = measure_pick_smom(stream, settings.inventory, event,
                                                       synthetic_picks,
                                                       P_or_S=phase,
-                                                      fmin=fmin, fmax=fmax,
-                                                      use_fixed_fmin_fmax=use_fixed_fmin_fmax,
+                                                      fmin=self.fmin, fmax=self.fmax,
+                                                      use_fixed_fmin_fmax=self.use_fixed_fmin_fmax,
                                                       plot_fit=plot_fit,
                                                       debug_level=1,
                                                       logger_in=logger)
@@ -61,4 +71,14 @@ class Processor():
                                   (phase, fc, phase))
                 origin.comments.append(comment)
 
-        return cat_out, stream
+        self.result = {'cat': cat}
+        return self.result
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        _, stream = self.app.deserialise_message(msg_in)
+
+        return res['cat'], stream

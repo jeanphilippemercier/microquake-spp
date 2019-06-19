@@ -8,19 +8,43 @@ from ..core.settings import settings
 
 
 class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+    @property
+    def module_name(self):
+        return "event_database"
+
+    def initializer(self):
+        self.api_base_url = settings.API_BASE_URL
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
-        api_base_url = settings.get('seismic_api').base_url
+        cat = None
+        stream = None
+        variable_length = None
+        context = None
+
+        if 'cat' in kwargs.keys():
+            cat = kwargs['cat']
+        if 'fixed_length' in kwargs.keys():
+            stream = kwargs['fixed_length']
+        if 'variable_length' in kwargs.keys():
+            variable_length = kwargs['variable_length']
+        if 'context' in kwargs.keys():
+            context = kwargs['context']
+
+
         logger.info('posting data to the API')
-        result = post_data_from_objects(api_base_url, event_id=None, event=cat,
-                                        stream=stream, context_stream=None, tolerance=None)
+
         logger.info('posting seismic data')
+        result = post_data_from_objects(self.api_base_url, event_id=None,
+                                        event=cat,
+                                        stream=stream, context_stream=context,
+                                        variable_length_stream=variable_length,
+                                        tolerance=None,
+                                        send_to_bus=False,
+                                        logger=logger)
+
 
         if result.status_code == 200:
             logger.info('successfully posting data to the API')
@@ -28,4 +52,12 @@ class Processor():
             logger.error('Error in postion data to the API. Returned with '
                          'error code %d' % result.status_code)
 
-        return cat, stream
+        self.result = result
+        return result
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        return res['cat'], res['stream']

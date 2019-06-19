@@ -2,11 +2,9 @@
 
 from spp.utils.cli import CLI
 
-__module_name__ = "magnitude_f"
-
 
 def main():
-    cli = CLI(__module_name__)
+    cli = CLI(module_name = "magnitude", module_type = "magnitude_f")
     cli.run_module()
 
 

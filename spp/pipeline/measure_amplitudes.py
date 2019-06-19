@@ -4,40 +4,59 @@ from microquake.waveform.amp_measures import measure_pick_amps
 from microquake.waveform.transforms import rotate_to_ENZ, rotate_to_P_SV_SH
 
 from ..core.settings import settings
+from .processing_unit import ProcessingUnit
 
 
-class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "measure_amplitudes"
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
+        """
+        input:
+        cat and stream
 
-        pulse_min_width = self.module_settings.pulse_min_width
-        pulse_min_snr_P = self.module_settings.pulse_min_snr_P
-        pulse_min_snr_S = self.module_settings.pulse_min_snr_S
-        phase_list = self.module_settings.phase_list
+        obspy modifies the stream in place
+
+        - trace
+        - arrivals
+        - picks
+
+        then measures amplitude for the first motion
+
+        - adds information to the arrivals
+
+        returns: catalog
+        """
+
+        logger.info("pipeline: measure_amplitudes")
+
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
+
+        pulse_min_width = self.params.pulse_min_width
+        pulse_min_snr_P = self.params.pulse_min_snr_P
+        pulse_min_snr_S = self.params.pulse_min_snr_S
+        phase_list = self.params.phase_list
 
         if not isinstance(phase_list, list):
             phase_list = [phase_list]
 
-        st = stream.copy()
-        cat_out = cat.copy()
-
-        missing_responses = st.attach_response(settings.inventory)
+        missing_responses = stream.attach_response(settings.inventory)
 
         for sta in missing_responses:
             logger.warning("Inventory: Missing response for sta:%s" % sta)
 
         # 1. Rotate traces to ENZ
-        st_rot = rotate_to_ENZ(st, settings.inventory)
+        st_rot = rotate_to_ENZ(stream, settings.inventory)
         st = st_rot
 
         # 2. Rotate traces to P,SV,SH wrt event location
-        st_new = rotate_to_P_SV_SH(st, cat_out)
+        st_new = rotate_to_P_SV_SH(st, cat)
         st = st_new
 
         # 3. Measure polarities, displacement areas, etc for each pick from instrument deconvolved traces
@@ -45,7 +64,7 @@ class Processor():
 
         measure_pick_amps(Stream(traces=trP),
                           # measure_pick_amps(st_rot,
-                          cat_out,
+                          cat,
                           phase_list=phase_list,
                           pulse_min_width=pulse_min_width,
                           pulse_min_snr_P=pulse_min_snr_P,
@@ -53,4 +72,14 @@ class Processor():
                           debug=False,
                           logger_in=logger)
 
-        return cat_out, stream
+        self.result = {'cat': cat}
+        return self.result
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        _, stream = self.app.deserialise_message(msg_in)
+
+        return res['cat'], stream

@@ -7,21 +7,18 @@ from loguru import logger
 class APIApplication(Application):
     def __init__(
         self,
-        toml_file=None,
         module_name=None,
         processing_flow_name="automatic",
         event_id=None,
         send_to_api=False,
     ):
         super(APIApplication, self).__init__(
-            toml_file=toml_file,
-            module_name=module_name,
             processing_flow_name=processing_flow_name,
         )
         logger.info("running module with the API")
         self.event_id = event_id
         self.send_to_api = send_to_api
-        self.api_base_url = self.settings.seismic_api.base_url
+        self.api_base_url = self.settings.API_BASE_URL
 
     def retrieve_api_data(self, event_id):
         logger.info("Retrieving data from web_api")

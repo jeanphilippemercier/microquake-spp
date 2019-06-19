@@ -8,12 +8,8 @@ from ..core.settings import settings
 
 class Grid(object):
 
-    def __init__(self, toml_file=None):
+    def __init__(self):
         """
-
-        :param toml_file: path to the TOML file containing the project
-        parameter. If not set, the function will look for a file named
-        settings.toml in the $SPP_CONFIG directory
         :param module_name: name of the module, the name must be coherent
         with a section in the config file.
         :param processing_flow: Name of the processing flow. This must
@@ -22,7 +18,6 @@ class Grid(object):
         setting the processing step to 0.
         :return: None
         """
-        settings.load(toml_file)
 
     def get_velocities(self):
         """

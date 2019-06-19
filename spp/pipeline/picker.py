@@ -7,151 +7,129 @@ from microquake.core import UTCDateTime
 from microquake.core.event import CreationInfo, Origin
 from microquake.waveform.pick import snr_picker
 
-from ..core.grid import estimate_origin_time
-from ..core.grid import synthetic_arrival_times
-from ..core.grid import create_arrivals_from_picks
+from ..core.grid import (create_arrivals_from_picks, estimate_origin_time,
+                         synthetic_arrival_times)
+from .processing_unit import ProcessingUnit
 
 
-class Processor():
-    """
-    Predict picks for event
-    """
+class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "picker"
 
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
-        self.freq_min = module_settings.waveform_filter.frequency_min
-        self.freq_max = module_settings.waveform_filter.frequency_max
-        self.residual_tolerance = module_settings.residual_tolerance
-        self.p_wave_window_start = module_settings.p_wave.search_window.start
-        self.p_wave_window_end = module_settings.p_wave.search_window.end
-        self.p_wave_window_resolution = module_settings.p_wave.search_window.resolution
-        self.p_wave_noise = module_settings.p_wave.snr_window.noise
-        self.p_wave_signal = module_settings.p_wave.snr_window.signal
-        self.s_wave_window_start = module_settings.s_wave.search_window.start
-        self.s_wave_window_end = module_settings.s_wave.search_window.end
-        self.s_wave_window_resolution = module_settings.s_wave.search_window.resolution
-        self.s_wave_noise = module_settings.s_wave.snr_window.noise
-        self.s_wave_signal = module_settings.s_wave.snr_window.signal
-        self.snr_threshold = module_settings.snr_threshold
+    def initializer(self):
+        self.freq_min = self.params.waveform_filter.frequency_min
+        self.freq_max = self.params.waveform_filter.frequency_max
+        self.residual_tolerance = self.params.residual_tolerance
+        self.p_wave_window_start = self.params.p_wave.search_window.start
+        self.p_wave_window_end = self.params.p_wave.search_window.end
+        self.p_wave_window_resolution = self.params.p_wave.search_window.resolution
+        self.p_wave_noise = self.params.p_wave.snr_window.noise
+        self.p_wave_signal = self.params.p_wave.snr_window.signal
+        self.s_wave_window_start = self.params.s_wave.search_window.start
+        self.s_wave_window_end = self.params.s_wave.search_window.end
+        self.s_wave_window_resolution = self.params.s_wave.search_window.resolution
+        self.s_wave_noise = self.params.s_wave.snr_window.noise
+        self.s_wave_signal = self.params.s_wave.snr_window.signal
+        self.snr_threshold = self.params.snr_threshold
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
-        st_in = stream.copy().detrend("demean")
+        """
+        Predict picks for event
+        takes waveform and location
+
+        inputs:
+           - Location as list [x, y, z]
+           - Origin time UTC as UTCDateTime
+           - fixed_length stream as microquake.core.stream.Stream object
+
+        list of picks
+        list of phase and time
+        """
+        # cat = kwargs["cat"]
+        stream = kwargs['stream']
+
+        if "location" and "ot_utc" in kwargs:
+            o_loc = kwargs['location']  # a list containing the location
+            ot_utc = kwargs['event_time_utc']
+        elif "cat" in kwargs:
+            cat = kwargs["cat"]
+            o_loc = cat[0].origins[-1].loc
+            ot_utc = estimate_origin_time(stream, o_loc)
+        else:
+            raise Exception("Missing parameters to run this module.")
 
         logger.info('cleaning the input stream')
-        # st = is_valid(st_in, return_stream=True, freqmin=freq_min,
-        #               freqmax=freq_max)
-        st = st_in.copy()
+        st = stream.detrend("demean")
         logger.info('done cleaning the input stream. %d of %d stations kept.' %
                     (len(st.unique_stations()), len(stream.unique_stations())))
 
         st = st.taper(max_percentage=0.1, max_length=0.01)
-        st = st.filter("bandpass", freqmin=self.freq_min, freqmax=self.freq_max)
+        st = st.filter("bandpass", freqmin=self.freq_min,
+                       freqmax=self.freq_max)
 
-        ot_utcs = []
-        logger.info("calculating origin time")
-        t0 = time()
-        loc = cat[0].preferred_origin().loc
-        ot_utcs.append(estimate_origin_time(stream, loc))
-        t1 = time()
-        logger.info("done calculating origin time in %0.3f seconds" % (t1 - t0))
+        logger.info("predicting picks for origin time {}", ot_utc)
+        t2 = time()
+        picks = synthetic_arrival_times(o_loc, ot_utc)
+        t3 = time()
+        logger.info("done predicting picks in %0.3f seconds" % (t3 - t2))
 
-        ot_utc_interloc = None
+        logger.info("picking P-waves")
+        t4 = time()
+        search_window = np.arange(
+            self.p_wave_window_start,
+            self.p_wave_window_end,
+            self.p_wave_window_resolution,
+        )
 
-        for origin in cat[0].origins:
-            if origin.method_id == 'smi:local/INTERLOC':
-                ot_utc_interloc = origin.time
+        snr_window = (
+            self.p_wave_signal,
+            self.p_wave_noise,
+        )
 
-        # only appending the last one
+        st_c = st.copy().composite()
+        snrs_p, p_snr_picks = snr_picker(
+            st_c, picks, snr_dt=search_window, snr_window=snr_window,
+            filter="P"
+        )
+        t5 = time()
+        logger.info("done picking P-wave in %0.3f seconds" % (t5 - t4))
 
-        if ot_utc_interloc is not None:
-            ot_utcs.append(ot_utc_interloc)
+        logger.info("picking S-waves")
+        t6 = time()
 
-        snr_picks_filtered_list = []
-        snr_picks_len = []
+        search_window = np.arange(
+            self.s_wave_window_start,
+            self.s_wave_window_end,
+            self.s_wave_window_resolution,
+        )
 
-        for ot_utc in ot_utcs:
-            logger.info("predicting picks for origin time %s" % ot_utc)
-            t2 = time()
-            o_loc = cat[0].preferred_origin().loc
-            picks = synthetic_arrival_times(o_loc, ot_utc)
-            t3 = time()
-            logger.info("done predicting picks in %0.3f seconds" % (t3 - t2))
+        snr_window = (
+            self.s_wave_signal,
+            self.s_wave_noise,
+        )
 
-            logger.info("picking P-waves")
-            t4 = time()
-            search_window = np.arange(
-                self.p_wave_window_start,
-                self.p_wave_window_end,
-                self.p_wave_window_resolution,
-            )
+        snrs_s, s_snr_picks = snr_picker(
+            st_c, picks, snr_dt=search_window, snr_window=snr_window,
+            filter="S"
+        )
+        t7 = time()
 
-            snr_window = (
-                self.p_wave_signal,
-                self.p_wave_noise,
-            )
+        logger.info("done picking S-wave in %0.3f seconds" % (t7 - t6))
 
-            st_c = st.copy().composite()
-            snrs_p, p_snr_picks = snr_picker(
-                st_c, picks, snr_dt=search_window, snr_window=snr_window, filter="P"
-            )
-            t5 = time()
-            logger.info("done picking P-wave in %0.3f seconds" % (t5 - t4))
+        snr_picks = p_snr_picks + s_snr_picks
+        snrs = snrs_p + snrs_s
 
-            logger.info("picking S-waves")
-            t6 = time()
+        snr_picks_filtered = [
+            snr_pick
 
-            search_window = np.arange(
-                self.s_wave_window_start,
-                self.s_wave_window_end,
-                self.s_wave_window_resolution,
-            )
+            for (snr_pick, snr) in zip(snr_picks, snrs)
 
-            snr_window = (
-                self.s_wave_signal,
-                self.s_wave_noise,
-            )
-
-            snrs_s, s_snr_picks = snr_picker(
-                st_c, picks, snr_dt=search_window, snr_window=snr_window, filter="S"
-            )
-            t7 = time()
-
-            logger.info("done picking S-wave in %0.3f seconds" % (t7 - t6))
-
-            snr_picks = p_snr_picks + s_snr_picks
-            snrs = snrs_p + snrs_s
-
-            snr_picks_filtered = [
-                snr_pick
-
-                for (snr_pick, snr) in zip(snr_picks, snrs)
-
-                if snr > self.snr_threshold
-            ]
-
-            snr_picks_filtered_list.append(snr_picks_filtered)
-            snr_picks_len.append(len(snr_picks_filtered))
-
-        # selecting the set of picks that contains the most picks
-        logger.info('selecting the set of picks containing the most picks')
-        index = np.argmax(snr_picks_len)
-        snr_picks_filtered = snr_picks_filtered_list[index]
-        origin_time_calculation_method = 'Interloc'
-
-        if index == 0:
-            origin_time_calculation_method = 'SPP'
-
-        logger.info('Origin time yielding to the most picks is %s' %
-                    origin_time_calculation_method)
-
-        logger.info('SSP: %d picks' % snr_picks_len[0])
-
-        if len(snr_picks_len) > 1:
-            logger.info('Interloc: %d picks' % snr_picks_len[1])
+            if snr > self.snr_threshold
+        ]
 
         logger.info("correcting bias in origin time")
         t0 = time()
@@ -177,8 +155,8 @@ class Processor():
 
         logger.info("creating arrivals")
         t8 = time()
-        arrivals = create_arrivals_from_picks(snr_picks_filtered, loc, ot_utc)
-        # import pdb; pdb.set_trace()
+        arrivals = create_arrivals_from_picks(snr_picks_filtered, o_loc,
+                                              ot_utc)
 
         t9 = time()
         logger.info("done creating arrivals in %0.3f seconds" % (t9 - t8))
@@ -188,7 +166,7 @@ class Processor():
 
         t11 = time()
 
-        logger.info("Origin time: %s" % ot_utc)
+        logger.info("Origin time: {}", ot_utc)
         logger.info("Total number of picks: %d" % len(arrivals))
 
         logger.info(
@@ -207,8 +185,31 @@ class Processor():
         origin.creation_info = CreationInfo(creation_time=UTCDateTime.now())
         origin.method_id = "PICKER_FOR_HOLDING_ARRIVALS"
 
-        cat[0].picks += snr_picks_filtered
-        cat[0].origins += [origin]
-        cat[0].preferred_origin_id = origin.resource_id.id
+        self.response = {'picks': snr_picks_filtered,
+                         'origins': [origin],
+                         'preferred_origin_id': origin.resource_id.id}
+
+        return self.response
+
+    def output_catalog(self, catalog):
+        catalog = catalog.copy()
+        picks = self.response['picks']
+        origins = self.response['origins']
+        preferred_origin_id = self.response['preferred_origin_id']
+
+        catalog[0].picks += picks
+        catalog[0].origins += origins
+        catalog[0].preferred_origin_id = preferred_origin_id
+
+        return catalog
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        cat, stream = self.app.deserialise_message(msg_in)
+
+        cat = self.output_catalog(cat)
 
         return cat, stream

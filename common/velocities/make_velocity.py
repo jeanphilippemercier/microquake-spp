@@ -2,19 +2,17 @@ import numpy as np
 
 from microquake.core.data.grid import create
 from spp.utils.application import Application
-
-app = Application()
-
-settings = app.settings
+from spp.core.settings import settings
+from spp.core import grid
 
 z = [1168, 459, -300]
 Vp_z = [4533, 5337, 5836]
 Vs_z = [2306, 2885, 3524]
 
-vp = create(**app.grids)
-vs = create(**app.grids)
+vp = create(**settings.grids)
+vs = create(**settings.grids)
 
-origin = app.grids.origin
+origin = settings.grids.origin
 
 zis = [int(vp.transform_to([origin[0], origin[1], z_])[2]) for z_ in z]
 

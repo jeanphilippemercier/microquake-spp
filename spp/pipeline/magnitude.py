@@ -4,31 +4,52 @@ from loguru import logger
 from microquake.waveform.mag import (calc_magnitudes_from_lambda,
                                      set_new_event_mag)
 
-from ..core.settings import settings
 from ..core.velocity import get_velocities
+from .processing_unit import ProcessingUnit
 
 
-class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "magnitude"
+
+    def initializer(self):
         self.vp_grid, self.vs_grid = get_velocities()
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
+        """
+        process(catalog)
 
-        cat_out = cat.copy()
+        Calculates the Magnitude in Frequency or Time domain
 
-        params = settings.get('magnitude')
+        - various measures
+        - requires the arrivals
 
-        density = params.density
-        min_dist = params.min_dist
-        use_sdr_rad = params.use_sdr_rad
-        use_free_surface_correction = params.use_free_surface_correction
-        make_preferred = params.make_preferred
-        phase_list = params.phase_list
+        Parameters
+        ----------
+        catalog: str
+
+        Returns
+        -------
+        catalog: str
+
+        few parameters related to the magitude
+        list of magnitudes for each stations
+        """
+        logger.info("pipeline: magnitude")
+
+        cat = kwargs["cat"]
+
+        density = self.params.density
+        min_dist = self.params.min_dist
+        use_sdr_rad = self.params.use_sdr_rad
+        use_free_surface_correction = self.params.use_free_surface_correction
+        make_preferred = self.params.make_preferred
+        phase_list = self.params.phase_list
+        use_smom = self.params.use_smom
 
         if not isinstance(phase_list, list):
             phase_list = [phase_list]
@@ -37,7 +58,7 @@ class Processor():
             logger.warning("use_sdr_rad=True but preferred focal mech = None --> Setting use_sdr_rad=False")
             use_sdr_rad = False
 
-        for i, event in enumerate(cat_out):
+        for i, event in enumerate(cat):
 
             ev_loc = event.preferred_origin().loc
             vp = self.vp_grid.interpolate(ev_loc)[0]
@@ -68,7 +89,7 @@ class Processor():
                     vs=vs,
                     density=density,
                     P_or_S=phase,
-                    use_smom=False,
+                    use_smom=use_smom,
                     use_sdr_rad=use_sdr_rad,
                     use_free_surface_correction=use_free_surface_correction,
                     sdr=sdr,
@@ -78,8 +99,17 @@ class Processor():
                 Mws.append(Mw)
                 station_mags.extend(sta_mags)
 
-            Mw = np.mean(Mws)
-            comment = "Average of time-domain station moment magnitudes"
+                logger.info("Mw_%s=%.1f len(station_mags)=%d" %
+                            (phase, Mws[-1], len(station_mags)))
+
+            if self.module_type == "frequency":
+                Mw = np.nanmean(Mws)
+                comment = "frequency"
+            else:
+                Mw = np.mean(Mws)
+                comment = "time-domain"
+
+            comment = f"Average of {comment} station moment magnitudes"
 
             if use_sdr_rad and sdr is not None:
                 comment += " Use_sdr_rad: sdr=(%.1f,%.1f,%.1f)" % (sdr[0], sdr[1], sdr[2])
@@ -89,6 +119,17 @@ class Processor():
 
                 continue
 
-            set_new_event_mag(event, station_mags, Mw, comment, make_preferred=make_preferred)
+            set_new_event_mag(event, station_mags, Mw, comment,
+                              make_preferred=make_preferred)
 
-        return cat_out, stream
+        self.result = {'cat': cat}
+        return self.result
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        _, stream = self.app.deserialise_message(msg_in)
+
+        return res['cat'], stream

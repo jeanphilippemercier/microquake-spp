@@ -6,7 +6,7 @@ __module_name__ = "magnitude"
 
 
 def main():
-    cli = CLI(__module_name__)
+    cli = CLI(module_name = "magnitude", module_type = "magnitude")
     cli.run_module()
 
 

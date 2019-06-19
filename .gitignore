@@ -1,4 +1,4 @@
-deprecated/
+deprecated
 
 *.py[cod]
 
@@ -64,3 +64,4 @@ docs/_build
 
 # Override temporarily for tests
 !data/tests/*
+.vscode/*

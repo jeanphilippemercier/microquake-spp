@@ -19,6 +19,9 @@ def process(
     module_settings=None,
     prepared_objects=None,
 ):
+    cat = kwargs["cat"]
+    stream = kwargs["stream"]
+
     logger.info("saving results to disk")
 
     spp_home = os.environ["SPP_HOME"]

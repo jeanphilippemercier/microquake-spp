@@ -1,11 +1,14 @@
-from redis import StrictRedis
-from pymongo import MongoClient
-from spp.utils.application import Application
-import numpy as np
-from uuid import uuid4
-from microquake.io.waveform import mseed_date_from_header
-from struct import unpack
 from datetime import datetime
+from struct import unpack
+from uuid import uuid4
+from loguru import logger
+
+import numpy as np
+
+from microquake.io.waveform import mseed_date_from_header
+from pymongo import MongoClient
+from redis import Redis
+from spp.utils.application import Application
 
 
 def extract_mseed_header(mseed_bytes):
@@ -53,10 +56,8 @@ def write_chunks_to_db(mseed_byte_array, mseed_chunk_size=4096):
     redis_settings = app.settings.get('redis_db')
     mongo_settings = app.settings.get('continuous_db')
 
-    logger = app.get_logger('redis_mongo_connector', 'tmp.log')
-
     logger.info('connecting to Redis')
-    redis_conn = StrictRedis(**redis_settings)
+    redis_conn = Redis(**redis_settings)
     logger.info('successfully connected to Redis')
 
     logger.info('connecting to MongoDB')
@@ -68,13 +69,13 @@ def write_chunks_to_db(mseed_byte_array, mseed_chunk_size=4096):
     logger.info('successfully connected to MongoDB')
     db_ttl = app.settings.get('redis_extra').ttl
 
-
     starts = np.arange(0, len(mseed_byte_array), mseed_chunk_size)
     documents = []
 
     for k, start in enumerate(starts):
         end = start + mseed_chunk_size
         chunk = mseed_byte_array[start:end]
+
         if len(chunk) < mseed_chunk_size:
             continue
         redis_key = str(uuid4())
@@ -87,8 +88,3 @@ def write_chunks_to_db(mseed_byte_array, mseed_chunk_size=4096):
         redis_conn.set(redis_key, chunk, ex=db_ttl)
 
     result = collection.insert_many(document)
-
-
-
-
-

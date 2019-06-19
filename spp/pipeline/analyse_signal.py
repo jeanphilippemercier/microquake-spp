@@ -3,16 +3,21 @@ import numpy as np
 from loguru import logger
 from microquake.core import UTCDateTime
 
+from .processing_unit import ProcessingUnit
 
-class Processor():
-    def __init__(self, app, module_settings):
-        self.module_settings = module_settings
+
+class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "analyse_signal"
 
     def process(
         self,
-        cat=None,
-        stream=None,
+        **kwargs
     ):
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
+
         signal_quality_data = []
 
         try:
@@ -36,8 +41,8 @@ class Processor():
                     'num_samples': nsamp,
                     'amplitude': amplitude,
                 })
-                logger.info('Done analysing signal for station %s, energy: %0.3f, integrity: %0.2f' % (sta, amplitude * 1e6,
-                                                                                                       non_missing_ratio))
+                logger.info('Done analysing signal for station %s, energy: %0.3f, integrity: %0.2f' %
+                            (sta, amplitude * 1e6, non_missing_ratio))
 
         except Exception as e:
             logger.error(e)

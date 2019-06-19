@@ -6,6 +6,8 @@ CLI-related classes and functions
 import argparse
 import importlib.util
 
+from loguru import logger
+
 from ..core.settings import settings
 
 
@@ -55,7 +57,6 @@ class CLI:
             print("Module name {} not found in settings and not running module chain, exiting".format(module_name))
             exit()
 
-
     def process_arguments(self):
         """
         Define and process cli arguments
@@ -65,6 +66,7 @@ class CLI:
         parser.add_argument("--module", help="the name of the module to run")
         parser.add_argument("--settings_name", help="to override the name of the module when loading settings")
         parser.add_argument("--processing_flow", help="the name of the processing flow to run")
+        parser.add_argument("--once", help="stop a module after a message has been processed", type=bool)
         parser.add_argument(
             "--modules", help="a list of modules to chain together"
         )
@@ -85,17 +87,17 @@ class CLI:
 
         self.args = parser.parse_args()
 
-    def load_module(self, module_file_name, settings_name):
+    def load_module(self, module_name, settings_name):
         self.module_settings = settings.get(settings_name)
 
         spec = importlib.util.spec_from_file_location(
-            "spp.pipeline." + module_file_name, "./spp/pipeline/" + module_file_name + ".py"
+            "spp.pipeline." + module_name, "./spp/pipeline/" + module_name + ".py"
         )
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         processor = getattr(mod, 'Processor')
         self.processor = processor(app=self.app,
-                                   module_settings=self.module_settings)
+                                   module_name=module_name)
 
     def set_defaults(self):
         # If there is a CLI arg for module_name, use it!
@@ -160,10 +162,9 @@ class CLI:
 
             cat, stream = self.app.clean_message((cat, stream))
 
-            cat, stream = self.processor.process(
-                cat=cat,
-                stream=stream,
-            )
+            res = self.processor.process(cat=cat, stream=stream)
+
+            cat_out, st_out = self.processor.legacy_pipeline_handler(msg_in, res)
 
         return cat, stream
 
@@ -185,8 +186,8 @@ class CLI:
                 continue
             self.app.send_message(cat, st)
 
-            if settings.SINGLE_RUN:
-                exit(0)
+            if self.args.once:
+                return
 
     def run_module_locally(self):
         msg_in = self.app.get_message()
