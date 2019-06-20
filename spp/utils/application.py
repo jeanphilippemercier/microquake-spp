@@ -33,8 +33,6 @@ class Application(object):
         self.step_number = step_number
 
         processing_flow = self.settings.get('processing_flow')[processing_flow_name]
-        self.trigger_data_name = processing_flow.trigger_data_name
-        self.dataset = processing_flow.dataset
         steps = []
         for idx, step in enumerate(processing_flow.steps):
             s = defaultdict(lambda: None, step)
@@ -56,10 +54,10 @@ class Application(object):
 
         self.processing_flow_steps = steps
 
-    def get_consumer_topic(self, processing_flow, dataset, module_name, trigger_data_name, input_data_name=None):
+    def get_consumer_topic(self, processing_flow, module_name, input_data_name=None):
         return self.processing_flow_steps[self.step_number]['input']
 
-    def get_producer_topic(self, dataset, module_name):
+    def get_producer_topic(self, module_name):
         return self.processing_flow_steps[self.step_number]['output']
 
     def get_output_data_name(self, module_name):
