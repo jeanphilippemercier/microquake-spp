@@ -62,7 +62,7 @@ pass_info = click.make_pass_decorator(
 @click.group()
 @click.option('--verbose', '-v', count=True, is_eager=True, help="Enable verbose output.")
 @click.option('--module_name', '-m', help="Module name")
-@click.option('--step', '-s', type=int, required=True, help="Step number")
+@click.option('--step', '-s', type=int, required=True, help="Step number, starts with 1")
 @click.option('--processing_flow', '-p', default="automatic", is_eager=True, help="Processing flow")
 @click.option('--once', '-1', is_flag=True, default=False, help="Run loop only once")
 @pass_info
@@ -94,7 +94,7 @@ def cli(info: Info,
         )
     info.verbose = verbose
     info.module_name = module_name
-    info.step = step
+    info.step = step-1
     info.processing_flow = processing_flow
     info.once = once
 
