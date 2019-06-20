@@ -1,11 +1,12 @@
 import json
+from io import BytesIO
+from loguru import logger
 
 import requests
 from dateutil import parser
 
-from microquake.core import AttribDict, UTCDateTime, read_events
+from microquake.core import AttribDict, UTCDateTime, read, read_events
 from microquake.core.event import Ray
-from microquake.core.stream import *
 
 
 class RequestRay(AttribDict):
@@ -76,7 +77,7 @@ class RequestEvent:
 def post_data_from_files(api_base_url, event_id=None, event_file=None,
                          mseed_file=None, mseed_context_file=None,
                          variable_length_stream_file=None,
-                         tolerance=0.5, logger=None):
+                         tolerance=0.5):
     """
     Build request directly from objects
     :param api_base_url: base url of the API
@@ -89,15 +90,8 @@ def post_data_from_files(api_base_url, event_id=None, event_file=None,
     avoid duplicates. event with a different
     <event_id> within the <tolerance> seconds of the current object will
     not be inserted. To disable this check set <tolerance> to None.
-    :param logger: a logging.Logger object
     :return: same as build_request_data_from_bytes
     """
-
-    __name__ = 'spp.utils.post_data_from_files'
-
-    if logger is None:
-        import logging
-        logger = logging.getLogger(__name__)
 
     event = None,
     stream = None
@@ -128,14 +122,13 @@ def post_data_from_files(api_base_url, event_id=None, event_file=None,
                                   event=event, stream=stream,
                                   context_stream=context_stream,
                                   variable_length_stream=variable_length_stream,
-                                  tolerance=tolerance, logger=logger)
+                                  tolerance=tolerance)
 
 
 def post_data_from_objects(api_base_url, event_id=None, event=None,
                            stream=None, context_stream=None,
                            variable_length_stream=None, tolerance=0.5,
-                           send_to_bus=False,
-                           logger=None):
+                           send_to_bus=False):
     """
     Build request directly from objects
     :param api_base_url: base url of the API
@@ -162,20 +155,11 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
 
     api_url = api_base_url + "events"
 
-    __name__ = 'spp.utils.post_data_from_objects'
-
-    if logger is None:
-        import logging
-        logger = logging.getLogger(__name__)
-
     if type(event) is Catalog:
         event = event[0]
         logger.warning('a <microquake.core.event.Catalog> object was '
                        'provided, only the first element of the catalog will '
                        'be used, this may lead to an unwanted behavior')
-
-    # check if insertion is possible
-    data = {}
 
     if event is not None:
         event_time = event.preferred_origin().time
@@ -264,11 +248,11 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         files['variable_size_waveform'] = mseed_variable_bytes
         logger.info('done preparing variable length waveform data')
 
-    return post_event_data(api_url, event_resource_id, files, logger,
+    return post_event_data(api_url, event_resource_id, files,
                            send_to_bus=send_to_bus)
 
 
-def post_event_data(api_base_url, event_resource_id, request_files, logger,
+def post_event_data(api_base_url, event_resource_id, request_files,
                     send_to_bus=False):
     # removing id from URL as no longer used
     # url = api_base_url + "/%s" % event_resource_id
@@ -317,8 +301,6 @@ def get_events_catalog(api_base_url, start_time, end_time):
 
 
 def get_event_by_id(api_base_url, event_resource_id):
-    import json
-
     # smi:local/e7021615-e7f0-40d0-ad39-8ff8dc0edb73
     url = api_base_url + "events/"
     # querystring = {"event_resource_id": event_resource_id}
@@ -367,14 +349,15 @@ def post_continuous_stream(api_base_url, stream, post_to_kafka=True,
         request_data['stream_id'] = stream_id
     else:
         from uuid import uuid4
-        request_data['stream_id'] = uuid4()
+        request_data['stream_id'] = str(uuid4())
 
     result = requests.post(url, data=request_data, files=request_files)
     print(result)
 
 
 def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
-             arrival_id, station_code, phase, ray_length, travel_time, azimuth, takeoff_angle, nodes):
+             arrival_id, station_code, phase, ray_length, travel_time,
+             azimuth, takeoff_angle, nodes):
     url = api_base_url + "rays"
 
     request_data = dict()
@@ -409,8 +392,6 @@ def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
 
 def get_rays(api_base_url, event_resource_id, origin_resource_id=None,
              arrival_resource_id=None):
-    import json
-
     url = api_base_url + "rays?"
 
     if event_resource_id:
@@ -456,4 +437,5 @@ def post_signal_quality(
     session = requests.Session()
     session.trust_env = False
 
-    return session.post("{}signal_quality".format(api_base_url), json=request_data)
+    return session.post("{}signal_quality".format(api_base_url),
+                        json=request_data)
