@@ -43,8 +43,7 @@ class Processor(ProcessingUnit):
                                         stream=stream, context_stream=context,
                                         variable_length_stream=variable_length,
                                         tolerance=None,
-                                        send_to_bus=False,
-                                        logger=logger)
+                                        send_to_bus=False)
 
 
         if result.status_code == 200:
