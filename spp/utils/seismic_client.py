@@ -1,6 +1,8 @@
 import json
+
 import requests
 from dateutil import parser
+
 from microquake.core import AttribDict, UTCDateTime, read_events
 from microquake.core.event import Ray
 from microquake.core.stream import *
@@ -19,8 +21,10 @@ class RequestEvent:
             if 'time' in key:
                 if key == 'timezone':
                     continue
+
                 if type(ev_dict[key]) is not str:
                     setattr(self, key, ev_dict[key])
+
                     continue
                 setattr(self, key, UTCDateTime(parser.parse(ev_dict[key])))
             else:
@@ -28,23 +32,27 @@ class RequestEvent:
 
     def get_event(self):
         event_file = requests.request('GET', self.event_file)
+
         return read_events(event_file.content, format='QUAKEML')
 
     def get_waveforms(self):
         waveform_file = requests.request('GET', self.waveform_file)
         byte_stream = BytesIO(waveform_file.content)
+
         return read(byte_stream, format='MSEED')
 
     def get_context_waveforms(self):
         waveform_context_file = requests.request('GET',
                                                  self.waveform_context_file)
         byte_stream = BytesIO(waveform_context_file.content)
+
         return read(byte_stream)
 
     def get_variable_length_waveforms(self):
         variable_length_waveform_file = requests.request('GET',
                                                          self.variable_size_waveform_file)
         byte_stream = BytesIO(variable_length_waveform_file)
+
         return read(byte_stream)
 
     def select(self):
@@ -57,9 +65,11 @@ class RequestEvent:
 
     def __repr__(self):
         outstr = "\n"
+
         for key in self.keys():
             outstr += '%s: %s\n' % (key, self.__dict__[key])
         outstr += "\n"
+
         return outstr
 
 
@@ -94,18 +104,22 @@ def post_data_from_files(api_base_url, event_id=None, event_file=None,
     context_stream = None
 
     # read event
+
     if event_file is not None:
         event = read_events(event_file)
 
     # read waveform
+
     if mseed_file is not None:
         stream = read(mseed_file, format='MSEED')
 
     # read context waveform
+
     if mseed_context_file is not None:
         context_stream = read(mseed_context_file, format='MSEED')
 
     # read variable length waveform
+
     if variable_length_stream_file is not None:
         variable_length_stream = read(variable_length_stream_file,
                                       format='MSEED')
@@ -162,6 +176,7 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
 
     # check if insertion is possible
     data = {}
+
     if event is not None:
         event_time = event.preferred_origin().time
         event_resource_id = str(event.resource_id)
@@ -170,15 +185,18 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
             logger.warning('A valid event_id must be provided when no '
                            '<event> is not provided.')
             logger.info('exiting')
+
             return
 
         re = get_event_by_id(api_base_url, event_id)
+
         if re is None:
             logger.warning('request did not return any event with the '
                            'specified event_id. A valid event_id or an event '
                            'object must be provided to insert a stream or a '
                            'context stream into the database.')
             logger.info('exiting')
+
             return
 
         event_time = re.time_utc
@@ -197,11 +215,13 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         start_time = event_time - tolerance
         end_time = event_time + tolerance
         re_list = get_events_catalog(api_base_url, start_time, end_time)
+
         if re_list:
             logger.warning('Event found within % seconds of current event'
                            % tolerance)
             logger.warning('The current event will not be inserted into the'
                            ' data base')
+
             return
 
     if event is not None:
@@ -267,6 +287,7 @@ def post_event_data(api_base_url, event_resource_id, request_files, logger,
         print("Error...!!", result.code)
         print("Error Message:", result.read())
     '''
+
     return result
 
 
@@ -288,6 +309,7 @@ def get_events_catalog(api_base_url, start_time, end_time):
     response = requests.request("GET", url, params=querystring).json()
 
     events = []
+
     for event in response:
         events.append(RequestEvent(event))
 
@@ -319,6 +341,7 @@ def get_continuous_stream(api_base_url, start_time, end_time, station=None,
     response = requests.request('GET', url, params=querystring)
     file = BytesIO(response.content)
     wf = read(file, format='MSEED')
+
     return wf
 
 
@@ -334,6 +357,7 @@ def post_continuous_stream(api_base_url, stream, post_to_kafka=True,
     request_files['continuous_waveform_file'] = wf_bytes
 
     request_data = {}
+
     if post_to_kafka:
         request_data['destination'] = 'kafka'
     else:
@@ -383,8 +407,6 @@ def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
               (err_http.response.status_code, err_http.response.text))
 
 
-
-
 def get_rays(api_base_url, event_resource_id, origin_resource_id=None,
              arrival_resource_id=None):
     import json
@@ -409,8 +431,10 @@ def get_rays(api_base_url, event_resource_id, origin_resource_id=None,
         return None
 
     request_rays = []
+
     for obj in json.loads(response.content):
         request_rays.append(RequestRay(obj))
+
     return request_rays
 
 
@@ -419,8 +443,10 @@ def get_stations(api_base_url):
     session = requests.Session()
     session.trust_env = False
     response = session.get(url)
+
     if response.status_code != 200:
         return None
+
     return json.loads(response.content)
 
 
@@ -429,4 +455,5 @@ def post_signal_quality(
 ):
     session = requests.Session()
     session.trust_env = False
+
     return session.post("{}signal_quality".format(api_base_url), json=request_data)
