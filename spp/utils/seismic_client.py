@@ -356,7 +356,7 @@ def post_continuous_stream(api_base_url, stream, post_to_kafka=True,
 
 
 def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
-             arrival_id, station_code, phase, ray_length, travel_time,
+             arrival_id, station_code, phase, travel_time,
              azimuth, takeoff_angle, nodes):
     url = api_base_url + "rays"
 
@@ -368,11 +368,11 @@ def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
     request_data['arrival'] = arrival_id
     request_data['station'] = station_code
     request_data['phase'] = phase
-    request_data['ray_length'] = str(ray_length)
+    # request_data['ray_length'] = str(ray_length)
     request_data['travel_time'] = str(travel_time)
     request_data['azimuth'] = str(azimuth)
     request_data['takeoff_angle'] = str(takeoff_angle)
-    request_data['nodes'] = nodes.tolist()
+    request_data['nodes'] = nodes
 
     # print("New Ray data:")
     # for key, value in request_data.items():

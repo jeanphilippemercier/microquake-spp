@@ -260,10 +260,8 @@ processing_flow.automatic.message_queue = 'spp.processing_flow.automatic'
 processing_flow.manual.message_queue = 'spp.processing_flow.manual'
 processing_flow.ray_tracing.message_queue = 'spp.processing_flow.ray_tracer'
 
-processing_flow.automatic.trigger_data_name = 'created'
-processing_flow.automatic.dataset = 'seismic_event'
 processing_flow.automatic.steps = [
-{ module='interloc', input='seismic_event'},
+{ module='interloc', input='automatic'},
 { module='picker'},
 { module='nlloc'},
 { module='measure_amplitudes'},
@@ -276,14 +274,10 @@ processing_flow.automatic.steps = [
 { module='ray_tracer'}
 ]
 
-processing_flow.ray_tracing.trigger_data_name = 'ray_tracing'
-processing_flow.ray_tracing.dataset = 'seismic_event'
 processing_flow.ray_tracing.steps = [
 { module='ray_tracer', input='ray_tracing'},
 ]
 
-processing_flow.interactive.trigger_data_name = 'interactive'
-processing_flow.interactive.dataset = 'seismic_event'
 processing_flow.interactive.steps=[
 { module='nlloc', input='interactive', output='magnitude'},
 { module='magnitude', input='magnitude', output='magnitude_frequency'},

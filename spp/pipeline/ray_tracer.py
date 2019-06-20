@@ -67,25 +67,23 @@ class Processor(ProcessingUnit):
                               'arrival_id': arrival_id,
                               'station_id': station_id,
                               'phase': phase,
-                              'length': ray.length,
                               'travel_time': travel_time,
                               'azimuth': azimuth,
                               'toa': toa,
-                              'ray_nodes': ray.nodes}
+                              'ray_nodes': ray}
 
-                    seismic_client.post_ray(self.api_url,
-                                            self.site_code,
-                                            self.network_code,
-                                            event_id,
-                                            origin_id,
-                                            arrival_id,
-                                            station_id,
-                                            phase,
-                                            ray.length(),
-                                            travel_time,
-                                            azimuth,
-                                            toa,
-                                            ray.nodes)
+                    # seismic_client.post_ray(self.api_url,
+                    #                         self.site_code,
+                    #                         self.network_code,
+                    #                         event_id,
+                    #                         origin_id,
+                    #                         arrival_id,
+                    #                         station_id,
+                    #                         phase,
+                    #                         travel_time,
+                    #                         azimuth,
+                    #                         toa,
+                    #                         ray)
 
                     self.result.append(result)
 
