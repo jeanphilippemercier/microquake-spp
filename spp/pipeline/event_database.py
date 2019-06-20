@@ -53,7 +53,7 @@ class Processor(ProcessingUnit):
                          'error code %d' % result.status_code)
 
         self.result = {'cat': kwargs['cat'], 'stream': kwargs['stream']}
-        return result
+        return self.result
 
     def legacy_pipeline_handler(
         self,
