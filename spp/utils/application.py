@@ -37,8 +37,8 @@ class Application(object):
         for idx, step in enumerate(processing_flow.steps):
             s = defaultdict(lambda: None, step)
 
-            input = f"{processing_flow_name}.{s['module']}.{idx}"
-            output = f"{processing_flow_name}.{s['module']}.{idx+1}"
+            input = f"{processing_flow_name}.{idx}"
+            output = f"{processing_flow_name}.{idx+1}"
 
             if idx == (len(processing_flow.steps)-1):
                 output = f"{processing_flow_name}.{s['module']}.output"
