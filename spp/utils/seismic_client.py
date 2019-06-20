@@ -1,9 +1,12 @@
 import json
+from io import BytesIO
+from loguru import logger
+
 import requests
 from dateutil import parser
-from microquake.core import AttribDict, UTCDateTime, read_events
+
+from microquake.core import AttribDict, UTCDateTime, read, read_events
 from microquake.core.event import Ray
-from microquake.core.stream import *
 
 
 class RequestRay(AttribDict):
@@ -19,8 +22,10 @@ class RequestEvent:
             if 'time' in key:
                 if key == 'timezone':
                     continue
+
                 if type(ev_dict[key]) is not str:
                     setattr(self, key, ev_dict[key])
+
                     continue
                 setattr(self, key, UTCDateTime(parser.parse(ev_dict[key])))
             else:
@@ -28,23 +33,27 @@ class RequestEvent:
 
     def get_event(self):
         event_file = requests.request('GET', self.event_file)
+
         return read_events(event_file.content, format='QUAKEML')
 
     def get_waveforms(self):
         waveform_file = requests.request('GET', self.waveform_file)
         byte_stream = BytesIO(waveform_file.content)
+
         return read(byte_stream, format='MSEED')
 
     def get_context_waveforms(self):
         waveform_context_file = requests.request('GET',
                                                  self.waveform_context_file)
         byte_stream = BytesIO(waveform_context_file.content)
+
         return read(byte_stream)
 
     def get_variable_length_waveforms(self):
         variable_length_waveform_file = requests.request('GET',
                                                          self.variable_size_waveform_file)
         byte_stream = BytesIO(variable_length_waveform_file)
+
         return read(byte_stream)
 
     def select(self):
@@ -57,16 +66,18 @@ class RequestEvent:
 
     def __repr__(self):
         outstr = "\n"
+
         for key in self.keys():
             outstr += '%s: %s\n' % (key, self.__dict__[key])
         outstr += "\n"
+
         return outstr
 
 
 def post_data_from_files(api_base_url, event_id=None, event_file=None,
                          mseed_file=None, mseed_context_file=None,
                          variable_length_stream_file=None,
-                         tolerance=0.5, logger=None):
+                         tolerance=0.5):
     """
     Build request directly from objects
     :param api_base_url: base url of the API
@@ -79,33 +90,30 @@ def post_data_from_files(api_base_url, event_id=None, event_file=None,
     avoid duplicates. event with a different
     <event_id> within the <tolerance> seconds of the current object will
     not be inserted. To disable this check set <tolerance> to None.
-    :param logger: a logging.Logger object
     :return: same as build_request_data_from_bytes
     """
-
-    __name__ = 'spp.utils.post_data_from_files'
-
-    if logger is None:
-        import logging
-        logger = logging.getLogger(__name__)
 
     event = None,
     stream = None
     context_stream = None
 
     # read event
+
     if event_file is not None:
         event = read_events(event_file)
 
     # read waveform
+
     if mseed_file is not None:
         stream = read(mseed_file, format='MSEED')
 
     # read context waveform
+
     if mseed_context_file is not None:
         context_stream = read(mseed_context_file, format='MSEED')
 
     # read variable length waveform
+
     if variable_length_stream_file is not None:
         variable_length_stream = read(variable_length_stream_file,
                                       format='MSEED')
@@ -114,14 +122,13 @@ def post_data_from_files(api_base_url, event_id=None, event_file=None,
                                   event=event, stream=stream,
                                   context_stream=context_stream,
                                   variable_length_stream=variable_length_stream,
-                                  tolerance=tolerance, logger=logger)
+                                  tolerance=tolerance)
 
 
 def post_data_from_objects(api_base_url, event_id=None, event=None,
                            stream=None, context_stream=None,
                            variable_length_stream=None, tolerance=0.5,
-                           send_to_bus=False,
-                           logger=None):
+                           send_to_bus=False):
     """
     Build request directly from objects
     :param api_base_url: base url of the API
@@ -148,20 +155,12 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
 
     api_url = api_base_url + "events"
 
-    __name__ = 'spp.utils.post_data_from_objects'
-
-    if logger is None:
-        import logging
-        logger = logging.getLogger(__name__)
-
     if type(event) is Catalog:
         event = event[0]
         logger.warning('a <microquake.core.event.Catalog> object was '
                        'provided, only the first element of the catalog will '
                        'be used, this may lead to an unwanted behavior')
 
-    # check if insertion is possible
-    data = {}
     if event is not None:
         event_time = event.preferred_origin().time
         event_resource_id = str(event.resource_id)
@@ -170,15 +169,18 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
             logger.warning('A valid event_id must be provided when no '
                            '<event> is not provided.')
             logger.info('exiting')
+
             return
 
         re = get_event_by_id(api_base_url, event_id)
+
         if re is None:
             logger.warning('request did not return any event with the '
                            'specified event_id. A valid event_id or an event '
                            'object must be provided to insert a stream or a '
                            'context stream into the database.')
             logger.info('exiting')
+
             return
 
         event_time = re.time_utc
@@ -197,11 +199,13 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         start_time = event_time - tolerance
         end_time = event_time + tolerance
         re_list = get_events_catalog(api_base_url, start_time, end_time)
+
         if re_list:
             logger.warning('Event found within % seconds of current event'
                            % tolerance)
             logger.warning('The current event will not be inserted into the'
                            ' data base')
+
             return
 
     if event is not None:
@@ -244,11 +248,11 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
         files['variable_size_waveform'] = mseed_variable_bytes
         logger.info('done preparing variable length waveform data')
 
-    return post_event_data(api_url, event_resource_id, files, logger,
+    return post_event_data(api_url, event_resource_id, files,
                            send_to_bus=send_to_bus)
 
 
-def post_event_data(api_base_url, event_resource_id, request_files, logger,
+def post_event_data(api_base_url, event_resource_id, request_files,
                     send_to_bus=False):
     # removing id from URL as no longer used
     # url = api_base_url + "/%s" % event_resource_id
@@ -267,6 +271,7 @@ def post_event_data(api_base_url, event_resource_id, request_files, logger,
         print("Error...!!", result.code)
         print("Error Message:", result.read())
     '''
+
     return result
 
 
@@ -288,6 +293,7 @@ def get_events_catalog(api_base_url, start_time, end_time):
     response = requests.request("GET", url, params=querystring).json()
 
     events = []
+
     for event in response:
         events.append(RequestEvent(event))
 
@@ -295,8 +301,6 @@ def get_events_catalog(api_base_url, start_time, end_time):
 
 
 def get_event_by_id(api_base_url, event_resource_id):
-    import json
-
     # smi:local/e7021615-e7f0-40d0-ad39-8ff8dc0edb73
     url = api_base_url + "events/"
     # querystring = {"event_resource_id": event_resource_id}
@@ -319,6 +323,7 @@ def get_continuous_stream(api_base_url, start_time, end_time, station=None,
     response = requests.request('GET', url, params=querystring)
     file = BytesIO(response.content)
     wf = read(file, format='MSEED')
+
     return wf
 
 
@@ -334,6 +339,7 @@ def post_continuous_stream(api_base_url, stream, post_to_kafka=True,
     request_files['continuous_waveform_file'] = wf_bytes
 
     request_data = {}
+
     if post_to_kafka:
         request_data['destination'] = 'kafka'
     else:
@@ -343,14 +349,15 @@ def post_continuous_stream(api_base_url, stream, post_to_kafka=True,
         request_data['stream_id'] = stream_id
     else:
         from uuid import uuid4
-        request_data['stream_id'] = uuid4()
+        request_data['stream_id'] = str(uuid4())
 
     result = requests.post(url, data=request_data, files=request_files)
     print(result)
 
 
 def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
-             arrival_id, station_code, phase, ray_length, travel_time, azimuth, takeoff_angle, nodes):
+             arrival_id, station_code, phase, travel_time,
+             azimuth, takeoff_angle, nodes):
     url = api_base_url + "rays"
 
     request_data = dict()
@@ -361,11 +368,11 @@ def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
     request_data['arrival'] = arrival_id
     request_data['station'] = station_code
     request_data['phase'] = phase
-    request_data['ray_length'] = str(ray_length)
+    # request_data['ray_length'] = str(ray_length)
     request_data['travel_time'] = str(travel_time)
     request_data['azimuth'] = str(azimuth)
     request_data['takeoff_angle'] = str(takeoff_angle)
-    request_data['nodes'] = nodes.tolist()
+    request_data['nodes'] = nodes
 
     # print("New Ray data:")
     # for key, value in request_data.items():
@@ -383,12 +390,8 @@ def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
               (err_http.response.status_code, err_http.response.text))
 
 
-
-
 def get_rays(api_base_url, event_resource_id, origin_resource_id=None,
              arrival_resource_id=None):
-    import json
-
     url = api_base_url + "rays?"
 
     if event_resource_id:
@@ -409,8 +412,10 @@ def get_rays(api_base_url, event_resource_id, origin_resource_id=None,
         return None
 
     request_rays = []
+
     for obj in json.loads(response.content):
         request_rays.append(RequestRay(obj))
+
     return request_rays
 
 
@@ -419,8 +424,10 @@ def get_stations(api_base_url):
     session = requests.Session()
     session.trust_env = False
     response = session.get(url)
+
     if response.status_code != 200:
         return None
+
     return json.loads(response.content)
 
 
@@ -429,4 +436,6 @@ def post_signal_quality(
 ):
     session = requests.Session()
     session.trust_env = False
-    return session.post("{}signal_quality".format(api_base_url), json=request_data)
+
+    return session.post("{}signal_quality".format(api_base_url),
+                        json=request_data)
