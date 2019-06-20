@@ -52,7 +52,7 @@ class Processor(ProcessingUnit):
             logger.error('Error in postion data to the API. Returned with '
                          'error code %d' % result.status_code)
 
-        self.result = result
+        self.result = {'cat': kwargs['cat'], 'stream': kwargs['stream']}
         return result
 
     def legacy_pipeline_handler(
