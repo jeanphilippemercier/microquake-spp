@@ -23,9 +23,7 @@ class KafkaRedisApplication(Application):
         self.consumer = self.get_kafka_consumer(logger=logger)
         self.consumer_topic = self.get_consumer_topic(
             self.processing_flow_steps,
-            self.dataset,
-            self.__module_name__,
-            self.trigger_data_name,
+            self.__module_name__
         )
 
         if self.consumer_topic != "":
@@ -109,7 +107,7 @@ class KafkaRedisApplication(Application):
         logger.info("done sending data to Redis")
 
         if topic is None:
-            topic = self.get_producer_topic(self.dataset, self.__module_name__)
+            topic = self.get_producer_topic(self.__module_name__)
         logger.info("sending message to kafka on topic {}", topic)
         self.producer.produce(topic, redis_key)
         logger.info("done sending message to kafka on topic {}", topic)
