@@ -9,7 +9,6 @@ from .schemas import Cable, CableSchema, EventSchema
 
 
 # @headers({"Accept": "application/vnd.seismicplatform.v1.full+json"})
-# @returns.json
 class SeismicClient(Consumer):
     def __init__(self, access_token, base_url=None):
         if base_url is None:
@@ -28,14 +27,11 @@ class SeismicClient(Consumer):
 
             raise Exception(response.url)
 
-    # @response_handler(raise_for_status)
-    # @get("/events")
-    # def get_events(self) -> EventSchema(many=True):
-    #     """Lists all events."""
+    @response_handler(raise_for_status)
+    @get("/events")
+    def get_events(self) -> EventSchema(many=True):
+        """Lists all events."""
 
-    # def get_cables(self) -> typing.List[Cable]:
-        # """Lists all cables."""
-    # @json
     @get("cables")
     def get_cables(self) -> CableSchema(many=True):
         """Lists all cables."""

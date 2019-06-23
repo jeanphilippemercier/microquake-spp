@@ -1,18 +1,20 @@
 import collections
 
 import marshmallow
+from marshmallow import Schema, post_load
 
 Event = collections.namedtuple(
     "Event", field_names=["event_type"]
 )
 
-# "Cable", ["id"]
+cable_fields = ["id", "code", "r", "l", "g", "c"]
+
 Cable = collections.namedtuple(
-    "Cable", field_names=["id", "code", "r", "l", "g", "c"]
+    "Cable", field_names=cable_fields
 )
 
 
-class SchemaBase(marshmallow.Schema):
+class SchemaBase(Schema):
     class Meta:
         # Pass EXCLUDE as Meta option to keep marshmallow 2 behavior
         # ref: https://marshmallow.readthedocs.io/en/3.0/upgrading.html
@@ -20,14 +22,18 @@ class SchemaBase(marshmallow.Schema):
 
 
 class EventSchema(SchemaBase):
-    @marshmallow.post_load
+    @post_load
     def make_event(self, data):
         return Event(**data)
 
 
 class CableSchema(SchemaBase):
-    @marshmallow.post_load
+    class Meta:
+        fields = cable_fields
+
+    @post_load
     def make_cable(self, data):
         print(data)
         exit(0)
+
         return Cable(*data)
