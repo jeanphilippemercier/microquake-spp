@@ -21,11 +21,21 @@ import importlib.util
 import logging
 
 import click
+import msgpack
 
 from loguru import logger
+from microquake.nlloc import NLL
+from redis import Redis
 
 from .. import __version__
+from ..pipeline.automatic_pipeline import automatic_pipeline
+from ..pipeline.manual_pipeline import manual_pipeline
+# from ..pipeline.manual_pipeline import manual_pipeline
 from ..utils.kafka_redis_application import KafkaRedisApplication
+from .hdf5 import write_ttable_h5
+from .nlloc import nll_sensors, nll_velgrids
+from .settings import settings
+from .velocity import create_velocities
 
 LOGGING_LEVELS = {
     0: logging.NOTSET,
@@ -62,7 +72,7 @@ pass_info = click.make_pass_decorator(
 @click.group()
 @click.option('--verbose', '-v', count=True, is_eager=True, help="Enable verbose output.")
 @click.option('--module_name', '-m', help="Module name")
-@click.option('--step', '-s', type=int, required=True, help="Step number, starts with 1")
+@click.option('--step', '-s', type=int, help="Step number, starts with 1", default=1)
 @click.option('--processing_flow', '-p', default="automatic", is_eager=True, help="Processing flow")
 @click.option('--once', '-1', is_flag=True, default=False, help="Run loop only once")
 @pass_info
@@ -142,9 +152,98 @@ def run(info: Info):
             return
 
 
+def run_pipeline(pipeline, setting_name):
+    redis_settings = settings.get('redis_db')
+    redis = Redis(**redis_settings)
+    message_queue = settings.get(
+        setting_name).message_queue
+
+    logger.info('initialization successful')
+
+    while 1:
+        logger.info('waiting for message on channel %s' % message_queue)
+        message_queue, message = redis.blpop(message_queue)
+        logger.info('message received')
+
+        tmp = msgpack.loads(message)
+        data = {}
+
+        for key in tmp.keys():
+            data[key.decode('utf-8')] = tmp[key]
+
+        pipeline(**data)
+
+
+@cli.command()
+@pass_info
+def automatic(info: Info):
+    """
+    Run automatic pipeline
+    """
+    click.echo(f"Running automatic pipeline")
+    setting_name = 'processing_flow.automatic'
+    run_pipeline(automatic_pipeline, setting_name)
+
+
+@cli.command()
+@pass_info
+def manual(info: Info):
+    """
+    Run manual pipeline
+    """
+    click.echo(f"Running manual pipeline")
+    setting_name = 'processing_flow.manual'
+    run_pipeline(manual_pipeline, setting_name)
+
+
+@cli.command()
+@pass_info
+def raytracer(info: Info):
+    """
+    Run raytracer module
+    """
+    click.echo(f"Running raytracer module")
+    setting_name = 'processing_flow.raytracer'
+    click.echo(f"Raytracer pipeline not running")
+    # run_pipeline(raytracer_pipeline, setting_name)
+
+
 @cli.command()
 def version():
     """
     Get the library version.
     """
     click.echo(click.style(f'{__version__}', bold=True))
+
+
+@cli.command()
+def prepare():
+    """
+    Prepare project and run NonLinLoc
+    """
+    project_code = settings.PROJECT_CODE
+    base_folder = settings.nll_base
+    gridpar = nll_velgrids()
+    sensors = nll_sensors()
+    params = settings.get('nlloc')
+
+    nll = NLL(project_code, base_folder=base_folder, gridpar=gridpar,
+              sensors=sensors, params=params)
+
+    # creating NLL base project including travel time grids
+    logger.info('Preparing NonLinLoc')
+    nll.prepare()
+    logger.info('Done preparing NonLinLoc')
+
+    # creating H5 grid from NLL grids
+    logger.info('Writing h5 travel time table')
+    write_ttable_h5()
+
+
+@cli.command()
+def velocities():
+    """
+    Create velocity files
+    """
+    logger.info('Create velocity model')
+    create_velocities()
