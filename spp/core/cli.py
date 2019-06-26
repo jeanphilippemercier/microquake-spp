@@ -29,6 +29,7 @@ from redis import Redis
 from .. import __version__
 from ..pipeline.automatic_pipeline import automatic_pipeline
 from ..pipeline.manual_pipeline import manual_pipeline
+# from ..pipeline.manual_pipeline import manual_pipeline
 from ..utils.kafka_redis_application import KafkaRedisApplication
 from .settings import settings
 
@@ -198,8 +199,9 @@ def raytracer(info: Info):
     Run raytracer module
     """
     click.echo(f"Running raytracer module")
-    # setting_name = 'processing_flow.manual'
-    # run_pipeline(manual_pipeline, setting_name)
+    setting_name = 'processing_flow.raytracer'
+    click.echo(f"Raytracer pipeline not running")
+    # run_pipeline(raytracer_pipeline, setting_name)
 
 
 @cli.command()
