@@ -1,4 +1,4 @@
-from redis import StrictRedis
+from redis import Redis
 from spp.core.settings import settings
 from microquake.core import read
 from io import BytesIO
@@ -57,7 +57,7 @@ redis_settings = settings.get('redis_db')
 message_queue = settings.get(
     'processing_flow').manual.message_queue
 
-redis = StrictRedis(**redis_settings)
+redis = Redis(**redis_settings)
 
 logger.info('initialization successful')
 

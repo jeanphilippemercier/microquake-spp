@@ -1,4 +1,4 @@
-from redis import StrictRedis
+from redis import Redis
 from spp.core.settings import settings
 from loguru import logger
 from spp.pipeline.automatic_pipeline import automatic_pipeline
@@ -17,7 +17,7 @@ def test_automatic_pipeline():
     message_queue = settings.get(
         'processing_flow').automatic.message_queue
 
-    redis = StrictRedis(**redis_settings)
+    redis = Redis(**redis_settings)
 
     logger.info('loading mseed data')
     # mseed_bytes = requests.get("https://permanentdbfilesstorage.blob.core"
@@ -71,7 +71,7 @@ redis_settings = settings.get('redis_db')
 message_queue = settings.get(
     'processing_flow').automatic.message_queue
 
-redis = StrictRedis(**redis_settings)
+redis = Redis(**redis_settings)
 
 logger.info('initialization successful')
 
