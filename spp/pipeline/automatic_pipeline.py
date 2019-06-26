@@ -1,6 +1,6 @@
-from spp.pipeline import (interloc, picker, nlloc, measure_amplitudes,
-                          measure_smom, focal_mechanism, measure_energy,
-                          magnitude, event_database)
+from spp.pipeline import (event_classifier, interloc, picker, nlloc,
+                          measure_amplitudes, measure_smom, focal_mechanism,
+                          measure_energy, magnitude, event_database)
 from loguru import logger
 from microquake.core import read, read_events, UTCDateTime
 from microquake.core.event import (Catalog, Event)
@@ -103,7 +103,7 @@ def picker_election(location, event_time_utc, cat, fixed_length):
     return cat_pickers[imax]
 
 
-def automatic_pipeline(stream=None, cat=None):
+def automatic_pipeline(stream=None, context=None, cat=None):
     """
     The pipeline for the automatic processing of the seismic data
     :param fixed_length: fixed length seismogram
@@ -114,6 +114,9 @@ def automatic_pipeline(stream=None, cat=None):
 
     if not isinstance(stream, Stream):
         stream = read(BytesIO(stream), format='mseed')
+
+    if not isinstance(context, Stream):
+        context = read(BytesIO(context), format='mseed')
 
     if not cat:
         logger.info('No catalog was provided creating new')
@@ -134,11 +137,17 @@ def automatic_pipeline(stream=None, cat=None):
 
     eventdb_processor.initializer()
 
-    # Error in postion data to the API. Returned with error code 400: bad
-    # request
-    result = eventdb_processor.process(cat=cat_interloc, stream=stream)
 
-    # send to database
+    # Error in posting data to the API. Returned with error code 400: bad
+    # request
+    # result = eventdb_processor.process(cat=cat_interloc, stream=stream)
+
+    classifier = event_classifier.Processor()
+    category = classifier.process(stream=context)
+    cat_interloc[0].event_type = category
+
+    result = eventdb_processor.process(cat=cat_interloc, stream=stream)
+    logger.info(result.content)
 
     cat_picker = picker_election(loc, event_time_utc, cat_interloc,
                                  stream)
@@ -170,8 +179,6 @@ def automatic_pipeline(stream=None, cat=None):
     cat_smom = smom_processor.process(cat=cat_amplitude,
                                       stream=stream)['cat']
 
-    # TESTED UP TO THIS POINT, THE CONTAINER DOES NOT CONTAIN THE MOST
-    # RECENT VERSION OF THE HASHWRAPPER LIBRARY AND CANNOT RUN
     fmec_processor = focal_mechanism.Processor()
     cat_fmec = fmec_processor.process(cat=cat_smom,
                                       stream=stream)['cat']
