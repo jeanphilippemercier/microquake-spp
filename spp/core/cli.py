@@ -21,11 +21,17 @@ import importlib.util
 import logging
 
 import click
+import msgpack
 
 from loguru import logger
+from redis import Redis
 
 from .. import __version__
+from ..pipeline.automatic_pipeline import automatic_pipeline
+from ..pipeline.manual_pipeline import manual_pipeline
+# from ..pipeline.manual_pipeline import manual_pipeline
 from ..utils.kafka_redis_application import KafkaRedisApplication
+from .settings import settings
 
 LOGGING_LEVELS = {
     0: logging.NOTSET,
@@ -62,7 +68,7 @@ pass_info = click.make_pass_decorator(
 @click.group()
 @click.option('--verbose', '-v', count=True, is_eager=True, help="Enable verbose output.")
 @click.option('--module_name', '-m', help="Module name")
-@click.option('--step', '-s', type=int, required=True, help="Step number, starts with 1")
+@click.option('--step', '-s', type=int, help="Step number, starts with 1", default=1)
 @click.option('--processing_flow', '-p', default="automatic", is_eager=True, help="Processing flow")
 @click.option('--once', '-1', is_flag=True, default=False, help="Run loop only once")
 @pass_info
@@ -140,6 +146,62 @@ def run(info: Info):
             app.close()
 
             return
+
+
+def run_pipeline(pipeline, setting_name):
+    redis_settings = settings.get('redis_db')
+    redis = Redis(**redis_settings)
+    message_queue = settings.get(
+        setting_name).message_queue
+
+    logger.info('initialization successful')
+
+    while 1:
+        logger.info('waiting for message on channel %s' % message_queue)
+        message_queue, message = redis.blpop(message_queue)
+        logger.info('message received')
+
+        tmp = msgpack.loads(message)
+        data = {}
+
+        for key in tmp.keys():
+            data[key.decode('utf-8')] = tmp[key]
+
+        pipeline(**data)
+
+
+@cli.command()
+@pass_info
+def automatic(info: Info):
+    """
+    Run automatic pipeline
+    """
+    click.echo(f"Running automatic pipeline")
+    setting_name = 'processing_flow.automatic'
+    run_pipeline(automatic_pipeline, setting_name)
+
+
+@cli.command()
+@pass_info
+def manual(info: Info):
+    """
+    Run manual pipeline
+    """
+    click.echo(f"Running manual pipeline")
+    setting_name = 'processing_flow.manual'
+    run_pipeline(manual_pipeline, setting_name)
+
+
+@cli.command()
+@pass_info
+def raytracer(info: Info):
+    """
+    Run raytracer module
+    """
+    click.echo(f"Running raytracer module")
+    setting_name = 'processing_flow.raytracer'
+    click.echo(f"Raytracer pipeline not running")
+    # run_pipeline(raytracer_pipeline, setting_name)
 
 
 @cli.command()
