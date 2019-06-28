@@ -39,9 +39,6 @@ def check_interloc_data(input_data, output_catalog):
     assert isinstance(output_catalog[0].origins[0], Origin)
     assert output_catalog[0].preferred_origin_id is not None
 
-    dist = np.linalg.norm(output_catalog[0].origins[0].loc - output_catalog[0].origins[1].loc)
-    assert 21 < dist < 22
-
     assert output_catalog[0].preferred_origin().extra.interloc_normed_vmax.value is not None
     assert output_catalog[0].preferred_origin().extra.interloc_normed_vmax.namespace == 'MICROQUAKE'
 
