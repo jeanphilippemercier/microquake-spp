@@ -72,21 +72,21 @@ class Processor(ProcessingUnit):
         else:
             logger.info("No preferred_origin found")
 
-        # logger.info("calculating Uncertainty")
-        # t2 = time()
-        # picking_error = self.params.picking_error
-        # origin_uncertainty = calculate_uncertainty(
-        #     cat_out[0],
-        #     self.base_folder,
-        #     self.project_code,
-        #     perturbation=5,
-        #     pick_uncertainty=picking_error,
-        # )
-        #
-        # if cat_out[0].preferred_origin():
-        #     cat_out[0].preferred_origin().origin_uncertainty = origin_uncertainty
-        #     t3 = time()
-        #     logger.info("done calculating uncertainty in %0.3f seconds" % (t3 - t2))
+        logger.info("calculating Uncertainty")
+        t2 = time()
+        picking_error = self.params.picking_error
+        origin_uncertainty = calculate_uncertainty(
+            cat_out[0],
+            self.base_folder,
+            self.project_code,
+            perturbation=5,
+            pick_uncertainty=picking_error,
+        )
+
+        if cat_out[0].preferred_origin():
+            cat_out[0].preferred_origin().origin_uncertainty = origin_uncertainty
+            t3 = time()
+            logger.info("done calculating uncertainty in %0.3f seconds" % (t3 - t2))
 
         fix_arr_takeoff_and_azimuth(cat_out, self.vp_grid, self.vs_grid)
 

@@ -167,6 +167,21 @@ def automatic_pipeline(stream=None, context=None, cat=None):
     # Removing the Origin object used to hold the picks
     del cat_nlloc[0].origins[-2]
 
+    loc = cat_nlloc[0].preferred_origin().loc
+    event_time_utc = cat_nlloc[0].preferred_origin().time
+    picker_sp_processor = picker.Processor(module_type='second_pass')
+    picker_sp_processor.process(stream=stream, location=loc,
+                                event_time_utc=event_time_utc)
+
+    cat_picker = picker_sp_processor.output_catalog(cat_nlloc)
+
+    nlloc_processor = nlloc.Processor()
+    nlloc_processor.initializer()
+    cat_nlloc = nlloc_processor.process(cat=cat_picker)['cat']
+
+    # Removing the Origin object used to hold the picks
+    del cat_nlloc[0].origins[-2]
+
     bytes_out = BytesIO()
     cat_nlloc.write(bytes_out, format='QUAKEML')
 
