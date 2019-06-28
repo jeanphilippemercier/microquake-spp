@@ -1,6 +1,7 @@
 from spp.pipeline import (event_classifier, interloc, picker, nlloc,
                           measure_amplitudes, measure_smom, focal_mechanism,
-                          measure_energy, magnitude, event_database)
+                          measure_energy, magnitude, event_database,
+                          clean_data)
 from loguru import logger
 from microquake.core import read, read_events, UTCDateTime
 from microquake.core.event import (Catalog, Event)
@@ -125,7 +126,14 @@ def automatic_pipeline(stream=None, context=None, cat=None):
         if not isinstance(cat, Catalog):
             cat = read_events(BytesIO(cat), format='quakeml')
 
+    event_id = cat[0].resource_id
+
     eventdb_processor = event_database.Processor()
+
+    logger.info('removing traces for sensors in the black list, or are '
+                'filled with zero, or contain NaN')
+    clean_data_processor = clean_data.Processor()
+    stream = clean_data_processor.process(stream=stream)
 
     interloc_processor = interloc.Processor()
     interloc_results = interloc_processor.process(stream=stream)
@@ -146,6 +154,7 @@ def automatic_pipeline(stream=None, context=None, cat=None):
     category = classifier.process(stream=context)
     cat_interloc[0].event_type = category
 
+    cat_interloc[0].resource_id = event_id
     result = eventdb_processor.process(cat=cat_interloc, stream=stream)
     logger.info(result.content)
 
@@ -166,6 +175,7 @@ def automatic_pipeline(stream=None, context=None, cat=None):
     redis.rpush(ray_tracer_message_queue, bytes_out.getvalue())
 
     # send to data base
+    cat_nlloc[0].resource_id = event_id
     result = eventdb_processor.process(cat=cat_nlloc)
 
 
@@ -195,6 +205,7 @@ def automatic_pipeline(stream=None, context=None, cat=None):
     cat_magnitude_f = magnitude_f_processor.process(cat=cat_magnitude,
                                                     stream=stream)['cat']
 
+    cat_magnitude_f[0].resource_id = event_id
     result = eventdb_processor.process(cat=cat_magnitude_f)
 
     return cat_magnitude_f
