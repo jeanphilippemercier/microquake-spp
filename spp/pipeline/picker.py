@@ -52,7 +52,7 @@ class Processor(ProcessingUnit):
         # cat = kwargs["cat"]
         stream = kwargs['stream']
 
-        if "location" and "ot_utc" in kwargs:
+        if "location" and "event_time_utc" in kwargs:
             o_loc = kwargs['location']  # a list containing the location
             ot_utc = kwargs['event_time_utc']
         elif "cat" in kwargs:

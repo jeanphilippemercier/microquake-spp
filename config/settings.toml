@@ -23,7 +23,7 @@ nlloc.residual_tolerance = 10e-3
 nlloc.locsearch = 'OCT 5 5 5 1e-6 5000 500 0 1'
 nlloc.locmeth = 'EDT_OT_WT 9999.0 4 -1 -1 -1 0'
 nlloc.locgau = ''
-nlloc.picking_error = 0.001
+nlloc.picking_error = 0.005
 
 time_zone.type = 'UTC_offset'                # either 'UTC_offset or 'time_zone'
 time_zone.time_zone_code = 'ULN'             # time zone code. If type=time_zone, time_zone_code must be a valid pytz timezone
@@ -54,7 +54,8 @@ sensors.units      = 'meter'
 sensors.format     = 'csv'
 sensors.path       = 'sensors.csv'
 sensors.stationXML = 'OT.xml'
-sensors.black_list = ['23', '31', '32', '100', '102', '107', '88', '90', '77']
+#sensors.black_list = ['8', '10', '23', '31', '32', '100', '102', '107', '88', '90', '77']
+sensors.black_list = ['8']
 
 data_local.ms_chunks = '/home/phil/data/oyu/spp_common/synthetic/chunks/*.mseed'
 data_local.ms_10s    = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.mseed'
@@ -99,7 +100,7 @@ create_event.log_file_name = 'create_event.log'
 
 picker.snr_threshold = 6
 picker.residual_tolerance = 15e-3
-picker.p_s_tolerance = 5e-3  # P and S must be at least separated by p_s_tolerance
+picker.p_s_tolerance = 2e-3  # P and S must be at least separated by p_s_tolerance
 picker.min_num_picks = 10
 picker.waveform_filter.frequency_min = 100
 picker.waveform_filter.frequency_max = 1000
@@ -111,32 +112,45 @@ picker.s_wave.snr_window.signal = 0.01
 
 picker.p_wave.search_window.start = -100e-3        # start of search window relative to predicted arrival time (s)
 picker.p_wave.search_window.end = 20e-3           # end of the search window relative to predicted arrival time (s)
-picker.p_wave.search_window.resolution = 0.001   # time resolution of search window (s)
+picker.p_wave.search_window.resolution = 0.0005   # time resolution of search window (s)
 
 picker.s_wave.search_window.start = -100e-3        # start of search window relative to predicted arrival time (s)
 picker.s_wave.search_window.end = 20e-3           # end of the search window relative to predicted arrival time (s)
-picker.s_wave.search_window.resolution = 0.001   # time resolution of search window (s)
+picker.s_wave.search_window.resolution = 0.0005   # time resolution of search window (s)
 
 picker.high_frequencies.waveform_filter.frequency_min = 100
 picker.high_frequencies.waveform_filter.frequency_max = 1000
 picker.high_frequencies.p_wave.snr_window.noise = 0.005
-picker.high_frequencies.p_wave.snr_window.signal = 0.01
+picker.high_frequencies.p_wave.snr_window.signal = 0.005
 picker.high_frequencies.s_wave.snr_window.noise = 0.005
-picker.high_frequencies.s_wave.snr_window.signal = 0.01
+picker.high_frequencies.s_wave.snr_window.signal = 0.005
 
 picker.medium_frequencies.waveform_filter.frequency_min = 50
 picker.medium_frequencies.waveform_filter.frequency_max = 500
 picker.medium_frequencies.p_wave.snr_window.noise = 0.01
-picker.medium_frequencies.p_wave.snr_window.signal = 0.02
+picker.medium_frequencies.p_wave.snr_window.signal = 0.01
 picker.medium_frequencies.s_wave.snr_window.noise = 0.01
-picker.medium_frequencies.s_wave.snr_window.signal = 0.02
+picker.medium_frequencies.s_wave.snr_window.signal = 0.01
 
 picker.low_frequencieswaveform_filter.frequency_min = 20
 picker.low_frequencieswaveform_filter.frequency_max = 200
 picker.low_frequencies.p_wave.snr_window.noise = 0.02
-picker.low_frequencies.p_wave.snr_window.signal = 0.04
+picker.low_frequencies.p_wave.snr_window.signal = 0.02
 picker.low_frequencies.s_wave.snr_window.noise = 0.02
-picker.low_frequencies.s_wave.snr_window.signal = 0.04
+picker.low_frequencies.s_wave.snr_window.signal = 0.02
+
+picker.second_pass.p_wave.search_window.start = -30e-3
+picker.second_pass.p_wave.search_window.end = 30e-3
+picker.second_pass.p_wave.search_window.resolution = 0.0005
+picker.second_pass.s_wave.search_window.start = -30e-3
+picker.second_pass.s_wave.search_window.end = 30e-3
+picker.second_pass.s_wave.search_window.resolution = 0.0005
+picker.second_pass.waveform_filter.frequency_min = 100
+picker.second_pass.waveform_filter.frequency_max = 1000
+picker.second_pass.p_wave.snr_window.noise = 0.005
+picker.second_pass.p_wave.snr_window.signal = 0.005
+picker.second_pass.s_wave.snr_window.noise = 0.005
+picker.second_pass.s_wave.snr_window.signal = 0.005
 
 magnitude.ttpath = 'None'
 magnitude.only_triaxial = true

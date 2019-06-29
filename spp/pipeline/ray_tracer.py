@@ -72,18 +72,18 @@ class Processor(ProcessingUnit):
                               'toa': toa,
                               'ray_nodes': ray}
 
-                    # seismic_client.post_ray(self.api_url,
-                    #                         self.site_code,
-                    #                         self.network_code,
-                    #                         event_id,
-                    #                         origin_id,
-                    #                         arrival_id,
-                    #                         station_id,
-                    #                         phase,
-                    #                         travel_time,
-                    #                         azimuth,
-                    #                         toa,
-                    #                         ray)
+                    seismic_client.post_ray(self.api_url,
+                                            self.site_code,
+                                            self.network_code,
+                                            event_id,
+                                            origin_id,
+                                            arrival_id,
+                                            station_id,
+                                            phase,
+                                            travel_time,
+                                            azimuth,
+                                            toa,
+                                            ray)
 
                     self.result.append(result)
 

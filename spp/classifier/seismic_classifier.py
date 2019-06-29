@@ -26,6 +26,9 @@ class seismic_classifier_model:
         #Model was trained at these dimensions
         self.D = (64, 64, 1)
         self.class_names = ['Blast UG', 'Blast OP', 'Blast C2S', 'Seismic', 'Noise']
+        self.microquake_class_names = ['explosion', 'quarry blast',
+                                      'controlled explosion', 'earthquake',
+                                      'other event']
         self.num_classes = len(self.class_names)
         self.model_file = self.base_directory/f"{model_name}"
         self.create_model()
@@ -42,13 +45,13 @@ class seismic_classifier_model:
                 2. Standardize to ~ [-1, 1]
                 3. Detrend & Taper
         """        
-        x = tr[0].data
-        y = tr[1].data
-        z = tr[2].data
-
-        c = np.sign(x) * np.sqrt(x ** 2 + y ** 2 + z ** 2)
-        c_norm = c / np.abs(c).max()
-        tr[0].data = c_norm
+        # x = tr[0].data
+        # y = tr[1].data
+        # z = tr[2].data
+        #
+        # c = np.sign(x) * np.sqrt(x ** 2 + y ** 2 + z ** 2)
+        # c_norm = c / np.abs(c).max()
+        # tr[0].data = c_norm
 
         tr[0] = tr[0].detrend(type='demean')
 
@@ -146,4 +149,4 @@ class seismic_classifier_model:
         normgram = self.normalize_gray(graygram)
         img = normgram[None, ..., None]
         a = self.model.predict(img)
-        return self.class_names[np.argmax(a)]
+        return self.microquake_class_names[np.argmax(a)]

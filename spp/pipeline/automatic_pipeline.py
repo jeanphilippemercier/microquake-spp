@@ -1,6 +1,7 @@
-from spp.pipeline import (interloc, picker, nlloc, measure_amplitudes,
-                          measure_smom, focal_mechanism, measure_energy,
-                          magnitude, event_database)
+from spp.pipeline import (event_classifier, interloc, picker, nlloc,
+                          measure_amplitudes, measure_smom, focal_mechanism,
+                          measure_energy, magnitude, event_database,
+                          clean_data)
 from loguru import logger
 from microquake.core import read, read_events, UTCDateTime
 from microquake.core.event import (Catalog, Event)
@@ -8,9 +9,9 @@ from microquake.core.stream import (Stream)
 from spp.core.settings import settings
 import numpy as np
 from io import BytesIO
-from redis import StrictRedis
+from redis import Redis
 
-redis = StrictRedis(**settings.get('redis_db'))
+redis = Redis(**settings.get('redis_db'))
 ray_tracer_message_queue = settings.get(
     'processing_flow').ray_tracing.message_queue
 automatic_message_queue = settings.get(
@@ -103,7 +104,7 @@ def picker_election(location, event_time_utc, cat, fixed_length):
     return cat_pickers[imax]
 
 
-def automatic_pipeline(stream=None, cat=None):
+def automatic_pipeline(stream=None, context=None, cat=None):
     """
     The pipeline for the automatic processing of the seismic data
     :param fixed_length: fixed length seismogram
@@ -115,6 +116,9 @@ def automatic_pipeline(stream=None, cat=None):
     if not isinstance(stream, Stream):
         stream = read(BytesIO(stream), format='mseed')
 
+    if not isinstance(context, Stream):
+        context = read(BytesIO(context), format='mseed')
+
     if not cat:
         logger.info('No catalog was provided creating new')
         cat = Catalog(events=[Event()])
@@ -122,7 +126,14 @@ def automatic_pipeline(stream=None, cat=None):
         if not isinstance(cat, Catalog):
             cat = read_events(BytesIO(cat), format='quakeml')
 
+    event_id = cat[0].resource_id
+
     eventdb_processor = event_database.Processor()
+
+    logger.info('removing traces for sensors in the black list, or are '
+                'filled with zero, or contain NaN')
+    clean_data_processor = clean_data.Processor()
+    stream = clean_data_processor.process(stream=stream)
 
     interloc_processor = interloc.Processor()
     interloc_results = interloc_processor.process(stream=stream)
@@ -134,14 +145,36 @@ def automatic_pipeline(stream=None, cat=None):
 
     eventdb_processor.initializer()
 
-    # Error in postion data to the API. Returned with error code 400: bad
-    # request
-    result = eventdb_processor.process(cat=cat_interloc, stream=stream)
 
-    # send to database
+    # Error in posting data to the API. Returned with error code 400: bad
+    # request
+    # result = eventdb_processor.process(cat=cat_interloc, stream=stream)
+
+    classifier = event_classifier.Processor()
+    category = classifier.process(stream=context)
+    cat_interloc[0].event_type = category
+
+    cat_interloc[0].resource_id = event_id
+    result = eventdb_processor.process(cat=cat_interloc, stream=stream)
+    logger.info(result.content)
 
     cat_picker = picker_election(loc, event_time_utc, cat_interloc,
                                  stream)
+    nlloc_processor = nlloc.Processor()
+    nlloc_processor.initializer()
+    cat_nlloc = nlloc_processor.process(cat=cat_picker)['cat']
+
+    # Removing the Origin object used to hold the picks
+    del cat_nlloc[0].origins[-2]
+
+    loc = cat_nlloc[0].preferred_origin().loc
+    event_time_utc = cat_nlloc[0].preferred_origin().time
+    picker_sp_processor = picker.Processor(module_type='second_pass')
+    picker_sp_processor.process(stream=stream, location=loc,
+                                event_time_utc=event_time_utc)
+
+    cat_picker = picker_sp_processor.output_catalog(cat_nlloc)
+
     nlloc_processor = nlloc.Processor()
     nlloc_processor.initializer()
     cat_nlloc = nlloc_processor.process(cat=cat_picker)['cat']
@@ -157,6 +190,7 @@ def automatic_pipeline(stream=None, cat=None):
     redis.rpush(ray_tracer_message_queue, bytes_out.getvalue())
 
     # send to data base
+    cat_nlloc[0].resource_id = event_id
     result = eventdb_processor.process(cat=cat_nlloc)
 
 
@@ -170,8 +204,6 @@ def automatic_pipeline(stream=None, cat=None):
     cat_smom = smom_processor.process(cat=cat_amplitude,
                                       stream=stream)['cat']
 
-    # TESTED UP TO THIS POINT, THE CONTAINER DOES NOT CONTAIN THE MOST
-    # RECENT VERSION OF THE HASHWRAPPER LIBRARY AND CANNOT RUN
     fmec_processor = focal_mechanism.Processor()
     cat_fmec = fmec_processor.process(cat=cat_smom,
                                       stream=stream)['cat']
@@ -188,6 +220,7 @@ def automatic_pipeline(stream=None, cat=None):
     cat_magnitude_f = magnitude_f_processor.process(cat=cat_magnitude,
                                                     stream=stream)['cat']
 
+    cat_magnitude_f[0].resource_id = event_id
     result = eventdb_processor.process(cat=cat_magnitude_f)
 
     return cat_magnitude_f

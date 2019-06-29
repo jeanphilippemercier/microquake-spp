@@ -162,6 +162,26 @@ services:
     ports:
       - "8088:8088"
 
+  seismic:
+    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
+    hostname: seismic
+    container_name: seismic
+    depends_on:
+      - redisdb
+    volumes:
+      - $SPP_COMMON/:/data/common
+      - $SPP_CONFIG/:/data/config
+      - ./bin:/app/bin
+      - ./spp:/app/spp
+    environment:
+      SPP_COMMON: "/data/common"
+      SPP_CONFIG: "/data/config"
+    #    command: bash -c "cd /services && python foo.py"
+    working_dir:
+      /app/bin
+    restart: always
+    tty: true
+
 
 #  seismic-interloc:
 #    image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
