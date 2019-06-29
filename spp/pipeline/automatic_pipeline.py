@@ -113,18 +113,19 @@ def automatic_pipeline(stream=None, context=None, cat=None):
     :return: None
     """
 
-    if not isinstance(stream, Stream):
-        stream = read(BytesIO(stream), format='mseed')
-
-    if not isinstance(context, Stream):
-        context = read(BytesIO(context), format='mseed')
+    # if not isinstance(stream, Stream):
+    #     stream = read(BytesIO(stream), format='mseed')
+    #
+    # if not isinstance(context, Stream):
+    #     context = read(BytesIO(context), format='mseed')
+    #
 
     if not cat:
         logger.info('No catalog was provided creating new')
         cat = Catalog(events=[Event()])
-    else:
-        if not isinstance(cat, Catalog):
-            cat = read_events(BytesIO(cat), format='quakeml')
+    # else:
+    #     if not isinstance(cat, Catalog):
+    #         cat = read_events(BytesIO(cat), format='quakeml')
 
     event_id = cat[0].resource_id
 
