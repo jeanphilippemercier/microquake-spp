@@ -10,6 +10,7 @@ single_run = false
 debug_level = 0
 debug_file_dir = './common'
 api_base_url = 'https://api.microquake.org/api/v1/'
+newpipeline = true
 # api_base_url = 'http://127.0.0.1:8000/api/v1/'
 
 # nlloc
