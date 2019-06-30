@@ -85,6 +85,6 @@ while 1:
     tmp = msgpack.unpack(message)
     data = {}
     for key in tmp.keys():
-        data[key.decode('utf-8')] = tmp[key]
+        data[key] = tmp[key]
 
     automatic_pipeline(**data)
