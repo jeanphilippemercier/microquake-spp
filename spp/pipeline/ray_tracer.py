@@ -70,7 +70,7 @@ class Processor(ProcessingUnit):
                               'travel_time': travel_time,
                               'azimuth': azimuth,
                               'toa': toa,
-                              'ray_nodes': ray}
+                              'ray_nodes': ray.nodes}
 
                     seismic_client.post_ray(self.api_url,
                                             self.site_code,
@@ -83,7 +83,7 @@ class Processor(ProcessingUnit):
                                             travel_time,
                                             azimuth,
                                             toa,
-                                            ray)
+                                            ray.nodes)
 
                     self.result.append(result)
 

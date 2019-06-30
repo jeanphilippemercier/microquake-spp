@@ -145,11 +145,6 @@ def automatic_pipeline(stream=None, context=None, cat=None):
 
     eventdb_processor.initializer()
 
-
-    # Error in posting data to the API. Returned with error code 400: bad
-    # request
-    # result = eventdb_processor.process(cat=cat_interloc, stream=stream)
-
     classifier = event_classifier.Processor()
     category = classifier.process(stream=context)
     cat_interloc[0].event_type = category

@@ -360,6 +360,8 @@ def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
              azimuth, takeoff_angle, nodes):
     url = api_base_url + "rays"
 
+    ray_length = len(nodes)
+
     request_data = dict()
     request_data['site'] = site_code
     request_data['network'] = network_code
@@ -368,11 +370,11 @@ def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
     request_data['arrival'] = arrival_id
     request_data['station'] = station_code
     request_data['phase'] = phase
-    # request_data['ray_length'] = str(ray_length)
+    request_data['ray_length'] = str(ray_length)
     request_data['travel_time'] = str(travel_time)
     request_data['azimuth'] = str(azimuth)
     request_data['takeoff_angle'] = str(takeoff_angle)
-    request_data['nodes'] = nodes
+    request_data['nodes'] = nodes.tolist()
 
     # print("New Ray data:")
     # for key, value in request_data.items():
