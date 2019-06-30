@@ -2,7 +2,8 @@ from redis import Redis
 from spp.core.settings import settings
 from loguru import logger
 from spp.pipeline.automatic_pipeline import automatic_pipeline
-import msgpack
+# import msgpack
+from microquake.io import msgpack
 
 
 def test_automatic_pipeline():
@@ -52,10 +53,11 @@ def test_automatic_pipeline():
     logger.info('done loading catalogue data')
 
     cat = read_events(BytesIO(catalog_bytes), format='quakeml')
+    context = read(BytesIO(context_bytes), format='mseed')
 
-    dict_out = {'stream': mseed_bytes, 'context': context_bytes,
-                'cat': catalog_bytes}
-    msg_out = msgpack.dumps(dict_out)
+    dict_out = {'stream': fixed_length_wf, 'context': context,
+                'cat': cat}
+    msg_out = msgpack.pack(dict_out)
 
     bytes_out = BytesIO()
     fixed_length_wf.write(bytes_out, format='mseed')
@@ -80,7 +82,7 @@ while 1:
     message_queue, message = redis.blpop(message_queue)
     logger.info('message received')
 
-    tmp = msgpack.loads(message)
+    tmp = msgpack.unpack(message)
     data = {}
     for key in tmp.keys():
         data[key.decode('utf-8')] = tmp[key]

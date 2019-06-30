@@ -20,6 +20,8 @@ __module_name__ = "data_connector"
 app = Application(module_name=__module_name__)
 logger = app.logger
 
+DEFAULT_TIME_RANGE_SIZE = 2*24*3600
+DEFAULT_START_DELAY = 1800
 
 def get_and_post_IMS_data(
     api_base_url,
@@ -28,8 +30,14 @@ def get_and_post_IMS_data(
     site_ids,
     tz,
     filter_existing_events=False,
+    time_range_size=DEFAULT_TIME_RANGE_SIZE,
+    start_delay=DEFAULT_START_DELAY,
+    max_events_to_process=-1,
+    get_blasts=True,
 ):
-    start_time, end_time = get_times(tz)
+    start_time, end_time = get_times(tz, time_range_size=time_range_size, start_delay=start_delay)
+    logger.info("A time range with (%s) sec length has been set", time_range_size)
+
     IMS_events = retrieve_IMS_catalogue(
         ims_base_url,
         api_base_url,
@@ -38,25 +46,26 @@ def get_and_post_IMS_data(
         end_time,
         tz,
         filter_existing_events=filter_existing_events,
+        get_blasts=get_blasts,
     )
 
-    for event in IMS_events.events[::-1]:
+    if max_events_to_process > 0:
+        logger.info("A maximum number of events to process is set at %s", max_events_to_process)
+        IMS_events = IMS_events[:max_events_to_process]
 
-        # Need to check whether the event is in the api database before uploading it
-        # It takes way too much time to upload the events
-
-        # terrible solution, but the function crashes for only few rejected events
+    logger.info("Processing %s events", len(IMS_events))
+    for event in IMS_events:
         try:
             post_event_to_api(
                 event, ims_base_url, api_base_url, site_ids, site, tz
             )
-        except:
-            pass
+        except Exception as e:
+            logger.error("Error posting event to API: %s", event.resource_id.id)
 
 
-def get_times(tz):
-    end_time = UTCDateTime.now() - 1800
-    start_time = end_time - 2 * 24 * 3600
+def get_times(tz, time_range_size=DEFAULT_TIME_RANGE_SIZE, start_delay=DEFAULT_START_DELAY):
+    end_time = UTCDateTime.now() - start_delay
+    start_time = end_time - time_range_size
     end_time = end_time.datetime.replace(tzinfo=pytz.utc).astimezone(tz=tz)
     start_time = start_time.datetime.replace(tzinfo=pytz.utc).astimezone(tz=tz)
     return start_time, end_time
@@ -64,7 +73,7 @@ def get_times(tz):
 
 @retry(
     wait=wait_exponential(multiplier=1, min=1, max=10),
-    stop=stop_after_attempt(7),
+    stop=stop_after_attempt(3),
     after=after_log(logger, logging.DEBUG),
     before=before_log(logger, logging.DEBUG),
 )
@@ -76,10 +85,11 @@ def retrieve_IMS_catalogue(
     end_time,
     tz,
     filter_existing_events=False,
+    get_blasts=True,
 ):
     logger.info("retrieving IMS catalogue (url:%s)", ims_base_url)
     ims_catalogue = web_client.get_catalogue(
-        ims_base_url, start_time, end_time, site, tz, blast=True, 
+        ims_base_url, start_time, end_time, site, tz, blast=get_blasts,
         accepted=False
     )
     if filter_existing_events:
@@ -90,7 +100,7 @@ def retrieve_IMS_catalogue(
 
 @retry(
     wait=wait_exponential(multiplier=1, min=1, max=10),
-    stop=stop_after_attempt(7),
+    stop=stop_after_attempt(3),
     after=after_log(logger, logging.DEBUG),
 )
 def filter_events(api_base_url, IMS_catalogue, start_time, end_time):
@@ -118,7 +128,7 @@ def filter_events(api_base_url, IMS_catalogue, start_time, end_time):
 
 @retry(
     wait=wait_exponential(multiplier=1, min=1, max=10),
-    stop=stop_after_attempt(7),
+    stop=stop_after_attempt(3),
     after=after_log(logger, logging.DEBUG),
 )
 def get_and_post_continuous_data(
@@ -155,7 +165,7 @@ def get_and_post_continuous_data(
 
 @retry(
     wait=wait_exponential(multiplier=1, min=1, max=10),
-    stop=stop_after_attempt(7),
+    stop=stop_after_attempt(3),
     after=after_log(logger, logging.DEBUG),
 )
 def get_and_post_event_data(
@@ -240,6 +250,12 @@ def clean_wf(stream, event):
 
 
 def get_context(c_wf, arrivals):
+    if not arrivals:
+        return  (
+            c_wf.filter("bandpass", freqmin=60, freqmax=1000)
+            .composite()
+        )
+
     index = np.argmin([arrival.get_pick().time for arrival in arrivals])
     station_code = arrivals[index].get_pick().waveform_id.station_code
 
@@ -251,7 +267,7 @@ def get_context(c_wf, arrivals):
     return context
 
 
-def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz):
+def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz, reject_existing_events=True):
     event = web_client.get_picks_event(ims_base_url, event, site, tz)
 
     logger.info("extracting data for event %s", str(event))
@@ -264,6 +280,24 @@ def post_event_to_api(event, ims_base_url, api_base_url, site_ids, site, tz):
         event_time = np.min(ts)
     else:
         event_time = UTCDateTime.now()
+
+    if reject_existing_events:
+        existing_event = seismic_client.get_event_by_id(api_base_url, event.resource_id.get_quakeml_uri())
+        if existing_event:
+            logger.warning(
+                "event with id: %s already exists in the API, skipping",
+                event.resource_id.get_quakeml_uri()
+            )
+            return None
+
+        api_catalogue = seismic_client.get_events_catalog(
+            api_base_url, event_time - 0.1, event_time + 0.1
+        )
+        if len(api_catalogue) > 0:
+            logger.warning(
+                " %s event(s) already exist with very close times compared to this event in the API, skipping", len(api_catalogue)
+            )
+            return None
 
     # c_wf = get_and_post_continuous_data(
     #     ims_base_url, api_base_url, event_time, event.resource_id, site_ids, tz
@@ -302,6 +336,29 @@ def process_args():
         type=int,
         help="the interval in seconds to run this script",
     )
+    parser.add_argument(
+        "--max_events_to_process",
+        default=-1,
+        type=int,
+        help="What's the maximum number of events to process in one try?",
+    )
+    parser.add_argument(
+        "--time_range_size",
+        default=DEFAULT_TIME_RANGE_SIZE,
+        type=int,
+        help="How long ago (in secs) do we want to process events for",
+    )
+    # The DEFAULT_START_DELAY here is set to 20 mins, which is the max time 
+    # we expect the IMS replica server to take until it receives events
+    parser.add_argument(
+        "--start_delay",
+        default=DEFAULT_START_DELAY,
+        type=int,
+        help="What delay from the current time should we be the earliest we look for events?",
+    )
+    parser.add_argument("--get-blasts", default=False,
+                        dest='get_blasts', action='store_true',
+                        help="Should we return blasts?")
 
     return parser.parse_args()
 
@@ -309,6 +366,10 @@ def process_args():
 def main():
     args = process_args()
     filter_existing_events = args.filter_existing_events
+    max_events_to_process = args.max_events_to_process
+    time_range_size = args.time_range_size
+    start_delay = args.start_delay
+    get_blasts = args.get_blasts
     mode = args.mode
 
     interval = args.interval
@@ -317,7 +378,6 @@ def main():
     ims_base_url = app.settings.get('data_connector').path
     api_base_url = app.settings.get('seismic_api').base_url
     tz = app.get_time_zone()
-
     site_ids = [
         int(station.code)
         for station in site.stations()
@@ -332,9 +392,13 @@ def main():
             site_ids,
             tz,
             filter_existing_events,
+            time_range_size,
+            start_delay,
+            max_events_to_process,
+            get_blasts,
         )
     elif mode == "cont":
-        logger.info("Retrieving and posting IMS data continuously")
+        logger.info("Retrieving and posting IMS data continuously every %s secs", interval)
         scheduler = BlockingScheduler()
         scheduler.add_executor("processpool")
         scheduler.add_job(
@@ -349,7 +413,10 @@ def main():
                 site,
                 site_ids,
                 tz,
-                filter_existing_events,
+                time_range_size,
+                start_delay,
+                max_events_to_process,
+                get_blasts,
             ],
         )
         try:
