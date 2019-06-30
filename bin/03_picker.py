@@ -4,7 +4,6 @@ Predict Picks
 """
 
 from spp.utils.cli import CLI
-from spp.pipeline.picker import process
 
 __module_name__ = "picker"
 
@@ -14,8 +13,7 @@ def main():
     Run the picking module
     """
 
-    cli = CLI(__module_name__, callback=process)
-    cli.prepare_module()
+    cli = CLI(__module_name__)
     cli.run_module()
 
 

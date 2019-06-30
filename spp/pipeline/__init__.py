@@ -1,0 +1,11 @@
+from .analyse_signal import Processor as AnalyseSignalProcessor
+from .event_database import Processor as EventDatabaseProcessor
+from .focal_mechanism import Processor as FocalMechanismProcessor
+from .interloc import Processor as InterlocProcessor
+from .magnitude import Processor as MagnitudeProcessor
+from .measure_amplitudes import Processor as MeasureAmplitudesProcessor
+from .measure_energy import Processor as MeasureEnergyProcessor
+from .measure_smom import Processor as MeasureSmomProcessor
+from .nlloc import Processor as NLLocProcessor
+from .picker import Processor as PickerProcessor
+from .ray_tracer import Processor as RayTracerProcessor

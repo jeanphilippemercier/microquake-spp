@@ -32,7 +32,6 @@ from spp.utils.cli import CLI
 
 def main():
     cli = CLI(None, None)
-    cli.prepare_module()
     cli.run_module()
 
 

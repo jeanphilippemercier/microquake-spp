@@ -1,53 +1,63 @@
+from loguru import logger
 from microquake.waveform.amp_measures import calc_velocity_flux
 from microquake.waveform.mag import calculate_energy_from_flux
 
 from ..core.settings import settings
+from .processing_unit import ProcessingUnit
 
 
-def process(cat=None,
-            stream=None,
-            logger=None,
-            app=None,
-            module_settings=None,
-            prepared_objects=None,
-           ):
+class Processor(ProcessingUnit):
+    @property
+    def module_name(self):
+        return "measure_energy"
 
-    # reading application data
-    params = settings.get('measure_energy')
+    def process(
+        self,
+        **kwargs
+    ):
+        logger.info("pipeline: measure energy")
 
-    if logger is None:
-        logger = app.logger
+        cat = kwargs["cat"]
+        stream = kwargs["stream"]
 
-    correct_attenuation = params.correct_attenuation
-    Q = params.attenuation_Q
-    use_sdr_rad = params.use_sdr_rad
+        correct_attenuation = self.params.correct_attenuation
+        Q = self.params.attenuation_Q
+        use_sdr_rad = self.params.use_sdr_rad
 
-    if use_sdr_rad and cat.preferred_focal_mechanism() is None:
-        logger.warn("use_sdr_rad=True but preferred focal mech = None --> Setting use_sdr_rad=False")
-        use_sdr_rad = False
+        if use_sdr_rad and cat.preferred_focal_mechanism() is None:
+            logger.warning("use_sdr_rad=True but preferred focal mech = None --> Setting use_sdr_rad=False")
+            use_sdr_rad = False
 
-    phase_list = params.phase_list
-    if not isinstance(phase_list, list):
-        phase_list = [phase_list]
+        phase_list = self.params.phase_list
 
-    cat_out = cat.copy()
-    st = stream.copy()
+        if not isinstance(phase_list, list):
+            phase_list = [phase_list]
 
-    inventory = app.get_inventory()
-    missing_responses = st.attach_response(inventory)
-    for sta in missing_responses:
-        logger.warn("Inventory: Missing response for sta:%s" % sta)
+        missing_responses = stream.attach_response(settings.inventory)
 
-    calc_velocity_flux(st,
-                       cat_out,
-                       phase_list=phase_list,
-                       correct_attenuation=correct_attenuation,
-                       Q=Q,
-                       debug=False,
-                       logger_in=logger)
+        for sta in missing_responses:
+            logger.warning("Inventory: Missing response for sta:%s" % sta)
 
-    calculate_energy_from_flux(cat_out,
-                               use_sdr_rad=use_sdr_rad,
-                               logger_in=logger)
+        calc_velocity_flux(stream,
+                           cat,
+                           phase_list=phase_list,
+                           correct_attenuation=correct_attenuation,
+                           Q=Q,
+                           debug=False,
+                           logger_in=logger)
 
-    return cat_out, st
+        calculate_energy_from_flux(cat,
+                                   use_sdr_rad=use_sdr_rad,
+                                   logger_in=logger)
+
+        self.result = {'cat': cat}
+        return self.result
+
+    def legacy_pipeline_handler(
+        self,
+        msg_in,
+        res
+    ):
+        _, stream = self.app.deserialise_message(msg_in)
+
+        return res['cat'], stream
