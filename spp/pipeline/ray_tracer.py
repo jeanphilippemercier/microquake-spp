@@ -16,6 +16,7 @@ class Processor(ProcessingUnit):
     def initializer(self):
         self.site_code = settings.SITE_CODE
         self.network_code = settings.NETWORK_CODE
+        self.api_url = settings.API_BASE_URL
 
     def process(
         self,
@@ -102,12 +103,11 @@ class Processor(ProcessingUnit):
 
 def ray_tracer_pipeline(event_bytes=None):
 
-    api_url = settings.API_BASE_URL
 
     ray_tracer_processor = Processor()
     ray_tracer_processor.initializer()
 
-    cat = read_events(BytesIO(cat_bytes), format='quakeml')
+    cat = read_events(BytesIO(event_bytes), format='quakeml')
 
     result = ray_tracer_processor.process(cat=cat)
 

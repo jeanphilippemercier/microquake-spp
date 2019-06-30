@@ -139,7 +139,7 @@ def automatic_pipeline(waveform_bytes=None, context_bytes=None,
     logger.info('sending request to the ray tracer on channel %s'
                 % ray_tracer_message_queue)
 
-    data_out = {'cat_bytes': bytes_out.getvalue()}
+    data_out = {'event_bytes': bytes_out.getvalue()}
     msg = msgpack.dumps(data_out)
 
     redis.rpush(ray_tracer_message_queue, msg)
