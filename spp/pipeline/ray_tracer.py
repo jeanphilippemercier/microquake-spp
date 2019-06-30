@@ -4,6 +4,8 @@ from spp.utils.grid import Grid
 
 from ..core.settings import settings
 from .processing_unit import ProcessingUnit
+from microquake.core import read_events
+from io import BytesIO
 
 
 class Processor(ProcessingUnit):
@@ -14,12 +16,12 @@ class Processor(ProcessingUnit):
     def initializer(self):
         self.site_code = settings.SITE_CODE
         self.network_code = settings.NETWORK_CODE
-        self.api_url = settings.API_BASE_URL
 
     def process(
         self,
         **kwargs
     ):
+
         logger.info("pipeline: raytracer")
 
         cat = kwargs["cat"]
@@ -87,15 +89,6 @@ class Processor(ProcessingUnit):
 
                     self.result.append(result)
 
-        # With the current API structure this will not work. The API is
-        # expecting every ray to be inserted not a list with a series of picks.
-
-        # In addition, the post_rays method does not currently exist
-        # response = seismic_client.post_rays(self.api_url,
-        #                                     self.site_code,
-        #                                     self.network_code,
-        #                                     self.result)
-
         return self.result
 
     def legacy_pipeline_handler(
@@ -106,3 +99,19 @@ class Processor(ProcessingUnit):
         _, stream = self.app.deserialise_message(msg_in)
 
         return res['cat'], stream
+
+def ray_tracer_pipeline(event_bytes=None):
+
+    api_url = settings.API_BASE_URL
+
+    ray_tracer_processor = Processor()
+    ray_tracer_processor.initializer()
+
+    cat = read_events(BytesIO(cat_bytes), format='quakeml')
+
+    result = ray_tracer_processor.process(cat=cat)
+
+    # post the result to the API
+
+    logger.info('done calculating rays for event %s'
+                % cat[0].origins[-1].time)

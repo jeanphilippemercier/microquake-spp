@@ -2,6 +2,9 @@ from spp.pipeline import (event_classifier, interloc, picker, nlloc,
                           measure_amplitudes, measure_smom, focal_mechanism,
                           measure_energy, magnitude, event_database,
                           clean_data)
+
+from spp.utils.seismic_client import put_event_from_objects
+
 from loguru import logger
 from microquake.core import read, read_events, UTCDateTime
 from microquake.core.event import (Catalog, Event)
@@ -10,58 +13,18 @@ from spp.core.settings import settings
 import numpy as np
 from io import BytesIO
 from redis import Redis
+import msgpack
+
 
 redis = Redis(**settings.get('redis_db'))
 ray_tracer_message_queue = settings.get(
     'processing_flow').ray_tracing.message_queue
 automatic_message_queue = settings.get(
     'processing_flow').automatic.message_queue
+api_base_url = settings.get('api_base_url')
 
 
-def test_automatic_pipeline():
-    logger.info('loading mseed data')
-    # mseed_bytes = requests.get("https://permanentdbfilesstorage.blob.core"
-    #                            ".windows.net/permanentdbfilesblob/events/2019-06"
-    #                            "-09T033053.080047Z.mseed").content
-    #
-    # with open('test_data.mseed', 'wb') as fout:
-    #     fout.write(mseed_bytes)
-
-    with open('test_data.mseed', 'rb') as fin:
-        mseed_bytes = fin.read()
-
-    logger.info('done loading mseed data')
-
-    fixed_length_wf = read(BytesIO(mseed_bytes), format='mseed')
-
-    logger.info('loading catalogue data')
-    # catalog_bytes = requests.get(
-    #     "https://permanentdbfilesstorage.blob.core.windows.net"
-    #     "/permanentdbfilesblob/events/2019-06-09T033053.047217Z.xml").content
-    #
-    # with open('test_data.xml', 'wb') as fout:
-    #     fout.write(catalog_bytes)
-
-    with open('test_data.xml', 'rb') as fin:
-        catalog_bytes = fin.read()
-
-    logger.info('done loading catalogue data')
-
-    cat = read_events(BytesIO(catalog_bytes), format='quakeml')
-
-    bytes_out = BytesIO()
-    fixed_length_wf.write(bytes_out, format='mseed')
-
-    logger.info('sending request to the ray tracer on channel %s'
-                % ray_tracer_message_queue)
-
-
-    redis.rpush(automatic_message_queue, bytes_out.getvalue())
-
-    # automatic_pipeline(fixed_length_wf)
-
-
-def picker_election(location, event_time_utc, cat, fixed_length):
+def picker_election(location, event_time_utc, cat, stream):
     """
     Calculates the picks using 1 method but different
     parameters and then retains the best set of picks. The function is
@@ -76,11 +39,11 @@ def picker_election(location, event_time_utc, cat, fixed_length):
     picker_mf_processor = picker.Processor(module_type='medium_frequencies')
     picker_lf_processor = picker.Processor(module_type='low_frequencies')
 
-    picker_hf_processor.process(stream=fixed_length, location=location,
+    picker_hf_processor.process(stream=stream, location=location,
                                 event_time_utc=event_time_utc)
-    picker_mf_processor.process(stream=fixed_length, location=location,
+    picker_mf_processor.process(stream=stream, location=location,
                                 event_time_utc=event_time_utc)
-    picker_lf_processor.process(stream=fixed_length, location=location,
+    picker_lf_processor.process(stream=stream, location=location,
                                 event_time_utc=event_time_utc)
 
     cat_picker_hf = picker_hf_processor.output_catalog(cat.copy())
@@ -104,32 +67,26 @@ def picker_election(location, event_time_utc, cat, fixed_length):
     return cat_pickers[imax]
 
 
-def automatic_pipeline(stream=None, context=None, cat=None):
+def automatic_pipeline(waveform_bytes=None, context_bytes=None,
+                       event_bytes=None):
     """
-    The pipeline for the automatic processing of the seismic data
-    :param fixed_length: fixed length seismogram
-    (microsquake.core.stream.Stream)
-    :param cat: catalog (microquake.core.event.Catalog)
-    :return: None
+    automatic pipeline
+    :param stream_bytes: fixed length stream encoded as mseed
+    :param context_bytes: context trace encoded as mseed
+    :param cat_bytes: catalog object encoded in quakeml
+    :return:
     """
 
-    # if not isinstance(stream, Stream):
-    #     stream = read(BytesIO(stream), format='mseed')
-    #
-    # if not isinstance(context, Stream):
-    #     context = read(BytesIO(context), format='mseed')
-    #
+    stream = read(BytesIO(waveform_bytes), format='mseed')
+    context = read(BytesIO(context_bytes), format='mseed')
 
-    if not cat:
+    if event_bytes is None:
         logger.info('No catalog was provided creating new')
         cat = Catalog(events=[Event()])
-    # else:
-    #     if not isinstance(cat, Catalog):
-    #         cat = read_events(BytesIO(cat), format='quakeml')
+    else:
+        cat = read_events(BytesIO(event_bytes), format='quakeml')
 
     event_id = cat[0].resource_id
-
-    eventdb_processor = event_database.Processor()
 
     logger.info('removing traces for sensors in the black list, or are '
                 'filled with zero, or contain NaN')
@@ -144,15 +101,13 @@ def automatic_pipeline(stream=None, context=None, cat=None):
     event_time_utc = UTCDateTime(interloc_results['event_time'])
     cat_interloc = interloc_processor.output_catalog(cat)
 
-    eventdb_processor.initializer()
-
     classifier = event_classifier.Processor()
     category = classifier.process(stream=context)
     cat_interloc[0].event_type = category
 
     cat_interloc[0].resource_id = event_id
-    result = eventdb_processor.process(cat=cat_interloc, stream=stream)
-    logger.info(result.content)
+    put_event_from_objects(api_base_url, event_id, event=cat_interloc,
+                           waveform=stream)
 
     cat_picker = picker_election(loc, event_time_utc, cat_interloc,
                                  stream)
@@ -183,12 +138,16 @@ def automatic_pipeline(stream=None, context=None, cat=None):
 
     logger.info('sending request to the ray tracer on channel %s'
                 % ray_tracer_message_queue)
-    redis.rpush(ray_tracer_message_queue, bytes_out.getvalue())
+
+    data_out = {'cat_bytes': bytes_out.getvalue()}
+    msg = msgpack.dumps(data_out)
+
+    redis.rpush(ray_tracer_message_queue, msg)
 
     # send to data base
     cat_nlloc[0].resource_id = event_id
-    result = eventdb_processor.process(cat=cat_nlloc)
-
+    put_event_from_objects(api_base_url, event_id, event=cat_nlloc,
+                           waveform=stream)
 
     measure_amplitudes_processor = measure_amplitudes.Processor()
     cat_amplitude = measure_amplitudes_processor.process(cat=cat_nlloc,
@@ -217,9 +176,6 @@ def automatic_pipeline(stream=None, context=None, cat=None):
                                                     stream=stream)['cat']
 
     cat_magnitude_f[0].resource_id = event_id
-    result = eventdb_processor.process(cat=cat_magnitude_f)
+    put_event_from_objects(api_base_url, event_id, event=cat_magnitude_f)
 
     return cat_magnitude_f
-
-if __name__ == '__main__':
-    test_automatic_pipeline()

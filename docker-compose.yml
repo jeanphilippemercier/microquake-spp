@@ -168,8 +168,6 @@ services:
     container_name: automatic
     depends_on:
       - redisdb
-      - prometheus
-      - grafana
     volumes:
       - $SPP_COMMON/:/data/common
       - $SPP_CONFIG/:/data/config
@@ -178,7 +176,7 @@ services:
     environment:
       SPP_COMMON: "/data/common"
       SPP_CONFIG: "/data/config"
-    command: bash -c "python automatic_pipeline.py"
+    command: bash -c "seismic_platform automatic"
     working_dir:
       /app/bin
     restart: always
@@ -190,8 +188,6 @@ services:
     container_name: ray-tracer
     depends_on:
       - redisdb
-      - prometheus
-      - grafana
     volumes:
       - $SPP_COMMON/:/data/common
       - $SPP_CONFIG/:/data/config
@@ -200,7 +196,7 @@ services:
     environment:
       SPP_COMMON: "/data/common"
       SPP_CONFIG: "/data/config"
-    command: bash -c "python ray_tracer.py"
+    command: bash -c "seismic_platform raytracer"
     working_dir:
       /app/bin
     restart: always
