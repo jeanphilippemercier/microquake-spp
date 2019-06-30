@@ -101,8 +101,8 @@ class Processor(ProcessingUnit):
 
         return res['cat'], stream
 
-def ray_tracer_pipeline(event_bytes=None):
 
+def ray_tracer_pipeline(event_bytes=None):
 
     ray_tracer_processor = Processor()
     ray_tracer_processor.initializer()
