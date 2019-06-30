@@ -162,12 +162,14 @@ services:
     ports:
       - "8088:8088"
 
-  seismic:
+  automatic:
     image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
-    hostname: seismic
-    container_name: seismic
+    hostname: automatic
+    container_name: automatic
     depends_on:
       - redisdb
+      - prometheus
+      - grafana
     volumes:
       - $SPP_COMMON/:/data/common
       - $SPP_CONFIG/:/data/config
@@ -176,7 +178,29 @@ services:
     environment:
       SPP_COMMON: "/data/common"
       SPP_CONFIG: "/data/config"
-    #    command: bash -c "cd /services && python foo.py"
+    command: bash -c "python automatic_pipeline.py"
+    working_dir:
+      /app/bin
+    restart: always
+    tty: true
+
+  ray-tracer:
+    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
+    hostname: ray-tracer
+    container_name: ray-tracer
+    depends_on:
+      - redisdb
+      - prometheus
+      - grafana
+    volumes:
+      - $SPP_COMMON/:/data/common
+      - $SPP_CONFIG/:/data/config
+      - ./bin:/app/bin
+      - ./spp:/app/spp
+    environment:
+      SPP_COMMON: "/data/common"
+      SPP_CONFIG: "/data/config"
+    command: bash -c "python ray_tracer.py"
     working_dir:
       /app/bin
     restart: always
