@@ -171,7 +171,6 @@ services:
     volumes:
       - $SPP_COMMON/:/data/common
       - $SPP_CONFIG/:/data/config
-      - ./bin:/app/bin
       - ./spp:/app/spp
     environment:
       SPP_COMMON: "/data/common"
@@ -191,7 +190,6 @@ services:
     volumes:
       - $SPP_COMMON/:/data/common
       - $SPP_CONFIG/:/data/config
-      - ./bin:/app/bin
       - ./spp:/app/spp
     environment:
       SPP_COMMON: "/data/common"
