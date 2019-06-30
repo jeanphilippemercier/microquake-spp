@@ -23,13 +23,12 @@ class Processor(ProcessingUnit):
         **kwargs
     ):
 
-        logger.info("pipeline: raytracer")
-
         cat = kwargs["cat"]
 
         gd = Grid()
 
         event_id = str(cat[0].resource_id)
+        logger.info("pipeline: ray_tracer - start processing rays for event_id: %s" % event_id)
 
         self.result = []
 
@@ -38,8 +37,8 @@ class Processor(ProcessingUnit):
                 origin_id = str(origin.resource_id)
 
                 for station in settings.inventory.stations():
-                    logger.info('calculating ray for station %s and location %s'
-                                % (station.code, origin.loc))
+                    logger.info('calculating ray [event_id: %s, origin_id: %s] for station %s and location %s'
+                                % (event_id, origin_id, station.code, origin.loc))
                     ray = gd.get_ray(station.code, phase,
                                      origin.loc)
                     travel_time = gd.get_grid_point(station.code, phase,
