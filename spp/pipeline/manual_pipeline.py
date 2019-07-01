@@ -6,8 +6,6 @@ from spp.core.settings import settings
 from io import BytesIO
 from redis import Redis
 from microquake.core import read, read_events
-from microquake.core.event import Catalog
-from microquake.core.stream import Stream
 
 redis = Redis(**settings.get('redis_db'))
 ray_tracer_message_queue = settings.get(
@@ -16,21 +14,16 @@ manual_message_queue = settings.get(
     'processing_flow').manual.message_queue
 
 
-def manual_pipeline(stream=None, cat=None):
+def manual_pipeline(waveform_bytes=None, event_bytes=None):
     """
-    The pipeline for the automatic processing of the seismic data
-    :param fixed_length: fixed length seismogram
-    (microquake.core.stream.Stream, or bytes)
-    :param cat: catalog (microquake.core.event.Catalog)
-    :return: None
+    manual or interactive pipeline
+    :param stream_bytes:
+    :param cat_bytes:
+    :return:
     """
 
-    if not isinstance(stream, Stream):
-        stream = read(BytesIO(stream), format='mseed')
-
-    if not isinstance(cat, Catalog):
-        cat = read_events(BytesIO(cat), format='quakeml')
-
+    stream = read(BytesIO(waveform_bytes), format='mseed')
+    cat = read_events(BytesIO(event_bytes), format='quakeml')
 
     eventdb_processor = event_database.Processor()
     eventdb_processor.initializer()

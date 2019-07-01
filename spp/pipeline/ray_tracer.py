@@ -4,6 +4,8 @@ from spp.utils.grid import Grid
 
 from ..core.settings import settings
 from .processing_unit import ProcessingUnit
+from microquake.core import read_events
+from io import BytesIO
 
 
 class Processor(ProcessingUnit):
@@ -20,13 +22,13 @@ class Processor(ProcessingUnit):
         self,
         **kwargs
     ):
-        logger.info("pipeline: raytracer")
 
         cat = kwargs["cat"]
 
         gd = Grid()
 
         event_id = str(cat[0].resource_id)
+        logger.info("pipeline: ray_tracer - start processing rays for event_id: %s" % event_id)
 
         self.result = []
 
@@ -35,8 +37,8 @@ class Processor(ProcessingUnit):
                 origin_id = str(origin.resource_id)
 
                 for station in settings.inventory.stations():
-                    logger.info('calculating ray for station %s and location %s'
-                                % (station.code, origin.loc))
+                    logger.info('calculating ray [event_id: %s, origin_id: %s] for station %s and location %s'
+                                % (event_id, origin_id, station.code, origin.loc))
                     ray = gd.get_ray(station.code, phase,
                                      origin.loc)
                     travel_time = gd.get_grid_point(station.code, phase,
@@ -87,15 +89,6 @@ class Processor(ProcessingUnit):
 
                     self.result.append(result)
 
-        # With the current API structure this will not work. The API is
-        # expecting every ray to be inserted not a list with a series of picks.
-
-        # In addition, the post_rays method does not currently exist
-        # response = seismic_client.post_rays(self.api_url,
-        #                                     self.site_code,
-        #                                     self.network_code,
-        #                                     self.result)
-
         return self.result
 
     def legacy_pipeline_handler(
@@ -106,3 +99,18 @@ class Processor(ProcessingUnit):
         _, stream = self.app.deserialise_message(msg_in)
 
         return res['cat'], stream
+
+
+def ray_tracer_pipeline(event_bytes=None):
+
+    ray_tracer_processor = Processor()
+    ray_tracer_processor.initializer()
+
+    cat = read_events(BytesIO(event_bytes), format='quakeml')
+
+    result = ray_tracer_processor.process(cat=cat)
+
+    # post the result to the API
+
+    logger.info('done calculating rays for event %s'
+                % cat[0].origins[-1].time)

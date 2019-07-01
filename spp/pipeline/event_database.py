@@ -2,7 +2,7 @@
 # [catalog, stream, context_stream, event_id]
 
 from loguru import logger
-from spp.utils.seismic_client import post_data_from_objects
+from spp.utils.seismic_client import (post_data_from_objects)
 
 from ..core.settings import settings
 from .processing_unit import ProcessingUnit
@@ -27,8 +27,8 @@ class Processor(ProcessingUnit):
 
         if 'cat' in kwargs.keys():
             cat = kwargs['cat']
-        if 'fixed_length' in kwargs.keys():
-            stream = kwargs['fixed_length']
+        if 'stream' in kwargs.keys():
+            stream = kwargs['stream']
         if 'variable_length' in kwargs.keys():
             variable_length = kwargs['variable_length']
         if 'context' in kwargs.keys():
@@ -39,8 +39,8 @@ class Processor(ProcessingUnit):
 
         logger.info('posting seismic data')
         result = post_data_from_objects(self.api_base_url, event_id=None,
-                                        event=cat,
-                                        stream=stream, context_stream=context,
+                                         event=cat,
+                                        stream=stream,context_stream=context,
                                         variable_length_stream=variable_length,
                                         tolerance=None,
                                         send_to_bus=False)
@@ -49,11 +49,10 @@ class Processor(ProcessingUnit):
         if result.status_code == 200:
             logger.info('successfully posting data to the API')
         else:
-            logger.error('Error in postion data to the API. Returned with '
-                         'error code %d' % result.status_code)
+            logger.error('Error in sending data to the API. Returned with '
+                         'error code %s' % result)
 
-        self.result = {'cat': kwargs['cat'], 'stream': kwargs['stream']}
-        return self.result
+        return result
 
     def legacy_pipeline_handler(
         self,

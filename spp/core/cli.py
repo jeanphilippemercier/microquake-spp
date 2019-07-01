@@ -22,6 +22,8 @@ import logging
 
 import click
 import msgpack
+import traceback
+import sys
 
 from loguru import logger
 from microquake.nlloc import NLL
@@ -30,7 +32,7 @@ from redis import Redis
 from .. import __version__
 from ..pipeline.automatic_pipeline import automatic_pipeline
 from ..pipeline.manual_pipeline import manual_pipeline
-# from ..pipeline.manual_pipeline import manual_pipeline
+from ..pipeline.ray_tracer import ray_tracer_pipeline
 from ..utils.kafka_redis_application import KafkaRedisApplication
 from .hdf5 import write_ttable_h5
 from .nlloc import nll_sensors, nll_velgrids
@@ -161,17 +163,22 @@ def run_pipeline(pipeline, setting_name):
     logger.info('initialization successful')
 
     while 1:
-        logger.info('waiting for message on channel %s' % message_queue)
-        message_queue, message = redis.blpop(message_queue)
-        logger.info('message received')
+        try:
+            logger.info('waiting for message on channel %s' % message_queue)
+            message_queue, message = redis.blpop(message_queue)
+            logger.info('message received')
 
-        tmp = msgpack.loads(message)
-        data = {}
+            tmp = msgpack.loads(message)
+            data = {}
 
-        for key in tmp.keys():
-            data[key.decode('utf-8')] = tmp[key]
+            for key in tmp.keys():
+                data[key.decode('utf-8')] = tmp[key]
 
-        pipeline(**data)
+            pipeline(**data)
+
+        except Exception as e:
+            logger.exception("Error occured while processing message from redis queue due to: %s" % e)
+
 
 
 @cli.command()
@@ -203,9 +210,8 @@ def raytracer(info: Info):
     Run raytracer module
     """
     click.echo(f"Running raytracer module")
-    setting_name = 'processing_flow.raytracer'
-    click.echo(f"Raytracer pipeline not running")
-    # run_pipeline(raytracer_pipeline, setting_name)
+    setting_name = 'processing_flow.ray_tracing'
+    run_pipeline(ray_tracer_pipeline, setting_name)
 
 
 @cli.command()

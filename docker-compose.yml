@@ -168,17 +168,14 @@ services:
     container_name: automatic
     depends_on:
       - redisdb
-      - prometheus
-      - grafana
     volumes:
       - $SPP_COMMON/:/data/common
       - $SPP_CONFIG/:/data/config
-      - ./bin:/app/bin
       - ./spp:/app/spp
     environment:
       SPP_COMMON: "/data/common"
       SPP_CONFIG: "/data/config"
-    command: bash -c "python automatic_pipeline.py"
+    command: bash -c "seismic_platform automatic"
     working_dir:
       /app/bin
     restart: always
@@ -190,22 +187,38 @@ services:
     container_name: ray-tracer
     depends_on:
       - redisdb
-      - prometheus
-      - grafana
     volumes:
       - $SPP_COMMON/:/data/common
       - $SPP_CONFIG/:/data/config
-      - ./bin:/app/bin
       - ./spp:/app/spp
     environment:
       SPP_COMMON: "/data/common"
       SPP_CONFIG: "/data/config"
-    command: bash -c "python ray_tracer.py"
+    command: bash -c "seismic_platform raytracer"
     working_dir:
       /app/bin
     restart: always
     tty: true
 
+
+  ray-tracer-2:
+    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
+    hostname: ray-tracer-2
+    container_name: ray-tracer-2
+    depends_on:
+      - redisdb
+    volumes:
+      - $SPP_COMMON/:/data/common
+      - $SPP_CONFIG/:/data/config
+      - ./spp:/app/spp
+    environment:
+      SPP_COMMON: "/data/common"
+      SPP_CONFIG: "/data/config"
+    command: bash -c "seismic_platform raytracer"
+    working_dir:
+      /app/bin
+    restart: always
+    tty: true
 
 #  seismic-interloc:
 #    image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
