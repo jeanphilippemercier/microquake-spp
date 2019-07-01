@@ -25,6 +25,7 @@ from loguru import logger
 
 from .. import __version__
 from .api import SeismicClient
+from .api import Cable
 
 LOGGING_LEVELS = {
     0: logging.NOTSET,
@@ -100,7 +101,10 @@ def run(info: Info):
     """
     sc = SeismicClient(info.token, base_url=info.base_url)
 
-    print(sc.get_cables())
+    # print(sc.get_cables())
+    # Cable(x="1.0"
+    # print(sc.post_ray([]))
+    print(sc.post_cables([]))
 
 
 @cli.command()
