@@ -13,6 +13,12 @@ Cable = collections.namedtuple(
     "Cable", field_names=cable_fields
 )
 
+ray_fields = ["id", "code", "r", "l", "g", "c"]
+
+Ray = collections.namedtuple(
+    "Ray", field_names=cable_fields
+)
+
 
 class SchemaBase(Schema):
     class Meta:
@@ -33,7 +39,13 @@ class CableSchema(SchemaBase):
 
     @post_load
     def make_cable(self, data):
-        print(data)
-        exit(0)
-
         return Cable(*data)
+
+
+class RaySchema(SchemaBase):
+    class Meta:
+        fields = ray_fields
+
+    @post_load
+    def make_cable(self, data):
+        return Ray(*data)

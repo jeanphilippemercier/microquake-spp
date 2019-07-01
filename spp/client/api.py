@@ -1,11 +1,11 @@
-import typing
+from typing import List
 
-from uplink import Consumer, get, headers, response_handler, returns, json
+from uplink import Body, Consumer, get, post, headers, response_handler, returns, json
 from uplink.auth import ApiTokenHeader
 
 from ..core.settings import settings
 # Local imports
-from .schemas import Cable, CableSchema, EventSchema
+from .schemas import Cable, CableSchema, EventSchema, Ray, RaySchema
 
 
 # @headers({"Accept": "application/vnd.seismicplatform.v1.full+json"})
@@ -35,3 +35,11 @@ class SeismicClient(Consumer):
     @get("cables")
     def get_cables(self) -> CableSchema(many=True):
         """Lists all cables."""
+
+    @post("rays", args={"rays": Body})
+    def post_rays(self, rays: List[Ray]) -> RaySchema(many=True):
+        """post_ray."""
+
+    @post("cables", args={"cables": Body})
+    def post_cables(self, cables: List[Cable]) -> CableSchema(many=True):
+        """post_cable."""
