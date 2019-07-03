@@ -181,6 +181,25 @@ services:
     restart: always
     tty: true
 
+  interactive:
+    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
+    hostname: interactive
+    container_name: interactive
+    depends_on:
+      - redisdb
+    volumes:
+      - $SPP_COMMON/:/data/common
+      - $SPP_CONFIG/:/data/config
+      - ./spp:/app/spp
+    environment:
+      SPP_COMMON: "/data/common"
+      SPP_CONFIG: "/data/config"
+    command: bash -c "seismic_platform interactive"
+    working_dir:
+      /app/bin
+    restart: always
+    tty: true
+
   ray-tracer:
     image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
     hostname: ray-tracer
@@ -199,7 +218,6 @@ services:
       /app/bin
     restart: always
     tty: true
-
 
   ray-tracer-2:
     image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest

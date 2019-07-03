@@ -232,7 +232,7 @@ services.channel.magnitude = 'spp.services.magnitude'
 
 # this describes the kafka channel to which the message should be routed
 processing_flow.automatic.message_queue = 'spp.processing_flow.automatic'
-processing_flow.manual.message_queue = 'spp.processing_flow.manual'
+processing_flow.interactive.message_queue = 'spp.processing_flow.interactive'
 processing_flow.ray_tracing.message_queue = 'spp.processing_flow.ray_tracer'
 
 processing_flow.automatic.steps = [

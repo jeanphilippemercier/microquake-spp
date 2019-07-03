@@ -31,7 +31,7 @@ from redis import Redis
 
 from .. import __version__
 from ..pipeline.automatic_pipeline import automatic_pipeline
-from ..pipeline.manual_pipeline import manual_pipeline
+from ..pipeline.interactive_pipeline import interactive_pipeline
 from ..pipeline.ray_tracer import ray_tracer_pipeline
 from ..utils.kafka_redis_application import KafkaRedisApplication
 from .hdf5 import write_ttable_h5
@@ -194,13 +194,13 @@ def automatic(info: Info):
 
 @cli.command()
 @pass_info
-def manual(info: Info):
+def interactive(info: Info):
     """
-    Run manual pipeline
+    Run interactive pipeline
     """
-    click.echo(f"Running manual pipeline")
-    setting_name = 'processing_flow.manual'
-    run_pipeline(manual_pipeline, setting_name)
+    click.echo(f"Running interactive pipeline")
+    setting_name = 'processing_flow.interactive'
+    run_pipeline(interactive_pipeline, setting_name)
 
 
 @cli.command()
