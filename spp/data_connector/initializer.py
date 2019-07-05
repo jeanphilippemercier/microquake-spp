@@ -75,6 +75,7 @@ while 1:
     except ConnectionError:
         logger.error('Connection to the IMS server on {} failed!'.format(
             base_url))
+        sleep(30)
         continue
 
     logger.info('recovered {} events'.format(len(cat)))
