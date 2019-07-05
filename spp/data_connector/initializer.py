@@ -80,7 +80,7 @@ while 1:
     logger.info('recovered {} events'.format(len(cat)))
 
     if len(cat) == 0:
-        sleep(2)
+        sleep(10)
         continue
 
     ct = 0
