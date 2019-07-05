@@ -56,7 +56,7 @@ def send_to_redis(event):
 # REMOVE AT ALL COST WHEN DEVELOPMENT IS COMPLETED!!!
 ###
 
-collection.drop()
+# collection.drop()
 
 while 1:
 
@@ -69,9 +69,13 @@ while 1:
     else:
         starttime = endtime - timedelta(hours=48)
 
-    cat = web_client.get_catalogue(base_url, starttime, endtime, sites, tz,
-                                   accepted=True, manual=True)
-                                   # accepted=False, manual=False)
+    try:
+        cat = web_client.get_catalogue(base_url, starttime, endtime, sites, tz,
+                                       accepted=False, manual=False)
+    except ConnectionError:
+        logger.error('Connection to the IMS server on {} failed!'.format(
+            base_url))
+        continue
 
     logger.info('recovered {} events'.format(len(cat)))
 
