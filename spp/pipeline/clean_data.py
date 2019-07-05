@@ -26,7 +26,8 @@ class Processor(ProcessingUnit):
                 if ((np.sum(tr.data ** 2) > 0)):
                     trs.append(tr)
 
-        logger.info('trace has been cleaned, %d trace remaining' % len(trs))
+        logger.info('The seismograms have  been cleaned, %d trace remaining' %
+                    len(trs))
 
         return Stream(traces=trs)
 

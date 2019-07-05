@@ -86,6 +86,7 @@ def automatic_pipeline(waveform_bytes=None, context_bytes=None,
     else:
         cat = read_events(BytesIO(event_bytes), format='quakeml')
 
+    from pdb import set_trace; set_trace()
     event_id = cat[0].resource_id
 
     logger.info('removing traces for sensors in the black list, or are '
@@ -93,24 +94,10 @@ def automatic_pipeline(waveform_bytes=None, context_bytes=None,
     clean_data_processor = clean_data.Processor()
     stream = clean_data_processor.process(stream=stream)
 
-    interloc_processor = interloc.Processor()
-    interloc_results = interloc_processor.process(stream=stream)
-    loc = [interloc_results['x'],
-           interloc_results['y'],
-           interloc_results['z']]
-    event_time_utc = UTCDateTime(interloc_results['event_time'])
-    cat_interloc = interloc_processor.output_catalog(cat)
+    loc = cat[0].preferred_origin().loc
+    event_time_utc = cat[0].preferred_origin().time
 
-    classifier = event_classifier.Processor()
-    category = classifier.process(stream=context)
-    cat_interloc[0].event_type = category
-
-    cat_interloc[0].resource_id = event_id
-    put_event_from_objects(api_base_url, event_id, event=cat_interloc,
-                           waveform=stream)
-
-    cat_picker = picker_election(loc, event_time_utc, cat_interloc,
-                                 stream)
+    cat_picker = picker_election(loc, event_time_utc, cat, stream)
     nlloc_processor = nlloc.Processor()
     nlloc_processor.initializer()
     cat_nlloc = nlloc_processor.process(cat=cat_picker)['cat']
@@ -174,6 +161,7 @@ def automatic_pipeline(waveform_bytes=None, context_bytes=None,
     magnitude_f_processor = magnitude.Processor(module_type = 'frequency')
     cat_magnitude_f = magnitude_f_processor.process(cat=cat_magnitude,
                                                     stream=stream)['cat']
+
 
     cat_magnitude_f[0].resource_id = event_id
     put_event_from_objects(api_base_url, event_id, event=cat_magnitude_f)

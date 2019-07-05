@@ -25,10 +25,11 @@ class seismic_classifier_model:
         self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))
         #Model was trained at these dimensions
         self.D = (64, 64, 1)
-        self.class_names = ['Blast UG', 'Blast OP', 'Blast C2S', 'Seismic', 'Noise']
-        self.microquake_class_names = ['explosion', 'quarry blast',
-                                      'controlled explosion', 'earthquake',
-                                      'other event']
+        self.class_names = ['Blast UG', 'Blast OP', 'Blast C2S', 'Seismic',
+                            'Noise']
+        self.quakeml_class_names = ['explosion', 'quarry blast',
+                                    'controlled explosion', 'earthquake',
+                                    'other event']
         self.num_classes = len(self.class_names)
         self.model_file = self.base_directory/f"{model_name}"
         self.create_model()
@@ -149,4 +150,5 @@ class seismic_classifier_model:
         normgram = self.normalize_gray(graygram)
         img = normgram[None, ..., None]
         a = self.model.predict(img)
-        return self.microquake_class_names[np.argmax(a)]
+        return {'quakeml': self.quakeml_class_names[np.argmax(a)],
+                'microquake': self.class_names[np.argmax(a)]}

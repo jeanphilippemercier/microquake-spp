@@ -29,6 +29,9 @@ redis_db.port = 6379
 redis_db.db = 0
 redis_extra.ttl=600
 
+mongo_db.url = 'mongodb://mongodb:27017'
+mongo_db.db_processed_events = 'processed_event'
+
 [development]
 redis_db.host = 'redisdb'
 redis_db.password = ''
