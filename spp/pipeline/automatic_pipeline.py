@@ -86,7 +86,6 @@ def automatic_pipeline(waveform_bytes=None, context_bytes=None,
     else:
         cat = read_events(BytesIO(event_bytes), format='quakeml')
 
-    from pdb import set_trace; set_trace()
     event_id = cat[0].resource_id
 
     logger.info('removing traces for sensors in the black list, or are '
