@@ -121,11 +121,6 @@ services:
     image: mongo:4
     hostname: mongodb
     container_name: mongodb
-    environment:
-      - MONGO_DATA_DIR=/data/db
-      - MONGO_LOG_DIR=/dev/null
-    volumes:
-      - ./tmp/mongodb:/data/db
     ports:
       - "27017:27017"
     command: mongod --smallfiles --logpath=/dev/null # --quiet
@@ -137,13 +132,13 @@ services:
     ports:
       - "5432:5432"
 
-#  mongosetup:
-#    image: mongo:4
-#    links:
-#      - mongodb
-#    volumes:
-#      - ./data/mongodump:/dump
-#    command: mongorestore --host mongodb /dump
+  mongosetup:
+    image: mongo:4
+    links:
+      - mongodb
+    volumes:
+      - ./data/mongodump:/dump
+    command: mongorestore --host mongodb /dump
 
   redisdb:
     image: redis:4
