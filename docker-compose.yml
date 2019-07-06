@@ -130,13 +130,20 @@ services:
       - "27017:27017"
     command: mongod --smallfiles --logpath=/dev/null # --quiet
 
-  mongosetup:
-    image: mongo:4
-    links:
-      - mongodb
-    volumes:
-      - ./data/mongodump:/dump
-    command: mongorestore --host mongodb /dump
+  postgresdb:
+    image: postgres
+    hostname: postgresdb
+    container_name: postgresdb
+    ports:
+      - "5432:5432"
+
+#  mongosetup:
+#    image: mongo:4
+#    links:
+#      - mongodb
+#    volumes:
+#      - ./data/mongodump:/dump
+#    command: mongorestore --host mongodb /dump
 
   redisdb:
     image: redis:4
@@ -197,6 +204,26 @@ services:
     command: bash -c "seismic_platform interactive"
     working_dir:
       /app/bin
+    restart: always
+    tty: true
+
+  event_connector:
+    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
+    hostname: event_connector
+    container_name: event_connector
+    depends_on:
+      - redisdb
+      - mongodb
+    volumes:
+      - $SPP_COMMON/:/data/common
+      - $SPP_CONFIG/:/data/config
+      - ./spp:/app/spp
+    environment:
+      SPP_COMMON: "/data/common"
+      SPP_CONFIG: "/data/config"
+    command: bash -c "seismic_platform interactive"
+    working_dir:
+      /app/spp/data_connector
     restart: always
     tty: true
 
