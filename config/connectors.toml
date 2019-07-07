@@ -16,15 +16,7 @@ event_db.kafka_topic = 'event_database'
 event_db.log_file_name = 'event_db_insertion_update.log'
 event_db.log_topic = 'insertion and update into event DB'
 
-continuous_db.uri = 'mongodb://mongo-node-001:27017/'
-continuous_db.db_name = 'seismic'
-continuous_db.traces_collection = 'traces_json'
-continuous_db.events_collection = 'events'
-continuous_db.events_inuse_collection = 'events_inuse'
-continuous_db.filestore_base_dir = '/Users/hanee/Rio_Tinto/data/'
-continuous_db.inuse_ttl = 300
-
-redis_db.host = 'spp-redis-dev-master'
+redis_db.host = 'dev-spp-redis'
 redis_db.port = 6379
 redis_db.db = 0
 redis_extra.ttl=600
@@ -39,19 +31,25 @@ redis_db.port = 6379
 kafka.brokers = 'broker:9092'
 kafka.group_id = 'seismic_processing_platform'
 kafka.threads = 3
+mongo_db.url = 'mongodb://mongodb:27017'
+mongo_db.db_processed_events = 'processed_event'
 
 [k8sdevel]
-redis_db.host = 'spp-redis-dev-master'
+redis_db.host = 'dev-spp-redis'
 redis_db.password = '4HyuSWZVHU'
 redis_db.port = 6379
-kafka.brokers = 'spp-confluent-cp-kafka-headless:9092'
+kafka.brokers = 'dev-spp-confluent:9092'
 kafka.group_id = 'seismic_processing_platform'
 kafka.threads = 3
+mongo_db.url = 'mongodb://dev-spp-mongo:27017'
+mongo_db.db_processed_events = 'processed_event'
 
 [k8sstage]
-redis_db.host = 'spp-redis-dev-master'
+redis_db.host = 'dev-spp-redis'
 redis_db.password = '4HyuSWZVHU'
 redis_db.port = 6379
-kafka.brokers = 'spp-confluent-cp-kafka-headless:9092'
+kafka.brokers = 'dev-spp-confluent:9092'
 kafka.group_id = 'seismic_processing_platform'
 kafka.threads = 3
+mongo_db.url = 'dev-spp-mongo'
+mongo_db.db_processed_events = 'processed_event'
