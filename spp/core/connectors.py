@@ -16,7 +16,8 @@ def connect_redis():
     if 'REDIS_MASTER_SERVICE_HOST' in settings:
         redis_db = dict(
             host=settings.REDIS_MASTER_SERVICE_HOST,
-            port=settings.REDIS_MASTER_SERVICE_PORT
+            port=settings.REDIS_MASTER_SERVICE_PORT,
+            password=settings.REDIS_PASSWORD
         )
     else:
         redis_db = settings.get('redis_db')
