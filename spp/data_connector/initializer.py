@@ -20,7 +20,11 @@ from spp.core.time import get_time_zone
 client = MongoClient()
 
 # settings
-mongo_url = settings.get('mongo_db').url
+if 'MONGO_MONGODB_SERVICE_HOST' in settings:
+    mongo_url = f"'mongodb://root:{settings.MONGODB_PASSWORD}@{settings.MONGO_MONGODB_SERVICE_HOST}:{settings.MONGO_MONGODB_SERVICE_PORT}'"
+else:
+    mongo_url = settings.get('mongo_db').url
+
 mongo_client = MongoClient(mongo_url)
 processed_events_db = settings.get('mongo_db').db_processed_events
 db = mongo_client[processed_events_db]

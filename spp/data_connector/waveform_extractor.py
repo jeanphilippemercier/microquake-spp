@@ -142,8 +142,11 @@ def get_waveforms(interloc_dict, event):
 
 
 def record_noise_event(cat):
-    mongo_db = settings.get('mongo_db')
-    mongo_url = mongo_db.url
+    if 'MONGO_MONGODB_SERVICE_HOST' in settings:
+        mongo_url = f"'mongodb://root:{settings.MONGODB_PASSWORD}@{settings.MONGO_MONGODB_SERVICE_HOST}:{settings.MONGO_MONGODB_SERVICE_PORT}'"
+    else:
+        mongo_url = settings.get('mongo_db').url
+
     mongo_client = MongoClient(mongo_url)
     processed_events_db = settings.get('mongo_db').db_processed_events
     db = mongo_client[processed_events_db]
@@ -217,7 +220,6 @@ def resend_to_redis(cat, processing_attempts):
 
 
 while 1:
-
     logger.info('waiting for message on channel %s' % message_queue)
     message_queue, message = redis.blpop(message_queue)
     logger.info('message received')
