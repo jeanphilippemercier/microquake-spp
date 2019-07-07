@@ -25,7 +25,7 @@ collection = db['processed_events']
 
 tz = get_time_zone()
 sites = [station.code for station in settings.inventory.stations()]
-base_url = settings.get('data_connector').url
+base_url = settings.get('ims_base_url')
 
 message_queue = settings.get('processing_flow').extract_waveforms.message_queue
 

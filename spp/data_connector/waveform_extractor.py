@@ -24,7 +24,7 @@ mongo_client = connect_mongo()
 message_queue = settings.get('processing_flow').extract_waveforms.message_queue
 
 sites = [int(station.code) for station in settings.inventory.stations()]
-base_url = settings.get('data_connector').url
+base_url = settings.get('ims_base_url')
 inventory = settings.inventory
 network_code = settings.NETWORK_CODE
 
