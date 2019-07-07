@@ -5,7 +5,7 @@ from spp.core.settings import settings
 
 def connect_mongo():
     if 'MONGO_MONGODB_SERVICE_HOST' in settings:
-        mongo_url = f"'mongodb://root:{settings.MONGODB_PASSWORD}@{settings.MONGO_MONGODB_SERVICE_HOST}:{settings.MONGO_MONGODB_SERVICE_PORT}'"
+        mongo_url = f"mongodb://root:{settings.MONGODB_PASSWORD}@{settings.MONGO_MONGODB_SERVICE_HOST}:{settings.MONGO_MONGODB_SERVICE_PORT}"
     else:
         mongo_url = settings.get('mongo_db').url
 
