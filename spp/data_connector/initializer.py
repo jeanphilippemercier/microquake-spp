@@ -3,21 +3,23 @@ Retrieve the catalog in a scheduled fashion, then send the individual
 events packaged as cataglog to a Redis Queue
 """
 
-from pymongo import MongoClient
 from datetime import datetime, timedelta
+from io import BytesIO
+from time import sleep
+
+import msgpack
+from pytz import utc
+
+from loguru import logger
+from microquake.IMS import web_client
+from pymongo import MongoClient
+from redis import Redis
 from spp.core.settings import settings
 from spp.core.time import get_time_zone
-from microquake.IMS import web_client
-from pytz import utc
-from io import BytesIO
-from redis import Redis
-import msgpack
-from loguru import logger
-from time import sleep
 
 client = MongoClient()
 
-#### settings
+# settings
 mongo_url = settings.get('mongo_db').url
 mongo_client = MongoClient(mongo_url)
 processed_events_db = settings.get('mongo_db').db_processed_events
@@ -34,12 +36,12 @@ message_queue = settings.get('processing_flow').extract_waveforms.message_queue
 
 
 def insert_mongo(event):
-
     ev_time = event.preferred_origin().time
     record = {'timestamp': ev_time.datetime.timestamp(),
               'event_id': event.resource_id.id}
 
     collection.insert_one(record)
+
 
 def send_to_redis(event):
     file_out = BytesIO()
@@ -62,6 +64,7 @@ while 1:
 
     # time in UTC
     endtime = datetime.now()
+
     if collection.count_documents({}):
         last = collection.find_one(sort=[({'timestamp', -1})])['timestamp']
         starttime = datetime.fromtimestamp(last).replace(
@@ -76,17 +79,21 @@ while 1:
         logger.error('Connection to the IMS server on {} failed!'.format(
             base_url))
         sleep(30)
+
         continue
 
     logger.info('recovered {} events'.format(len(cat)))
 
     if len(cat) == 0:
         sleep(10)
+
         continue
 
     ct = 0
+
     for event in cat:
         event_id = event.resource_id.id
+
         if collection.count_documents({'event_id': event_id}) == 0:
             ct += 1
             logger.info('Recording events to Mongo')
@@ -98,5 +105,3 @@ while 1:
     logger.info('sent {} events for further processing'.format(ct))
 
     # input('done')
-
-

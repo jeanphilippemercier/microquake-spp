@@ -2,23 +2,21 @@
 if the waveform extraction fails, resend to the queue!
 """
 
-from redis import Redis
-from spp.core.settings import settings
-from spp.core.time import get_time_zone
-from spp.pipeline import (clean_data, interloc, event_classifier,
-                          event_database)
-from loguru import logger
-from io import BytesIO,StringIO
-from microquake.core import read_events
-from microquake.IMS import web_client
-from pytz import utc
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+from io import BytesIO
+
 import msgpack
 import numpy as np
-import json
+from pytz import utc
+
+from loguru import logger
+from microquake.core import UTCDateTime, read_events
+from microquake.IMS import web_client
 from pymongo import MongoClient
+from redis import Redis
+from spp.core.settings import settings
+from spp.pipeline import clean_data, event_classifier, interloc
 from spp.utils.seismic_client import post_data_from_objects
-from microquake.core import UTCDateTime
 
 redis_config = settings.get('redis_db')
 redis = Redis(**redis_config)
@@ -32,6 +30,7 @@ network_code = settings.NETWORK_CODE
 # tolerance for how many trace are not recovered
 minimum_recovery_fraction = settings.get(
     'data_connector').minimum_recovery_fraction
+
 
 def interloc_election(cat):
 
@@ -68,8 +67,8 @@ def interloc_election(cat):
         recovery_fraction = len(station_codes) / len(sites)
 
         if recovery_fraction < minimum_recovery_fraction:
-            logger.warning('Recovery fraction %0.2f is below recovery ' 
-                           'fraction threshold of %0.2f set in the config ' 
+            logger.warning('Recovery fraction %0.2f is below recovery '
+                           'fraction threshold of %0.2f set in the config '
                            'file' % (recovery_fraction,
                                      minimum_recovery_fraction))
 
@@ -99,9 +98,7 @@ def interloc_election(cat):
     return interloc_results[index]
 
 
-
 def get_waveforms(interloc_dict, event):
-
 
     utc_time = datetime.fromtimestamp(interloc_dict['event_time'])
     local_time = utc_time.replace(tzinfo=utc)
@@ -111,7 +108,6 @@ def get_waveforms(interloc_dict, event):
     fixed_length_wf = web_client.get_continuous(base_url, starttime, endtime,
                                                 sites, utc)
 
-
     # finding the station that is the closest to the event
     starttime = local_time - timedelta(seconds=10)
     endtime = local_time + timedelta(seconds=10)
@@ -119,13 +115,12 @@ def get_waveforms(interloc_dict, event):
     stations = []
     ev_loc = np.array([interloc_dict['x'], interloc_dict['y'],
                        interloc_dict['z']])
+
     for station in inventory.stations():
         dists.append(np.linalg.norm(ev_loc - station.loc))
         stations.append(station.code)
 
     indices = np.argsort(dists)
-    black_list = settings.get('sensors').black_list
-
 
     context_trace_filter = settings.get('data_connector').context_trace.filter
 
@@ -162,14 +157,14 @@ def record_noise_event(cat):
 
 def send_to_api(cat, waveforms):
     api_base_url = settings.get('api_base_url')
-    result = post_data_from_objects(api_base_url, event_id=None,
-                                    event=cat,
-                                    stream=waveforms['stream'],
-                                    context_stream=waveforms['context'],
-                                    variable_length_stream=waveforms[
-                                        'variable_length'],
-                                    tolerance=None,
-                                    send_to_bus=False)
+    post_data_from_objects(api_base_url, event_id=None,
+                           event=cat,
+                           stream=waveforms['stream'],
+                           context_stream=waveforms['context'],
+                           variable_length_stream=waveforms[
+                               'variable_length'],
+                           tolerance=None,
+                           send_to_bus=False)
 
 
 def send_to_automatic_processing(cat, waveforms):
@@ -206,9 +201,9 @@ def resend_to_redis(cat, processing_attempts):
 
     event_time_ts = cat[0].preferred_origin().time.timestamp
     delay = datetime.now().timestamp - event_time_ts
+
     if delay > minimum_delay_minutes * 60:
         processing_attempts += 1
-
 
     if processing_attempts > maximum_attempts:
         logger.info('maximum number of attempts reached, this event will '
@@ -219,7 +214,6 @@ def resend_to_redis(cat, processing_attempts):
 
     msg = msgpack.dumps(dict_out)
     redis.rpush(message_queue, msg)
-
 
 
 while 1:
@@ -234,11 +228,11 @@ while 1:
 
     try:
 
-
         variable_length_wf = web_client.get_seismogram_event(base_url, cat[0],
                                                              network_code, utc)
 
         interloc_results = interloc_election(cat)
+
         if not interloc_results:
             continue
         new_cat = interloc_results['catalog']
@@ -258,6 +252,7 @@ while 1:
             # record_noise_event(new_cat)
             logger.info('event categorized as noise are not further processed '
                         'and will not be saved in the database')
+
             continue
 
         new_cat[0].event_type = category['quakeml']
@@ -270,7 +265,6 @@ while 1:
 
         logger.info('done collecting the waveform, happy processing!')
 
-
     except KeyboardInterrupt:
         break
 
@@ -278,9 +272,3 @@ while 1:
         logger.info('processing failed, on attempt {}'.format(
             processing_attempts))
         resend_to_redis(cat, processing_attempts)
-
-
-
-
-
-
