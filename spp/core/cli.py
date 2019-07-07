@@ -38,6 +38,7 @@ from .hdf5 import write_ttable_h5
 from .nlloc import nll_sensors, nll_velgrids
 from .settings import settings
 from .velocity import create_velocities
+from .connectors import connect_redis
 
 LOGGING_LEVELS = {
     0: logging.NOTSET,
@@ -155,8 +156,7 @@ def run(info: Info):
 
 
 def run_pipeline(pipeline, setting_name):
-    redis_settings = settings.get('redis_db')
-    redis = Redis(**redis_settings)
+    redis = connect_redis()
     message_queue = settings.get(
         setting_name).message_queue
 

@@ -1,5 +1,6 @@
 from redis import Redis
 import pickle
+from ..connectors import connect_redis
 
 
 class Seismic:
@@ -30,7 +31,7 @@ class Seismic:
             raise TypeError('types must either be a <str> or a '
                             '<list>')
 
-        self.redis_conn = Redis(**redis_settings)
+        self.redis_conn = connect_redis()
         self.redis_base_key = redis_key
 
     def serialize(self, input_dictionary):

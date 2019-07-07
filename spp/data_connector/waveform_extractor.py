@@ -17,9 +17,10 @@ from redis import Redis
 from spp.core.settings import settings
 from spp.pipeline import clean_data, event_classifier, interloc
 from spp.utils.seismic_client import post_data_from_objects
+from spp.core.connectors import connect_redis, connect_mongo
 
-redis_config = settings.get('redis_db')
-redis = Redis(**redis_config)
+redis = connect_redis()
+mongo_client = connect_mongo()
 message_queue = settings.get('processing_flow').extract_waveforms.message_queue
 
 sites = [int(station.code) for station in settings.inventory.stations()]
@@ -142,12 +143,6 @@ def get_waveforms(interloc_dict, event):
 
 
 def record_noise_event(cat):
-    if 'MONGO_MONGODB_SERVICE_HOST' in settings:
-        mongo_url = f"'mongodb://root:{settings.MONGODB_PASSWORD}@{settings.MONGO_MONGODB_SERVICE_HOST}:{settings.MONGO_MONGODB_SERVICE_PORT}'"
-    else:
-        mongo_url = settings.get('mongo_db').url
-
-    mongo_client = MongoClient(mongo_url)
     processed_events_db = settings.get('mongo_db').db_processed_events
     db = mongo_client[processed_events_db]
     collection = db['noise_event']

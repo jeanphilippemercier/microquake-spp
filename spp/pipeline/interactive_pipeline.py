@@ -4,14 +4,16 @@ from spp.pipeline import (nlloc, measure_amplitudes,
 from loguru import logger
 from spp.core.settings import settings
 from io import BytesIO
-from redis import Redis
 from microquake.core import read, read_events, UTCDateTime
 from microquake.core.event import (Pick, Arrival, Origin, WaveformStreamID,
                                    ResourceIdentifier, CreationInfo)
 import json
 from dateutil.parser import parse
 
-redis = Redis(**settings.get('redis_db'))
+from spp.core.connectors import connect_redis
+
+
+redis = connect_redis()
 ray_tracer_message_queue = settings.get(
     'processing_flow').ray_tracing.message_queue
 interactive_message_queue = settings.get(

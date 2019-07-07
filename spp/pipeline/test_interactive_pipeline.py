@@ -183,7 +183,9 @@ def test_interactive_pipeline(picks, event_bytes, mseed_bytes):
 
     msg = msgpack.dumps(params)
 
-    redis = Redis(**settings.get('redis_db'))
+    from spp.core.connectors import connect_redis
+
+    redis = connect_redis()
 
     message_queue = settings.get('processing_flow').interactive.message_queue
 

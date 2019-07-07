@@ -12,11 +12,11 @@ from microquake.core.stream import (Stream)
 from spp.core.settings import settings
 import numpy as np
 from io import BytesIO
-from redis import Redis
 import msgpack
+from spp.core.connectors import connect_redis
 
 
-redis = Redis(**settings.get('redis_db'))
+redis = connect_redis()
 ray_tracer_message_queue = settings.get(
     'processing_flow').ray_tracing.message_queue
 automatic_message_queue = settings.get(

@@ -12,20 +12,13 @@ from pytz import utc
 
 from loguru import logger
 from microquake.IMS import web_client
-from pymongo import MongoClient
-from redis import Redis
 from spp.core.settings import settings
 from spp.core.time import get_time_zone
-
-client = MongoClient()
+from spp.core.connectors import connect_redis, connect_mongo
 
 # settings
-if 'MONGO_MONGODB_SERVICE_HOST' in settings:
-    mongo_url = f"'mongodb://root:{settings.MONGODB_PASSWORD}@{settings.MONGO_MONGODB_SERVICE_HOST}:{settings.MONGO_MONGODB_SERVICE_PORT}'"
-else:
-    mongo_url = settings.get('mongo_db').url
-
-mongo_client = MongoClient(mongo_url)
+redis = connect_redis()
+mongo_client = connect_mongo()
 processed_events_db = settings.get('mongo_db').db_processed_events
 db = mongo_client[processed_events_db]
 collection = db['processed_events']
@@ -34,8 +27,6 @@ tz = get_time_zone()
 sites = [station.code for station in settings.inventory.stations()]
 base_url = settings.get('data_connector').url
 
-redis_config = settings.get('redis_db')
-redis = Redis(**redis_config)
 message_queue = settings.get('processing_flow').extract_waveforms.message_queue
 
 
