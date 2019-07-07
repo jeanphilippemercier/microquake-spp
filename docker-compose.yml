@@ -132,14 +132,6 @@ services:
     ports:
       - "5432:5432"
 
-  mongosetup:
-    image: mongo:4
-    links:
-      - mongodb
-    volumes:
-      - ./data/mongodump:/dump
-    command: mongorestore --host mongodb /dump
-
   redisdb:
     image: redis:4
     hostname: redisdb
