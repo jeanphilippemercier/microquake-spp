@@ -125,13 +125,6 @@ services:
       - "27017:27017"
     command: mongod --smallfiles --logpath=/dev/null # --quiet
 
-  postgresdb:
-    image: postgres
-    hostname: postgresdb
-    container_name: postgresdb
-    ports:
-      - "5432:5432"
-
   redisdb:
     image: redis:4
     hostname: redisdb
