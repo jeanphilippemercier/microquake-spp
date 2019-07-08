@@ -35,31 +35,31 @@ mongo_db.url = 'mongodb://mongodb:27017'
 mongo_db.db_processed_events = 'processed_event'
 
 [k8s-onprem-dev]
-redis_db.host = 'dev-spp-redis-master'
+redis_db.host = 'spp-redis-master'
 redis_db.password = '4HyuSWZVHU'
 redis_db.port = 6379
-kafka.brokers = 'dev-spp-confluent:9092'
+kafka.brokers = 'spp-confluent:9092'
 kafka.group_id = 'seismic_processing_platform'
 kafka.threads = 3
-mongo_db.url = 'mongodb://dev-spp-mongo-mongodb:27017'
+mongo_db.url = 'mongodb://spp-mongo-mongodb:27017'
 mongo_db.db_processed_events = 'processed_event'
 
 [k8sdevel]
-redis_db.host = 'dev-spp-redis'
+redis_db.host = 'spp-redis-master'
 redis_db.password = '4HyuSWZVHU'
 redis_db.port = 6379
-kafka.brokers = 'dev-spp-confluent:9092'
+kafka.brokers = 'spp-confluent:9092'
 kafka.group_id = 'seismic_processing_platform'
 kafka.threads = 3
-mongo_db.url = 'mongodb://dev-spp-mongo:27017'
+mongo_db.url = 'mongodb://spp-mongo-mongodb:27017'
 mongo_db.db_processed_events = 'processed_event'
 
 [k8sstage]
-redis_db.host = 'dev-spp-redis'
+redis_db.host = 'spp-redis-master'
 redis_db.password = '4HyuSWZVHU'
 redis_db.port = 6379
-kafka.brokers = 'dev-spp-confluent:9092'
+kafka.brokers = 'spp-confluent:9092'
 kafka.group_id = 'seismic_processing_platform'
 kafka.threads = 3
-mongo_db.url = 'dev-spp-mongo'
+mongo_db.url = 'spp-mongo-mongodb'
 mongo_db.db_processed_events = 'processed_event'

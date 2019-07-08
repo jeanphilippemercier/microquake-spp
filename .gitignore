@@ -29,7 +29,6 @@ sdist
 tmp/
 data/NLLOC_grids/
 libs/microquake
-config/*.toml
 *.s
 *.txt
 *.pdf
