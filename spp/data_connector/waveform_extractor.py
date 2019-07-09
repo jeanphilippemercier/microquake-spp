@@ -238,32 +238,35 @@ while 1:
         waveforms['variable_length'] = variable_length_wf
 
         logger.info('event classification')
+
         category = event_classifier.Processor().process(stream=waveforms[
             'context'])
 
-        logger.info('event categorized as {}'.format(category['microquake']))
+        sorted_list = sorted(category.items(), reverse=True,
+                             key=lambda x: x[1])
 
-        file_name = str(new_cat[0].preferred_origin().time) + '.mseed'
-        waveforms['context'].write(file_name)
 
-        from pdb import set_trace
-        set_trace()
+        if sorted_list[0][1] > settings.get(
+                'data_connector').likelihood_threshold:
+            new_cat[0].event_type = sorted_list[0][0]
 
-        if category['microquake'].lower() == 'noise':
+            logger.info('event categorized as {} with an likelihoold of {}'
+                        ''.format(sorted_list[0][0], sorted_list[0][1]))
+
+        else:
             # record_noise_event(new_cat)
             logger.info('event categorized as noise are not further processed '
                         'and will not be saved in the database')
 
             continue
 
-        new_cat[0].event_type = category['quakeml']
 
         logger.info('sending to API, will take long time')
 
         send_to_api(new_cat, waveforms)
 
         logger.info('sending to automatic pipeline')
-        send_to_automatic_processing(cat, waveforms)
+        send_to_automatic_processing(new_cat, waveforms)
 
         logger.info('done collecting the waveform, happy processing!')
 

@@ -78,6 +78,7 @@ data_connector.maximum_attempts = 10 # maximum number of attempts at retrieving 
 data_connector.minimum_delay_minutes = 30
 data_connector.context_trace.filter.freqmin = 60
 data_connector.context_trace.filter.freqmax = 500
+data_connector.likelihood_threshold = 0.5
 
 initializer.log_topic = 'initializer'
 initializer.log_file_name = 'initializer.log'

@@ -69,7 +69,7 @@ while 1:
 
     try:
         cat = web_client.get_catalogue(base_url, starttime, endtime, sites, tz,
-                                       accepted=False, manual=False)
+                                       accepted=True, manual=True)
     except ConnectionError:
         logger.error('Connection to the IMS server on {} failed!'.format(
             base_url))
