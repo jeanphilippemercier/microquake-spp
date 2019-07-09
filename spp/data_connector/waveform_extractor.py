@@ -46,6 +46,8 @@ def interloc_election(cat):
 
     starttime = event_time - timedelta(seconds=1.5)
     endtime = event_time + timedelta(seconds=1.5)
+
+    # from pdb import set_trace; set_trace()
     complete_wf = web_client.get_continuous(base_url, starttime, endtime,
                                             sites, utc)
 
@@ -53,7 +55,6 @@ def interloc_election(cat):
                                         max_length=0.01).filter('bandpass',
                                                                 freqmin=60,
                                                                 freqmax=500)
-
     for offset in [-1.5, -1, -0.5]:
         starttime = event_time + timedelta(seconds=offset)
         endtime = starttime + timedelta(seconds=2)
@@ -245,6 +246,9 @@ while 1:
         file_name = str(new_cat[0].preferred_origin().time) + '.mseed'
         waveforms['context'].write(file_name)
 
+        from pdb import set_trace
+        set_trace()
+
         if category['microquake'].lower() == 'noise':
             # record_noise_event(new_cat)
             logger.info('event categorized as noise are not further processed '
@@ -255,6 +259,7 @@ while 1:
         new_cat[0].event_type = category['quakeml']
 
         logger.info('sending to API, will take long time')
+
         send_to_api(new_cat, waveforms)
 
         logger.info('sending to automatic pipeline')
