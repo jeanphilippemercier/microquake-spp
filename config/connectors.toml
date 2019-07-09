@@ -1,7 +1,7 @@
 [default]
 api_base_url = 'https://api.microquake.org/api/v1/'
-data_connector.source  = 'remote'
-data_connector.path    = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
+api_token = ''
+ims_base_url = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
 kafka.brokers = 'spp-confluent-cp-kafka-headless:9092'
 kafka.group_id = 'seismic_processing_platform'
 kafka.threads = 3

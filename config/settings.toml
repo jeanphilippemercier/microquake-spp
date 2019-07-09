@@ -9,8 +9,6 @@ network_code = 'HNUG'
 single_run = false
 debug_level = 0
 debug_file_dir = './common'
-api_base_url = 'https://api.microquake.org/api/v1/'
-ims_base_url = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
 # api_base_url = 'http://127.0.0.1:8000/api/v1/'
 
 # nlloc
@@ -79,6 +77,9 @@ data_connector.minimum_delay_minutes = 30
 data_connector.context_trace.filter.freqmin = 60
 data_connector.context_trace.filter.freqmax = 500
 data_connector.likelihood_threshold = 0.5
+data_connector.reconciliation_delay_minutes = 60
+data_connector.reconciliation_interval_hours = 72
+
 
 initializer.log_topic = 'initializer'
 initializer.log_file_name = 'initializer.log'

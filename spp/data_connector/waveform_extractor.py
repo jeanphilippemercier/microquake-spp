@@ -143,15 +143,35 @@ def get_waveforms(interloc_dict, event):
     return waveforms
 
 
-def record_noise_event(cat):
+def record_processed_event(cat, status):
+    """
+    record processed event in the database
+    :param cat: catalogue
+    :param status: either "accepted" or "rejected"
+    :return:
+    """
+
     processed_events_db = settings.get('mongo_db').db_processed_events
     db = mongo_client[processed_events_db]
-    collection = db['noise_event']
+    collection = db['event_status']
+
+
 
     document = {'event_id': cat[0].resource_id,
-                'processed_time_stamp': datetime.now().timestamp()}
+                'timestamp': cat[0].preferred_origin(
+                ).time.datetime.timestamp(),
+                'processed_time_stamp': datetime.now().timestamp(),
+                'status': status}
 
     collection.insert_one(document)
+
+
+def record_accepted_event(cat):
+    """
+    Send to Mongo to record what event have been accepted
+    :param cat:
+    :return:
+    """
 
 
 def send_to_api(cat, waveforms):
@@ -253,8 +273,10 @@ while 1:
             logger.info('event categorized as {} with an likelihoold of {}'
                         ''.format(sorted_list[0][0], sorted_list[0][1]))
 
+            record_processed_event(new_cat, "accepted")
+
         else:
-            # record_noise_event(new_cat)
+            record_processed_event(new_cat, "rejected")
             logger.info('event categorized as noise are not further processed '
                         'and will not be saved in the database')
 

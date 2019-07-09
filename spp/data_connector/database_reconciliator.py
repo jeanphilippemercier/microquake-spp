@@ -1,6 +1,6 @@
 """
-Retrieve the catalog in a scheduled fashion, then send the individual
-events packaged as cataglog to a Redis Queue
+Reconciliate the IMS database and the Microquake database
+All accepted events should be in the Microquake database
 """
 
 from datetime import datetime, timedelta
@@ -21,44 +21,23 @@ redis = connect_redis()
 mongo_client = connect_mongo()
 processed_events_db = settings.get('mongo_db').db_processed_events
 db = mongo_client[processed_events_db]
-collection = db['processed_events']
+collection = db['event_status']
 
 tz = get_time_zone()
 sites = [station.code for station in settings.inventory.stations()]
 base_url = settings.get('ims_base_url')
 
-message_queue = settings.get('processing_flow').extract_waveforms.message_queue
+reconciliation_delay_minutes = settings.get(
+    'data_connector').reconciliation_delay_minutes
 
-
-def insert_mongo(event):
-    ev_time = event.preferred_origin().time
-    record = {'timestamp': ev_time.datetime.timestamp(),
-              'event_id': event.resource_id.id}
-
-    collection.insert_one(record)
-
-
-def send_to_redis(event):
-    file_out = BytesIO()
-    event.write(file_out, format='quakeml')
-
-    dict_out = {'event_bytes': file_out.getvalue(),
-                'processing_attempts': 0}
-
-    msg = msgpack.dumps(dict_out)
-    redis.rpush(message_queue, msg)
-
-
-###
-# REMOVE AT ALL COST WHEN DEVELOPMENT IS COMPLETED!!!
-###
-
-# collection.drop()
+reconciliation_interval_hours = settings.get(
+    'data_connector').reconciliation_interval_hours
 
 while 1:
 
     # time in UTC
-    endtime = datetime.now()
+    endtime = datetime.now() - timedelta(minutes=reconciliation_delay_minutes)
+    starttime = endtime - timedelta(hours=reconciliation_interval_hours)
 
     if collection.count_documents({}):
         last = collection.find_one(sort=[({'timestamp', -1})])['timestamp']
@@ -69,7 +48,7 @@ while 1:
 
     try:
         cat = web_client.get_catalogue(base_url, starttime, endtime, sites, tz,
-                                       accepted=False, manual=False)
+                                       accepted=True, manual=True)
     except ConnectionError:
         logger.error('Connection to the IMS server on {} failed!'.format(
             base_url))
@@ -100,3 +79,4 @@ while 1:
     logger.info('sent {} events for further processing'.format(ct))
 
     # input('done')
+
