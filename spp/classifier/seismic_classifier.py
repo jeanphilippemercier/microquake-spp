@@ -1,5 +1,5 @@
-import os
 from pathlib import Path
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 from keras.models import Model
@@ -18,7 +18,7 @@ class seismic_classifier_model:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def __init__(self, model_name = 'multiclass-model.hdf5'):
+    def __init__(self, model_name='multiclass-model.hdf5'):
         '''
             :param model_name: Name of the model weight file name.            
         '''
@@ -26,7 +26,7 @@ class seismic_classifier_model:
         #Model was trained at these dimensions
         self.D = (128, 128, 1)
         self.class_names = ['Blast UG', 'Blast OP', 'Blast C2S', 'Seismic']
-        self.microquake_class_names =self.class_names = ['anthropogenic event','controlled explosion', 
+        self.microquake_class_names = self.class_names = ['anthropogenic event','controlled explosion', 
                                                             'earthquake', 'explosion', 'quarry blast'] 
         self.num_classes = len(self.class_names)
         self.model_file = self.base_directory/f"{model_name}"
@@ -38,15 +38,14 @@ class seismic_classifier_model:
     # to seismic events
     ################################################
     def librosa_spectrogram(self, tr, height=128, width=128):
-        
-        data =  self.get_norm_trace(tr).data
+        data = self.get_norm_trace(tr).data
         signal = data*255/data.max()
         hl = int(signal.shape[0]//(width*1.1)) #this will cut away 5% from start and end
         spec = lr.feature.melspectrogram(signal, n_mels=height, hop_length=int(hl))
         img = lr.amplitude_to_db(spec)
         start = (img.shape[1] - width) // 2
         return img[:, start:start+width]
-    
+ 
     #############################################
     # Data preparation
     #############################################
@@ -125,7 +124,7 @@ class seismic_classifier_model:
         Create model and load weights
         """
         input_shape = (self.D[0], self.D[1], 1)
-        i1 = Input(shape=input_shape, name="spectrogram" )
+        i1 = Input(shape=input_shape, name="spectrogram")
         i2 = Input(shape=(1,), name='hour', dtype='int32')
         emb = Embedding(24, 12)(i2) #24 hours to 12 hours
         flat = Flatten()(emb)
