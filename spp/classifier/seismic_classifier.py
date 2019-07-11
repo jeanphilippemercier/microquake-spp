@@ -3,9 +3,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from keras.models import Model
-from keras.layers import (Add, BatchNormalization, Conv2D, Dense, Dropout, Flatten, Input, 
+from keras.layers import (Add, BatchNormalization, Conv2D, Dense, Flatten, Input, concatenate,
                           MaxPooling2D)
-
+import librosa as lr
 class seismic_classifier_model:
     '''
     Class to classify mseed stream into one of the classes
@@ -24,14 +24,29 @@ class seismic_classifier_model:
         '''
         self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))
         #Model was trained at these dimensions
-        self.D = (64, 64, 1)
+        self.D = (128, 128, 1)
         self.class_names = ['Blast UG', 'Blast OP', 'Blast C2S', 'Seismic']
-        self.microquake_class_names = ['explosion', 'quarry blast',
-                                      'controlled explosion', 'earthquake']
+        self.microquake_class_names =self.class_names = ['anthropogenic event','controlled explosion', 
+                                                            'earthquake', 'explosion', 'quarry blast'] 
         self.num_classes = len(self.class_names)
         self.model_file = self.base_directory/f"{model_name}"
         self.create_model()
 
+    ###############################################
+    #   Librosa gives mel Spectrum which shows events clearly,
+    # it is designed for audio frequencies which is suitable
+    # to seismic events
+    ################################################
+    def librosa_spectrum(self, tr, height=128, width=128):
+        
+        data =  self.get_norm_trace(tr).data
+        signal = data*255/data.max()
+        hl = int(signal.shape[0]//(width*1.1)) #this will cut away 5% from start and end
+        spec = lr.feature.melspectrogram(signal, n_mels=height, hop_length=int(hl))
+        img = lr.amplitude_to_db(spec)
+        start = (img.shape[1] - width) // 2
+        return img[:, start:start+width]
+    
     #############################################
     # Data preparation
     #############################################
@@ -109,33 +124,40 @@ class seismic_classifier_model:
         """
         Create model and load weights
         """
-        i = Input(shape=self.D, name="input")
+        input_shape = (self.D[0], self.D[1],1)
+        i1 =  Input(shape=input_shape,name="spectrogram" )
+        i2 = Input(shape=(1,), name='hour', dtype='int32')
+        emb = Embedding(24, 12)(i2) #24 hours to 12 hours
+        flat = Flatten()(emb)
         dim = 128
+        
         n_res = 2
-        kern_size = (3, 3)
+        kern_size = (3,3)
 
         dim = 64
-        x = Conv2D(filters=16, kernel_size=2, padding='same', activation='relu')(i)
+        x = Conv2D(filters=16, kernel_size=2, padding='same', activation='relu')(i1)
         x = MaxPooling2D(pool_size=2)(x)
         x = Conv2D(filters=32, kernel_size=2, padding='same', activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
         x = Conv2D(filters=64, kernel_size=2, padding='same', activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
-        #x = Dropout(0.3)(x)
-
+        #x = Dropout(0.3)(x) # not needed to do inference
+              
         X_shortcut = BatchNormalization()(x)
         for _ in range(n_res):
             y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu', padding='same')(X_shortcut)
             y = BatchNormalization()(y)
             #y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(y)
             y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu', padding='same')(y)
-            X_shortcut = Add()([y, X_shortcut])
-
+            
+            X_shortcut = Add()([y,X_shortcut])
+            
         x = Flatten()(x)
+        x = concatenate([x, flat], axis=-1)   
         x = Dense(500, activation='relu')(x)
-        #x = Dropout(0.4)(x)
+       
         x = Dense(self.num_classes, activation='sigmoid')(x)
-        self.model = Model(i,x)
+        self.model = Model([i1, i2], x)
         self.model.load_weights(self.model_file)
 
     def predict(self, tr):
@@ -143,11 +165,13 @@ class seismic_classifier_model:
         :param tr: Obspy stream object
         :return: Normalized gray colored image
         """
+        hour = tr[0].stats.starttime.hour
         spectrogram = self.get_spectrogram(tr)
         graygram = self.rgb2gray(spectrogram)
         normgram = self.normalize_gray(graygram)
-        img = normgram[None, ..., None]
-        a = self.model.predict(img)
+        img = normgram[None, ..., None] # Needed in form of batch with one channel.
+        data = {'spectrogram':img, 'hour':as.array([hour])}
+        a = self.model.predict(data)
         classes = {}
         for p,n in zip(a.reshape(-1), self.microquake_class_names ):
             classes[n] = p
