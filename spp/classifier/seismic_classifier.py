@@ -26,18 +26,25 @@ class seismic_classifier_model:
         #Model was trained at these dimensions
         self.D = (128, 128, 1)
         self.class_names = ['Blast UG', 'Blast OP', 'Blast C2S', 'Seismic']
-        self.microquake_class_names = self.class_names = ['anthropogenic event','controlled explosion', 
-                                                            'earthquake', 'explosion', 'quarry blast'] 
+        self.microquake_class_names = self.class_names = ['anthropogenic event', 'controlled explosion',
+                                                            'earthquake', 'explosion', 'quarry blast']
         self.num_classes = len(self.class_names)
         self.model_file = self.base_directory/f"{model_name}"
         self.create_model()
 
     ###############################################
-    #   Librosa gives mel Spectrum which shows events clearly,
+    # Librosa gives mel Spectrum which shows events clearly,
     # it is designed for audio frequencies which is suitable
     # to seismic events
     ################################################
     def librosa_spectrogram(self, tr, height=128, width=128):
+        '''
+            Using Librosa mel-spectrogram to obtain the spectrogram
+            :param tr: stream trace
+            :param height: image hieght
+            :param width: image width
+            :return: numpy array of spectrogram with height and width dimension
+        '''
         data = self.get_norm_trace(tr).data
         signal = data*255/data.max()
         hl = int(signal.shape[0]//(width*1.1)) #this will cut away 5% from start and end
