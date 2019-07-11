@@ -143,7 +143,7 @@ def get_waveforms(interloc_dict, event):
     return waveforms
 
 
-def record_processed_event(cat, status):
+def record_processed_event(cat, status, categories):
     """
     record processed event in the database
     :param cat: catalogue
@@ -157,22 +157,13 @@ def record_processed_event(cat, status):
 
 
 
-    document = {'event_id': cat[0].resource_id,
+    document = {'event_id': cat[0].resource_id.id,
                 'timestamp': cat[0].preferred_origin(
                 ).time.datetime.timestamp(),
                 'processed_time_stamp': datetime.now().timestamp(),
                 'status': status}
 
     collection.insert_one(document)
-
-
-def record_accepted_event(cat):
-    """
-    Send to Mongo to record what event have been accepted
-    :param cat:
-    :return:
-    """
-
 
 def send_to_api(cat, waveforms):
     api_base_url = settings.get('api_base_url')
@@ -210,9 +201,11 @@ def send_to_automatic_processing(cat, waveforms):
     redis.lpush(automatic_message_queue, msg)
 
 
-def resend_to_redis(cat, processing_attempts):
-    file_out = BytesIO()
-    cat.write(file_out, format='quakeml')
+def resend_to_redis(in_dict):
+
+    cat = read_events(BytesIO(in_dict['event_bytes'].encode()))
+
+    processing_attempts = in_dict['processing_attempts']
 
     connector_settings = settings.get('data_connector')
     maximum_attempts = connector_settings.maximum_attempts
@@ -223,15 +216,13 @@ def resend_to_redis(cat, processing_attempts):
 
     if delay > minimum_delay_minutes * 60:
         processing_attempts += 1
+        in_dict['processing_attempts'] += 1
 
     if processing_attempts > maximum_attempts:
         logger.info('maximum number of attempts reached, this event will '
                     'never be processed!')
 
-    dict_out = {'event_bytes': file_out.getvalue(),
-                'processing_attempts': processing_attempts}
-
-    msg = msgpack.dumps(dict_out)
+    msg = msgpack.dumps(in_dict)
     redis.rpush(message_queue, msg)
 
 
@@ -242,60 +233,66 @@ while 1:
 
     tmp = msgpack.loads(message, raw=False)
     processing_attempts = tmp['processing_attempts']
-    cat = read_events(BytesIO(tmp['event_bytes'].encode()))
+    old_cat = read_events(BytesIO(tmp['event_bytes'].encode()))
+    cat = old_cat.copy()
 
-    try:
+    # try:
 
-        variable_length_wf = web_client.get_seismogram_event(base_url, cat[0],
-                                                             network_code, utc)
+    variable_length_wf = web_client.get_seismogram_event(base_url, cat[0],
+                                                         network_code, utc)
 
-        interloc_results = interloc_election(cat)
+    interloc_results = interloc_election(cat)
 
-        if not interloc_results:
-            continue
-        new_cat = interloc_results['catalog']
-        waveforms = get_waveforms(interloc_results, new_cat)
-        waveforms['variable_length'] = variable_length_wf
+    if not interloc_results:
+        continue
+    new_cat = interloc_results['catalog']
+    waveforms = get_waveforms(interloc_results, new_cat)
+    waveforms['variable_length'] = variable_length_wf
 
-        logger.info('event classification')
+    logger.info('event classification')
 
-        category = event_classifier.Processor().process(stream=waveforms[
-            'context'])
+    category = event_classifier.Processor().process(stream=waveforms[
+        'context'])
 
-        sorted_list = sorted(category.items(), reverse=True,
-                             key=lambda x: x[1])
+    sorted_list = sorted(category.items(), reverse=True,
+                         key=lambda x: x[1])
+
+    elevation = new_cat.preferred_origin().z
+    maximum_event_elevation = settings.get(
+        'data_connector').maximum_event_elevation
+
+    if sorted_list[0][1] > settings.get(
+            'data_connector').likelihood_threshold or elevation > \
+            maximum_event_elevation:
+        new_cat[0].event_type = sorted_list[0][0]
+        new_cat[0].preferred_origin().evaluation_status = 'preliminary'
+
+        logger.info('event categorized as {} with an likelihoold of {}'
+                    ''.format(sorted_list[0][0], sorted_list[0][1]))
+
+        record_processed_event(new_cat, "accepted", category)
+
+    else:
+        record_processed_event(new_cat, "rejected", category)
+        logger.info('event categorized as noise are not further processed '
+                    'and will not be saved in the database')
+
+        continue
 
 
-        if sorted_list[0][1] > settings.get(
-                'data_connector').likelihood_threshold:
-            new_cat[0].event_type = sorted_list[0][0]
+    logger.info('sending to API, will take long time')
 
-            logger.info('event categorized as {} with an likelihoold of {}'
-                        ''.format(sorted_list[0][0], sorted_list[0][1]))
+    send_to_api(new_cat, waveforms)
 
-            record_processed_event(new_cat, "accepted")
+    logger.info('sending to automatic pipeline')
+    send_to_automatic_processing(new_cat, waveforms)
 
-        else:
-            record_processed_event(new_cat, "rejected")
-            logger.info('event categorized as noise are not further processed '
-                        'and will not be saved in the database')
+    logger.info('done collecting the waveform, happy processing!')
 
-            continue
-
-
-        logger.info('sending to API, will take long time')
-
-        send_to_api(new_cat, waveforms)
-
-        logger.info('sending to automatic pipeline')
-        send_to_automatic_processing(new_cat, waveforms)
-
-        logger.info('done collecting the waveform, happy processing!')
-
-    except KeyboardInterrupt:
-        break
-
-    except:
-        logger.info('processing failed, on attempt {}'.format(
-            processing_attempts))
-        resend_to_redis(cat, processing_attempts)
+    # except KeyboardInterrupt:
+    #     break
+    #
+    # except:
+    #     logger.info('processing failed, on attempt {}'.format(
+    #         processing_attempts))
+    #     resend_to_redis(tmp)

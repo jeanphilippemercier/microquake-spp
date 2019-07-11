@@ -101,10 +101,10 @@ def run(info: Info):
     """
     sc = SeismicClient(info.token, base_url=info.base_url)
 
-    # print(sc.get_cables())
+    print(sc.get_cables())
     # Cable(x="1.0"
     # print(sc.post_ray([]))
-    print(sc.post_cables([]))
+    # print(sc.post_cables([]))
 
 
 @cli.command()

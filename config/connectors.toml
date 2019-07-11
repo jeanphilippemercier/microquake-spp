@@ -19,10 +19,14 @@ event_db.log_topic = 'insertion and update into event DB'
 redis_db.host = 'dev-spp-redis'
 redis_db.port = 6379
 redis_db.db = 0
-redis_extra.ttl=600
+
+elastic_db.host = 'dev-spp-elastic'
+elastic_db.port = 9200
 
 mongo_db.url = 'mongodb://mongodb:27017'
 mongo_db.db_processed_events = 'processed_event'
+
+postgres_db.url = 'postgresql://grafana:grafana@postgres:5432/'
 
 [development]
 redis_db.host = 'redisdb'
