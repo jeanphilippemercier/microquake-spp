@@ -45,7 +45,7 @@ class seismic_classifier_model:
         img = lr.amplitude_to_db(spec)
         start = (img.shape[1] - width) // 2
         return img[:, start:start+width]
- 
+
     #############################################
     # Data preparation
     #############################################
