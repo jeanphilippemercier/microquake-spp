@@ -9,7 +9,7 @@ import librosa as lr
 class seismic_classifier_model:
     '''
     Class to classify mseed stream into one of the classes
-    Blast UG, Blast OP, Blast C2S, Seismic, Noise
+        anthropogenic event, controlled explosion, earthquake, explosion, quarry blast
     '''
 
     def __enter__(self):
@@ -25,10 +25,9 @@ class seismic_classifier_model:
         self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))
         #Model was trained at these dimensions
         self.D = (128, 128, 1)
-        self.class_names = ['Blast UG', 'Blast OP', 'Blast C2S', 'Seismic']
-        self.microquake_class_names = self.class_names = ['anthropogenic event', 'controlled explosion',
+        self.microquake_class_names = ['anthropogenic event', 'controlled explosion',
                                                             'earthquake', 'explosion', 'quarry blast']
-        self.num_classes = len(self.class_names)
+        self.num_classes = len(self.microquake_class_names)
         self.model_file = self.base_directory/f"{model_name}"
         self.create_model()
 
