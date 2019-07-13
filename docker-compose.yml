@@ -170,9 +170,9 @@ services:
     environment:
       - DEBUG=false
 
-      - DB_USER=
-      - DB_PASS=
-      - DB_NAME=
+      - DB_USER=grafana
+      - DB_PASS=grafana
+      - DB_NAME=spp
       - DB_TEMPLATE=
 
       - DB_EXTENSION=
