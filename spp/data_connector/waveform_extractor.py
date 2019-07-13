@@ -12,16 +12,17 @@ from pytz import utc
 from loguru import logger
 from microquake.core import UTCDateTime, read_events
 from microquake.IMS import web_client
-from pymongo import MongoClient
-from redis import Redis
 from spp.core.settings import settings
 from spp.pipeline import clean_data, event_classifier, interloc
 from spp.utils.seismic_client import post_data_from_objects
-from spp.core.connectors import connect_redis, connect_mongo
+from spp.core.connectors import (connect_redis, record_processing_logs_pg)
+from time import time
 
 redis = connect_redis()
-mongo_client = connect_mongo()
 message_queue = settings.get('processing_flow').extract_waveforms.message_queue
+
+__processing_step__ = 'waveform_extractor'
+__processing_step_id__ = 2
 
 sites = [int(station.code) for station in settings.inventory.stations()]
 base_url = settings.get('ims_base_url')
@@ -142,29 +143,6 @@ def get_waveforms(interloc_dict, event):
 
     return waveforms
 
-
-def record_processed_event(cat, status, categories):
-    """
-    record processed event in the database
-    :param cat: catalogue
-    :param status: either "accepted" or "rejected"
-    :return:
-    """
-
-    processed_events_db = settings.get('mongo_db').db_processed_events
-    db = mongo_client[processed_events_db]
-    collection = db['event_status']
-
-
-
-    document = {'event_id': cat[0].resource_id.id,
-                'timestamp': cat[0].preferred_origin(
-                ).time.datetime.timestamp(),
-                'processed_time_stamp': datetime.now().timestamp(),
-                'status': status}
-
-    collection.insert_one(document)
-
 def send_to_api(cat, waveforms):
     api_base_url = settings.get('api_base_url')
     post_data_from_objects(api_base_url, event_id=None,
@@ -212,7 +190,7 @@ def resend_to_redis(in_dict):
     minimum_delay_minutes = connector_settings.minimum_delay_minutes
 
     event_time_ts = cat[0].preferred_origin().time.timestamp
-    delay = datetime.now().timestamp - event_time_ts
+    delay = datetime.utcnow().timestamp() - event_time_ts
 
     if delay > minimum_delay_minutes * 60:
         processing_attempts += 1
@@ -227,19 +205,29 @@ def resend_to_redis(in_dict):
 
 
 while 1:
+
     logger.info('waiting for message on channel %s' % message_queue)
     message_queue, message = redis.blpop(message_queue)
     logger.info('message received')
+
+    start_processing_time = time()
 
     tmp = msgpack.loads(message, raw=False)
     processing_attempts = tmp['processing_attempts']
     old_cat = read_events(BytesIO(tmp['event_bytes'].encode()))
     cat = old_cat.copy()
 
+    event_time = cat[0].preferred_origin().time.datetime.timestamp()
+
+    processing_delay = (datetime.utcnow().timestamp() -
+                        event_time)
     # try:
 
-    variable_length_wf = web_client.get_seismogram_event(base_url, cat[0],
-                                                         network_code, utc)
+    try:
+        variable_length_wf = web_client.get_seismogram_event(base_url, cat[0],
+                                                             network_code, utc)
+    except AttributeError:
+        logger.warning('could not retrieve the variable length waveforms')
 
     interloc_results = interloc_election(cat)
 
@@ -257,12 +245,12 @@ while 1:
     sorted_list = sorted(category.items(), reverse=True,
                          key=lambda x: x[1])
 
-    elevation = new_cat.preferred_origin().z
+    elevation = new_cat[0].preferred_origin().z
     maximum_event_elevation = settings.get(
         'data_connector').maximum_event_elevation
 
     if sorted_list[0][1] > settings.get(
-            'data_connector').likelihood_threshold or elevation > \
+            'data_connector').likelihood_threshold and elevation < \
             maximum_event_elevation:
         new_cat[0].event_type = sorted_list[0][0]
         new_cat[0].preferred_origin().evaluation_status = 'preliminary'
@@ -270,19 +258,29 @@ while 1:
         logger.info('event categorized as {} with an likelihoold of {}'
                     ''.format(sorted_list[0][0], sorted_list[0][1]))
 
-        record_processed_event(new_cat, "accepted", category)
 
     else:
-        record_processed_event(new_cat, "rejected", category)
         logger.info('event categorized as noise are not further processed '
                     'and will not be saved in the database')
 
+        end_processing_time = time()
+        processing_time = end_processing_time - start_processing_time
+        record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
+                                  __processing_step_id__, processing_time)
+
+
         continue
+
 
 
     logger.info('sending to API, will take long time')
 
     send_to_api(new_cat, waveforms)
+
+    end_processing_time = time()
+    processing_time = end_processing_time - start_processing_time
+    record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
+                              __processing_step_id__, processing_time)
 
     logger.info('sending to automatic pipeline')
     send_to_automatic_processing(new_cat, waveforms)

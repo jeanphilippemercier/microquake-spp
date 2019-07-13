@@ -18,16 +18,17 @@ class seismic_classifier_model:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def __init__(self, model_name = 'multiclass-model.hdf5'):
+    def __init__(self, model_name = 'best_model.hdf5'):
         '''
             :param model_name: Name of the model weight file name.            
         '''
         self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))
         #Model was trained at these dimensions
         self.D = (64, 64, 1)
-        self.class_names = ['Blast UG', 'Blast OP', 'Blast C2S', 'Seismic']
+        self.class_names = ['Blast UG', 'Blast OP', 'Blast C2S', 'Seismic', 'Noise']
         self.microquake_class_names = ['explosion', 'quarry blast',
-                                      'controlled explosion', 'earthquake']
+                                      'controlled explosion', 'earthquake',
+                                      'other event']
         self.num_classes = len(self.class_names)
         self.model_file = self.base_directory/f"{model_name}"
         self.create_model()
@@ -121,7 +122,7 @@ class seismic_classifier_model:
         x = MaxPooling2D(pool_size=2)(x)
         x = Conv2D(filters=64, kernel_size=2, padding='same', activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
-        #x = Dropout(0.3)(x)
+        x = Dropout(0.3)(x)
 
         X_shortcut = BatchNormalization()(x)
         for _ in range(n_res):
@@ -133,9 +134,9 @@ class seismic_classifier_model:
 
         x = Flatten()(x)
         x = Dense(500, activation='relu')(x)
-        #x = Dropout(0.4)(x)
-        x = Dense(self.num_classes, activation='sigmoid')(x)
-        self.model = Model(i,x)
+        x = Dropout(0.4)(x)
+        x = Dense(self.num_classes, activation='softmax')(x)
+        self.model = Model(i, x)
         self.model.load_weights(self.model_file)
 
     def predict(self, tr):
@@ -148,7 +149,4 @@ class seismic_classifier_model:
         normgram = self.normalize_gray(graygram)
         img = normgram[None, ..., None]
         a = self.model.predict(img)
-        classes = {}
-        for p,n in zip(a.reshape(-1), self.microquake_class_names ):
-            classes[n] = p
-        return classes
+        return self.microquake_class_names[np.argmax(a)]

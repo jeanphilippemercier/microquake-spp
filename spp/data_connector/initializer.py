@@ -14,10 +14,16 @@ from loguru import logger
 from microquake.IMS import web_client
 from spp.core.settings import settings
 from spp.core.time import get_time_zone
-from spp.core.connectors import (connect_redis, connect_postgres)
+from spp.core.connectors import (connect_redis, connect_postgres,
+                                 record_processing_logs_pg)
+
+from time import time
 
 from spp.core.db_models import processing_logs
 import sqlalchemy as db
+
+__processing_step__ = 'initializer'
+__processing_step_id__ = 1
 
 # settings
 redis = connect_redis()
@@ -25,60 +31,17 @@ request_range_hours = settings.get('data_connector').request_range_hours
 
 pg = connect_postgres(db_name='spp')
 
-# elastic_index = 'spp'
-# elastic_doc_type = 'processing_log'
-#
-
 tz = get_time_zone()
 sites = [station.code for station in settings.inventory.stations()]
 base_url = settings.get('ims_base_url')
 
 message_queue = settings.get('processing_flow').extract_waveforms.message_queue
 
-# def insert_elastic(event, status):
-#     event_timestamp = event.preferred_origin().time.datetime.timestamp()
-#     processing_completion_timestamp = datetime.utcnow().timestamp()
-#     processing_time_seconds = processing_completion_timestamp - event_timestamp
-#
-#
-#     document = {'event_id': event.resource_id.id,
-#                 'event_timestamp': event_timestamp,
-#                 'processing_timestamp': datetime.utcnow().timestamp(),
-#                 'processing_step_name': 'initialization',
-#                 'processing_step_id': 1,
-#                 'processing_time_seconds': processing_time_seconds,
-#                 'status': status}
-#
-#     es.index(index=elastic_index, doc_type=elastic_doc_type, body=document)
-
-
-def insert_postgres(event, status):
-    event_time = event.preferred_origin().time.datetime.replace(tzinfo=utc)
-
-    processing_time = datetime.utcnow().replace(tzinfo=utc)
-    processing_time_seconds = processing_time - event_time
-
-    # from pdb import set_trace;set_trace()
-
-    document = {'event_id'               : event.resource_id.id,
-                'event_timestamp'        : event_time,
-                'processing_timestamp'   : processing_time,
-                'processing_step_name'   : 'initialization',
-                'processing_step_id'     : 1,
-                'processing_time_seconds': processing_time_seconds.total_seconds(),
-                'processing_status'      : status}
-
-    query = db.insert(processing_logs)
-    values_list = [document]
-
-    return pg.execute(query, values_list)
-
-
 def get_starttime():
 
     query = db.select([db.func.max(
         processing_logs.columns.event_timestamp)]).where(
-        processing_logs.columns.processing_step_name=='initialization')
+        processing_logs.columns.processing_step_name==__processing_step__)
 
     result = pg.execute(query).scalar()
     if result is None:
@@ -116,13 +79,11 @@ while 1:
     try:
         cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
                                        utc, accepted=False, manual=False)
-    except ConnectionError:
+    except:
         logger.error('Connection to the IMS server on {} failed!'.format(
             base_url))
         sleep(30)
         continue
-
-    # from pdb import set_trace; set_trace()
 
     logger.info('recovered {} events'.format(len(cat)))
 
@@ -137,6 +98,7 @@ while 1:
                         key=lambda x: x.preferred_origin().time)
 
     for event in sorted_cat:
+        start_processing_time = time()
         event_id = event.resource_id.id
 
         if not already_processed(event):
@@ -152,7 +114,8 @@ while 1:
                 logger.error('Sending to redis failed')
                 status = 'failed'
 
-            # insert_elastic(event, status=status)
-            insert_postgres(event, status=status)
+            end_processing_time = time()
+            processing_time = end_processing_time - start_processing_time
+            record_processing_logs_pg(event, status, __processing_step__,
+                                      __processing_step_id__, processing_time)
 
-    # input('done')

@@ -163,21 +163,22 @@ def run_pipeline(pipeline, setting_name):
     logger.info('initialization successful')
 
     while 1:
-        try:
-            logger.info('waiting for message on channel %s' % message_queue)
-            message_queue, message = redis.blpop(message_queue)
-            logger.info('message received')
+        # try:
+        logger.info('waiting for message on channel %s' % message_queue)
+        message_queue, message = redis.blpop(message_queue)
+        logger.info('message received')
 
-            tmp = msgpack.loads(message)
-            data = {}
+        tmp = msgpack.loads(message)
+        data = {}
 
-            for key in tmp.keys():
-                data[key.decode('utf-8')] = tmp[key]
+        for key in tmp.keys():
+            data[key.decode('utf-8')] = tmp[key]
 
-            pipeline(**data)
+        pipeline(**data)
 
-        except Exception as e:
-            logger.exception("Error occured while processing message from redis queue due to: %s" % e)
+
+        # except Exception as e:
+        #     logger.exception("Error occured while processing message from redis queue due to: %s" % e)
 
 
 
