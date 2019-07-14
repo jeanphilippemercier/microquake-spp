@@ -63,14 +63,29 @@ class seismic_classifier_model:
         :return: 1. Combine x, y, z
                 2. Standardize to ~ [-1, 1]
                 3. Detrend & Taper
-        """        
-        # x = tr[0].data
-        # y = tr[1].data
-        # z = tr[2].data
-        #
-        # c = np.sign(x) * np.sqrt(x ** 2 + y ** 2 + z ** 2)
-        # c_norm = c / np.abs(c).max()
-        # tr[0].data = c_norm
+        """
+        x = tr[0].data
+        y = tr[1].data
+        z = tr[2].data
+        x[~np.isfinite(x)] = 0
+        y[~np.isfinite(y)] = 0
+        z[~np.isfinite(z)] = 0
+
+        sx = np.std(x)
+        sy = np.std(y)
+        sz = np.std(z)
+        # Get the strongest signal
+        if(sx > sy and sx > sz):
+            c = np.sign(x) * np.sqrt(x ** 2 + y ** 2 + z ** 2)
+        elif(sy > sx and sy > sz):
+            c = np.sign(y) * np.sqrt(x ** 2 + y ** 2 + z ** 2)
+        else:
+            c = np.sign(z) * np.sqrt(x ** 2 + y ** 2 + z ** 2)
+
+        c = c[np.isfinite(c)]
+
+        c_norm = c / np.abs(c).max()
+        tr[0].data = c_norm
 
         tr[0] = tr[0].detrend(type='demean')
 
