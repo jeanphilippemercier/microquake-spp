@@ -53,7 +53,7 @@ sensors.units      = 'meter'
 sensors.format     = 'csv'
 sensors.path       = 'sensors.csv'
 sensors.stationXML = 'OT.xml'
-sensors.black_list = ['8', '10', '23', '31', '32', '100', '102', '107', '88', '90', '77']
+sensors.black_list = ['7', '9', '10', '23', '25', '31', '32', '54', '91', '96', '99', '100', '102', '107', '88', '90', '77']
 #sensors.black_list = ['8']
 
 data_local.ms_chunks = '/home/phil/data/oyu/spp_common/synthetic/chunks/*.mseed'
@@ -81,7 +81,8 @@ data_connector.reconciliation_delay_minutes = 60
 data_connector.reconciliation_interval_hours = 72
 data_connector.maximum_event_elevation = 900
 data_connector.request_range_hours = 48
-
+data_connector.closing_window_time_seconds = 30 # time after which we consider the continuous data window closed after the event occurred
+data_connector.context_trace_forbiden_sensor = ['7', '9']
 
 initializer.log_topic = 'initializer'
 initializer.log_file_name = 'initializer.log'
