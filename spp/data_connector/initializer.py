@@ -19,7 +19,7 @@ from spp.core.connectors import (connect_redis, connect_postgres,
 
 from time import time
 
-from spp.core.db_models import processing_logs
+from spp.stats_collector.db_models import processing_logs
 import sqlalchemy as db
 
 __processing_step__ = 'initializer'
