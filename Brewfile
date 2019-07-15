@@ -1,6 +1,6 @@
-tap cartr/qt4
+tap "cartr/qt4"
 
-brew qt@4
+brew "qt@4"
 brew "pipenv"
 brew "openssl"
 brew "cmake"

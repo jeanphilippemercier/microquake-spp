@@ -3,8 +3,8 @@ from spp.core.settings import settings
 import sqlalchemy as db
 from datetime import datetime
 from pytz import utc
-from spp.core.db_models import processing_logs
-from spp.core import db_models
+from spp.stats_collector.db_models import processing_logs
+from spp.stats_collector import db_models
 
 
 def connect_redis():
