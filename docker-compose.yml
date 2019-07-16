@@ -1,199 +1,15 @@
 version: "3.5"
 
 networks:
-  default:
-    name: spp-network
+  spp-network:
+    external: true
 
 services:
-#  zookeeper:
-#    image: confluentinc/cp-zookeeper:5.0.0
-#    hostname: zookeeper
-#    container_name: zookeeper
-#    ports:
-#      - "2181:2181"
-#    environment:
-#      ZOOKEEPER_CLIENT_PORT: 2181
-#      ZOOKEEPER_TICK_TIME: 2000
-#
-#  broker:
-#    image: confluentinc/cp-kafka:5.0.0
-#    hostname: broker
-#    container_name: broker
-#    depends_on:
-#      - zookeeper
-#    ports:
-#      - "9092:9092"
-#      - "29092:29092"
-#    environment:
-#      KAFKA_BROKER_ID: 1
-#      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092,PLAINTEXT_HOST://localhost:29092
-#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-#      KAFKA_MESSAGE_MAX_BYTES: 1000000
-#      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:9092
-#      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
-#      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-#      CONFLUENT_METRICS_ENABLE: 'true'
-#      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
-
-#  schema-registry:
-#    image: confluentinc/cp-schema-registry:5.0.0
-#    hostname: schema-registry
-#    container_name: schema-registry
-#    depends_on:
-#      - zookeeper
-#      - broker
-#    ports:
-#      - "8082:8082"
-#    environment:
-#      SCHEMA_REGISTRY_HOST_NAME: schema-registry
-#      SCHEMA_REGISTRY_LISTENERS: http://schema-registry:8082
-#      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'
-#
-#  connect:
-#    build: ./docker
-#    hostname: connect
-#    container_name: connect
-#    depends_on:
-#      - zookeeper
-#      - broker
-#      - schema-registry
-#    ports:
-#      - "8083:8083"
-#    volumes:
-#      - mi2:/usr/share/java/monitoring-interceptors/
-#    environment:
-#      CONNECT_BOOTSTRAP_SERVERS: 'broker:9092'
-#      KAFKA_JMX_OPTS: -javaagent:/usr/share/java/kafka/jmx_prometheus_javaagent.jar=7071:/usr/share/java/kafka/prom-jmx-agent-config.yml
-#      CONNECT_REST_ADVERTISED_HOST_NAME: connect
-#      CONNECT_REST_PORT: 8083
-#      CONNECT_GROUP_ID: compose-connect-group
-#      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
-#      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
-#      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
-#      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
-#      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
-#      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
-#      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
-#      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-#      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-#      CONNECT_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-#      CLASSPATH: /usr/share/java/monitoring-interceptors/monitoring-interceptors-5.0.0.jar
-#      CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
-#      CONNECT_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
-#      CONNECT_PLUGIN_PATH: /usr/share/java
-#      CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
-
-  prometheus:
-    image: prom/prometheus
-    hostname: prometheus
-    container_name: prometheus
-    ports:
-      - 9090:9090/tcp
-    volumes:
-      - ./docker/prometheus:/etc/prometheus
-    links:
-#      - connect
-      - postgresql
-
-  node-exporter:
-    image: prom/node-exporter
-    hostname: node-exporter
-    container_name: node-exporter
-    links:
-      - prometheus
-    ports:
-      - "9100:9100"
-
-  grafana:
-    image: grafana/grafana
-    hostname: grafana
-    container_name: grafana
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    links:
-      - prometheus
-      - postgresql
-    ports:
-      - "3000:3000"
-
-#  mongodb:
-#    image: mongo:4
-#    hostname: mongodb
-#    container_name: mongodb
-#    ports:
-#      - "27017:27017"
-#    command: mongod --smallfiles --logpath=/dev/null # --quiet
-
-  redisdb:
-    image: redis:4
-    hostname: redisdb
-    container_name: redisdb
-    volumes:
-      - ./tmp/redisdb:/data/redisdb
-    ports:
-      - "6379:6379"
-    environment:
-      - HOSTNAME=redisdb
-    command: redis-server
-
-#  ksql-server:
-#    image: "confluentinc/cp-ksql-server:5.2.1"
-#    depends_on:
-#      - broker
-#      - schema-registry
-#    environment:
-#      KSQL_BOOTSTRAP_SERVERS: broker:9092
-#      KSQL_LISTENERS: http://0.0.0.0:8088
-#      KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schema-registry:8081
-#    ports:
-#      - "8088:8088"
-
-#  elasticsearch:
-#    image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
-#    hostname: elasticsearch
-#    container_name: elasticsearch
-#    ports:
-#      - "9200:9200"
-#    volumes:
-#      - ./tmp/elastic:/data/elastic
-
-  postgresql:
-    restart: always
-    image: sameersbn/postgresql:10-2
-    hostname: postgres
-    container_name: postgres
-    ports:
-      - "5432:5432"
-    environment:
-      - DEBUG=false
-
-      - DB_USER=grafana
-      - DB_PASS=grafana
-      - DB_NAME=spp
-      - DB_TEMPLATE=
-
-      - DB_EXTENSION=
-
-      - REPLICATION_MODE=
-      - REPLICATION_USER=
-      - REPLICATION_PASS=
-      - REPLICATION_SSLMODE=
-    volumes:
-      - .tmp/postgres:/data/postgres
-
-#    https://hub:
-#      docker:
-#        com/r/sameersbn/postgresql/#creating-databases:
-
-
 #  automatic:
 #    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
 #    hostname: automatic
 #    container_name: automatic
-#    depends_on:
+#    external_links:
 #      - redisdb
 #    volumes:
 #      - $SPP_COMMON/:/data/common
@@ -212,7 +28,7 @@ services:
 #    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
 #    hostname: interactive
 #    container_name: interactive
-#    depends_on:
+#    external_links:
 #      - redisdb
 #    volumes:
 #      - $SPP_COMMON/:/data/common
@@ -231,9 +47,10 @@ services:
     image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
     hostname: event_connector
     container_name: event_connector
-    depends_on:
+    external_links:
       - redisdb
-      - postgresql
+    depends_on:
+      - spp-postgres
     volumes:
       - $SPP_COMMON/:/data/common
       - $SPP_CONFIG/:/data/config
@@ -242,80 +59,25 @@ services:
       SPP_COMMON: "/data/common"
       SPP_CONFIG: "/data/config"
     command: bash -c "seismic_platform interactive"
+    networks:
+      - spp-network
+
     working_dir:
       /app/spp/data_connector
-    restart: always
     tty: true
-#
-#  ray-tracer:
-#    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
-#    hostname: ray-tracer
-#    container_name: ray-tracer
-#    depends_on:
-#      - redisdb
-#    volumes:
-#      - $SPP_COMMON/:/data/common
-#      - $SPP_CONFIG/:/data/config
-#      - ./spp:/app/spp
-#    environment:
-#      SPP_COMMON: "/data/common"
-#      SPP_CONFIG: "/data/config"
-#    command: bash -c "seismic_platform raytracer"
-#    working_dir:
-#      /app/bin
-#    restart: always
-#    tty: true
-#
-#  ray-tracer-2:
-#    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
-#    hostname: ray-tracer-2
-#    container_name: ray-tracer-2
-#    depends_on:
-#      - redisdb
-#    volumes:
-#      - $SPP_COMMON/:/data/common
-#      - $SPP_CONFIG/:/data/config
-#      - ./spp:/app/spp
-#    environment:
-#      SPP_COMMON: "/data/common"
-#      SPP_CONFIG: "/data/config"
-#    command: bash -c "seismic_platform raytracer"
-#    working_dir:
-#      /app/bin
-#    restart: always
-#    tty: true
 
-#  seismic-interloc:
-#    image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
-#    # command: python bin/interloc_kafka.py
-#    depends_on:
-#      - broker
-#    links:
-#      - broker
-#    volumes:
-#      - ./:/app
-#      - ./config:/config
-#      - ./common:/common
-#    environment:
-#      PYTHONPATH: /app
-#      SPP_CONFIG: /config
-#      SPP_COMMON: /common
-#    ports:
-#      - 6379:6379
-#
-#  seismic-post-processing:
-#    image: registry.microquake.org/rio-tinto/seismic-processing-platform/seismic-processing-platform
-#    command: python bin/post_processing.py
-#    depends_on:
-#      - broker
-#    volumes:
-#      - ./:/app
-#      - ./config:/config
-#      - ./common:/common
-#    environment:
-#      PYTHONPATH: /app
-#      SPP_CONFIG: /config
-#      SPP_COMMON: /common
-#
+  spp-postgres:
+    image: timescale/timescaledb:latest-pg11
+    hostname: spp-postgres
+    container_name: spp-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      TIMESCALEDB_TELEMETRY: "off"
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./data/timescale-initdb.sql:/docker-entrypoint-initdb.d/timescale-initdb.sql
+      - ./data/grafana-initdb.sql:/docker-entrypoint-initdb.d/grafana-initdb.sql
+      - .tmp/postgres:/data/postgres
 volumes:
     mi2: {}

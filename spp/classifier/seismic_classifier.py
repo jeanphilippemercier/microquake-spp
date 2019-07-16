@@ -26,10 +26,11 @@ class seismic_classifier_model:
         #Model was trained at these dimensions
         self.D = (128, 128, 1)
         self.microquake_class_names = ['anthropogenic event', 'controlled explosion',
-                                        'earthquake', 'explosion', 'quarry blast']
+                                                            'earthquake', 'explosion', 'quarry blast']
         self.num_classes = len(self.microquake_class_names)
         self.model_file = self.base_directory/f"{model_name}"
         self.create_model()
+        self.create_3class_model()
 
     ###############################################
     # Librosa gives mel Spectrum which shows events clearly,
@@ -45,7 +46,7 @@ class seismic_classifier_model:
             :return: numpy array of spectrogram with height and width dimension
         '''
         data = self.get_norm_trace(tr).data
-        signal = data*255/data.max()
+        signal = data*255
         hl = int(signal.shape[0]//(width*1.1)) #this will cut away 5% from start and end
         spec = lr.feature.melspectrogram(signal, n_mels=height, hop_length=int(hl))
         img = lr.amplitude_to_db(spec)
@@ -65,7 +66,10 @@ class seismic_classifier_model:
 
         c = tr.composite()
         c.data = c / np.abs(c).max()
-        c.detrend('demean').taper(max_percentage=0.01)
+        c = c.detrend(type='demean')
+
+        if taper:
+            c = c.taper(max_percentage=0.05)
 
         return c[0]
 
@@ -150,6 +154,46 @@ class seismic_classifier_model:
         self.model = Model([i1, i2], x)
         self.model.load_weights(self.model_file)
 
+    def create_3class_model(self):
+        input_shape = (64, 64, 1)
+        i = Input(shape=input_shape, name="spectrogram" )
+        dim = 128
+        n_res = 2
+        kern_size = (3, 3)
+
+        dim = 64
+        x = Conv2D(filters=16, kernel_size=2, padding='same', activation='relu')(i)
+        x = MaxPooling2D(pool_size=2)(x)
+        x = Conv2D(filters=32, kernel_size=2, padding='same', activation='relu')(x)
+        x = MaxPooling2D(pool_size=2)(x)
+        x = Conv2D(filters=64, kernel_size=2, padding='same', activation='relu')(x)
+        x = MaxPooling2D(pool_size=2)(x)
+
+        X_shortcut = BatchNormalization()(x)
+        for _ in range(n_res):
+            y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(X_shortcut)
+            y = BatchNormalization()(y)
+            #y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(y)
+            y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(y)
+
+            X_shortcut = Add()([y,X_shortcut])
+
+        x = Flatten()(x)
+        x = Dense(500, activation='relu')(x)
+        x = Dense(3, activation='softmax')(x)
+        self.model3 = Model(i, x)
+        self.model3.load_weights(self.base_directory/'model_3classes.hdf5')
+
+    def is_noise(self, tr):
+        '''
+        detect if signal is noise
+        '''
+        spectrogram = self.get_spectrogram(tr)
+        graygram = self.rgb2gray(spectrogram)
+        normgram = self.normalize_gray(graygram)
+        a = self.model3.predict(normgram[None, ..., None])
+        return np.argmax(a) == 2
+
     def predict(self, tr):
         """
         :param tr: Obspy stream object
@@ -161,9 +205,17 @@ class seismic_classifier_model:
         normgram = self.normalize_gray(spectrogram)
         img = normgram[None, ..., None] # Needed to in the form of batch with one channel.
         data = {'spectrogram':img, 'hour':np.asarray([hour])}
-        a = self.model.predict(data)
         classes = {}
-        for p, n in zip(a.reshape(-1), self.microquake_class_names):
-            classes[n] = p
+        for c in self.microquake_class_names:
+            classes[c] = 0
+        if self.is_noise(tr):
+            classes['Noise'] = 1
+        else:
+            a = self.model.predict(data)
+
+            for p, n in zip(a.reshape(-1), self.microquake_class_names):
+                classes[n] = p
+
+        classes['Noise'] = 1-np.max(a.reshape(-1))
         return classes
     
