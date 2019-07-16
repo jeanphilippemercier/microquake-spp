@@ -24,6 +24,7 @@ class Processor(ProcessingUnit):
         stream = None
         variable_length = None
         context = None
+        method = None # POST or PUT
 
         if 'cat' in kwargs.keys():
             cat = kwargs['cat']

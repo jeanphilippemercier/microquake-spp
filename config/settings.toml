@@ -27,6 +27,8 @@ time_zone.type = 'UTC_offset'                # either 'UTC_offset or 'time_zone'
 time_zone.time_zone_code = 'ULN'             # time zone code. If type=time_zone, time_zone_code must be a valid pytz timezone
 time_zone.offset = 8                         # time offset in hours, ignored if type=time_zone
 
+waveform_extractor_message_queue = 'event_connector.extract_waveforms'
+
 
 grids.units = 'meter'
 grids.method = 'ODS'
