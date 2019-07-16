@@ -94,8 +94,8 @@ services:
       - 9090:9090/tcp
     volumes:
       - ./docker/prometheus:/etc/prometheus
-    external_links:
-      - db
+    links:
+      - postgresql
 
   node-exporter:
     image: prom/node-exporter
@@ -114,8 +114,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     links:
       - prometheus
-    external_links:
-      - db
+      - postgresql
     ports:
       - "3000:3000"
 
@@ -202,8 +201,7 @@ services:
     container_name: event_connector
     depends_on:
       - redisdb
-    external_links:
-      - db
+      - postgresql
     volumes:
       - $SPP_COMMON/:/data/common
       - $SPP_CONFIG/:/data/config
@@ -286,6 +284,21 @@ services:
 #      PYTHONPATH: /app
 #      SPP_CONFIG: /config
 #      SPP_COMMON: /common
-#
+
+
+  postgresql:
+    restart: always
+    image: timescale/timescaledb:latest-pg11
+    hostname: postgres
+    container_name: postgres
+    ports:
+      - "5433:5432"
+    environment:
+      TIMESCALEDB_TELEMETRY: "off"
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./data/timescale-initdb.sql:/docker-entrypoint-initdb.d/timescale-initdb.sql
+      - ./data/grafana-initdb.sql:/docker-entrypoint-initdb.d/grafana-initdb.sql
+      - .tmp/postgres:/data/postgres
 volumes:
     mi2: {}
