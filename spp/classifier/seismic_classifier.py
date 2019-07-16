@@ -22,7 +22,7 @@ class seismic_classifier_model:
         '''
             :param model_name: Name of the model weight file name.            
         '''
-        self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))
+        self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))/'seismic_classifier'
         #Model was trained at these dimensions
         self.D = (128, 128, 1)
         self.microquake_class_names = ['anthropogenic event', 'controlled explosion',
@@ -164,7 +164,7 @@ class seismic_classifier_model:
         x = Dense(self.num_classes, activation='sigmoid')(x)
         self.model = Model([i1, i2], x)
         self.model.load_weights(self.model_file)
-      
+ 
     def create_3class_model(self):
         input_shape = (64, 64, 1)
         i = Input(shape=input_shape, name="spectrogram" )
