@@ -8,4 +8,3 @@ from .measure_energy import Processor as MeasureEnergyProcessor
 from .measure_smom import Processor as MeasureSmomProcessor
 from .nlloc import Processor as NLLocProcessor
 from .picker import Processor as PickerProcessor
-from .ray_tracer import Processor as RayTracerProcessor
