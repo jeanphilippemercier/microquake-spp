@@ -15,11 +15,13 @@ from microquake.IMS import web_client
 from spp.core.settings import settings
 from spp.pipeline import clean_data, event_classifier, interloc
 from spp.utils.seismic_client import post_data_from_objects
-from spp.core.connectors import (connect_redis, record_processing_logs_pg)
+from spp.core.connectors import (connect_rq, record_processing_logs_pg)
 from time import time
+from spp.core.serializers.seismic_objects import (serialize, deserialize,
+                                                  deserialize_message)
 
-redis = connect_redis()
-message_queue = settings.get('processing_flow').extract_waveforms.message_queue
+api_redis_queue = connect_rq('api')
+automatic_redis_queue = connect_rq('automatic')
 
 __processing_step__ = 'waveform_extractor'
 __processing_step_id__ = 2
@@ -67,18 +69,12 @@ def interloc_election(cat):
 
         station_codes = np.unique([tr.stats.station for tr in wf])
 
-        recovery_fraction = len(station_codes) / len(sites)
-
-        if recovery_fraction < minimum_recovery_fraction:
-            logger.warning('Recovery fraction %0.2f is below recovery '
-                           'fraction threshold of %0.2f set in the config '
-                           'file' % (recovery_fraction,
-                                     minimum_recovery_fraction))
-
-            return False
-
         clean_data_processor = clean_data.Processor()
         clean_wf = clean_data_processor.process(stream=wf)
+
+        max_len = np.max([len(tr) for tr in clean_wf])
+        trs = [tr for tr in clean_wf if len(tr) == max_len]
+        clean_wf.traces = trs
 
         interloc_processor = interloc.Processor()
         results = interloc_processor.process(stream=clean_wf)
@@ -87,11 +83,6 @@ def interloc_election(cat):
         interloc_results.append(results)
         wfs.append(wf)
         thresholds.append(results['normed_vmax'])
-
-    # from pdb import set_trace; set_trace()
-
-    # from pdb import set_trace;
-    # set_trace()
 
     index = np.argmax(thresholds)
 
@@ -120,6 +111,16 @@ def get_waveforms(interloc_dict, event):
                        interloc_dict['z']])
 
     for station in inventory.stations():
+        if len(fixed_length_wf.select(station=station.code)) == 0:
+            continue
+        station_data = fixed_length_wf.select(station=station.code)[0].data
+        sampling_rate = fixed_length_wf.select(station=station.code)[
+            0].stats.sampling_rate
+        expected_number_sample = (endtime - starttime).total_seconds() * \
+                                 sampling_rate
+        if len(station_data) < expected_number_sample * 0.95:
+            if np.isnan(station_data).any():
+                continue
         dists.append(np.linalg.norm(ev_loc - station.loc))
         stations.append(station.code)
 
@@ -138,90 +139,55 @@ def get_waveforms(interloc_dict, event):
         if context:
             break
 
-    waveforms = {'stream': fixed_length_wf,
+    waveforms = {'fixed_length': fixed_length_wf,
                  'context': context}
 
     return waveforms
 
-def send_to_api(cat, waveforms):
+@deserialize_message
+def send_to_api(catalogue=None, fixed_length=None, context=None,
+                variable_length=None):
     api_base_url = settings.get('api_base_url')
     post_data_from_objects(api_base_url, event_id=None,
-                           event=cat,
-                           stream=waveforms['stream'],
-                           context_stream=waveforms['context'],
-                           variable_length_stream=waveforms[
-                               'variable_length'],
+                           event=catalogue,
+                           stream=fixed_length,
+                           context_stream=context,
+                           variable_length_stream=variable_length,
                            tolerance=None,
                            send_to_bus=False)
 
 
-def send_to_automatic_processing(cat, waveforms):
+def send_to_automatic_processing(out_dict):
 
     automatic_message_queue = settings.get(
         'processing_flow').automatic.message_queue
 
-    out_dict = {}
-
-    wf_io = BytesIO()
-    waveforms['stream'].write(wf_io, format='mseed')
-    out_dict['waveform_bytes'] = wf_io.getvalue()
-
-    context_io = BytesIO()
-    waveforms['context'].write(context_io, format='mseed')
-    out_dict['context_bytes'] = context_io.getvalue()
-
-    event_io = BytesIO()
-    cat.write(event_io, format='quakeml')
-    out_dict['event_bytes'] = event_io.getvalue()
-
-    msg = msgpack.dumps(out_dict)
-
-    redis.lpush(automatic_message_queue, msg)
+    out_dict_serialized = serialize(out_dict)
 
 
-def resend_to_redis(in_dict):
+@deserialize_message
+def extract_waveform(catalogue=None):
 
-    cat = read_events(BytesIO(in_dict['event_bytes'].encode()))
-
-    processing_attempts = in_dict['processing_attempts']
-
-    connector_settings = settings.get('data_connector')
-    maximum_attempts = connector_settings.maximum_attempts
-    minimum_delay_minutes = connector_settings.minimum_delay_minutes
-
-    event_time_ts = cat[0].preferred_origin().time.timestamp
-    delay = datetime.utcnow().timestamp() - event_time_ts
-
-    if delay > minimum_delay_minutes * 60:
-        processing_attempts += 1
-        in_dict['processing_attempts'] += 1
-
-    if processing_attempts > maximum_attempts:
-        logger.info('maximum number of attempts reached, this event will '
-                    'never be processed!')
-
-    msg = msgpack.dumps(in_dict)
-    redis.rpush(message_queue, msg)
-
-
-while 1:
-
-    logger.info('waiting for message on channel %s' % message_queue)
-    message_queue, message = redis.blpop(message_queue)
     logger.info('message received')
 
+    # tmp = deserialize(message)
     start_processing_time = time()
 
-    tmp = msgpack.loads(message, raw=False)
-    processing_attempts = tmp['processing_attempts']
-    old_cat = read_events(BytesIO(tmp['event_bytes'].encode()))
+    old_cat = catalogue
     cat = old_cat.copy()
 
     event_time = cat[0].preferred_origin().time.datetime.timestamp()
 
-    processing_delay = (datetime.utcnow().timestamp() -
-                        event_time)
-    # try:
+    closing_window_time_seconds = settings.get(
+        'data_connector').closing_window_time_seconds
+    if UTCDateTime.now() - event_time < closing_window_time_seconds:
+        logger.info('Delay between the detection of the event and the '
+                    'current time ({} s) is lower than the closing window '
+                    'time threshold ({} s). The event will resent to the '
+                    'queue and reprocessed at a later time '.format(
+            UTCDateTime.now() - event_time, closing_window_time_seconds))
+
+        return
 
     try:
         variable_length_wf = web_client.get_seismogram_event(base_url, cat[0],
@@ -232,15 +198,20 @@ while 1:
     interloc_results = interloc_election(cat)
 
     if not interloc_results:
-        continue
+        logger.error('interloc failed')
+        return
+
     new_cat = interloc_results['catalog']
     waveforms = get_waveforms(interloc_results, new_cat)
     waveforms['variable_length'] = variable_length_wf
 
     logger.info('event classification')
 
-    category = event_classifier.Processor().process(stream=waveforms[
-        'context'])
+    station_context = waveforms['context'][0].stats.station
+
+    context_2s = waveforms['fixed_length'].select(station=station_context)
+
+    category = event_classifier.Processor().process(stream=context_2s)
 
     sorted_list = sorted(category.items(), reverse=True,
                          key=lambda x: x[1])
@@ -248,6 +219,8 @@ while 1:
     elevation = new_cat[0].preferred_origin().z
     maximum_event_elevation = settings.get(
         'data_connector').maximum_event_elevation
+
+    logger.info('{}'.format(sorted_list))
 
     if sorted_list[0][1] > settings.get(
             'data_connector').likelihood_threshold and elevation < \
@@ -268,14 +241,21 @@ while 1:
         record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
                                   __processing_step_id__, processing_time)
 
-
-        continue
-
-
+        return
 
     logger.info('sending to API, will take long time')
 
-    send_to_api(new_cat, waveforms)
+    dict_out = waveforms
+    dict_out['catalogue'] = new_cat
+
+    for key in waveforms.keys():
+        waveforms[key].write('%s.mseed' % key, format='mseed')
+
+    new_cat.write('catalogue', format='quakeml')
+
+    message = serialize(dict_out)
+
+    api_redis_queue.enqueue(send_to_api, message)
 
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
@@ -283,14 +263,6 @@ while 1:
                               __processing_step_id__, processing_time)
 
     logger.info('sending to automatic pipeline')
-    send_to_automatic_processing(new_cat, waveforms)
+    send_to_automatic_processing(dict_out)
 
     logger.info('done collecting the waveform, happy processing!')
-
-    # except KeyboardInterrupt:
-    #     break
-    #
-    # except:
-    #     logger.info('processing failed, on attempt {}'.format(
-    #         processing_attempts))
-    #     resend_to_redis(tmp)

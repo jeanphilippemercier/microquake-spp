@@ -26,7 +26,7 @@ class seismic_classifier_model:
         #Model was trained at these dimensions
         self.D = (128, 128, 1)
         self.microquake_class_names = ['anthropogenic event', 'controlled explosion',
-                                                            'earthquake', 'explosion', 'quarry blast']
+                                        'earthquake', 'explosion', 'quarry blast']
         self.num_classes = len(self.microquake_class_names)
         self.model_file = self.base_directory/f"{model_name}"
         self.create_model()
@@ -60,39 +60,14 @@ class seismic_classifier_model:
         """
         :param tr: mseed stream
         :param taper: Boolean
-        :return: 1. Combine x, y, z
-                2. Standardize to ~ [-1, 1]
-                3. Detrend & Taper
+        :return: normed composite trace
         """
-        x = tr[0].data
-        y = tr[1].data
-        z = tr[2].data
-        x[~np.isfinite(x)] = 0
-        y[~np.isfinite(y)] = 0
-        z[~np.isfinite(z)] = 0
 
-        sx = np.std(x)
-        sy = np.std(y)
-        sz = np.std(z)
-        # Get the strongest signal
-        if(sx > sy and sx > sz):
-            c = np.sign(x) * np.sqrt(x ** 2 + y ** 2 + z ** 2)
-        elif(sy > sx and sy > sz):
-            c = np.sign(y) * np.sqrt(x ** 2 + y ** 2 + z ** 2)
-        else:
-            c = np.sign(z) * np.sqrt(x ** 2 + y ** 2 + z ** 2)
+        c = tr.composite()
+        c.data = c / np.abs(c).max()
+        c.detrend('demean').taper(max_percentage=0.01)
 
-        c = c[np.isfinite(c)]
-
-        c_norm = c / np.abs(c).max()
-        tr[0].data = c_norm
-
-        tr[0] = tr[0].detrend(type='demean')
-
-        if taper:
-            tr[0] = tr[0].taper(max_percentage=0.05)
-
-        return tr[0]
+        return c[0]
 
     @staticmethod
     def get_spectrogram(tr, nfft=512, noverlap=511):

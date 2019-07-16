@@ -3,8 +3,9 @@ from spp.core.settings import settings
 import sqlalchemy as db
 from datetime import datetime
 from pytz import utc
-from spp.core.db_models import processing_logs
-from spp.core import db_models
+from spp.stats_collector.db_models import processing_logs
+from spp.stats_collector import db_models
+from rq import Queue
 
 
 def connect_redis():
@@ -21,6 +22,9 @@ def connect_redis():
 
     return Redis(**redis_config)
 
+def connect_rq(message_queue):
+    redis = connect_redis()
+    return Queue(message_queue, connection=redis)
 
 def connect_postgres(db_name='spp'):
 

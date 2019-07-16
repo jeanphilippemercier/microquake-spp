@@ -1,5 +1,5 @@
 [default]
-api_base_url = 'https://api.microquake.org/api/v1/'
+api_base_url = 'http://api.microquake.org/api/v1/'
 api_token = ''
 ims_base_url = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
 kafka.brokers = 'spp-confluent-cp-kafka-headless:9092'
