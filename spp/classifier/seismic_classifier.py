@@ -22,7 +22,7 @@ class seismic_classifier_model:
         '''
             :param model_name: Name of the model weight file name.            
         '''
-        self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))
+        self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))/'seismic_classifier'
         #Model was trained at these dimensions
         self.D = (128, 128, 1)
         self.microquake_class_names = ['anthropogenic event', 'controlled explosion',
@@ -61,28 +61,17 @@ class seismic_classifier_model:
         """
         :param tr: mseed stream
         :param taper: Boolean
-        :return: 1. Combine x, y, z
-                2. Standardize to ~ [-1, 1]
-                3. Detrend & Taper
+        :return: normed composite trace
         """
-        maxss = []
-        v = np.zeros(len(tr[-1]), dtype=float)
-        for t in tr:
-            maxss.append(np.abs(t).max())
-            v = v + t.data**2
-        c = np.sign(tr[np.argmax(maxss)])*np.sqrt(v)
 
-        c = c[np.isfinite(c)]
-
-        c_norm = c / np.abs(c).max()
-        tr[0].data = c_norm
-
-        tr[0] = tr[0].detrend(type='demean')
+        c = tr.composite()
+        c.data = c / np.abs(c).max()
+        c = c.detrend(type='demean')
 
         if taper:
-            tr[0] = tr[0].taper(max_percentage=0.05)
+            c = c.taper(max_percentage=0.05)
 
-        return tr[0]
+        return c[0]
 
     @staticmethod
     def get_spectrogram(tr, nfft=512, noverlap=511):
@@ -164,7 +153,7 @@ class seismic_classifier_model:
         x = Dense(self.num_classes, activation='sigmoid')(x)
         self.model = Model([i1, i2], x)
         self.model.load_weights(self.model_file)
-      
+
     def create_3class_model(self):
         input_shape = (64, 64, 1)
         i = Input(shape=input_shape, name="spectrogram" )
@@ -189,12 +178,12 @@ class seismic_classifier_model:
 
             X_shortcut = Add()([y,X_shortcut])
 
-        x = Flatten()(x)     
+        x = Flatten()(x)
         x = Dense(500, activation='relu')(x)
         x = Dense(3, activation='softmax')(x)
         self.model3 = Model(i, x)
         self.model3.load_weights(self.base_directory/'model_3classes.hdf5')
-        
+
     def is_noise(self, tr):
         '''
         detect if signal is noise
@@ -223,10 +212,10 @@ class seismic_classifier_model:
             classes['Noise'] = 1
         else:
             a = self.model.predict(data)
-            
+
             for p, n in zip(a.reshape(-1), self.microquake_class_names):
                 classes[n] = p
-            
+
         classes['Noise'] = 1-np.max(a.reshape(-1))
         return classes
     

@@ -18,6 +18,18 @@ class Processor(ProcessingUnit):
         stream = kwargs["stream"]
         black_list = settings.get('sensors').black_list
 
+        starttime = stream[0].stats.starttime
+        endtime = stream[0].stats.endtime
+
+        for tr in stream:
+            if tr.stats.starttime < starttime:
+                starttime = tr.stats.starttime
+
+            if tr.stats.endtime > endtime:
+                endtime = tr.stats.endtime
+
+        stream.trim(starttime, endtime, pad=True, fill_value=0)
+
         trs = []
 
         for i, tr in enumerate(stream):

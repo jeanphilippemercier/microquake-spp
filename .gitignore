@@ -33,6 +33,7 @@ libs/microquake
 *.txt
 *.pdf
 *.log.*
+Brewfile
 
 
 .DS_Store
