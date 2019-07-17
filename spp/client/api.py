@@ -5,7 +5,7 @@ from uplink.auth import ApiTokenHeader
 
 from ..core.settings import settings
 # Local imports
-from .schemas import Cable, CableSchema, EventSchema, Ray, RaySchema
+from .schemas import Cable, CableSchema, Event, EventSchema, Ray, RaySchema
 
 
 # @headers({"Accept": "application/vnd.seismicplatform.v1.full+json"})
@@ -46,5 +46,5 @@ class SeismicClient(Consumer):
         """post_cable."""
 
     @post("events", args={"events": Body})
-    def post_events(selfs, events: List[event]) -> EventSchema(many=True):
+    def post_events(selfs, events: List[Event]) -> EventSchema(many=True):
         """post_event"""

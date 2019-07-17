@@ -125,12 +125,6 @@ spec:
       args:
       - /app/bin/06_event_database_handler.py
 
-  - name: raytracer              # name of the template
-    container:
-      <<: *sppdef
-      args:
-      - /app/bin/ray_tracer.py
-
   volumes:
   - name: mypd
     persistentVolumeClaim:

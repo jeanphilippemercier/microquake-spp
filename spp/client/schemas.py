@@ -16,7 +16,7 @@ Cable = collections.namedtuple(
 ray_fields = ["id", "code", "r", "l", "g", "c"]
 
 Ray = collections.namedtuple(
-    "Ray", field_names=cable_fields
+    "Ray", field_names=ray_fields
 )
 
 

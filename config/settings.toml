@@ -203,8 +203,6 @@ focal_mechanism.cangle = 45
 focal_mechanism.prob_max = 0.25
 focal_mechanism.plot_focal_mechs = false
 
-ray_tracer.message_queue = 'spp.services.ray_tracing'
-
 measure_amplitudes.pulse_min_snr_P = 9
 measure_amplitudes.pulse_min_snr_S = 6
 measure_amplitudes.pulse_min_width = 0.0014
@@ -250,7 +248,6 @@ services.channel.magnitude = 'spp.services.magnitude'
 processing_flow.extract_waveforms.message_queue = 'spp.processing_flow.extract_waveforms'
 processing_flow.automatic.message_queue = 'spp.processing_flow.automatic'
 processing_flow.interactive.message_queue = 'spp.processing_flow.interactive'
-processing_flow.ray_tracing.message_queue = 'spp.processing_flow.ray_tracer'
 
 processing_flow.automatic.steps = [
 { module='interloc', input='automatic'},
@@ -262,12 +259,7 @@ processing_flow.automatic.steps = [
 { module='measure_energy'},
 { module='magnitude'},
 { module='magnitude', type='frequency'},
-{ module='event_database'},
-{ module='ray_tracer'}
-]
-
-processing_flow.ray_tracing.steps = [
-{ module='ray_tracer', input='ray_tracing'},
+{ module='event_database'}
 ]
 
 processing_flow.interactive.steps=[
