@@ -4,12 +4,14 @@ GRANT ALL PRIVILEGES ON DATABASE sensor_data TO sensor_user;
 \c sensor_data
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 CREATE TABLE recordings (
-  time        TIMESTAMPTZ        NOT NULL,
-  sensor_id   INT                NOT NULL,
-  sensor_type_id INT             NOT NULL,
-  samplecount INT                NOT NULL,
-  samplerate  INT                NOT NULL,
-  waveform    DOUBLE PRECISION ARRAY NULL
+  time            TIMESTAMPTZ       NOT NULL,
+  sensor_id       INT               NOT NULL,
+  sensor_type_id  INT               NOT NULL,
+  sample_count    INT               NOT NULL,
+  sample_rate     DOUBLE PRECISION  NOT NULL,
+  x               REAL ARRAY        NULL,
+  y               REAL ARRAY        NULL,
+  z               REAL ARRAY        NULL
 );
 SELECT create_hypertable('recordings', 'time');
-
+ALTER TABLE recordings OWNER TO sensor_user;
