@@ -66,14 +66,13 @@ services:
       SPP_COMMON: "/data/common"
       SPP_CONFIG: "/data/config"
     command: bash -c "seismic_platform interactive"
-    networks:
-      - spp-network
-
     working_dir:
       /app/spp/data_connector
     tty: true
 
   spp-postgres:
+    networks:
+      - spp-network
     image: timescale/timescaledb:latest-pg11
     hostname: spp-postgres
     container_name: spp-postgres
