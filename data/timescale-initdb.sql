@@ -6,6 +6,7 @@ CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 CREATE TABLE recordings (
   time        TIMESTAMPTZ        NOT NULL,
   sensor_id   INT                NOT NULL,
+  sensor_type_id INT             NOT NULL,
   samplecount INT                NOT NULL,
   samplerate  INT                NOT NULL,
   waveform    DOUBLE PRECISION ARRAY NULL
