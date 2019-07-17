@@ -153,11 +153,7 @@ class seismic_classifier_model:
         x = Dense(self.num_classes, activation='sigmoid')(x)
         self.model = Model([i1, i2], x)
         self.model.load_weights(self.model_file)
-<<<<<<< HEAD
- 
-=======
 
->>>>>>> 46e82c4df05d61b0617f5dec4bd05ffa4897a22a
     def create_3class_model(self):
         input_shape = (64, 64, 1)
         i = Input(shape=input_shape, name="spectrogram" )
