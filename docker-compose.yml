@@ -49,6 +49,7 @@ services:
     container_name: event_connector
     external_links:
       - redisdb
+      - spp-postgres
     depends_on:
       - spp-postgres
     volumes:
@@ -58,7 +59,6 @@ services:
     environment:
       SPP_COMMON: "/data/common"
       SPP_CONFIG: "/data/config"
-    command: bash -c "seismic_platform interactive"
     networks:
       - spp-network
 
@@ -79,5 +79,9 @@ services:
       - ./data/timescale-initdb.sql:/docker-entrypoint-initdb.d/timescale-initdb.sql
       - ./data/grafana-initdb.sql:/docker-entrypoint-initdb.d/grafana-initdb.sql
       - .tmp/postgres:/data/postgres
+    networks:
+      - spp-network
+
 volumes:
     mi2: {}
+

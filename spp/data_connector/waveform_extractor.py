@@ -20,8 +20,14 @@ from time import time
 from spp.core.serializers.seismic_objects import (serialize, deserialize,
                                                   deserialize_message)
 
-api_redis_queue = connect_rq('api')
-automatic_redis_queue = connect_rq('automatic')
+from spp.core.redis_connectors import RedisQueue
+
+from spp.pipeline.automatic_pipeline import automatic_pipeline
+
+automatic_message_queue = settings.AUTOMATIC_PIPELINE_MESSAGE_QUEUE
+automatic_job_queue = RedisQueue(automatic_message_queue)
+api_message_queue = settings.API_MESSAGE_QUEUE
+api_job_queue = RedisQueue(api_message_queue)
 
 __processing_step__ = 'waveform_extractor'
 __processing_step_id__ = 2
@@ -70,7 +76,7 @@ def interloc_election(cat):
         station_codes = np.unique([tr.stats.station for tr in wf])
 
         clean_data_processor = clean_data.Processor()
-        clean_wf = clean_data_processor.process(stream=wf)
+        clean_wf = clean_data_processor.process(waveform=wf)
 
         max_len = np.max([len(tr) for tr in clean_wf])
         trs = [tr for tr in clean_wf if len(tr) == max_len]
@@ -146,7 +152,7 @@ def get_waveforms(interloc_dict, event):
 
 @deserialize_message
 def send_to_api(catalogue=None, fixed_length=None, context=None,
-                variable_length=None):
+                variable_length=None, **kwargs):
     api_base_url = settings.get('api_base_url')
     post_data_from_objects(api_base_url, event_id=None,
                            event=catalogue,
@@ -162,11 +168,11 @@ def send_to_automatic_processing(out_dict):
     automatic_message_queue = settings.get(
         'processing_flow').automatic.message_queue
 
-    out_dict_serialized = serialize(out_dict)
+    out_dict_serialized = serialize(**out_dict)
 
 
 @deserialize_message
-def extract_waveform(catalogue=None):
+def extract_waveform(catalogue=None, **kwargs):
 
     logger.info('message received')
 
@@ -248,14 +254,13 @@ def extract_waveform(catalogue=None):
     dict_out = waveforms
     dict_out['catalogue'] = new_cat
 
-    for key in waveforms.keys():
-        waveforms[key].write('%s.mseed' % key, format='mseed')
-
     new_cat.write('catalogue', format='quakeml')
 
-    message = serialize(dict_out)
+    message = serialize(**dict_out)
 
-    api_redis_queue.enqueue(send_to_api, message)
+    result = api_job_queue.submit_task(send_to_api,
+                                       kwargs={'data': message,
+                                               'serialized': True})
 
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
@@ -263,6 +268,10 @@ def extract_waveform(catalogue=None):
                               __processing_step_id__, processing_time)
 
     logger.info('sending to automatic pipeline')
-    send_to_automatic_processing(dict_out)
+
+    result = automatic_job_queue.submit_task(automatic_pipeline,
+                                             kwargs={'data': message,
+                                                     'serialized': True})
+
 
     logger.info('done collecting the waveform, happy processing!')

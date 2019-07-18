@@ -26,7 +26,7 @@ def connect_rq(message_queue):
     redis = connect_redis()
     return Queue(message_queue, connection=redis)
 
-def connect_postgres(db_name='spp'):
+def connect_postgres(db_name='postgres'):
 
     if 'POSTGRES_MASTER_SERVICE_HOST' in settings:
         pass
@@ -48,7 +48,7 @@ def connect_postgres(db_name='spp'):
 
 def record_processing_logs_pg(event, status, processing_step,
                               processing_step_id, processing_time_second,
-                              db_name='spp'):
+                              db_name='postgres'):
 
     """
     Record the processing logs in the postgres database

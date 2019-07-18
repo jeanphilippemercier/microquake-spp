@@ -26,7 +26,7 @@ elastic_db.port = 9200
 mongo_db.url = 'mongodb://mongodb:27017'
 mongo_db.db_processed_events = 'processed_event'
 
-postgres_db.url = 'postgresql://grafana:grafana@postgres:5432/'
+postgres_db.url = 'postgresql://postgres:password@spp-postgres:5432/'
 
 [development]
 redis_db.host = 'redisdb'
