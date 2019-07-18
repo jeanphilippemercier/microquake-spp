@@ -15,24 +15,24 @@ class Processor(ProcessingUnit):
         """
             Process event and returns its classification.
         """
-        stream = kwargs["stream"]
+        waveform = kwargs["waveform"]
         black_list = settings.get('sensors').black_list
 
-        starttime = stream[0].stats.starttime
-        endtime = stream[0].stats.endtime
+        starttime = waveform[0].stats.starttime
+        endtime = waveform[0].stats.endtime
 
-        for tr in stream:
+        for tr in waveform:
             if tr.stats.starttime < starttime:
                 starttime = tr.stats.starttime
 
             if tr.stats.endtime > endtime:
                 endtime = tr.stats.endtime
 
-        stream.trim(starttime, endtime, pad=True, fill_value=0)
+        waveform.trim(starttime, endtime, pad=True, fill_value=0)
 
         trs = []
 
-        for i, tr in enumerate(stream):
+        for i, tr in enumerate(waveform):
             if tr.stats.station not in black_list:
                 tr.data = np.nan_to_num(tr.data)
                 if ((np.sum(tr.data ** 2) > 0)):
@@ -48,6 +48,6 @@ class Processor(ProcessingUnit):
     #     """
     #         legacy pipeline handler
     #     """
-    #     cat, stream = self.app.deserialise_message(msg_in)
+    #     cat, waveform = self.app.deserialise_message(msg_in)
     #     cat = self.output_catalog(cat)
-    #     return cat, stream
+    #     return cat, waveform

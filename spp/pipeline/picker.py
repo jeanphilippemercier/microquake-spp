@@ -95,6 +95,7 @@ class Processor(ProcessingUnit):
             st_c, picks, snr_dt=search_window, snr_window=snr_window,
             filter="P"
         )
+
         t5 = time()
         logger.info("done picking P-wave in %0.3f seconds" % (t5 - t4))
 
@@ -121,6 +122,10 @@ class Processor(ProcessingUnit):
         logger.info("done picking S-wave in %0.3f seconds" % (t7 - t6))
 
         snr_picks = p_snr_picks + s_snr_picks
+
+        if len(snr_picks) == 0:
+            return False
+
         snrs = snrs_p + snrs_s
 
         snr_picks_filtered = [

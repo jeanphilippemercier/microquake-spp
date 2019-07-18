@@ -4,22 +4,20 @@ events packaged as cataglog to a Redis Queue
 """
 
 from datetime import datetime, timedelta
-from io import BytesIO
 from time import sleep
-
-import msgpack
 from pytz import utc
 
 from loguru import logger
 from microquake.IMS import web_client
 from spp.core.settings import settings
 from spp.core.time import get_time_zone
-from spp.core.connectors import (connect_redis, connect_postgres, connect_rq,
+from spp.core.connectors import (connect_postgres,
                                  record_processing_logs_pg)
+from spp.core.redis_connectors import RedisQueue
 
 from spp.core.serializers.seismic_objects import serialize
 
-from spp.data_connector import waveform_extractor
+from spp.data_connector.waveform_extractor import extract_waveform
 
 from time import time
 
@@ -31,15 +29,14 @@ __processing_step_id__ = 1
 
 request_range_hours = settings.get('data_connector').request_range_hours
 
-pg = connect_postgres(db_name='spp')
+pg = connect_postgres(db_name='postgres')
 
 tz = get_time_zone()
 sites = [station.code for station in settings.inventory.stations()]
 base_url = settings.get('ims_base_url')
 
-message_queue = settings.WAVEFORM_EXTRACTOR_MESSAGE_QUEUE
-
-redis_queue = connect_rq(message_queue)
+we_message_queue = settings.WAVEFORM_EXTRACTOR_MESSAGE_QUEUE
+we_job_queue = RedisQueue(we_message_queue)
 
 def get_starttime():
 
@@ -72,7 +69,7 @@ while 1:
 
     try:
         cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
-                                       utc, accepted=True, manual=True)
+                                       utc, accepted=False, manual=False)
     except:
         logger.error('Connection to the IMS server on {} failed!'.format(
             base_url))
@@ -99,12 +96,17 @@ while 1:
             ct += 1
             logger.info('sending events with event_id {} to redis the {} '
                         'message_queue'.format(event.resource_id.id,
-                message_queue))
+                                               we_message_queue))
             try:
                 message = serialize(catalogue=event)
-                redis_queue.enqueue(waveform_extractor.extract_waveform,
-                                    kwargs={'data'      : message,
-                                            'serialized': True})
+                result = we_job_queue.submit_task(extract_waveform,
+                                                  kwargs={'data': message,
+                                                          'serialized': True})
+
+                # result = submit_task_to_rq(we_message_queue, extract_waveform,
+                #                            kwargs={'data'      : message,
+                #                                    'serialized': True})
+
                 logger.info('sent {} events for further processing'.format(ct))
                 status = 'success'
             except:

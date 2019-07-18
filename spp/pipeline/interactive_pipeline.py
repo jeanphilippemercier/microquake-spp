@@ -14,8 +14,6 @@ from spp.core.connectors import connect_redis
 
 
 redis = connect_redis()
-ray_tracer_message_queue = settings.get(
-    'processing_flow').ray_tracing.message_queue
 interactive_message_queue = settings.get(
     'processing_flow').interactive.message_queue
 
@@ -117,11 +115,6 @@ def interactive_pipeline(waveform_bytes=None,
     # calculating the rays asynchronously
     bytes_out = BytesIO()
     cat_nlloc.write(bytes_out, format='QUAKEML')
-
-    logger.info('sending request to the ray tracer on channel %s'
-                % ray_tracer_message_queue)
-    redis.rpush(ray_tracer_message_queue, bytes_out.getvalue())
-
 
     measure_amplitudes_processor = measure_amplitudes.Processor()
     cat_amplitude = measure_amplitudes_processor.process(cat=cat_nlloc,

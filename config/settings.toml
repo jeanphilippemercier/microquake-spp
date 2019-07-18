@@ -9,7 +9,6 @@ network_code = 'HNUG'
 single_run = false
 debug_level = 0
 debug_file_dir = './common'
-# api_base_url = 'http://127.0.0.1:8000/api/v1/'
 
 # nlloc
 nlloc.nll_base = 'NLL'
@@ -28,6 +27,8 @@ time_zone.time_zone_code = 'ULN'             # time zone code. If type=time_zone
 time_zone.offset = 8                         # time offset in hours, ignored if type=time_zone
 
 waveform_extractor_message_queue = 'event_connector.extract_waveforms'
+automatic_pipeline_message_queue = 'workflow.automatic'
+api_message_queue = 'api'
 
 
 grids.units = 'meter'
@@ -44,11 +45,6 @@ grids.velocities.format = 'NLLOC'
 
 grids.travel_time_h5.fname = 'travel_time_tables.h5f'
 
-# mongodb.url = 'mongodb://mongodb:27017'
-
-# Not used, definition similar to velocity grids
-# 	[grids.density]
-#		homogeneous = false
 
 sensors.source     = 'local'
 sensors.units      = 'meter'
@@ -56,23 +52,11 @@ sensors.format     = 'csv'
 sensors.path       = 'sensors.csv'
 sensors.stationXML = 'OT.xml'
 sensors.black_list = ['7', '9', '10', '23', '25', '31', '32', '54', '91', '96', '99', '100', '102', '107', '88', '90', '77']
-#sensors.black_list = ['8']
-
-data_local.ms_chunks = '/home/phil/data/oyu/spp_common/synthetic/chunks/*.mseed'
-data_local.ms_10s    = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.mseed'
-data_local.xml_10s   = '/home/phil/data/oyu/spp_common/synthetic/simdat10s.xml'
 
 event_connector.on_start_up.number_of_hours = 24
 data_connector.url = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
 
 
-# source = 'local'
-# path = '/Users/jpmercier/.spp/data/'
-data_connector.kafka_consumer_topic = 'data_connector'
-data_connector.kafka_feedback_topic = 'data_connector'
-data_connector.kafka_producer_topic =  'picker'
-data_connector.log_topic = 'data_connector'
-data_connector.log_file_name = 'data_connector.log'
 data_connector.minimum_recovery_fraction = 0.85
 data_connector.maximum_attempts = 10 # maximum number of attempts at retrieving the data
 data_connector.minimum_delay_minutes = 30
@@ -86,20 +70,6 @@ data_connector.request_range_hours = 48
 data_connector.closing_window_time_seconds = 30 # time after which we consider the continuous data window closed after the event occurred
 data_connector.context_trace_forbiden_sensor = ['7', '9']
 
-initializer.log_topic = 'initializer'
-initializer.log_file_name = 'initializer.log'
-initializer.output_data_name = 'created'
-
-initializer.filter.freqmin=100
-initializer.filter.freqmax=1000
-
-initializer.window_size.start=-0.3    # seconds before event time
-initializer.window_size.end=0.9       # seconds after event time
-
-mseed_decomposer.kafka_producer_topic = 'mseed_blocks'
-
-transformer.kafka_consumer_topic = 'mseed_blocks'
-transformer.kafka_producer_topic = 'mseed_1sec'
 
 interloc.nthreads = 4
 interloc.samplerate_decimated = 3000.0
@@ -110,8 +80,12 @@ interloc.pair_dist_max = 2000.0
 interloc.cc_smooth_length_sec = 0.005
 interloc.detection_threshold = 0.2
 
-create_event.log_topic = 'create_event'
-create_event.log_file_name = 'create_event.log'
+compute_xcorrs.cclen_sec = 10
+compute_xcorrs.stepsize = 10
+compute_xcorrs.onebit = true
+compute_xcorrs.whiten_corner_freqs = [40.0, 50.0, 350.0, 360.0]
+compute_xcorrs.cc_samplerate = 1000.0
+compute_xcorrs.keeplag = 1.0
 
 picker.snr_threshold = 6
 picker.residual_tolerance = 15e-3
@@ -182,8 +156,6 @@ magnitude.use_free_surface_correction = false
 magnitude.make_preferred = true
 magnitude.use_smom = false
 
-# If you run freq domain mag mod *after focal mech, and use_sdr_rad is True,
-#    then it will calc/use rad pattern computed for preferred focal mech
 magnitude.frequency.phase_list = ['P', 'S']
 magnitude.frequency.use_sdr_rad = false
 magnitude.frequency.make_preferred = false
@@ -192,7 +164,6 @@ magnitude.frequency.min_dist = 20
 
 focal_mechanism.npolmin = 8
 focal_mechanism.max_agap = 180
-#max_agap = 90
 focal_mechanism.max_pgap = 60
 focal_mechanism.dang = 5
 focal_mechanism.nmc = 30
@@ -202,8 +173,6 @@ focal_mechanism.delmax = 120
 focal_mechanism.cangle = 45
 focal_mechanism.prob_max = 0.25
 focal_mechanism.plot_focal_mechs = false
-
-ray_tracer.message_queue = 'spp.services.ray_tracing'
 
 measure_amplitudes.pulse_min_snr_P = 9
 measure_amplitudes.pulse_min_snr_S = 6
@@ -225,20 +194,8 @@ measure_smom.fmin = 30.0
 measure_smom.fmax = 600.0
 
 kafka.brokers = 'spp-confluent-cp-kafka-headless:9092'
-# kafka.brokers = 'broker:9092'
 kafka.group_id = 'seismic_processing_platform'
 kafka.threads = 3
-
-airflow.description = 'Data Loader'
-airflow.catchup = false
-
-event_database.output_data_name = 'saved_to_db'
-event_database.log_file_name = 'event_database.log'
-event_database.log_topic = 'event database'
-
-
-signal_analysis.log_file_name = 'signal_analysis.log'
-signal_analysis.log_topic = 'signal analysis'
 
 services.channel.interloc = 'spp.services.interloc'
 services.channel.picker = 'spp.services.picker'
@@ -250,7 +207,6 @@ services.channel.magnitude = 'spp.services.magnitude'
 processing_flow.extract_waveforms.message_queue = 'spp.processing_flow.extract_waveforms'
 processing_flow.automatic.message_queue = 'spp.processing_flow.automatic'
 processing_flow.interactive.message_queue = 'spp.processing_flow.interactive'
-processing_flow.ray_tracing.message_queue = 'spp.processing_flow.ray_tracer'
 
 processing_flow.automatic.steps = [
 { module='interloc', input='automatic'},
@@ -262,12 +218,7 @@ processing_flow.automatic.steps = [
 { module='measure_energy'},
 { module='magnitude'},
 { module='magnitude', type='frequency'},
-{ module='event_database'},
-{ module='ray_tracer'}
-]
-
-processing_flow.ray_tracing.steps = [
-{ module='ray_tracer', input='ray_tracing'},
+{ module='event_database'}
 ]
 
 processing_flow.interactive.steps=[
