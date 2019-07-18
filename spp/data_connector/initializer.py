@@ -13,7 +13,7 @@ from spp.core.settings import settings
 from spp.core.time import get_time_zone
 from spp.core.connectors import (connect_postgres,
                                  record_processing_logs_pg)
-from spp.core.redis_connectors import RedisQueue
+from spp.core.connectors import RedisQueue
 
 from spp.core.serializers.seismic_objects import serialize
 
@@ -21,7 +21,7 @@ from spp.data_connector.waveform_extractor import extract_waveform
 
 from time import time
 
-from spp.stats_collector.db_models import processing_logs
+from spp.core.models import processing_logs
 import sqlalchemy as db
 
 __processing_step__ = 'initializer'
@@ -29,7 +29,7 @@ __processing_step_id__ = 1
 
 request_range_hours = settings.get('data_connector').request_range_hours
 
-pg = connect_postgres(db_name='postgres')
+pg, session = connect_postgres(db_name='postgres')
 
 tz = get_time_zone()
 sites = [station.code for station in settings.inventory.stations()]
