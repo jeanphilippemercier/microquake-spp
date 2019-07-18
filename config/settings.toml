@@ -80,6 +80,13 @@ interloc.pair_dist_max = 2000.0
 interloc.cc_smooth_length_sec = 0.005
 interloc.detection_threshold = 0.2
 
+compute_xcorrs.cclen_sec = 10
+compute_xcorrs.stepsize = 10
+compute_xcorrs.onebit = true
+compute_xcorrs.whiten_corner_freqs = [40.0, 50.0, 350.0, 360.0]
+compute_xcorrs.cc_samplerate = 1000.0
+compute_xcorrs.keeplag = 1.0
+
 picker.snr_threshold = 6
 picker.residual_tolerance = 15e-3
 picker.p_s_tolerance = 2e-3  # P and S must be at least separated by p_s_tolerance
