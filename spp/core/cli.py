@@ -32,7 +32,6 @@ from redis import Redis
 from .. import __version__
 from ..pipeline.automatic_pipeline import automatic_pipeline
 from ..pipeline.interactive_pipeline import interactive_pipeline
-from ..pipeline.ray_tracer import ray_tracer_pipeline
 from ..utils.kafka_redis_application import KafkaRedisApplication
 from .hdf5 import write_ttable_h5
 from .nlloc import nll_sensors, nll_velgrids
@@ -202,17 +201,6 @@ def interactive(info: Info):
     click.echo(f"Running interactive pipeline")
     setting_name = 'processing_flow.interactive'
     run_pipeline(interactive_pipeline, setting_name)
-
-
-@cli.command()
-@pass_info
-def raytracer(info: Info):
-    """
-    Run raytracer module
-    """
-    click.echo(f"Running raytracer module")
-    setting_name = 'processing_flow.ray_tracing'
-    run_pipeline(ray_tracer_pipeline, setting_name)
 
 
 @cli.command()

@@ -190,4 +190,45 @@ kafka.brokers = 'spp-confluent-cp-kafka-headless:9092'
 kafka.group_id = 'seismic_processing_platform'
 kafka.threads = 3
 
+services.channel.interloc = 'spp.services.interloc'
+services.channel.picker = 'spp.services.picker'
+services.channel.nlloc = 'spp.services.nlloc'
+services.channel.magnitude = 'spp.services.magnitude'
+
+
+# this describes the kafka channel to which the message should be routed
+processing_flow.extract_waveforms.message_queue = 'spp.processing_flow.extract_waveforms'
+processing_flow.automatic.message_queue = 'spp.processing_flow.automatic'
+processing_flow.interactive.message_queue = 'spp.processing_flow.interactive'
+
+processing_flow.automatic.steps = [
+{ module='interloc', input='automatic'},
+{ module='picker'},
+{ module='nlloc'},
+{ module='measure_amplitudes'},
+{ module='measure_smom'},
+{ module='focal_mechanism'},
+{ module='measure_energy'},
+{ module='magnitude'},
+{ module='magnitude', type='frequency'},
+{ module='event_database'}
+]
+
+processing_flow.interactive.steps=[
+{ module='nlloc', input='interactive', output='magnitude'},
+{ module='magnitude', input='magnitude', output='magnitude_frequency'},
+{ module='magnitude', type='frequency', input='magnitude_frequency', output='event_database'},
+{ module='event_database', input='event_database'}
+]
+
+processing_flow.interactive_accepted.trigger_data_name = 'interactive_accepted'
+processing_flow.interactive_accepted.dataset = 'seismic_event'
+processing_flow.interactive_accepted.steps=[
+{ module='measure_smom', input='data_interactive_accepted', output='focal_mechanism'},
+{ module='focal_mechanism', input='focal_mechanism', output='measure_energy'},
+{ module='measure_energy', input='measure_energy', output='magnitude'},
+{ module='magnitude', input='magnitude', output='magnitude_frequency'},
+{ module='magnitude', type='frequency', input='magnitude_frequency', output='event_database'},
+{ module='event_database', input='event_database'}
+]
 

@@ -6,6 +6,8 @@ networks:
 
 services:
 #  automatic:
+#    networks:
+#      - spp-network
 #    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
 #    hostname: automatic
 #    container_name: automatic
@@ -24,7 +26,10 @@ services:
 #    restart: always
 #    tty: true
 #
+
 #  interactive:
+#    networks:
+#      - spp-network
 #    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
 #    hostname: interactive
 #    container_name: interactive
@@ -44,12 +49,13 @@ services:
 #    tty: true
 #
   event_connector:
+    networks:
+      - spp-network
     image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
     hostname: event_connector
     container_name: event_connector
     external_links:
       - redisdb
-      - spp-postgres
     depends_on:
       - spp-postgres
     volumes:
@@ -59,14 +65,14 @@ services:
     environment:
       SPP_COMMON: "/data/common"
       SPP_CONFIG: "/data/config"
-    networks:
-      - spp-network
 
     working_dir:
       /app/spp/data_connector
     tty: true
 
   spp-postgres:
+    networks:
+      - spp-network
     image: timescale/timescaledb:latest-pg11
     hostname: spp-postgres
     container_name: spp-postgres
@@ -79,9 +85,5 @@ services:
       - ./data/timescale-initdb.sql:/docker-entrypoint-initdb.d/timescale-initdb.sql
       - ./data/grafana-initdb.sql:/docker-entrypoint-initdb.d/grafana-initdb.sql
       - .tmp/postgres:/data/postgres
-    networks:
-      - spp-network
-
 volumes:
     mi2: {}
-

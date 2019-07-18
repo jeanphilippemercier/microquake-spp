@@ -22,7 +22,7 @@ class seismic_classifier_model:
         '''
             :param model_name: Name of the model weight file name.            
         '''
-        self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))
+        self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))/'seismic_classifier'
         #Model was trained at these dimensions
         self.D = (128, 128, 1)
         self.microquake_class_names = ['anthropogenic event', 'controlled explosion',
