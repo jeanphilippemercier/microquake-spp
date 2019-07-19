@@ -305,6 +305,7 @@ def get_events_catalog(api_base_url, start_time, end_time, status='accepted'):
     :param api_base_url:
     :param start_time:
     :param end_time:
+    :param status: Event status, accepted, rejected, accepted,rejected
     :return:
     """
     url = api_base_url + "catalog"
