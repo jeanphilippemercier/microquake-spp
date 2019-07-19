@@ -10,7 +10,7 @@ from spp.core.settings import settings
 import numpy as np
 from io import BytesIO
 from spp.core.serializers.seismic_objects import serialize, deserialize_message
-from spp.core.redis_connectors import RedisQueue
+from spp.core.connectors import RedisQueue
 
 api_base_url = settings.get('api_base_url')
 
