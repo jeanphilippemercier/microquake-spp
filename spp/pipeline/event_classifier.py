@@ -1,4 +1,5 @@
-from ..classifier.seismic_classifier import seismic_classifier_model
+from ..classifier.seismic_classifier import SeismicClassifierModel
+
 from .processing_unit import ProcessingUnit
 
 class Processor(ProcessingUnit):
@@ -7,7 +8,7 @@ class Processor(ProcessingUnit):
         return "event_classifier"
 
     def initializer(self):
-        self.seismic_model = seismic_classifier_model()
+        self.seismic_model = SeismicClassifierModel()
 
     def process(self, **kwargs):
         """
