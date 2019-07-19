@@ -13,7 +13,8 @@ from loguru import logger
 from microquake.core import UTCDateTime, read_events
 from microquake.IMS import web_client
 from spp.core.settings import settings
-from spp.pipeline import clean_data, event_classifier, interloc
+from spp.pipeline import (clean_data, event_classifier, interloc,
+                          quick_magnitude)
 from spp.utils.seismic_client import post_data_from_objects
 from spp.core.connectors import (record_processing_logs_pg,
                                  RedisQueue)
@@ -251,12 +252,18 @@ def extract_waveform(catalogue=None, **kwargs):
 
     logger.info('sending to API, will take long time')
 
+    mag_cat = quick_magnitude.processor().process(stream=waveforms[
+        'fixed_length'], cat=new_cat).output_catalogue(new_cat)
+
+
+
     dict_out = waveforms
-    dict_out['catalogue'] = new_cat
+    dict_out['catalogue'] = mag_cat
 
     new_cat.write('catalogue', format='quakeml')
 
     message = serialize(**dict_out)
+
 
     result = api_job_queue.submit_task(send_to_api,
                                        kwargs={'data': message,

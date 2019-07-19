@@ -60,17 +60,20 @@ processing = db.Table('processing', metadata,
 #                      )
 
 
-class recordings(Base):
+class Recording(Base):
     __tablename__ = 'recordings'
 
     id = Column(db.Integer, primary_key=True)
-    time = Column(db.DateTime, nullable=False)
+    starttime = Column(db.DateTime, nullable=False)
+    endtime = Column(db.DateTime, nullable=False)
     sensor_id = Column(db.Integer, nullable=False)
     sample_count = Column(db.Integer, nullable=False)
     sample_rate = Column(db.Float, nullable=False)
-    x = Column(db.ARRAY(db.Float), nullable=False)
-    y = Column(db.ARRAY(db.Float), nullable=False)
-    z = Column(db.ARRAY(db.Float), nullable=False)
+    # x = Column(db.ARRAY(db.Float), nullable=False)
+    # y = Column(db.ARRAY(db.Float), nullable=False)
+    # z = Column(db.ARRAY(db.Float), nullable=False)
+    data = Column(db.LargeBinary)
+    # data = Column(db.String(255))
 
 
 # Base.metadata.create_all(engine)
