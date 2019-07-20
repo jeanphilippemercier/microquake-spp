@@ -21,7 +21,7 @@ from spp.data_connector.waveform_extractor import extract_waveform
 
 from time import time
 
-from spp.stats_collector.db_models import processing_logs
+from spp.core.db_models import processing_logs
 import sqlalchemy as db
 
 __processing_step__ = 'initializer'

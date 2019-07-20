@@ -9,7 +9,7 @@ CREATE TABLE recordings (
   sensor_id       INT               NOT NULL,
   sensor_type_id  INT               NULL,
   sample_count    INT               NOT NULL,
-  sample_rate     REAL              NOT NULL,
+  sample_rate     DOUBLE PRECISION  NOT NULL,
   x               REAL ARRAY        NULL,
   y               REAL ARRAY        NULL,
   z               REAL ARRAY        NULL

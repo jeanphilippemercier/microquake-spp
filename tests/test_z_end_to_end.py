@@ -10,14 +10,10 @@ from tests.test_measure_smom import check_smom_data
 from tests.test_nlloc import check_hypocenter_location
 from tests.test_picker import check_picker_data
 
-from spp.pipeline.focal_mechanism import Processor as FocalMechanismProcessor
-from spp.pipeline.interloc import Processor as InterlocProcessor
-from spp.pipeline.magnitude import Processor as MagnitudeProcessor
-from spp.pipeline.measure_amplitudes import Processor as MeasureAmplitudesProcessor
-from spp.pipeline.measure_energy import Processor as MeasureEnergyProcessor
-from spp.pipeline.measure_smom import Processor as MeasureSmomProcessor
-from spp.pipeline.nlloc import Processor as NLLocProcessor
-from spp.pipeline.picker import Processor as PickerProcessor
+from spp.pipeline import (FocalMechanismProcessor, InterlocProcessor,
+                          MagnitudeProcessor, MeasureAmplitudesProcessor,
+                          MeasureEnergyProcessor, MeasureSmomProcessor,
+                          NLLocProcessor, PickerProcessor)
 
 test_data_name = "test_end_to_end"
 

@@ -70,7 +70,6 @@ data_connector.request_range_hours = 48
 data_connector.closing_window_time_seconds = 30 # time after which we consider the continuous data window closed after the event occurred
 data_connector.context_trace_forbiden_sensor = ['7', '9']
 
-
 interloc.nthreads = 4
 interloc.samplerate_decimated = 3000.0
 interloc.fixed_wlen_sec = 2.0
@@ -86,6 +85,10 @@ compute_xcorrs.onebit = true
 compute_xcorrs.whiten_corner_freqs = [40.0, 50.0, 350.0, 360.0]
 compute_xcorrs.cc_samplerate = 1000.0
 compute_xcorrs.keeplag = 1.0
+
+# parameter of the PPV vs Manitude relationship
+quick_magnitude.a = 1.2
+quick_magnitude.c = 1.1
 
 picker.snr_threshold = 6
 picker.residual_tolerance = 15e-3

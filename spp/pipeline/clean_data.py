@@ -1,4 +1,3 @@
-from ..classifier.seismic_classifier import seismic_classifier_model
 from .processing_unit import ProcessingUnit
 from microquake.core.stream import Stream
 from loguru import logger
@@ -34,7 +33,8 @@ class Processor(ProcessingUnit):
 
         for i, tr in enumerate(waveform):
             if tr.stats.station not in black_list:
-                tr.data = np.nan_to_num(tr.data)
+                if np.any(np.isnan(tr.data)):
+                    continue
                 if ((np.sum(tr.data ** 2) > 0)):
                     trs.append(tr)
 
