@@ -1,7 +1,11 @@
 from ..classifier.seismic_classifier import SeismicClassifierModel
 from .processing_unit import ProcessingUnit
 
+
 class Processor(ProcessingUnit):
+     '''
+        Class wrapper around SeismicClassifierModel, load inputs from kwargs.
+    '''
     @property
     def module_name(self):
         return "event_classifier"
@@ -16,8 +20,8 @@ class Processor(ProcessingUnit):
         stream = kwargs["stream"]
         height = kwargs["height"]
         self.seismic_model.create_model()
-        self.response = self.seismic_model.predict(stream, hour)
-        return self.response
+        response = self.seismic_model.predict(stream, height)
+        return response
 
     def legacy_pipeline_handler(self, msg_in, res):
         """
