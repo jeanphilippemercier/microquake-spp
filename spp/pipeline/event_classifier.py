@@ -14,8 +14,9 @@ class Processor(ProcessingUnit):
             Process event and returns its classification.
         """
         stream = kwargs["stream"]
+        height = kwargs["height"]
         self.seismic_model.create_model()
-        self.response = self.seismic_model.predict(stream)
+        self.response = self.seismic_model.predict(stream, hour)
         return self.response
 
     def legacy_pipeline_handler(self, msg_in, res):
