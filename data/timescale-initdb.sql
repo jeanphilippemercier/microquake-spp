@@ -5,8 +5,9 @@ GRANT ALL PRIVILEGES ON DATABASE sensor_data TO sensor_user;
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 CREATE TABLE recordings (
   time            TIMESTAMPTZ       NOT NULL,
+  end_time        TIMESTAMPTZ       NULL,
   sensor_id       INT               NOT NULL,
-  sensor_type_id  INT               NOT NULL,
+  sensor_type_id  INT               NULL,
   sample_count    INT               NOT NULL,
   sample_rate     DOUBLE PRECISION  NOT NULL,
   x               REAL ARRAY        NULL,

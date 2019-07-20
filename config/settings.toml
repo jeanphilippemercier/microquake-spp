@@ -86,6 +86,13 @@ compute_xcorrs.whiten_corner_freqs = [40.0, 50.0, 350.0, 360.0]
 compute_xcorrs.cc_samplerate = 1000.0
 compute_xcorrs.keeplag = 1.0
 
+compute_velchange.cc_samplerate = 1000.0
+compute_velchange.wlen_sec = 0.05
+compute_velchange.coda_start_velocity = 3000.0
+compute_velchange.coda_end_sec = 0.8
+compute_velchange.whiten_corner_freqs = [90.0, 100.0, 300.0, 320.0]
+
+
 # parameter of the PPV vs Manitude relationship
 quick_magnitude.a = 1.2
 quick_magnitude.c = 1.1
