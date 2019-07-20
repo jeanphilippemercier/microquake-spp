@@ -6,7 +6,7 @@ from keras.models import Model
 from keras.layers import (Add, BatchNormalization, Conv2D, Dense, Flatten, Input, concatenate,
                           MaxPooling2D, Embedding)
 import librosa as lr
-class seismic_classifier_model:
+class SeismicClassifierModel:
     '''
     Class to classify mseed stream into one of the classes
         anthropogenic event, controlled explosion, earthquake, explosion, quarry blast
@@ -22,7 +22,7 @@ class seismic_classifier_model:
         '''
             :param model_name: Name of the model weight file name.            
         '''
-        self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))/'seismic_classifier'
+        self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))/'../../data/weights'
         #Model was trained at these dimensions
         self.D = (128, 128, 1)
         self.microquake_class_names = ['anthropogenic event', 'controlled explosion',
@@ -82,8 +82,8 @@ class seismic_classifier_model:
         :param output_dir: directory to save spectrogram.png such as SPEC_BLAST_UG
         :return: RBG image array
         """
-        rate = seismic_classifier_model.get_norm_trace(tr).stats.sampling_rate
-        data = seismic_classifier_model.get_norm_trace(tr).data
+        rate = SeismicClassifierModel.get_norm_trace(tr).stats.sampling_rate
+        data = SeismicClassifierModel.get_norm_trace(tr).data
 
         fig, ax = plt.subplots(1)
         fig.subplots_adjust(left=0, right=1, bottom=0, top=1)

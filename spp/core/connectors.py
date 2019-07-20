@@ -1,12 +1,12 @@
 from redis import Redis
 from spp.core.settings import settings
 import sqlalchemy as db
-from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 from pytz import utc
-from spp.core.models import processing_logs
-from spp.core import models
+from spp.stats_collector.db_models import processing_logs
+from spp.stats_collector import db_models
 from rq import Queue
+
 
 def connect_redis():
     if 'REDIS_MASTER_SERVICE_HOST' in settings:
@@ -22,16 +22,9 @@ def connect_redis():
 
     return Redis(**redis_config)
 
-class RedisQueue():
-    def __init__(self, queue, timeout=600):
-        self.redis = connect_redis()
-        self.timeout = timeout
-        self.queue = queue
-        self.rq_queue = Queue(self.queue, connection=self.redis,
-                              default_timeout=self.timeout)
-
-    def submit_task(self, func, *args, **kwargs):
-        return self.rq_queue.enqueue(func, *args, **kwargs)
+def connect_rq(message_queue):
+    redis = connect_redis()
+    return Queue(message_queue, connection=redis)
 
 def connect_postgres(db_name='postgres'):
 
@@ -46,14 +39,11 @@ def connect_postgres(db_name='postgres'):
         postgres_url = settings.get('postgres_db').url + db_name
 
     engine = db.create_engine(postgres_url)
-    session = sessionmaker(bind=engine)()
     connection = engine.connect()
     # Create tables if they do not exist
-    models.metadata.create_all(engine)
-    models.Base.metadata.create_all(engine)
-    session.commit()
+    db_models.metadata.create_all(engine)
 
-    return connection, session
+    return connection
 
 
 def record_processing_logs_pg(event, status, processing_step,

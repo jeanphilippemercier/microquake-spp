@@ -16,12 +16,12 @@ from spp.core.settings import settings
 from spp.pipeline import (clean_data, event_classifier, interloc,
                           quick_magnitude)
 from spp.utils.seismic_client import post_data_from_objects
-from spp.core.connectors import (record_processing_logs_pg,
-                                 RedisQueue)
+from spp.core.connectors import (connect_rq, record_processing_logs_pg)
 from time import time
 from spp.core.serializers.seismic_objects import (serialize, deserialize,
                                                   deserialize_message)
 
+from spp.core.redis_connectors import RedisQueue
 
 from spp.pipeline.automatic_pipeline import automatic_pipeline
 
