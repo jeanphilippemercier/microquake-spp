@@ -11,7 +11,7 @@ class SeismicClassifierModel:
     Class to classify mseed stream into one of the classes
         anthropogenic event, controlled explosion, earthquake, explosion, quarry blast
     '''
-    REF_HEIGHT=900.00
+    REF_HEIGHT = 900.00
     def __enter__(self):
         return self
 
