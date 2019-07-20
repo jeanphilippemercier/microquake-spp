@@ -24,12 +24,13 @@ from time import time
 from spp.core.db_models import processing_logs
 import sqlalchemy as db
 
+db_name = settings.get('postgres_db').db_name
 __processing_step__ = 'initializer'
 __processing_step_id__ = 1
 
 request_range_hours = settings.get('data_connector').request_range_hours
 
-pg = connect_postgres(db_name='postgres')
+pg = connect_postgres(db_name=db_name)
 
 tz = get_time_zone()
 sites = [station.code for station in settings.inventory.stations()]
@@ -42,7 +43,7 @@ def get_starttime():
 
     query = db.select([db.func.max(
         processing_logs.columns.event_timestamp)]).where(
-        processing_logs.columns.processing_step_name==__processing_step__)
+        processing_logs.columns.processing_step_name == __processing_step__)
 
     result = pg.execute(query).scalar()
     if result is None:
@@ -103,10 +104,6 @@ while 1:
                                                   kwargs={'data': message,
                                                           'serialized': True})
 
-                # result = submit_task_to_rq(we_message_queue, extract_waveform,
-                #                            kwargs={'data'      : message,
-                #                                    'serialized': True})
-
                 logger.info('sent {} events for further processing'.format(ct))
                 status = 'success'
             except:
@@ -115,6 +112,9 @@ while 1:
 
             end_processing_time = time()
             processing_time = end_processing_time - start_processing_time
-            record_processing_logs_pg(event, status, __processing_step__,
-                                      __processing_step_id__, processing_time)
+            result = record_processing_logs_pg(event, status,
+                                               __processing_step__,
+                                               __processing_step_id__,
+                                               processing_time,
+                                               db_name=db_name)
 

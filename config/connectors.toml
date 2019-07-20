@@ -23,10 +23,8 @@ redis_db.db = 0
 elastic_db.host = 'dev-spp-elastic'
 elastic_db.port = 9200
 
-mongo_db.url = 'mongodb://mongodb:27017'
-mongo_db.db_processed_events = 'processed_event'
-
-postgres_db.url = 'postgresql://postgres:password@spp-postgres:5432/'
+postgres_db.url = 'postgresql://sensor_user:rs12zGgdMMH1@10.95.74.90:80/'
+postgres_db.db_name = 'sensor_data'
 
 [development]
 redis_db.host = 'redisdb'

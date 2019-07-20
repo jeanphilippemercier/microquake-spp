@@ -42,6 +42,8 @@ network_code = settings.NETWORK_CODE
 minimum_recovery_fraction = settings.get(
     'data_connector').minimum_recovery_fraction
 
+db_name = settings.get('postgres_db').db_name
+
 
 def interloc_election(cat):
 
@@ -201,6 +203,7 @@ def extract_waveform(catalogue=None, **kwargs):
                                                              network_code, utc)
     except AttributeError:
         logger.warning('could not retrieve the variable length waveforms')
+        variable_length_wf = None
 
     interloc_results = interloc_election(cat)
 
@@ -218,7 +221,9 @@ def extract_waveform(catalogue=None, **kwargs):
 
     context_2s = waveforms['fixed_length'].select(station=station_context)
 
-    category = event_classifier.Processor().process(stream=context_2s)
+    z = new_cat[0].preferred_origin().z
+    category = event_classifier.Processor().process(stream=context_2s,
+                                                    height=z)
 
     sorted_list = sorted(category.items(), reverse=True,
                          key=lambda x: x[1])
@@ -228,6 +233,18 @@ def extract_waveform(catalogue=None, **kwargs):
         'data_connector').maximum_event_elevation
 
     logger.info('{}'.format(sorted_list))
+
+    event_type = sorted_list[0][0]
+    if event_type == 'other event':
+        logger.info('event categorized as noise are not further processed '
+                    'and will not be saved in the database')
+
+        end_processing_time = time()
+        processing_time = end_processing_time - start_processing_time
+        record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
+                                  __processing_step_id__, processing_time,
+                                  db_name=db_name)
+        return
 
     if sorted_list[0][1] > settings.get(
             'data_connector').likelihood_threshold and elevation < \
@@ -246,14 +263,17 @@ def extract_waveform(catalogue=None, **kwargs):
         end_processing_time = time()
         processing_time = end_processing_time - start_processing_time
         record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
-                                  __processing_step_id__, processing_time)
+                                  __processing_step_id__, processing_time,
+                                  db_name=db_name)
 
         return
 
     logger.info('sending to API, will take long time')
 
-    mag_cat = quick_magnitude.processor().process(stream=waveforms[
-        'fixed_length'], cat=new_cat).output_catalogue(new_cat)
+    quick_magnitude_processor = quick_magnitude.Processor()
+    result = quick_magnitude_processor.process(stream=waveforms[
+        'fixed_length'], cat=new_cat)
+    mag_cat = quick_magnitude_processor.output_catalog(new_cat)
 
 
 
@@ -272,7 +292,8 @@ def extract_waveform(catalogue=None, **kwargs):
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
     record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
-                              __processing_step_id__, processing_time)
+                              __processing_step_id__, processing_time,
+                              db_name=db_name)
 
     logger.info('sending to automatic pipeline')
 

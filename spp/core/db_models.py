@@ -63,36 +63,12 @@ processing = db.Table('processing', metadata,
 class Recording(Base):
     __tablename__ = 'recordings'
 
-    id = Column(db.Integer, primary_key=True)
-    starttime = Column(db.DateTime, nullable=False)
-    endtime = Column(db.DateTime, nullable=False)
-    sensor_id = Column(db.Integer, nullable=False)
-    sample_count = Column(db.Integer, nullable=False)
-    sample_rate = Column(db.Float, nullable=False)
-    # x = Column(db.ARRAY(db.Float), nullable=False)
-    # y = Column(db.ARRAY(db.Float), nullable=False)
-    # z = Column(db.ARRAY(db.Float), nullable=False)
-    data = Column(db.LargeBinary)
-    # data = Column(db.String(255))
-
-
-# Base.metadata.create_all(engine)
-
-# CREATE database sensor_data;
-# CREATE USER sensor_user WITH ENCRYPTED PASSWORD 'rs12zGgdMMH1';
-# GRANT ALL PRIVILEGES ON DATABASE sensor_data TO sensor_user;
-# \c sensor_data
-# CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
-# CREATE TABLE recordings (
-#   time            TIMESTAMPTZ       NOT NULL,
-#   sensor_id       INT               NOT NULL,
-#   sensor_type_id  INT               NOT NULL,
-#   sample_count    INT               NOT NULL,
-#   sample_rate     DOUBLE PRECISION  NOT NULL,
-#   x               REAL ARRAY        NULL,
-#   y               REAL ARRAY        NULL,
-#   z               REAL ARRAY        NULL
-# );
-# SELECT create_hypertable('recordings', 'time');
-# ALTER TABLE recordings OWNER TO sensor_user;
-
+    time = Column(db.DateTime(timezone=True), primary_key=True)
+    end_time = Column(db.DateTime(timezone=True))
+    sensor_id = Column(db.Integer)
+    sensor_type_id = Column(db.Integer)
+    sample_count = Column(db.Integer)
+    sample_rate = Column(db.Float)
+    x = Column(db.Float)
+    y = Column(db.Float)
+    z = Column(db.Float)
