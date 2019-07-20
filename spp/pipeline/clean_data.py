@@ -34,7 +34,8 @@ class Processor(ProcessingUnit):
 
         for i, tr in enumerate(waveform):
             if tr.stats.station not in black_list:
-                tr.data = np.nan_to_num(tr.data)
+                if np.any(np.isnan(tr.data)):
+                    continue
                 if ((np.sum(tr.data ** 2) > 0)):
                     trs.append(tr)
 

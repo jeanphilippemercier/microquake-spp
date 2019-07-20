@@ -87,6 +87,10 @@ compute_xcorrs.whiten_corner_freqs = [40.0, 50.0, 350.0, 360.0]
 compute_xcorrs.cc_samplerate = 1000.0
 compute_xcorrs.keeplag = 1.0
 
+# parameter of the PPV vs Manitude relationship
+quick_magnitude.a = 1.2
+quick_magnitude.c = 1.1
+
 picker.snr_threshold = 6
 picker.residual_tolerance = 15e-3
 picker.p_s_tolerance = 2e-3  # P and S must be at least separated by p_s_tolerance

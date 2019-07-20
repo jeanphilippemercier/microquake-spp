@@ -85,5 +85,7 @@ services:
       - ./data/timescale-initdb.sql:/docker-entrypoint-initdb.d/timescale-initdb.sql
       - ./data/grafana-initdb.sql:/docker-entrypoint-initdb.d/grafana-initdb.sql
       - .tmp/postgres:/data/postgres
+      - 'postgresql_data:/bitnami/postgresql'
+
 volumes:
     mi2: {}
