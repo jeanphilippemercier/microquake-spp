@@ -11,7 +11,7 @@ class SeismicClassifierModel:
     Class to classify mseed stream into one of the classes
         anthropogenic event, controlled explosion, earthquake, explosion, quarry blast
     '''
-
+    REF_HEIGHT=900.00
     def __enter__(self):
         return self
 
@@ -31,7 +31,6 @@ class SeismicClassifierModel:
         self.num_classes = len(self.microquake_class_names)
         self.model_file = self.base_directory/f"{model_name}"
         self.create_model()
-        self.create_3class_model()
 
     ###############################################
     # Librosa gives mel Spectrum which shows events clearly,
@@ -127,8 +126,11 @@ class SeismicClassifierModel:
         input_shape = (self.D[0], self.D[1], 1)
         i1 = Input(shape=input_shape, name="spectrogram")
         i2 = Input(shape=(1,), name='hour', dtype='int32')
-        emb = Embedding(24, 12)(i2) #24 hours to 12 hours
-        flat = Flatten()(emb)
+        i3 = Input(shape=(1,), name='height', dtype='int32')
+        emb = Embedding(24, 50)(i2) #24 hours to 12 hours
+        flat1 = Flatten()(emb)
+        emb = Embedding(2,50)(i3)
+        flat2 = Flatten()(emb)
         dim = 128
         n_res = 2
         kern_size = (3, 3)
@@ -149,55 +151,20 @@ class SeismicClassifierModel:
             y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu', padding='same')(y)
             X_shortcut = Add()([y,X_shortcut])
         x = Flatten()(x)
-        x = concatenate([x, flat], axis=-1)
+        #x = Dropout(0.4)(x) # not needed to do inference
         x = Dense(500, activation='relu')(x)
+        x = concatenate([x, flat1, flat2], axis=-1)
+        x = BatchNormalization()(x)
+        x = Dense(128, activation='relu')(x)
         x = Dense(self.num_classes, activation='sigmoid')(x)
-        self.model = Model([i1, i2], x)
+        self.model = Model([i1, i2, i3], x)
         self.model.load_weights(self.model_file)
 
-    def create_3class_model(self):
-        input_shape = (64, 64, 1)
-        i = Input(shape=input_shape, name="spectrogram" )
-        dim = 128
-        n_res = 2
-        kern_size = (3, 3)
 
-        dim = 64
-        x = Conv2D(filters=16, kernel_size=2, padding='same', activation='relu')(i)
-        x = MaxPooling2D(pool_size=2)(x)
-        x = Conv2D(filters=32, kernel_size=2, padding='same', activation='relu')(x)
-        x = MaxPooling2D(pool_size=2)(x)
-        x = Conv2D(filters=64, kernel_size=2, padding='same', activation='relu')(x)
-        x = MaxPooling2D(pool_size=2)(x)
-
-        X_shortcut = BatchNormalization()(x)
-        for _ in range(n_res):
-            y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(X_shortcut)
-            y = BatchNormalization()(y)
-            #y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(y)
-            y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(y)
-
-            X_shortcut = Add()([y,X_shortcut])
-
-        x = Flatten()(x)
-        x = Dense(500, activation='relu')(x)
-        x = Dense(3, activation='softmax')(x)
-        self.model3 = Model(i, x)
-        self.model3.load_weights(self.base_directory/'model_3classes.hdf5')
-
-    def is_noise(self, tr):
-        '''
-        detect if signal is noise
-        '''
-        spectrogram = self.get_spectrogram(tr)
-        graygram = self.rgb2gray(spectrogram)
-        normgram = self.normalize_gray(graygram)
-        a = self.model3.predict(normgram[None, ..., None])
-        return np.argmax(a) == 2
-
-    def predict(self, tr):
+    def predict(self, tr, height):
         """
         :param tr: Obspy stream object
+        :param height: the z-value of event.
         :return: dictionary of  event classes probability
         """
         hour = tr[0].stats.starttime.hour
@@ -205,18 +172,18 @@ class SeismicClassifierModel:
         #graygram = self.rgb2gray(spectrogram)
         normgram = self.normalize_gray(spectrogram)
         img = normgram[None, ..., None] # Needed to in the form of batch with one channel.
-        data = {'spectrogram':img, 'hour':np.asarray([hour])}
-        classes = {}
-        for c in self.microquake_class_names:
-            classes[c] = 0
-        if self.is_noise(tr):
-            classes['other event'] = 1
+        h = []
+        #We use the height as a category, greater than 900 or not
+        if height >= SeismicClassifierModel.REF_HEIGHT:
+            h.append(1)
         else:
-            a = self.model.predict(data)
+            h.append(0)
+        data = {'spectrogram':img, 'hour':np.asarray([hour]), 'height':np.asarray(h)}
+        a = self.model.predict(data)
 
-            for p, n in zip(a.reshape(-1), self.microquake_class_names):
-                classes[n] = p
-
+        classes = {}
+        for p, n in zip(a.reshape(-1), self.microquake_class_names):
+            classes[n] = p
         classes['other event'] = 1-np.max(a.reshape(-1))
         return classes
     
