@@ -1,5 +1,5 @@
 import numpy as np
-from spp.core.models import Recording
+from spp.core.db_models import Recording
 from spp.core.connectors import connect_postgres
 from datetime import datetime, timedelta
 from loguru import logger

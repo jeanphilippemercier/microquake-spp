@@ -1,4 +1,3 @@
-from ..classifier.seismic_classifier import seismic_classifier_model
 from .processing_unit import ProcessingUnit
 from microquake.core.stream import Stream
 from loguru import logger

@@ -70,7 +70,6 @@ data_connector.request_range_hours = 48
 data_connector.closing_window_time_seconds = 30 # time after which we consider the continuous data window closed after the event occurred
 data_connector.context_trace_forbiden_sensor = ['7', '9']
 
-
 interloc.nthreads = 4
 interloc.samplerate_decimated = 3000.0
 interloc.fixed_wlen_sec = 2.0

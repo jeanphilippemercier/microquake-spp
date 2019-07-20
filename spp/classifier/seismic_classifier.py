@@ -25,8 +25,9 @@ class SeismicClassifierModel:
         self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))/'../../data/weights'
         #Model was trained at these dimensions
         self.D = (128, 128, 1)
-        self.microquake_class_names = ['anthropogenic event', 'controlled explosion',
-                                                            'earthquake', 'explosion', 'quarry blast']
+        self.microquake_class_names = ['anthropogenic event',
+                                       'controlled explosion', 'earthquake',
+                                       'explosion', 'quarry blast']
         self.num_classes = len(self.microquake_class_names)
         self.model_file = self.base_directory/f"{model_name}"
         self.create_model()
@@ -209,13 +210,13 @@ class SeismicClassifierModel:
         for c in self.microquake_class_names:
             classes[c] = 0
         if self.is_noise(tr):
-            classes['Noise'] = 1
+            classes['other event'] = 1
         else:
             a = self.model.predict(data)
 
             for p, n in zip(a.reshape(-1), self.microquake_class_names):
                 classes[n] = p
 
-        classes['Noise'] = 1-np.max(a.reshape(-1))
+        classes['other event'] = 1-np.max(a.reshape(-1))
         return classes
     
