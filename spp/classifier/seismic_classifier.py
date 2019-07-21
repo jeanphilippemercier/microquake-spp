@@ -26,8 +26,10 @@ class SeismicClassifierModel:
         #Model was trained at these dimensions
         self.D = (128, 128, 1)
         self.microquake_class_names = ['anthropogenic event',
-                                       'controlled explosion', 'earthquake',
-                                       'explosion', 'quarry blast']
+                                       'controlled explosion',
+                                       'earthquake',
+                                       'explosion',
+                                       'quarry blast']
         self.num_classes = len(self.microquake_class_names)
         self.model_file = self.base_directory/f"{model_name}"
         self.create_model()
@@ -48,7 +50,8 @@ class SeismicClassifierModel:
         data = self.get_norm_trace(tr).data
         signal = data*255
         hl = int(signal.shape[0]//(width*1.1)) #this will cut away 5% from start and end
-        spec = lr.feature.melspectrogram(signal, n_mels=height, hop_length=int(hl))
+        spec = lr.feature.melspectrogram(signal, n_mels=height,
+                                         hop_length=int(hl))
         img = lr.amplitude_to_db(spec)
         start = (img.shape[1] - width) // 2
         return img[:, start:start+width]
@@ -136,19 +139,24 @@ class SeismicClassifierModel:
         kern_size = (3, 3)
 
         dim = 64
-        x = Conv2D(filters=16, kernel_size=2, padding='same', activation='relu')(i1)
+        x = Conv2D(filters=16, kernel_size=2, padding='same',
+                   activation='relu')(i1)
         x = MaxPooling2D(pool_size=2)(x)
-        x = Conv2D(filters=32, kernel_size=2, padding='same', activation='relu')(x)
+        x = Conv2D(filters=32, kernel_size=2, padding='same',
+                   activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
-        x = Conv2D(filters=64, kernel_size=2, padding='same', activation='relu')(x)
+        x = Conv2D(filters=64, kernel_size=2, padding='same',
+                   activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
         #x = Dropout(0.3)(x) # not needed to do inference
         X_shortcut = BatchNormalization()(x)
         for _ in range(n_res):
-            y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu', padding='same')(X_shortcut)
+            y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu',
+                       padding='same')(X_shortcut)
             y = BatchNormalization()(y)
             #y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(y)
-            y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu', padding='same')(y)
+            y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu',
+                       padding='same')(y)
             X_shortcut = Add()([y,X_shortcut])
         x = Flatten()(x)
         #x = Dropout(0.4)(x) # not needed to do inference
@@ -160,7 +168,7 @@ class SeismicClassifierModel:
         self.model = Model([i1, i2, i3], x)
         self.model.load_weights(self.model_file)
 
-
+ 
     def predict(self, tr, height):
         """
         :param tr: Obspy stream object
@@ -178,12 +186,12 @@ class SeismicClassifierModel:
             h.append(1)
         else:
             h.append(0)
-        data = {'spectrogram':img, 'hour':np.asarray([hour]), 'height':np.asarray(h)}
+        data = {'spectrogram': img, 'hour':np.asarray([hour]),
+                'height': np.asarray(h)}
         a = self.model.predict(data)
-
+        
         classes = {}
         for p, n in zip(a.reshape(-1), self.microquake_class_names):
             classes[n] = p
-        classes['Noise'] = 1-np.max(a.reshape(-1))
+        classes['other event'] = 1-np.max(a.reshape(-1))
         return classes
-    

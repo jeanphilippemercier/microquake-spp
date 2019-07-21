@@ -44,9 +44,11 @@ class Processor(ProcessingUnit):
             dist = np.linalg.norm(ev_loc - st_loc)
 
             motion_type = inventory.select(station).motion
-            if motion_type != 'VELOCTIY':
+            if motion_type != 'VELOCITY':
                 if motion_type == 'ACCELERATION':
                     velocity = st_stream.composite().copy().integrate()[0].data
+                else:
+                    continue
 
             else:
                 velocity = st_stream.composite().copy()[0].data

@@ -62,7 +62,6 @@ def record_processing_logs_pg(event, status, processing_step,
     :return:
     """
 
-
     event_time = event.preferred_origin().time.datetime.replace(tzinfo=utc)
 
     processing_time = datetime.utcnow().replace(tzinfo=utc)
@@ -106,8 +105,6 @@ def record_processing(event):
     else:
 
         len([])
-
-
 
     p_picks = event.preferred_arrival
     processing = db.Table('processing', metadata,

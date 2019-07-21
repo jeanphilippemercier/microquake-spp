@@ -20,8 +20,8 @@ class Processor(ProcessingUnit):
         stream = kwargs["stream"]
         height = kwargs["height"]
         self.seismic_model.create_model()
-        response = self.seismic_model.predict(stream, height)
-        return response
+        self.response = self.seismic_model.predict(stream, height)
+        return self.response
 
     def legacy_pipeline_handler(self, msg_in, res):
         """
