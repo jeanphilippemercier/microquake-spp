@@ -3,9 +3,9 @@ from .processing_unit import ProcessingUnit
 
 
 class Processor(ProcessingUnit):
-     '''
+    """
         Class wrapper around SeismicClassifierModel, load inputs from kwargs.
-    '''
+    """
     @property
     def module_name(self):
         return "event_classifier"

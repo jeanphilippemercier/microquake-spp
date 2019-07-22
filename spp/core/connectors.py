@@ -6,6 +6,13 @@ from pytz import utc
 from spp.stats_collector.db_models import processing_logs
 from spp.stats_collector import db_models
 from rq import Queue
+from loguru import logger
+from spp.core.db_models import Recording
+from microquake.core.stream import Stream, Trace
+from microquake.core import UTCDateTime
+import numpy as np
+from time import time
+from sqlalchemy.orm import sessionmaker
 
 
 def connect_redis():
@@ -44,6 +51,63 @@ def connect_postgres(db_name='postgres'):
     db_models.metadata.create_all(engine)
 
     return connection
+
+
+def create_postgres_session(db_name='postgres'):
+    db_name = settings.get('postgres_db').db_name
+    postgres_url = settings.get('postgres_db').url + db_name
+    engine = db.create_engine(postgres_url)
+    pg = connect_postgres(db_name=db_name)
+    Session = sessionmaker(bind=engine)
+    return Session()
+
+
+def get_continuous_data(starttime, endtime, sensor_id=None):
+
+    db_name = settings.get('postgres_db').db_name
+
+    session = create_postgres_session(db_name=db_name)
+
+    t0 = time()
+
+    if sensor_id is not None:
+        session.query(Recording).filter(
+            Recording.time <= endtime).filter(
+            Recording.end_time >= starttime).filter(
+            Recording.sensor_id==sensor_id).all()
+
+    else:
+        results = session.query(Recording).filter(
+            Recording.time<=endtime).filter(
+            Recording.end_time>=starttime).all()
+
+    t1 = time()
+    logger.info('retrieving the data in {} seconds'.format(t1 - t0))
+
+    trs = []
+    for trace in results:
+        tr = Trace()
+
+
+        for channel in ['x', 'y', 'z']:
+
+            if np.all(trace.__dict__[channel] == 0):
+                continue
+
+            tr.stats.network = settings.NETWORK_CODE
+            tr.stats.station = trace.sensor_id
+            tr.stats.location = ''
+            tr.stats.channel = channel
+            tr.stats.sampling_rate = trace.sample_rate
+            tr.stats.starttime = UTCDateTime(trace.time)
+            tr.data = np.array(trace.__dict__[channel])
+            trs.append(tr)
+
+    st = Stream(traces=trs)
+    st.trim(starttime=UTCDateTime(starttime), endtime=UTCDateTime(endtime),
+            pad=False, fill_value=0)
+
+    return st
 
 
 def record_processing_logs_pg(event, status, processing_step,

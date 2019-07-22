@@ -65,7 +65,13 @@ def already_processed(event):
 while 1:
 
     # time in UTC
-    endtime = datetime.utcnow().replace(tzinfo=utc)
+
+    closing_window_time_seconds = settings.get(
+        'data_connector').closing_window_time_seconds
+
+    endtime = datetime.utcnow().replace(tzinfo=utc) - timedelta(
+        seconds=closing_window_time_seconds)
+
     starttime = get_starttime()
 
     try:

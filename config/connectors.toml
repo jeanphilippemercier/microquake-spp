@@ -23,7 +23,7 @@ redis_db.db = 0
 elastic_db.host = 'dev-spp-elastic'
 elastic_db.port = 9200
 
-postgres_db.url = 'postgresql://sensor_user:rs12zGgdMMH1@10.95.74.90:80/'
+postgres_db.url = 'postgresql://sensor_user:rs12zGgdMMH1@198.168.0.1:5434/'
 postgres_db.db_name = 'sensor_data'
 
 [development]
