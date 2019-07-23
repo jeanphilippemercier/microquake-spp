@@ -14,7 +14,7 @@ spp:
   image: docker:stable
   stage: build
   services:
-    - name: docker:stable-dind
+    - name: docker:18-dind
       entrypoint:
         - dockerd-entrypoint.sh
   before_script:
@@ -39,12 +39,6 @@ spp:
 kube:
   image: docker:stable
   stage: deploy
-  services:
-    - name: docker:stable-dind
-      entrypoint:
-        - dockerd-entrypoint.sh
-  before_script:
-    - apk add --update openssh-client make ca-certificates openssl python git bash
   script:
     - wget https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
     - chmod +x kubectl
