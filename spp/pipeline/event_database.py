@@ -24,6 +24,7 @@ class Processor(ProcessingUnit):
         stream = None
         variable_length = None
         context = None
+        method = None # POST or PUT
 
         if 'cat' in kwargs.keys():
             cat = kwargs['cat']
@@ -39,8 +40,9 @@ class Processor(ProcessingUnit):
 
         logger.info('posting seismic data')
         result = post_data_from_objects(self.api_base_url, event_id=None,
-                                         event=cat,
-                                        stream=stream,context_stream=context,
+                                        event=cat,
+                                        stream=stream,
+                                        context_stream=context,
                                         variable_length_stream=variable_length,
                                         tolerance=None,
                                         send_to_bus=False)

@@ -5,7 +5,7 @@ from uplink.auth import ApiTokenHeader
 
 from ..core.settings import settings
 # Local imports
-from .schemas import Cable, CableSchema, EventSchema, Ray, RaySchema
+from .schemas import Cable, CableSchema, Event, EventSchema, Ray, RaySchema
 
 
 # @headers({"Accept": "application/vnd.seismicplatform.v1.full+json"})
@@ -13,6 +13,7 @@ class SeismicClient(Consumer):
     def __init__(self, access_token, base_url=None):
         if base_url is None:
             base_url = settings.API_BASE_URL
+
 
         token_auth = ApiTokenHeader("Authorization", access_token)
         super(SeismicClient, self).__init__(base_url=base_url, auth=token_auth)
@@ -43,3 +44,7 @@ class SeismicClient(Consumer):
     @post("cables", args={"cables": Body})
     def post_cables(self, cables: List[Cable]) -> CableSchema(many=True):
         """post_cable."""
+
+    @post("events", args={"events": Body})
+    def post_events(selfs, events: List[Event]) -> EventSchema(many=True):
+        """post_event"""

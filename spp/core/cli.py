@@ -31,13 +31,13 @@ from redis import Redis
 
 from .. import __version__
 from ..pipeline.automatic_pipeline import automatic_pipeline
-from ..pipeline.manual_pipeline import manual_pipeline
-from ..pipeline.ray_tracer import ray_tracer_pipeline
+from ..pipeline.interactive_pipeline import interactive_pipeline
 from ..utils.kafka_redis_application import KafkaRedisApplication
 from .hdf5 import write_ttable_h5
 from .nlloc import nll_sensors, nll_velgrids
 from .settings import settings
 from .velocity import create_velocities
+from .connectors import connect_redis
 
 LOGGING_LEVELS = {
     0: logging.NOTSET,
@@ -155,29 +155,29 @@ def run(info: Info):
 
 
 def run_pipeline(pipeline, setting_name):
-    redis_settings = settings.get('redis_db')
-    redis = Redis(**redis_settings)
+    redis = connect_redis()
     message_queue = settings.get(
         setting_name).message_queue
 
     logger.info('initialization successful')
 
     while 1:
-        try:
-            logger.info('waiting for message on channel %s' % message_queue)
-            message_queue, message = redis.blpop(message_queue)
-            logger.info('message received')
+        # try:
+        logger.info('waiting for message on channel %s' % message_queue)
+        message_queue, message = redis.blpop(message_queue)
+        logger.info('message received')
 
-            tmp = msgpack.loads(message)
-            data = {}
+        tmp = msgpack.loads(message)
+        data = {}
 
-            for key in tmp.keys():
-                data[key.decode('utf-8')] = tmp[key]
+        for key in tmp.keys():
+            data[key.decode('utf-8')] = tmp[key]
 
-            pipeline(**data)
+        pipeline(**data)
 
-        except Exception as e:
-            logger.exception("Error occured while processing message from redis queue due to: %s" % e)
+
+        # except Exception as e:
+        #     logger.exception("Error occured while processing message from redis queue due to: %s" % e)
 
 
 
@@ -194,24 +194,13 @@ def automatic(info: Info):
 
 @cli.command()
 @pass_info
-def manual(info: Info):
+def interactive(info: Info):
     """
-    Run manual pipeline
+    Run interactive pipeline
     """
-    click.echo(f"Running manual pipeline")
-    setting_name = 'processing_flow.manual'
-    run_pipeline(manual_pipeline, setting_name)
-
-
-@cli.command()
-@pass_info
-def raytracer(info: Info):
-    """
-    Run raytracer module
-    """
-    click.echo(f"Running raytracer module")
-    setting_name = 'processing_flow.ray_tracing'
-    run_pipeline(ray_tracer_pipeline, setting_name)
+    click.echo(f"Running interactive pipeline")
+    setting_name = 'processing_flow.interactive'
+    run_pipeline(interactive_pipeline, setting_name)
 
 
 @cli.command()
