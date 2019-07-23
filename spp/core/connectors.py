@@ -95,7 +95,7 @@ def get_continuous_data(starttime, endtime, sensor_id=None):
                 continue
 
             tr.stats.network = settings.NETWORK_CODE
-            tr.stats.station = trace.sensor_id
+            tr.stats.station = str(trace.sensor_id)
             tr.stats.location = ''
             tr.stats.channel = channel
             tr.stats.sampling_rate = trace.sample_rate

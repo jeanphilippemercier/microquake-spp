@@ -54,7 +54,9 @@ class Processor(ProcessingUnit):
                 velocity = st_stream.composite().copy()[0].data
 
 
-            ppv = np.max(velocity) * dist
+            # The PPV/Mag relationship is valid for mm/s, the velocity is
+            # expressed in m/s in the file, we need to multiply by 1000
+            ppv = np.max(velocity) * 1000 * dist
 
             mags.append((np.log10(ppv) - self.params.c) / self.params.a)
 

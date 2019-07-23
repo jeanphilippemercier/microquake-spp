@@ -67,6 +67,7 @@ class SeismicClassifierModel:
         :return: normed composite trace
         """
 
+        # c = tr[0]
         c = tr.composite()
         c.data = c / np.abs(c).max()
         c = c.detrend(type='demean')

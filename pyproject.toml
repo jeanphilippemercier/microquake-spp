@@ -56,6 +56,7 @@ tensorflow = "~1.13"
 uplink = {version = "^0.9.0", extras = ["aiohttp", "marshmallow"]}
 psycopg2 = "^2.8.3"
 rq = "*"
+librosa = "*"
 # uplink = "^0.9.0"
 
 [tool.poetry.dev-dependencies]

@@ -20,11 +20,11 @@ from spp.core.connectors import (connect_rq, record_processing_logs_pg)
 from time import time
 from spp.core.serializers.seismic_objects import (serialize, deserialize,
                                                   deserialize_message)
+from microquake.core import Stream
 
 from spp.core.redis_connectors import RedisQueue
 
 from spp.pipeline.automatic_pipeline import automatic_pipeline
-from spp.core.connectors import get_continuous_data
 
 automatic_message_queue = settings.AUTOMATIC_PIPELINE_MESSAGE_QUEUE
 automatic_job_queue = RedisQueue(automatic_message_queue)
@@ -61,23 +61,16 @@ def interloc_election(cat):
     endtime = event_time + timedelta(seconds=1.5)
 
     # from pdb import set_trace; set_trace()
-    complete_wf = get_continuous_data(starttime, endtime)
-    # complete_wf = web_client.get_continuous(base_url, starttime, endtime,
-    #                                         sites, utc)
+    complete_wf = web_client.get_continuous(base_url, starttime, endtime,
+                                            sites, utc)
 
     complete_wf.detrend('demean').taper(max_percentage=0.001,
                                         max_length=0.01).filter('bandpass',
                                                                 freqmin=60,
                                                                 freqmax=500)
-
-    starttimes = []
-    endtimes = []
     for offset in [-1.5, -1, -0.5]:
         starttime = event_time + timedelta(seconds=offset)
         endtime = starttime + timedelta(seconds=2)
-
-        starttimes.append(starttime)
-        endtimes.append(endtime)
 
         wf = complete_wf.copy()
         wf.trim(starttime=UTCDateTime(starttime),
@@ -106,26 +99,22 @@ def interloc_election(cat):
     logger.info('Event location: {}'.format(new_cat[0].preferred_origin().loc))
     logger.info('Event time: {}'.format(new_cat[0].preferred_origin().time))
 
-    starttime = starttimes[index]
-    endtime = endtimes[index]
-
-    fixed_length = complete_wf.copy().trim(starttime=starttime,
-                                           endtime=endtime)
-
-    return interloc_results[index], fixed_length
+    return interloc_results[index]
 
 
-def get_context(interloc_dict, fixed_length_wf):
+def get_waveforms(interloc_dict, event):
 
     utc_time = datetime.fromtimestamp(interloc_dict['event_time'])
-    utc_time = utc_time.replace(tzinfo=utc)
+    local_time = utc_time.replace(tzinfo=utc)
+    starttime = local_time - timedelta(seconds=0.5)
+    endtime = local_time + timedelta(seconds=1.5)
 
-    # fixed_length_wf = web_client.get_continuous(base_url, starttime, endtime,
-    #                                             sites, utc)
+    fixed_length_wf = web_client.get_continuous(base_url, starttime, endtime,
+                                                sites, utc)
 
     # finding the station that is the closest to the event
-    starttime = utc_time - timedelta(seconds=10)
-    endtime = utc_time + timedelta(seconds=10)
+    starttime = local_time - timedelta(seconds=10)
+    endtime = local_time + timedelta(seconds=10)
     dists = []
     stations = []
     ev_loc = np.array([interloc_dict['x'], interloc_dict['y'],
@@ -153,17 +142,17 @@ def get_context(interloc_dict, fixed_length_wf):
         if stations[i] in settings.get('sensors').black_list:
             continue
         logger.info('getting context trace for station {}'.format(stations[i]))
-        # context = web_client.get_continuous(base_url, starttime, endtime,
-        #                                     [stations[i]], utc)
-
-        context = get_continuous_data(starttime, endtime,
-                                      sensor_id=stations[i])
+        context = web_client.get_continuous(base_url, starttime, endtime,
+                                            [stations[i]], utc)
         context.filter('bandpass', **context_trace_filter)
 
         if context:
             break
 
-    return context
+    waveforms = {'fixed_length': fixed_length_wf,
+                 'context': context}
+
+    return waveforms
 
 @deserialize_message
 def send_to_api(catalogue=None, fixed_length=None, context=None,
@@ -191,6 +180,7 @@ def extract_waveform(catalogue=None, **kwargs):
 
     logger.info('message received')
 
+    # tmp = deserialize(message)
     start_processing_time = time()
 
     old_cat = catalogue
@@ -200,16 +190,31 @@ def extract_waveform(catalogue=None, **kwargs):
 
     closing_window_time_seconds = settings.get(
         'data_connector').closing_window_time_seconds
+    if UTCDateTime.now() - event_time < closing_window_time_seconds:
+        logger.info('Delay between the detection of the event and the '
+                    'current time ({} s) is lower than the closing window '
+                    'time threshold ({} s). The event will resent to the '
+                    'queue and reprocessed at a later time '.format(
+            UTCDateTime.now() - event_time, closing_window_time_seconds))
 
-    interloc_results, fixed_length_wf = interloc_election(cat)
+        return
+
+    try:
+        variable_length_wf = web_client.get_seismogram_event(base_url, cat[0],
+                                                             network_code, utc)
+    except AttributeError:
+        logger.warning('could not retrieve the variable length waveforms')
+        variable_length_wf = None
+
+    interloc_results = interloc_election(cat)
 
     if not interloc_results:
         logger.error('interloc failed')
         return
 
     new_cat = interloc_results['catalog']
-    context = get_context(interloc_results, fixed_length_wf)
-    waveforms = {'fixed_length': fixed_length_wf, 'context': context}
+    waveforms = get_waveforms(interloc_results, new_cat)
+    waveforms['variable_length'] = variable_length_wf
 
     logger.info('event classification')
 
@@ -217,8 +222,27 @@ def extract_waveform(catalogue=None, **kwargs):
 
     context_2s = waveforms['fixed_length'].select(station=station_context)
 
+    # clean the context trace
+
+    composite = np.zeros(len(context_2s[0].data))
+    vars = []
+    for i, tr in enumerate(context_2s):
+        context_2s[i].data = np.nan_to_num(context_2s[i].data)
+        vars.append(np.var(context_2s[i].data))
+        composite += context_2s[i].data ** 2
+
+
+
+    index = np.argmax(vars)
+
+    composite = np.sqrt(composite) * np.sign(context_2s[index].data)
+
+    tr = context_2s[0]
+    tr.data = composite
+    context_new = Stream(traces=[tr])
+
     z = new_cat[0].preferred_origin().z
-    category = event_classifier.Processor().process(stream=context_2s,
+    category = event_classifier.Processor().process(stream=context_new,
                                                     height=z)
 
     sorted_list = sorted(category.items(), reverse=True,
