@@ -255,9 +255,10 @@ def post_data_from_objects(api_base_url, event_id=None, event=None,
 def post_event_data(api_base_url, event_resource_id, request_files,
                     send_to_bus=False):
     # removing id from URL as no longer used
-    # url = api_base_url + "/%s" % event_resource_id
+    # url = api_base_url + "%s/" % event_resource_id
     url = api_base_url
     logger.info('posting data on %s' % url)
+
 
     result = requests.post(url, data={"send_to_bus": send_to_bus},
                            files=request_files)
@@ -269,8 +270,8 @@ def put_event_from_objects(api_base_url, event_id, event=None,
                             waveform=None, context=None,
                             variable_size_waveform=None):
     # removing id from URL as no longer used
-    # url = api_base_url + "/%s" % event_resource_id
-    url = api_base_url + '/events/%s/files' % event_id
+    # url = api_base_url + "%s" % event_resource_id
+    url = api_base_url + 'events/%s/files' % event_id
     logger.info('puting data on %s' % url)
 
     files = {}
