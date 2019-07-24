@@ -3,6 +3,7 @@ from io import BytesIO
 from loguru import logger
 
 import requests
+import urllib.parse
 from dateutil import parser
 
 from microquake.core import AttribDict, UTCDateTime, read, read_events
@@ -72,6 +73,10 @@ class RequestEvent:
         outstr += "\n"
 
         return outstr
+
+
+def encode(resource_id):
+    return urllib.parse.quote(resource_id, safe='')
 
 
 def post_data_from_files(api_base_url, event_id=None, event_file=None,
@@ -259,6 +264,7 @@ def post_event_data(api_base_url, event_resource_id, request_files,
     url = api_base_url
     logger.info('posting data on %s' % url)
 
+    event_resource_id = encode(event_resource_id)
     result = requests.post(url, data={"send_to_bus": send_to_bus},
                            files=request_files)
     logger.info(result)
@@ -270,6 +276,8 @@ def put_event_from_objects(api_base_url, event_id, event=None,
                             variable_size_waveform=None):
     # removing id from URL as no longer used
     # url = api_base_url + "/%s" % event_resource_id
+
+    event_id = encode(event_id)
     url = api_base_url + '/events/%s/files' % event_id
     logger.info('puting data on %s' % url)
 
@@ -331,6 +339,7 @@ def get_event_by_id(api_base_url, event_resource_id):
     url = api_base_url + "events/"
     # querystring = {"event_resource_id": event_resource_id}
 
+    event_resource_id = encode(event_resource_id)
     response = requests.request("GET", url + event_resource_id)
 
     if response.status_code != 200:
@@ -388,6 +397,8 @@ def post_ray(api_base_url, site_code, network_code, event_id, origin_id,
 
     ray_length = len(nodes)
 
+    event_id = encode(event_id)
+
     request_data = dict()
     request_data['site'] = site_code
     request_data['network'] = network_code
@@ -422,6 +433,7 @@ def get_rays(api_base_url, event_resource_id, origin_resource_id=None,
              arrival_resource_id=None):
     url = api_base_url + "rays?"
 
+    event_resource_id = encode(event_resource_id)
     if event_resource_id:
         url += "event_id=%s&" % event_resource_id
 
@@ -471,5 +483,7 @@ def post_signal_quality(
 def reject_event(api_base_url, event_id):
     session = requests.Session()
     session.trust_env=False
+
+    event_id = encode(event_id)
     return session.post("{}{}/interactive/reject".format(api_base_url,
                                                            event_id))
