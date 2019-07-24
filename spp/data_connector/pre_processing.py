@@ -279,8 +279,6 @@ def pre_process(catalogue=None, **kwargs):
 
         return
 
-    logger.info('sending to API, will take long time')
-
     quick_magnitude_processor = quick_magnitude.Processor()
     result = quick_magnitude_processor.process(stream=waveforms[
         'fixed_length'], cat=new_cat)
