@@ -26,7 +26,7 @@ time_zone.type = 'UTC_offset'                # either 'UTC_offset or 'time_zone'
 time_zone.time_zone_code = 'ULN'             # time zone code. If type=time_zone, time_zone_code must be a valid pytz timezone
 time_zone.offset = 8                         # time offset in hours, ignored if type=time_zone
 
-waveform_extractor_message_queue = 'event_connector.extract_waveforms'
+pre_processing_message_queue = 'event_connector.pre_processing'
 automatic_pipeline_message_queue = 'workflow.automatic'
 api_message_queue = 'api'
 
@@ -66,7 +66,7 @@ data_connector.likelihood_threshold = 0.50
 data_connector.reconciliation_delay_minutes = 60
 data_connector.reconciliation_interval_hours = 72
 data_connector.maximum_event_elevation = 900
-data_connector.request_range_hours = 2
+data_connector.request_range_hours = 48
 data_connector.closing_window_time_seconds = 60 # time after which we consider the continuous data window closed after the event occurred
 data_connector.context_trace_forbiden_sensor = ['7', '9']
 

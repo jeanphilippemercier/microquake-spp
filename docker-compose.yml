@@ -63,6 +63,7 @@ services:
       - $SPP_CONFIG/:/data/config
       - ./spp:/app/spp
       - ./data/weights:/app/data/weights
+      - ./libs/microquake:/app/libs/microquake
     environment:
       SPP_COMMON: "/data/common"
       SPP_CONFIG: "/data/config"

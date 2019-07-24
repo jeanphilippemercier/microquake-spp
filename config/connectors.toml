@@ -1,7 +1,10 @@
 [default]
-api_base_url = 'http://api.microquake.org/api/v1/'
+api_base_url = 'https://api.microquake.org/api/v1/'
 api_token = ''
 ims_base_url = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
+redis_url = 'redis://redisdb:6379/0'
+postgres_url = 'postgresql://grafana:Vd73uSUnTGK@10.95.74.90:80/'
+postgres_db_name = 'grafana'
 kafka.brokers = 'spp-confluent-cp-kafka-headless:9092'
 kafka.group_id = 'seismic_processing_platform'
 kafka.threads = 3
@@ -16,20 +19,14 @@ event_db.kafka_topic = 'event_database'
 event_db.log_file_name = 'event_db_insertion_update.log'
 event_db.log_topic = 'insertion and update into event DB'
 
-redis_db.host = 'dev-spp-redis'
-redis_db.port = 6379
-redis_db.db = 0
-
 elastic_db.host = 'dev-spp-elastic'
 elastic_db.port = 9200
 
-postgres_db.url = 'postgresql://sensor_user:rs12zGgdMMH1@172.16.12.1:9090/'
-postgres_db.db_name = 'sensor_data'
+#postgres_db.url = 'postgresql://sensor_user:rs12zGgdMMH1@172.16.12.1:9090/'
+#postgres_db.url = 'postgresql://sensor_user:rs12zGgdMMH1@10.95.74.90:80/'
+#postgres_db.db_name = 'sensor_data'
 
 [development]
-redis_db.host = 'redisdb'
-redis_db.password = ''
-redis_db.port = 6379
 kafka.brokers = 'broker:9092'
 kafka.group_id = 'seismic_processing_platform'
 kafka.threads = 3
