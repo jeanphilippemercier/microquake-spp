@@ -2,7 +2,7 @@ stages:
   - build
   - docker
   - test
-  - deploy
+  # - deploy
 
 variables:
   DOCKER_DRIVER: overlay2
@@ -45,7 +45,6 @@ kube:
     - echo "$KUBE" > admin.conf
     - ./kubectl -n spp --kubeconfig admin.conf set image deployment.v1.apps/interactive-pipeline *=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record=true
     - ./kubectl -n spp --kubeconfig admin.conf set image deployment.v1.apps/automatic-pipeline *=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record=true
-    - ./kubectl -n spp --kubeconfig admin.conf set image deployment.v1.apps/ray-tracer *=registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$(echo $CI_COMMIT_SHA | cut -c1-8) --record=true
   only:
     refs:
       - master
