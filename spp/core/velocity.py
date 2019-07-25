@@ -61,6 +61,10 @@ def get_velocities():
 
 
 def create_velocities():
+
+    # Note that this function should not be used forever! New velocity models will be created in the future making
+    # this function obsolete
+
     z = [1168, 459, -300]
     Vp_z = [4533, 5337, 5836]
     Vs_z = [2306, 2885, 3524]
@@ -94,7 +98,7 @@ def create_velocities():
     vs.write(path.join(environ['SPP_COMMON'], 'velocities/vs'), format='NLLOC')
 
     with open(path.join(environ['SPP_COMMON'], 'velocities/vp.rid'), 'w') as vp:
-        vp.write(path.join(environ['SPP_COMMON'], 'velocities/initial_1d_vp_velocity_model_2018_01'))
+        vp.write('initial_1d_vp_velocity_model_2018_01')
 
     with open(path.join(environ['SPP_COMMON'], 'velocities/vs.rid'), 'w') as vs:
-        vs.write(path.join(environ['SPP_COMMON'], 'velocities/initial_1d_vs_velocity_model_2018_01'))
+        vs.write('initial_1d_vs_velocity_model_2018_01')
