@@ -11,6 +11,7 @@ import numpy as np
 from io import BytesIO
 from spp.core.serializers.seismic_objects import serialize, deserialize_message
 from spp.core.connectors import RedisQueue
+import requests
 
 api_base_url = settings.get('api_base_url')
 
@@ -71,8 +72,20 @@ def picker_election(location, event_time_utc, cat, stream):
 def put_data_api(catalogue=None, fixed_length=None, **kwargs):
     event_id = catalogue[0].resource_id.id
 
-    put_event_from_objects(api_base_url, event_id, event=catalogue,
-                           waveform=fixed_length)
+    response = put_event_from_objects(api_base_url, event_id,
+                                      event=catalogue,
+                                      waveform=fixed_length)
+
+    if response.status_code != requests.code.ok:
+        logger.info('request failed, resending to the queue')
+        dict_out = {'catalogue': catalogue,
+                    'fixed_length': fixed_length}
+
+        message = serialize(**dict_out)
+
+        result = api_job_queue.submit_task(put_data_api,
+                                           kwargs={'data': message,
+                                                   'serialized': True})
 
 
 @deserialize_message

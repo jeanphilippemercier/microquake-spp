@@ -152,13 +152,29 @@ def get_waveforms(interloc_dict, event):
 def send_to_api(catalogue=None, fixed_length=None, context=None,
                 variable_length=None, **kwargs):
     api_base_url = settings.get('api_base_url')
-    post_data_from_objects(api_base_url, event_id=None,
-                           event=catalogue,
-                           stream=fixed_length,
-                           context_stream=context,
-                           variable_length_stream=variable_length,
-                           tolerance=None,
-                           send_to_bus=False)
+    response = post_data_from_objects(api_base_url, event_id=None,
+                                      event=catalogue,
+                                      stream=fixed_length,
+                                      context_stream=context,
+                                      variable_length_stream=variable_length,
+                                      tolerance=None,
+                                      send_to_bus=False)
+
+    if response.status_code != requests.code.ok:
+
+        logger.info('request failed, resending to the queue')
+        dict_out = {'catalogue': catalogue,
+                    'fixed_length': fixed_length,
+                    'context': context,
+                    'variable_length': variable_length}
+
+        message = serialize(**dict_out)
+
+        result = api_job_queue.submit_task(send_to_api,
+                                           kwargs={'data': message,
+                                                   'serialized': True})
+
+
 
 
 def send_to_automatic_processing(out_dict):
