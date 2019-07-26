@@ -2,7 +2,7 @@ stages:
   - build
   - docker
   - test
-  # - deploy
+  - deploy
 
 variables:
   DOCKER_DRIVER: overlay2
@@ -39,6 +39,7 @@ spp:
 kube:
   image: docker:stable
   stage: deploy
+  allow_failure: true
   script:
     - wget https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
     - chmod +x kubectl
