@@ -12,15 +12,16 @@ class Processor(ProcessingUnit):
 
     def initializer(self):
         self.seismic_model = SeismicClassifierModel()
-
+        self.seismic_model.create_model()
+        
     def process(self, **kwargs):
         """
             Process event and returns its classification.
         """
         stream = kwargs["stream"]
         height = kwargs["height"]
-        self.seismic_model.create_model()
-        self.response = self.seismic_model.predict(stream, height)
+        context_trace = kwargs["context_trace"]  
+        self.response = self.seismic_model.predict(stream, context_trace, height)
         return self.response
 
     def legacy_pipeline_handler(self, msg_in, res):

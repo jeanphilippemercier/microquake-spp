@@ -5,6 +5,7 @@ import numpy as np
 from keras.models import Model
 from keras.layers import (Add, BatchNormalization, Conv2D, Dense, Flatten, Input, concatenate,
                           MaxPooling2D, Embedding)
+from keras import applications
 import librosa as lr
 class SeismicClassifierModel:
     '''
@@ -26,7 +27,6 @@ class SeismicClassifierModel:
         #Model was trained at these dimensions
         self.D = (128, 128, 1)
         self.microquake_class_names = ['anthropogenic event',
-                                       'controlled explosion',
                                        'earthquake',
                                        'explosion',
                                        'quarry blast']
@@ -122,72 +122,92 @@ class SeismicClassifierModel:
         :return: Normalized gray colored image
         """
         return (array - array.min()) / (array.max() - array.min())
+    
+    @staticmethod
+    def resnet50_layers(i):
+        '''
+            wrapper around the resnet 50 model, it starts by converting the one channel input to 3 channgels and then load resnet50 model 
+            :param i: input layer in this case the context trace
+            :retun the flattend layer after the resent50 block
+        '''
+        x = Conv2D(filters=3, kernel_size=2, padding='same', activation='relu')(i)
+        
+        x = applications.ResNet50(weights='imagenet', include_top=False)(x)
+        x = Flatten()(x)
+        return x
+    @staticmethod
+    def conv_layers(i):
+        '''
+            create convolution layers for 2 second stream.
+            :param i: input layers
+            :return Flattened layer
+        '''
+        kern_size = (3, 3)        
+        dim = 64
+        x = Conv2D(filters=16, kernel_size=2, padding='same', activation='relu')(i)
+        x = MaxPooling2D(pool_size=2)(x)
+        x = Conv2D(filters=32, kernel_size=2, padding='same', activation='relu')(x)
+        x = MaxPooling2D(pool_size=2)(x)
+        x = Conv2D(filters=64, kernel_size=2, padding='same', activation='relu')(x)
+        x = MaxPooling2D(pool_size=2)(x)
+        
+        X_shortcut = BatchNormalization()(x)
+        for _ in range(3):
+            y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu', padding='same')(X_shortcut)
+            y = BatchNormalization()(y)
+            #y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(y)
+            y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu', padding='same')(y)
+            X_shortcut = Add()([y,X_shortcut])
+        x = Flatten()(x)
+        
+        x = Dense(500, activation='relu')(x)       
+        x = BatchNormalization()(x)
+        #x = Dense(128, activation='relu')(x)   
 
+        return x
+    
     def create_model(self):
         """
         Create model and load weights
         """
         input_shape = (self.D[0], self.D[1], 1)
         i1 = Input(shape=input_shape, name="spectrogram")
-        i2 = Input(shape=(1,), name='hour', dtype='int32')
-        i3 = Input(shape=(1,), name='height', dtype='int32')
-        emb = Embedding(24, 50)(i2) #24 hours to 12 hours
-        flat1 = Flatten()(emb)
-        emb = Embedding(2,50)(i3)
-        flat2 = Flatten()(emb)
-        dim = 128
-        n_res = 2
-        kern_size = (3, 3)
-
-        dim = 64
-        x = Conv2D(filters=16, kernel_size=2, padding='same',
-                   activation='relu')(i1)
-        x = MaxPooling2D(pool_size=2)(x)
-        x = Conv2D(filters=32, kernel_size=2, padding='same',
-                   activation='relu')(x)
-        x = MaxPooling2D(pool_size=2)(x)
-        x = Conv2D(filters=64, kernel_size=2, padding='same',
-                   activation='relu')(x)
-        x = MaxPooling2D(pool_size=2)(x)
-        #x = Dropout(0.3)(x) # not needed to do inference
-        X_shortcut = BatchNormalization()(x)
-        for _ in range(n_res):
-            y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu',
-                       padding='same')(X_shortcut)
-            y = BatchNormalization()(y)
-            #y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(y)
-            y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu',
-                       padding='same')(y)
-            X_shortcut = Add()([y,X_shortcut])
-        x = Flatten()(x)
-        #x = Dropout(0.4)(x) # not needed to do inference
-        x = Dense(500, activation='relu')(x)
-        x = concatenate([x, flat1, flat2], axis=-1)
-        x = BatchNormalization()(x)
-        x = Dense(128, activation='relu')(x)
+        i2 = Input(shape=(1,), name='height', dtype='int32')
+        i3 = Input(shape=input_shape, name='context_trace')
+        emb = Embedding(3,2)(i2)
+        flat = Flatten()(emb)
+        
+        x1 = self.conv_layers(i1)
+        x2 = self.resnet50_layers(i3)
+        
+        x = concatenate([x1, x2], axis=-1)
+        x = Dense(64, activation='relu')(x)
+        x = concatenate([x,  flat], axis=-1)
         x = Dense(self.num_classes, activation='sigmoid')(x)
         self.model = Model([i1, i2, i3], x)
         self.model.load_weights(self.model_file)
 
  
-    def predict(self, tr, height):
+    def predict(self, tr, context_trace, height):
         """
-        :param tr: Obspy stream object
+        :param tr: Obspy stream object (2 s) that is good for descriminating between events
+        :param context_trace: context trace object (20s) good for descriminating blast and earth quake
         :param height: the z-value of event.
         :return: dictionary of  event classes probability
         """
-        hour = tr[0].stats.starttime.hour
+        spectrogram = self.librosa_spectrogram(context_trace)
+        contxt_img = self.normalize_gray(spectrogram)
         spectrogram = self.librosa_spectrogram(tr)
-        #graygram = self.rgb2gray(spectrogram)
         normgram = self.normalize_gray(spectrogram)
         img = normgram[None, ..., None] # Needed to in the form of batch with one channel.
+        contxt = contxt_img[None, ..., None]
         h = []
         #We use the height as a category, greater than 900 or not
-        if height >= SeismicClassifierModel.REF_HEIGHT:
+        if height >= self.REF_HEIGHT:
             h.append(1)
         else:
             h.append(0)
-        data = {'spectrogram': img, 'hour':np.asarray([hour]),
+        data = {'spectrogram': img, 'context_trace':contxt,
                 'height': np.asarray(h)}
         a = self.model.predict(data)
         
