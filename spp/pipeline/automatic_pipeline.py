@@ -83,9 +83,9 @@ def put_data_api(catalogue=None, fixed_length=None, **kwargs):
 
         message = serialize(**dict_out)
 
-        result = api_job_queue.submit_task(put_data_api,
-                                           kwargs={'data': message,
-                                                   'serialized': True})
+        result = api_queue.submit_task(put_data_api,
+                                       kwargs={'data': message,
+                                               'serialized': True})
 
 
 @deserialize_message

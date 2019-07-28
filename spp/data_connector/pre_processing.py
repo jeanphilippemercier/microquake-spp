@@ -3,9 +3,6 @@ if the waveform extraction fails, resend to the queue!
 """
 
 from datetime import datetime, timedelta
-from io import BytesIO
-
-import msgpack
 import numpy as np
 from pytz import utc
 
@@ -23,6 +20,8 @@ from spp.core.serializers.seismic_objects import (serialize, deserialize,
 from microquake.core import Stream
 
 from spp.pipeline.automatic_pipeline import automatic_pipeline
+
+import requests
 
 automatic_message_queue = settings.AUTOMATIC_PIPELINE_MESSAGE_QUEUE
 automatic_job_queue = RedisQueue(automatic_message_queue)
