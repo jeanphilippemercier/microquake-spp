@@ -16,13 +16,11 @@ from spp.core.settings import settings
 from spp.pipeline import (clean_data, event_classifier, interloc,
                           quick_magnitude)
 from spp.utils.seismic_client import post_data_from_objects
-from spp.core.connectors import (connect_rq, record_processing_logs_pg)
+from spp.core.connectors import (RedisQueue, record_processing_logs_pg)
 from time import time
 from spp.core.serializers.seismic_objects import (serialize, deserialize,
                                                   deserialize_message)
 from microquake.core import Stream
-
-from spp.core.redis_connectors import RedisQueue
 
 from spp.pipeline.automatic_pipeline import automatic_pipeline
 
@@ -43,9 +41,6 @@ network_code = settings.NETWORK_CODE
 minimum_recovery_fraction = settings.get(
     'data_connector').minimum_recovery_fraction
 
-db_name = settings.get('postgres_db').db_name
-
-
 def interloc_election(cat):
 
     event = cat[0]
@@ -60,7 +55,6 @@ def interloc_election(cat):
     starttime = event_time - timedelta(seconds=1.5)
     endtime = event_time + timedelta(seconds=1.5)
 
-    # from pdb import set_trace; set_trace()
     complete_wf = web_client.get_continuous(base_url, starttime, endtime,
                                             sites, utc)
 
@@ -158,13 +152,29 @@ def get_waveforms(interloc_dict, event):
 def send_to_api(catalogue=None, fixed_length=None, context=None,
                 variable_length=None, **kwargs):
     api_base_url = settings.get('api_base_url')
-    post_data_from_objects(api_base_url, event_id=None,
-                           event=catalogue,
-                           stream=fixed_length,
-                           context_stream=context,
-                           variable_length_stream=variable_length,
-                           tolerance=None,
-                           send_to_bus=False)
+    response = post_data_from_objects(api_base_url, event_id=None,
+                                      event=catalogue,
+                                      stream=fixed_length,
+                                      context_stream=context,
+                                      variable_length_stream=variable_length,
+                                      tolerance=None,
+                                      send_to_bus=False)
+
+    if response.status_code != requests.code.ok:
+
+        logger.info('request failed, resending to the queue')
+        dict_out = {'catalogue': catalogue,
+                    'fixed_length': fixed_length,
+                    'context': context,
+                    'variable_length': variable_length}
+
+        message = serialize(**dict_out)
+
+        result = api_job_queue.submit_task(send_to_api,
+                                           kwargs={'data': message,
+                                                   'serialized': True})
+
+
 
 
 def send_to_automatic_processing(out_dict):
@@ -176,7 +186,7 @@ def send_to_automatic_processing(out_dict):
 
 
 @deserialize_message
-def extract_waveform(catalogue=None, **kwargs):
+def pre_process(catalogue=None, **kwargs):
 
     logger.info('message received')
 
@@ -231,8 +241,6 @@ def extract_waveform(catalogue=None, **kwargs):
         vars.append(np.var(context_2s[i].data))
         composite += context_2s[i].data ** 2
 
-
-
     index = np.argmax(vars)
 
     composite = np.sqrt(composite) * np.sign(context_2s[index].data)
@@ -242,6 +250,7 @@ def extract_waveform(catalogue=None, **kwargs):
     context_new = Stream(traces=[tr])
 
     z = new_cat[0].preferred_origin().z
+
     category = event_classifier.Processor().process(stream=context_new,
                                                     height=z)
 
@@ -262,8 +271,7 @@ def extract_waveform(catalogue=None, **kwargs):
         end_processing_time = time()
         processing_time = end_processing_time - start_processing_time
         record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
-                                  __processing_step_id__, processing_time,
-                                  db_name=db_name)
+                                  __processing_step_id__, processing_time)
         return
 
     if sorted_list[0][1] > settings.get(
@@ -283,12 +291,9 @@ def extract_waveform(catalogue=None, **kwargs):
         end_processing_time = time()
         processing_time = end_processing_time - start_processing_time
         record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
-                                  __processing_step_id__, processing_time,
-                                  db_name=db_name)
+                                  __processing_step_id__, processing_time)
 
         return
-
-    logger.info('sending to API, will take long time')
 
     quick_magnitude_processor = quick_magnitude.Processor()
     result = quick_magnitude_processor.process(stream=waveforms[
@@ -312,8 +317,7 @@ def extract_waveform(catalogue=None, **kwargs):
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
     record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
-                              __processing_step_id__, processing_time,
-                              db_name=db_name)
+                              __processing_step_id__, processing_time)
 
     logger.info('sending to automatic pipeline')
 

@@ -26,7 +26,7 @@ time_zone.type = 'UTC_offset'                # either 'UTC_offset or 'time_zone'
 time_zone.time_zone_code = 'ULN'             # time zone code. If type=time_zone, time_zone_code must be a valid pytz timezone
 time_zone.offset = 8                         # time offset in hours, ignored if type=time_zone
 
-waveform_extractor_message_queue = 'event_connector.extract_waveforms'
+pre_processing_message_queue = 'event_connector.pre_processing'
 automatic_pipeline_message_queue = 'workflow.automatic'
 api_message_queue = 'api'
 
@@ -56,7 +56,6 @@ sensors.black_list = ['7', '9', '10', '23', '25', '31', '32', '54', '91', '96', 
 event_connector.on_start_up.number_of_hours = 24
 data_connector.url = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
 
-
 data_connector.minimum_recovery_fraction = 0.85
 data_connector.maximum_attempts = 10 # maximum number of attempts at retrieving the data
 data_connector.minimum_delay_minutes = 30
@@ -66,8 +65,9 @@ data_connector.likelihood_threshold = 0.50
 data_connector.reconciliation_delay_minutes = 60
 data_connector.reconciliation_interval_hours = 72
 data_connector.maximum_event_elevation = 900
-data_connector.request_range_hours = 2
-data_connector.closing_window_time_seconds = 60 # time after which we consider the continuous data window closed after the event occurred
+data_connector.request_range_hours = 48
+data_connector.closing_window_time_seconds = 2700 # time after which we
+# consider the continuous data window closed after the event occurred
 data_connector.context_trace_forbiden_sensor = ['7', '9']
 
 interloc.nthreads = 4

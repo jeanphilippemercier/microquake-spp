@@ -10,7 +10,8 @@ from spp.core.settings import settings
 import numpy as np
 from io import BytesIO
 from spp.core.serializers.seismic_objects import serialize, deserialize_message
-from spp.core.redis_connectors import RedisQueue
+from spp.core.connectors import RedisQueue
+import requests
 
 api_base_url = settings.get('api_base_url')
 
@@ -71,8 +72,20 @@ def picker_election(location, event_time_utc, cat, stream):
 def put_data_api(catalogue=None, fixed_length=None, **kwargs):
     event_id = catalogue[0].resource_id.id
 
-    put_event_from_objects(api_base_url, event_id, event=catalogue,
-                           waveform=fixed_length)
+    response = put_event_from_objects(api_base_url, event_id,
+                                      event=catalogue,
+                                      waveform=fixed_length)
+
+    if response.status_code != requests.code.ok:
+        logger.info('request failed, resending to the queue')
+        dict_out = {'catalogue': catalogue,
+                    'fixed_length': fixed_length}
+
+        message = serialize(**dict_out)
+
+        result = api_job_queue.submit_task(put_data_api,
+                                           kwargs={'data': message,
+                                                   'serialized': True})
 
 
 @deserialize_message
@@ -149,7 +162,7 @@ def automatic_pipeline(catalogue=None, fixed_length=None, **kwargs):
     message = serialize(catalogue=cat_nlloc)
 
     result = api_queue.submit_task(put_data_api, kwargs={'data': message,
-                                                         'serialized':True})
+                                                         'serialized': True})
 
     # put_event_from_objects(api_base_url, event_id, event=cat_nlloc,
     #                        waveform=fixed_length)
@@ -176,7 +189,7 @@ def automatic_pipeline(catalogue=None, fixed_length=None, **kwargs):
     cat_magnitude = magnitude_processor.process(cat=cat_energy,
                                                 stream=fixed_length)['cat']
 
-    magnitude_f_processor = magnitude.Processor(module_type = 'frequency')
+    magnitude_f_processor = magnitude.Processor(module_type='frequency')
     cat_magnitude_f = magnitude_f_processor.process(cat=cat_magnitude,
                                                     stream=fixed_length)['cat']
 
@@ -184,36 +197,8 @@ def automatic_pipeline(catalogue=None, fixed_length=None, **kwargs):
     cat_magnitude_f[0].resource_id = event_id
 
     message = serialize(catalogue=cat_magnitude_f)
-    result = api_queue.submit_task(put_data_api, kwargs={'data':message,
-                                                         'serialized':True})
+    result = api_queue.submit_task(put_data_api, kwargs={'data': message,
+                                                         'serialized': True})
     # put_event_from_objects(api_base_url, event_id, event=cat_magnitude_f)
 
     return cat_magnitude_f
-
-
-# from importlib import reload
-#    ...: from microquake.core import read
-#    ...: from spp.pipeline import automatic_pipeline
-#    ...: from spp.core import redis_connectors
-#    ...: from spp.data_connector import waveform_extractor
-#    ...: reload(waveform_extractor)
-#    ...: reload(automatic_pipeline)
-#    ...: reload(redis_connectors)
-#    ...: starttime = starttime - timedelta(hours=10)
-#    ...: cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
-#    ...:                                        utc, accepted=True, manual=True,
-#    ...:                                        blast=True)
-#    ...: event = cat[0]
-#    ...: waveforms = {}
-#    ...: for f in ['fixed_length.mseed', 'variable_length.mseed', 'context.mseed']:
-#    ...:     waveforms[f.split('.')[0]] = read(f, format='mseed')
-#    ...: message = serialize(catalogue=event, fixed_length=waveforms['fixed_length'], variable_length=waveforms['variable_length'], context=waveforms['context'])
-#    ...: result = redis_connectors.submit_task_to_rq(we_message_queue, waveform_extractor.extract_waveform, data=message, serialized=True)
-#    ...: # message = serialize(catalogue=event)
-#    ...: # waveform_extractor.extract_waveform(data=message, serialized=True)
-#    ...: # redis_queue.enqueue(waveform_extractor.extract_waveform,
-#    ...: #                                     kwargs={'data'      : message,
-#    ...: #                                             'serialized': True})
-#    ...: # automatic_pipeline.automatic_pipeline(data=message, serialized=True)
-#    ...:
-#    ...: #waveform_extractor.send_to_api(data=message, serialized=True)

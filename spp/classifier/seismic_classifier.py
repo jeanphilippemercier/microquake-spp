@@ -6,6 +6,7 @@ from keras.models import Model
 from keras.layers import (Add, BatchNormalization, Conv2D, Dense, Flatten, Input, concatenate,
                           MaxPooling2D, Embedding)
 from keras import applications
+from loguru import logger
 import librosa as lr
 class SeismicClassifierModel:
     '''
@@ -71,6 +72,11 @@ class SeismicClassifierModel:
         c = tr.composite()
         c.data = c / np.abs(c).max()
         c = c.detrend(type='demean')
+
+        nan_in_context = np.any(np.isnan(c[0].data))
+
+        logger.info('is there any nan in the context trace {}'.format(
+            nan_in_context))
 
         if taper:
             c = c.taper(max_percentage=0.05)

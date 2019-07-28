@@ -14,36 +14,40 @@ import numpy as np
 from time import time
 from sqlalchemy.orm import sessionmaker
 
+db_name = settings.POSTGRES_DB_NAME
+postgres_url = settings.POSTGRES_URL + db_name
+redis_url = settings.REDIS_URL
+
 
 def connect_redis():
-    if 'REDIS_MASTER_SERVICE_HOST' in settings:
-        redis_db = dict(
-            host=settings.REDIS_MASTER_SERVICE_HOST,
-            port=settings.REDIS_MASTER_SERVICE_PORT,
-            password=settings.REDIS_PASSWORD
-        )
-    else:
-        redis_db = settings.get('redis_db')
+    return Redis.from_url(redis_url)
 
-    redis_config = redis_db
 
-    return Redis(**redis_config)
+class RedisQueue:
+    def __init__(self, queue, timeout=600):
+        self.redis = connect_redis()
+        self.timeout = timeout
+        self.queue = queue
+        self.rq_queue = Queue(self.queue, connection=self.redis,
+                              default_timeout=self.timeout)
+
+    def submit_task(self, func, *args, **kwargs):
+        return self.rq_queue.enqueue(func, *args, **kwargs)
+
+
+# def submit_task_to_rq(queue, func, *args, **kwargs):
+#     with connect_redis() as redis:
+#         rq_queue = Queue(queue, connection=redis)
+#         return rq_queue.enqueue(func, *args, **kwargs)
+
+# rq worker --url redis://redisdb:6379 --log-format '%(asctime)s '  api
 
 def connect_rq(message_queue):
     redis = connect_redis()
     return Queue(message_queue, connection=redis)
 
-def connect_postgres(db_name='postgres'):
 
-    if 'POSTGRES_MASTER_SERVICE_HOST' in settings:
-        pass
-        # postgres_config = dict(host=settings.POSTGRES_MASTER_SERVICE_HOST,
-        #                        port=settings.POSTGRES_MASTER_SERVICE_PORT,
-        #                        user=settings.POSTGRES_MASTER_SERVICE_USER,
-        #                        password=settings.POSTGRES_MASTER_SERVICE_PASSWORD)
-
-    else:
-        postgres_url = settings.get('postgres_db').url + db_name
+def connect_postgres():
 
     engine = db.create_engine(postgres_url)
     connection = engine.connect()
@@ -53,20 +57,16 @@ def connect_postgres(db_name='postgres'):
     return connection
 
 
-def create_postgres_session(db_name='postgres'):
-    db_name = settings.get('postgres_db').db_name
-    postgres_url = settings.get('postgres_db').url + db_name
+def create_postgres_session():
     engine = db.create_engine(postgres_url)
-    pg = connect_postgres(db_name=db_name)
+    pg = connect_postgres()
     Session = sessionmaker(bind=engine)
     return Session()
 
 
 def get_continuous_data(starttime, endtime, sensor_id=None):
 
-    db_name = settings.get('postgres_db').db_name
-
-    session = create_postgres_session(db_name=db_name)
+    session = create_postgres_session()
 
     t0 = time()
 
@@ -74,12 +74,12 @@ def get_continuous_data(starttime, endtime, sensor_id=None):
         session.query(Recording).filter(
             Recording.time <= endtime).filter(
             Recording.end_time >= starttime).filter(
-            Recording.sensor_id==sensor_id).all()
+            Recording.sensor_id == sensor_id).all()
 
     else:
         results = session.query(Recording).filter(
-            Recording.time<=endtime).filter(
-            Recording.end_time>=starttime).all()
+            Recording.time <= endtime).filter(
+            Recording.end_time >= starttime).all()
 
     t1 = time()
     logger.info('retrieving the data in {} seconds'.format(t1 - t0))
@@ -87,7 +87,6 @@ def get_continuous_data(starttime, endtime, sensor_id=None):
     trs = []
     for trace in results:
         tr = Trace()
-
 
         for channel in ['x', 'y', 'z']:
 
@@ -111,8 +110,7 @@ def get_continuous_data(starttime, endtime, sensor_id=None):
 
 
 def record_processing_logs_pg(event, status, processing_step,
-                              processing_step_id, processing_time_second,
-                              db_name='postgres'):
+                              processing_step_id, processing_time_second):
 
     """
     Record the processing logs in the postgres database
@@ -122,11 +120,15 @@ def record_processing_logs_pg(event, status, processing_step,
     :param processing_step_id: processing step identifier integer
     :param processing_time_second: processing dealy for this step in seconds
     :param processing_time_second: processing time for this step in seconds
-    :param db_name: database name
     :return:
     """
 
-    event_time = event.preferred_origin().time.datetime.replace(tzinfo=utc)
+    origin =  event.preferred_origin()
+
+    if origin is None:
+        origin = event.origins[-1]
+
+    event_time = origin.time.datetime.replace(tzinfo=utc)
 
     processing_time = datetime.utcnow().replace(tzinfo=utc)
     processing_delay_second = (processing_time - event_time).total_seconds()
@@ -140,11 +142,13 @@ def record_processing_logs_pg(event, status, processing_step,
                 'processing_time_second' : processing_time_second,
                 'processing_status'      : status}
 
-    with connect_postgres(db_name=db_name) as pg:
+    with connect_postgres() as pg:
         query = db.insert(processing_logs)
         values_list = [document]
 
         result = pg.execute(query, values_list)
+
+        pg.close()
 
     return result
 

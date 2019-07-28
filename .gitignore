@@ -1,3 +1,5 @@
+catalog
+*.bin
 deprecated
 
 *.py[cod]
