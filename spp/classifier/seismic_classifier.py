@@ -70,7 +70,7 @@ class SeismicClassifierModel:
 
         # c = tr[0]
         c = tr.composite()
-        c[0].data = c[0].data / np.abs(c[0].data).max()
+        c[0].data = c[0].data / np.abs(c[0].data).max() #we only interested in c[0]
         c = c.detrend(type='demean')
 
         nan_in_context = np.any(np.isnan(c[0].data))
