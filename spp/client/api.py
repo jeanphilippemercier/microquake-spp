@@ -1,6 +1,6 @@
 from typing import List
 
-from uplink import Body, Consumer, get, post, headers, response_handler, returns, json
+from uplink import Body, Consumer, Part, get, multipart, post, response_handler, put
 from uplink.auth import ApiTokenHeader
 
 from ..core.settings import settings
@@ -13,7 +13,6 @@ class SeismicClient(Consumer):
     def __init__(self, access_token, base_url=None):
         if base_url is None:
             base_url = settings.API_BASE_URL
-
 
         token_auth = ApiTokenHeader("Authorization", access_token)
         super(SeismicClient, self).__init__(base_url=base_url, auth=token_auth)
@@ -48,3 +47,7 @@ class SeismicClient(Consumer):
     @post("events", args={"events": Body})
     def post_events(selfs, events: List[Event]) -> EventSchema(many=True):
         """post_event"""
+
+    @multipart
+    @put("weightsfiles")
+    def upload_weigths(self, weigths: Part): pass
