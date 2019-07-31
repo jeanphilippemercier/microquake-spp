@@ -246,11 +246,13 @@ def pre_process(catalogue=None, **kwargs):
 
     tr = context_2s[0]
     tr.data = composite
-    context_new = Stream(traces=[tr])
+    context_2s_new = Stream(traces=[tr])
 
     z = new_cat[0].preferred_origin().z
 
-    category = event_classifier.Processor().process(stream=context_new,
+    category = event_classifier.Processor().process(stream=context_2s_new,
+                                                    context=waveforms[
+                                                        'context'],
                                                     height=z)
 
     sorted_list = sorted(category.items(), reverse=True,

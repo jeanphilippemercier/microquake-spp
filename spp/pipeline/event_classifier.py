@@ -20,8 +20,9 @@ class Processor(ProcessingUnit):
         """
         stream = kwargs["stream"]
         height = kwargs["height"]
-        context_trace = kwargs["context_trace"]  
-        self.response = self.seismic_model.predict(stream, context_trace, height)
+        context_trace = kwargs["context"]
+        self.response = self.seismic_model.predict(stream, context_trace,
+                                                   height)
         return self.response
 
     def legacy_pipeline_handler(self, msg_in, res):
