@@ -159,7 +159,7 @@ def send_to_api(catalogue=None, fixed_length=None, context=None,
                                       tolerance=None,
                                       send_to_bus=False)
 
-    if response.status_code != requests.code.ok:
+    if response.status_code != requests.codes.ok:
 
         logger.info('request failed, resending to the queue')
         dict_out = {'catalogue': catalogue,

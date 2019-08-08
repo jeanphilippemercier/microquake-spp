@@ -76,7 +76,7 @@ def put_data_api(catalogue=None, fixed_length=None, **kwargs):
                                       event=catalogue,
                                       waveform=fixed_length)
 
-    if response.status_code != requests.code.ok:
+    if response.status_code != requests.codes.ok:
         logger.info('request failed, resending to the queue')
         dict_out = {'catalogue': catalogue,
                     'fixed_length': fixed_length}
