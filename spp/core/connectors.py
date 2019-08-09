@@ -1,18 +1,20 @@
-from redis import Redis
-from spp.core.settings import settings
-import sqlalchemy as db
 from datetime import datetime
-from pytz import utc
-from spp.stats_collector.db_models import processing_logs
-from spp.stats_collector import db_models
-from rq import Queue
-from loguru import logger
-from spp.core.db_models import Recording
-from microquake.core.stream import Stream, Trace
-from microquake.core import UTCDateTime
-import numpy as np
 from time import time
+
+import numpy as np
+import sqlalchemy as db
+from pytz import utc
 from sqlalchemy.orm import sessionmaker
+
+from loguru import logger
+from microquake.core import UTCDateTime
+from microquake.core.stream import Stream, Trace
+from redis import Redis
+from rq import Queue
+from spp.core.db_models import Recording
+from spp.core.settings import settings
+from spp.stats_collector import db_models
+from spp.stats_collector.db_models import processing_logs
 
 db_name = settings.POSTGRES_DB_NAME
 postgres_url = settings.POSTGRES_URL + db_name
@@ -44,6 +46,7 @@ class RedisQueue:
 
 def connect_rq(message_queue):
     redis = connect_redis()
+
     return Queue(message_queue, connection=redis)
 
 
@@ -61,6 +64,7 @@ def create_postgres_session():
     engine = db.create_engine(postgres_url)
     pg = connect_postgres()
     Session = sessionmaker(bind=engine)
+
     return Session()
 
 
@@ -85,6 +89,7 @@ def get_continuous_data(starttime, endtime, sensor_id=None):
     logger.info('retrieving the data in {} seconds'.format(t1 - t0))
 
     trs = []
+
     for trace in results:
         tr = Trace()
 
@@ -111,7 +116,6 @@ def get_continuous_data(starttime, endtime, sensor_id=None):
 
 def record_processing_logs_pg(event, status, processing_step,
                               processing_step_id, processing_time_second):
-
     """
     Record the processing logs in the postgres database
     :param event: event being processed
@@ -123,7 +127,7 @@ def record_processing_logs_pg(event, status, processing_step,
     :return:
     """
 
-    origin =  event.preferred_origin()
+    origin = event.preferred_origin()
 
     if origin is None:
         origin = event.origins[-1]
@@ -133,14 +137,14 @@ def record_processing_logs_pg(event, status, processing_step,
     processing_time = datetime.utcnow().replace(tzinfo=utc)
     processing_delay_second = (processing_time - event_time).total_seconds()
 
-    document = {'event_id'               : event.resource_id.id,
-                'event_timestamp'        : event_time,
-                'processing_timestamp'   : processing_time,
-                'processing_step_name'   : processing_step,
-                'processing_step_id'     : processing_step_id,
+    document = {'event_id': event.resource_id.id,
+                'event_timestamp': event_time,
+                'processing_timestamp': processing_time,
+                'processing_step_name': processing_step,
+                'processing_step_id': processing_step_id,
                 'processing_delay_second': processing_delay_second,
-                'processing_time_second' : processing_time_second,
-                'processing_status'      : status}
+                'processing_time_second': processing_time_second,
+                'processing_status': status}
 
     with connect_postgres() as pg:
         query = db.insert(processing_logs)
@@ -151,38 +155,3 @@ def record_processing_logs_pg(event, status, processing_step,
         pg.close()
 
     return result
-
-
-def record_processing(event):
-
-    processing_delay_second = datetime.utcnow().timestamp() - \
-            event.preferred_origin().time.datetime.timestamp()
-
-    processing_complete_timestamp = datetime.utcnow().replace(tzinfo=utc)
-
-    if event.evaluation_status == 'rejected':
-        p_picks = 0
-        s_picks = 0
-        event_category = 'noise'
-
-    elif len(event.picks) == 0:
-        p_picks = 0
-        s_picks = 0
-        event_category = event.event_type
-
-    else:
-
-        len([])
-
-    p_picks = event.preferred_arrival
-    processing = db.Table('processing', metadata,
-                          db.Column('event_id', db.String(255)),
-                          db.Column('P_picks', db.Integer),
-                          db.Column('S_picks', db.Integer),
-                          db.Column('processing_delay_second', db.Float),
-                          db.Column('processing_completed_timestamp',
-                                    db.Float),
-                          db.Column('event_category', db.String(255)),
-                          db.Column('event_status', db.String(255)))
-
-

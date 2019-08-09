@@ -4,27 +4,24 @@ events packaged as cataglog to a Redis Queue
 """
 
 from datetime import datetime, timedelta
-from time import sleep
+from importlib import reload
+from time import sleep, time
+
+import sqlalchemy as db
 from pytz import utc
 
 from loguru import logger
 from microquake.IMS import web_client
+from spp.core.connectors import RedisQueue, connect_postgres, record_processing_logs_pg
+from spp.core.db_models import processing_logs
+from spp.core.serializers.seismic_objects import serialize
 from spp.core.settings import settings
 from spp.core.time import get_time_zone
-from spp.core.connectors import (connect_postgres, RedisQueue,
-                                 record_processing_logs_pg)
-
-from spp.core.serializers.seismic_objects import serialize
-
-from spp.data_connector.pre_processing import pre_process
 from spp.data_connector import pre_processing
-from importlib import reload
+from spp.data_connector.pre_processing import pre_process
+
 reload(pre_processing)
 
-from time import time
-
-from spp.core.db_models import processing_logs
-import sqlalchemy as db
 
 __processing_step__ = 'initializer'
 __processing_step_id__ = 1
@@ -40,21 +37,23 @@ base_url = settings.get('ims_base_url')
 we_message_queue = settings.PRE_PROCESSING_MESSAGE_QUEUE
 we_job_queue = RedisQueue(we_message_queue)
 
-def get_starttime():
 
+def get_starttime():
     query = db.select([db.func.max(
         processing_logs.columns.event_timestamp)]).where(
         processing_logs.columns.processing_step_name == __processing_step__)
 
     result = pg.execute(query).scalar()
+
     if result is None:
         starttime = datetime.utcnow().replace(tzinfo=utc) - \
-                    timedelta(hours=request_range_hours)
+            timedelta(hours=request_range_hours)
     else:
         starttime = result.replace(tzinfo=utc) + timedelta(
             seconds=1)
 
     return starttime
+
 
 def already_processed(event):
     query = db.select([db.func.count(processing_logs.columns.event_id)]).where(
@@ -82,6 +81,7 @@ while 1:
         logger.error('Connection to the IMS server on {} failed!'.format(
             base_url))
         sleep(30)
+
         continue
 
     logger.info('recovered {} events'.format(len(cat)))
@@ -123,4 +123,3 @@ while 1:
                                                __processing_step__,
                                                __processing_step_id__,
                                                processing_time)
-
