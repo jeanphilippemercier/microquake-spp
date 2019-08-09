@@ -3,25 +3,21 @@ if the waveform extraction fails, resend to the queue!
 """
 
 from datetime import datetime, timedelta
+from time import time
+
 import numpy as np
+import requests
 from pytz import utc
 
 from loguru import logger
-from microquake.core import UTCDateTime, read_events
+from microquake.core import Stream, UTCDateTime
 from microquake.IMS import web_client
+from spp.core.connectors import RedisQueue, record_processing_logs_pg
+from spp.core.serializers.seismic_objects import deserialize_message, serialize
 from spp.core.settings import settings
-from spp.pipeline import (clean_data, event_classifier, interloc,
-                          quick_magnitude)
-from spp.utils.seismic_client import post_data_from_objects
-from spp.core.connectors import (RedisQueue, record_processing_logs_pg)
-from time import time
-from spp.core.serializers.seismic_objects import (serialize, deserialize,
-                                                  deserialize_message)
-from microquake.core import Stream
-
+from spp.pipeline import clean_data, event_classifier, interloc, quick_magnitude
 from spp.pipeline.automatic_pipeline import automatic_pipeline
-
-import requests
+from spp.utils.seismic_client import post_data_from_objects
 
 automatic_message_queue = settings.AUTOMATIC_PIPELINE_MESSAGE_QUEUE
 automatic_job_queue = RedisQueue(automatic_message_queue)
@@ -39,6 +35,7 @@ network_code = settings.NETWORK_CODE
 # tolerance for how many trace are not recovered
 minimum_recovery_fraction = settings.get(
     'data_connector').minimum_recovery_fraction
+
 
 def interloc_election(cat):
 
@@ -61,6 +58,7 @@ def interloc_election(cat):
                                         max_length=0.01).filter('bandpass',
                                                                 freqmin=60,
                                                                 freqmax=500)
+
     for offset in [-1.5, -1, -0.5]:
         starttime = event_time + timedelta(seconds=offset)
         endtime = starttime + timedelta(seconds=2)
@@ -69,8 +67,6 @@ def interloc_election(cat):
         wf.trim(starttime=UTCDateTime(starttime),
                 endtime=UTCDateTime(endtime))
         wf = wf.detrend('demean').taper(max_length=0.01, max_percentage=0.01)
-
-        station_codes = np.unique([tr.stats.station for tr in wf])
 
         clean_data_processor = clean_data.Processor()
         clean_wf = clean_data_processor.process(waveform=wf)
@@ -120,7 +116,8 @@ def get_waveforms(interloc_dict, event):
         sampling_rate = fixed_length_wf.select(station=station.code)[
             0].stats.sampling_rate
         expected_number_sample = (endtime - starttime).total_seconds() * \
-                                 sampling_rate
+            sampling_rate
+
         if len(station_data) < expected_number_sample * 0.95:
             if np.isnan(station_data).any():
                 continue
@@ -147,6 +144,7 @@ def get_waveforms(interloc_dict, event):
 
     return waveforms
 
+
 @deserialize_message
 def send_to_api(catalogue=None, fixed_length=None, context=None,
                 variable_length=None, **kwargs):
@@ -172,16 +170,7 @@ def send_to_api(catalogue=None, fixed_length=None, context=None,
         result = api_job_queue.submit_task(send_to_api,
                                            kwargs={'data': message,
                                                    'serialized': True})
-
-
-
-
-def send_to_automatic_processing(out_dict):
-
-    automatic_message_queue = settings.get(
-        'processing_flow').automatic.message_queue
-
-    out_dict_serialized = serialize(**out_dict)
+        return result
 
 
 @deserialize_message
@@ -199,12 +188,13 @@ def pre_process(catalogue=None, **kwargs):
 
     closing_window_time_seconds = settings.get(
         'data_connector').closing_window_time_seconds
+
     if UTCDateTime.now() - event_time < closing_window_time_seconds:
         logger.info('Delay between the detection of the event and the '
                     'current time ({} s) is lower than the closing window '
                     'time threshold ({} s). The event will resent to the '
                     'queue and reprocessed at a later time '.format(
-            UTCDateTime.now() - event_time, closing_window_time_seconds))
+                        UTCDateTime.now() - event_time, closing_window_time_seconds))
 
         return
 
@@ -219,6 +209,7 @@ def pre_process(catalogue=None, **kwargs):
 
     if not interloc_results:
         logger.error('interloc failed')
+
         return
 
     new_cat = interloc_results['catalog']
@@ -235,6 +226,7 @@ def pre_process(catalogue=None, **kwargs):
 
     composite = np.zeros(len(context_2s[0].data))
     vars = []
+
     for i, tr in enumerate(context_2s):
         context_2s[i].data = np.nan_to_num(context_2s[i].data)
         vars.append(np.var(context_2s[i].data))
@@ -265,6 +257,7 @@ def pre_process(catalogue=None, **kwargs):
     logger.info('{}'.format(sorted_list))
 
     event_type = sorted_list[0][0]
+
     if event_type == 'other event':
         logger.info('event categorized as noise are not further processed '
                     'and will not be saved in the database')
@@ -273,6 +266,7 @@ def pre_process(catalogue=None, **kwargs):
         processing_time = end_processing_time - start_processing_time
         record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
                                   __processing_step_id__, processing_time)
+
         return
 
     if sorted_list[0][1] > settings.get(
@@ -283,7 +277,6 @@ def pre_process(catalogue=None, **kwargs):
 
         logger.info('event categorized as {} with an likelihoold of {}'
                     ''.format(sorted_list[0][0], sorted_list[0][1]))
-
 
     else:
         logger.info('event categorized as noise are not further processed '
@@ -301,15 +294,12 @@ def pre_process(catalogue=None, **kwargs):
         'fixed_length'], cat=new_cat)
     mag_cat = quick_magnitude_processor.output_catalog(new_cat)
 
-
-
     dict_out = waveforms
     dict_out['catalogue'] = mag_cat
 
     new_cat.write('catalogue', format='quakeml')
 
     message = serialize(**dict_out)
-
 
     result = api_job_queue.submit_task(send_to_api,
                                        kwargs={'data': message,
@@ -326,5 +316,5 @@ def pre_process(catalogue=None, **kwargs):
                                              kwargs={'data': message,
                                                      'serialized': True})
 
-
     logger.info('done collecting the waveform, happy processing!')
+    return result
