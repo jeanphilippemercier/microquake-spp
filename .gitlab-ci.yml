@@ -9,16 +9,14 @@ variables:
   CI_APPLICATION_TAG: $(echo ${CI_COMMIT_SHA} | cut -c1-8)
   KUBE_VERSION: v1.12.1
   SPP_COMMON: /app/common
+  DOCKER_HOST: tcp://docker:2375/
+  # See https://github.com/docker-library/docker/pull/166
+  DOCKER_TLS_CERTDIR: ""
 
 services:
   - name: docker:dind
     entrypoint: ["env", "-u", "DOCKER_HOST"]
     command: ["dockerd-entrypoint.sh"]
-    variables:
-      DOCKER_HOST: tcp://docker:2375/
-      DOCKER_DRIVER: overlay2
-      # See https://github.com/docker-library/docker/pull/166
-      DOCKER_TLS_CERTDIR: ""
 
 spp:
   image: docker:stable
