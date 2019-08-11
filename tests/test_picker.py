@@ -1,7 +1,7 @@
 import pytest
 from tests.helpers.data_utils import get_test_data
 
-from spp.pipeline.picker import Processor
+from microquake.processors.picker import Processor
 
 test_data_name = "test_output_interloc"
 

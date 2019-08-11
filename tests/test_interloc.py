@@ -1,9 +1,8 @@
-import numpy as np
 import pytest
 from tests.helpers.data_utils import get_test_data
 
 from microquake.core.event import Origin
-from spp.pipeline.interloc import Processor
+from microquake.processors.interloc import Processor
 
 test_data_name = "test_end_to_end"
 

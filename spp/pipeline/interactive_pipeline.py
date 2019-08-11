@@ -1,6 +1,5 @@
-from spp.pipeline import (nlloc, measure_amplitudes,
-                          measure_smom, focal_mechanism, measure_energy,
-                          magnitude, event_database)
+from microquake.processors import event_database, measure_amplitudes, measure_energy, magnitude, measure_smom, nlloc, \
+  focal_mechanism
 from microquake.core.settings import settings
 from io import BytesIO
 from microquake.core import read, read_events, UTCDateTime
@@ -139,7 +138,7 @@ def interactive_pipeline(waveform_bytes=None,
     cat_magnitude = magnitude_processor.process(cat=cat_energy,
                                                 stream=stream)['cat']
 
-    magnitude_f_processor = magnitude.Processor(module_type = 'frequency')
+    magnitude_f_processor = magnitude.Processor(module_type ='frequency')
     cat_magnitude_f = magnitude_f_processor.process(cat=cat_magnitude,
                                                     stream=stream)['cat']
 

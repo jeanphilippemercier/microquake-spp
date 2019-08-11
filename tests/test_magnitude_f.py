@@ -1,7 +1,7 @@
 import pytest
 from tests.helpers.data_utils import get_test_data
 
-from spp.pipeline.magnitude import Processor
+from microquake.processors.magnitude import Processor
 
 test_data_name = "test_output_magnitude"
 

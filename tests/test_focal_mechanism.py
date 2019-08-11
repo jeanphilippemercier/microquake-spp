@@ -1,7 +1,7 @@
 import pytest
 from tests.helpers.data_utils import get_test_data
 
-from spp.pipeline.focal_mechanism import Processor
+from microquake.processors.focal_mechanism import Processor
 
 test_data_name = "test_output_smom"
 

@@ -1,7 +1,7 @@
 import pytest
 from tests.helpers.data_utils import get_test_data
 
-from spp.pipeline.measure_smom import Processor
+from microquake.processors.measure_smom import Processor
 
 test_data_name = "test_output_amplitude"
 

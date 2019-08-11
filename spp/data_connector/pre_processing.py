@@ -15,7 +15,7 @@ from microquake.clients.ims import web_client
 from microquake.db.connectors import RedisQueue, record_processing_logs_pg
 from spp.core.serializers.seismic_objects import deserialize_message, serialize
 from microquake.core.settings import settings
-from spp.pipeline import clean_data, event_classifier, interloc, quick_magnitude
+from microquake.processors import clean_data, event_classifier, quick_magnitude, interloc
 from spp.pipeline.automatic_pipeline import automatic_pipeline
 from spp.utils.seismic_client import post_data_from_objects
 

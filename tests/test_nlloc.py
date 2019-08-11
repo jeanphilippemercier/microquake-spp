@@ -2,7 +2,7 @@ import pytest
 from tests.helpers.data_utils import get_test_data
 
 from microquake.core.event import OriginUncertainty
-from spp.pipeline.nlloc import Processor
+from microquake.processors.nlloc import Processor
 
 test_data_name = "test_output_picker"
 
