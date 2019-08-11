@@ -1,19 +1,13 @@
-from microquake.processors import event_database, measure_amplitudes, measure_energy, magnitude, measure_smom, nlloc, \
-  focal_mechanism
-from microquake.core.settings import settings
-from io import BytesIO
-from microquake.core import read, read_events, UTCDateTime
-from microquake.core.event import (Pick, Arrival, Origin, WaveformStreamID,
-                                   ResourceIdentifier, CreationInfo)
 import json
+from io import BytesIO
+
 from dateutil.parser import parse
 
-from microquake.db.connectors import connect_redis
-
-
-redis = connect_redis()
-interactive_message_queue = settings.get(
-    'processing_flow').interactive.message_queue
+from microquake.core import UTCDateTime, read, read_events
+from microquake.core.event import Arrival, CreationInfo, Origin, Pick, ResourceIdentifier, WaveformStreamID
+from microquake.core.settings import settings
+from microquake.processors import (event_database, focal_mechanism, magnitude, measure_amplitudes, measure_energy,
+                                   measure_smom, nlloc)
 
 
 def prepare_catalog(ui_picks, catalog):
@@ -26,13 +20,12 @@ def prepare_catalog(ui_picks, catalog):
     """
     cat = catalog
     new_origin = Origin(x=0, y=0, z=0, time=UTCDateTime(),
-                       evaluation_mode='manual',
-                       evaluation_status='preliminary')
+                        evaluation_mode='manual',
+                        evaluation_status='preliminary')
     new_origin.creation_info = CreationInfo(creation_time=UTCDateTime.now())
     new_origin.method_id = ResourceIdentifier("PICKER_FOR_HOLDING_ARRIVALS")
 
     for arrival in ui_picks['data']:
-        dict_arrival = {}
         for key in arrival.keys():
             if key == 'pick':
                 # Determine if a pick needs to be appended to the pick list
@@ -58,7 +51,7 @@ def prepare_catalog(ui_picks, catalog):
                     for pk_cat in cat[0].picks:
                         if temp_pick['pick_resource_id'] == pk_cat.resource_id:
                             if temp_pick['time'] == pk_cat.time or temp_pick[
-                                'phase_hint'] == pk_cat.phase_hint:
+                                    'phase_hint'] == pk_cat.phase_hint:
                                 # do not create a new pick
                                 new_arrival = Arrival(phase=arrival['phase'],
                                                       pick_id=pk_cat.resource_id)
@@ -68,12 +61,13 @@ def prepare_catalog(ui_picks, catalog):
                                 new_pick.time = temp_pick['time']
                                 new_pick.phase_hint = temp_pick['phase_hint']
                                 new_arrival = Arrival(phase=temp_pick[
-                                    'phase_hint',])
+                                    'phase_hint', ])
 
                             new_origin.arrivals.append(new_arrival)
 
     cat[0].origins.append(new_origin)
     cat[0].preferred_origin_id = new_origin.resource_id.id
+
     return cat
 
 
@@ -109,16 +103,13 @@ def interactive_pipeline(waveform_bytes=None,
     # Removing the Origin object used to hold the picks
     del cat_nlloc[0].origins[-2]
 
-
     # calculating the rays asynchronously
     bytes_out = BytesIO()
     cat_nlloc.write(bytes_out, format='QUAKEML')
 
     measure_amplitudes_processor = measure_amplitudes.Processor()
     cat_amplitude = measure_amplitudes_processor.process(cat=cat_nlloc,
-                                             stream=stream)['cat']
-
-
+                                                         stream=stream)['cat']
 
     smom_processor = measure_smom.Processor()
     cat_smom = smom_processor.process(cat=cat_amplitude,
@@ -138,16 +129,10 @@ def interactive_pipeline(waveform_bytes=None,
     cat_magnitude = magnitude_processor.process(cat=cat_energy,
                                                 stream=stream)['cat']
 
-    magnitude_f_processor = magnitude.Processor(module_type ='frequency')
+    magnitude_f_processor = magnitude.Processor(module_type='frequency')
     cat_magnitude_f = magnitude_f_processor.process(cat=cat_magnitude,
                                                     stream=stream)['cat']
-
 
     # result = eventdb_processor.process(cat=cat_magnitude_f)
 
     return cat_magnitude_f
-
-
-
-if __name__ == '__main__':
-    test_automatic_pipeline()
