@@ -11,7 +11,7 @@ from loguru import logger
 from microquake.core.event import Origin
 from microquake.core.util import tools
 
-from ..core.hdf5 import get_ttable_h5
+from microquake.core.helpers.hdf5 import get_ttable_h5
 from .processing_unit import ProcessingUnit
 
 

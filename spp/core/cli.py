@@ -30,10 +30,10 @@ from .. import __version__
 from ..pipeline.automatic_pipeline import automatic_pipeline
 from ..pipeline.interactive_pipeline import interactive_pipeline
 from ..utils.kafka_redis_application import KafkaRedisApplication
-from .hdf5 import write_ttable_h5
-from .nlloc import nll_sensors, nll_velgrids
+from microquake.core.helpers.hdf5 import write_ttable_h5
+from microquake.core.helpers.nlloc import nll_sensors, nll_velgrids
 from microquake.core.settings import settings
-from .velocity import create_velocities
+from microquake.core.helpers.velocity import create_velocities
 from .connectors import connect_redis
 
 LOGGING_LEVELS = {

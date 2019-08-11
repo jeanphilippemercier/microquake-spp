@@ -3,7 +3,7 @@ from obspy.core.event.base import Comment
 from loguru import logger
 from microquake.waveform.smom_measure import measure_pick_smom
 
-from ..core.grid import synthetic_arrival_times
+from microquake.core.helpers.grid import synthetic_arrival_times
 from microquake.core.settings import settings
 from .processing_unit import ProcessingUnit
 

@@ -4,7 +4,7 @@ from loguru import logger
 from microquake.waveform.mag import (calc_magnitudes_from_lambda,
                                      set_new_event_mag)
 
-from ..core.velocity import get_velocities
+from microquake.core.helpers.velocity import get_velocities
 from .processing_unit import ProcessingUnit
 
 

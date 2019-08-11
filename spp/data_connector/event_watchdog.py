@@ -16,7 +16,7 @@ from spp.core.connectors import RedisQueue, connect_postgres, record_processing_
 from spp.core.db_models import processing_logs
 from spp.core.serializers.seismic_objects import serialize
 from microquake.core.settings import settings
-from spp.core.time import get_time_zone
+from microquake.core.helpers.time import get_time_zone
 from spp.data_connector import pre_processing
 from spp.data_connector.pre_processing import pre_process
 

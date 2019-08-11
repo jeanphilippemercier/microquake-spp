@@ -2,7 +2,7 @@ from microquake.core.simul import eik
 import matplotlib.pyplot as plt
 from importlib import reload
 import numpy as np
-from spp.core.grid import get_grid
+from microquake.core.helpers.grid import get_grid
 
 reload(eik)
 tt_grid = get_grid(20, 'P')

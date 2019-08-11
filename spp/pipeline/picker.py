@@ -7,8 +7,8 @@ from microquake.core import UTCDateTime
 from microquake.core.event import CreationInfo, Origin
 from microquake.waveform.pick import snr_picker
 
-from ..core.grid import (create_arrivals_from_picks, estimate_origin_time,
-                         synthetic_arrival_times)
+from microquake.core.helpers.grid import (create_arrivals_from_picks, estimate_origin_time,
+                                          synthetic_arrival_times)
 from .processing_unit import ProcessingUnit
 
 
