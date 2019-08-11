@@ -7,9 +7,9 @@ from pytz import utc
 from sqlalchemy.orm import sessionmaker
 
 from loguru import logger
-from microquake.core import UTCDateTime
+from obspy.core import UTCDateTime
 from microquake.core.stream import Stream, Trace
-from redis import Redis
+from redis import ConnectionPool, Redis
 from rq import Queue
 from spp.core.db_models import Recording
 from spp.core.settings import settings
@@ -22,7 +22,19 @@ redis_url = settings.REDIS_URL
 
 
 def connect_redis():
-    return Redis.from_url(redis_url)
+    return RedisWrapper().redis_connect(url=redis_url)
+
+
+class RedisWrapper(object):
+    shared_state = {}
+
+    def __init__(self):
+        self.__dict__ = self.shared_state
+
+    def redis_connect(self, redis_url):
+        connection_pool = ConnectionPool(redis_url)
+
+        return Redis(connection_pool=connection_pool)
 
 
 class RedisQueue:
