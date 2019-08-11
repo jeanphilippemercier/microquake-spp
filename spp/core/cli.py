@@ -27,8 +27,8 @@ from loguru import logger
 from microquake.core.nlloc import NLL
 
 from .. import __version__
-from ..pipeline.automatic_pipeline import automatic_pipeline
-from ..pipeline.interactive_pipeline import interactive_pipeline
+from microquake.pipelines.automatic_pipeline import automatic_pipeline
+from microquake.pipelines.interactive_pipeline import interactive_pipeline
 from ..utils.kafka_redis_application import KafkaRedisApplication
 from microquake.core.helpers.hdf5 import write_ttable_h5
 from microquake.core.helpers.nlloc import nll_sensors, nll_velgrids
