@@ -54,9 +54,9 @@ tensorflow = "~1.13"
 uplink = {version = "^0.9.0", extras = ["aiohttp", "marshmallow"]}
 psycopg2 = "^2.8.3"
 rq = "*"
-# uplink = "^0.9.0"
-
 librosa = "0.6.3"
+microquake = { path = "libs/microquake" }
+
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
 autopep8 = "*"

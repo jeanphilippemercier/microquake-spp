@@ -1,7 +1,7 @@
 from obspy.core.event.base import ResourceIdentifier
 
 from loguru import logger
-from microquake.focmec.core import calc_focal_mechanisms
+from microquake.core.focal_mechanism import calc
 
 from .processing_unit import ProcessingUnit
 
@@ -32,8 +32,8 @@ class Processor(ProcessingUnit):
 
         cat = kwargs["cat"]
 
-        focal_mechanisms, figs = calc_focal_mechanisms(cat, self.params,
-                                                       logger_in=logger)
+        focal_mechanisms, figs = calc(cat, self.params,
+                                      logger_in=logger)
 
         if len(focal_mechanisms) > 0:
             for i, event in enumerate(cat):
