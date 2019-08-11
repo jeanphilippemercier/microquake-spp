@@ -55,8 +55,7 @@ uplink = {version = "^0.9.0", extras = ["aiohttp", "marshmallow"]}
 psycopg2 = "^2.8.3"
 rq = "*"
 librosa = "0.6.3"
-# TODO: only if we move the crappy obspy plugin mechanism way will be able to have proper deployment
-# microquake = { path = "libs/microquake" }
+microquake = { path = "libs/microquake" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
