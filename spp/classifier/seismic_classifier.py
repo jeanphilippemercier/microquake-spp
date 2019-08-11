@@ -6,14 +6,16 @@ from keras.models import Model
 from keras.layers import (Add, BatchNormalization, Conv2D, Dense, Flatten, Input, concatenate,
                           MaxPooling2D, Embedding)
 from keras import applications
-from loguru import logger
 import librosa as lr
+from loguru import logger
+
 class SeismicClassifierModel:
     '''
     Class to classify mseed stream into one of the classes
         anthropogenic event, controlled explosion, earthquake, explosion, quarry blast
     '''
     REF_HEIGHT = 900.00
+    REF_MAGNITUDE = -1.2
     def __enter__(self):
         return self
 
@@ -27,10 +29,7 @@ class SeismicClassifierModel:
         self.base_directory = Path(os.path.dirname(os.path.realpath(__file__)))/'../../data/weights'
         #Model was trained at these dimensions
         self.D = (128, 128, 1)
-        self.microquake_class_names = ['anthropogenic event',
-                                       'earthquake',
-                                       'explosion',
-                                       'quarry blast']
+        self.microquake_class_names = ['anthropogenic event', 'explosion', 'earthquake', 'quarry blast']
         self.num_classes = len(self.microquake_class_names)
         self.model_file = self.base_directory/f"{model_name}"
         self.create_model()
@@ -102,7 +101,7 @@ class SeismicClassifierModel:
                                         noverlap=noverlap, NFFT=nfft)
         ax.axis('off')
         fig.set_size_inches(.64, .64)
-        
+
         fig.canvas.draw()
 
         width, height = fig.get_size_inches() * fig.get_dpi()
@@ -128,7 +127,7 @@ class SeismicClassifierModel:
         :return: Normalized gray colored image
         """
         return (array - array.min()) / (array.max() - array.min())
-    
+
     @staticmethod
     def resnet50_layers(i):
         '''
@@ -137,8 +136,8 @@ class SeismicClassifierModel:
             :retun the flattend layer after the resent50 block
         '''
         x = Conv2D(filters=3, kernel_size=2, padding='same', activation='relu')(i)
-        
-        x = applications.ResNet50(weights='imagenet', include_top=False)(x)
+
+        x = applications.ResNet50(weights=None, include_top=False)(x)
         x = Flatten()(x)
         return x
     @staticmethod
@@ -148,7 +147,7 @@ class SeismicClassifierModel:
             :param i: input layers
             :return Flattened layer
         '''
-        kern_size = (3, 3)        
+        kern_size = (3, 3)
         dim = 64
         x = Conv2D(filters=16, kernel_size=2, padding='same', activation='relu')(i)
         x = MaxPooling2D(pool_size=2)(x)
@@ -156,22 +155,21 @@ class SeismicClassifierModel:
         x = MaxPooling2D(pool_size=2)(x)
         x = Conv2D(filters=64, kernel_size=2, padding='same', activation='relu')(x)
         x = MaxPooling2D(pool_size=2)(x)
-        
+
         X_shortcut = BatchNormalization()(x)
-        for _ in range(3):
+        for _ in range(4):
             y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu', padding='same')(X_shortcut)
             y = BatchNormalization()(y)
             #y = Conv2D(filters = dim, kernel_size = kern_size, activation='relu', padding='same')(y)
             y = Conv2D(filters=dim, kernel_size=kern_size, activation='relu', padding='same')(y)
             X_shortcut = Add()([y,X_shortcut])
         x = Flatten()(x)
-        
-        x = Dense(500, activation='relu')(x)       
+        x = Dense(500, activation='relu')(x)
         x = BatchNormalization()(x)
-        #x = Dense(128, activation='relu')(x)   
+        #x = Dense(128, activation='relu')(x)
 
         return x
-    
+
     def create_model(self):
         """
         Create model and load weights
@@ -180,21 +178,25 @@ class SeismicClassifierModel:
         i1 = Input(shape=input_shape, name="spectrogram")
         i2 = Input(shape=(1,), name='height', dtype='int32')
         i3 = Input(shape=input_shape, name='context_trace')
+        i4 = Input(shape=(1,), name='magnitude', dtype='int32')
         emb = Embedding(3,2)(i2)
-        flat = Flatten()(emb)
-        
+        flat1 = Flatten()(emb)
+        emb = Embedding(3,2)(i4)
+        flat2 = Flatten()(emb)
+
         x1 = self.conv_layers(i1)
         x2 = self.resnet50_layers(i3)
         
         x = concatenate([x1, x2], axis=-1)
         x = Dense(64, activation='relu')(x)
-        x = concatenate([x,  flat], axis=-1)
+        x = concatenate([x,  flat1, flat2], axis=-1)
+        x = Dense(32, activation='relu')(x)
         x = Dense(self.num_classes, activation='sigmoid')(x)
-        self.model = Model([i1, i2, i3], x)
+        self.model = Model([i1, i2, i3, i4], x)
         self.model.load_weights(self.model_file)
 
- 
-    def predict(self, tr, context_trace, height):
+
+    def predict(self, tr, context_trace, height, magnitude):
         """
         :param tr: Obspy stream object (2 s) that is good for descriminating between events
         :param context_trace: context trace object (20s) good for descriminating blast and earth quake
@@ -208,15 +210,21 @@ class SeismicClassifierModel:
         img = normgram[None, ..., None] # Needed to in the form of batch with one channel.
         contxt = contxt_img[None, ..., None]
         h = []
+        m = []
         #We use the height as a category, greater than 900 or not
         if height >= self.REF_HEIGHT:
             h.append(1)
         else:
             h.append(0)
+        if magnitude >= self.REF_MAGNITUDE:
+            m.append(1)
+        else:
+            m.append(0)
+            
         data = {'spectrogram': img, 'context_trace':contxt,
-                'height': np.asarray(h)}
+                'height': np.asarray(h), 'magnitude':np.asarray(m)}
         a = self.model.predict(data)
-        
+
         classes = {}
         for p, n in zip(a.reshape(-1), self.microquake_class_names):
             classes[n] = p
