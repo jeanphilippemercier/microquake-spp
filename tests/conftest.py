@@ -3,7 +3,7 @@ import sys
 
 import pytest
 
-import spp.core.settings as sppsettings
+import microquake.core.settings as sppsettings
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'helpers'))
 

@@ -4,7 +4,7 @@ from loguru import logger
 from microquake.waveform.smom_measure import measure_pick_smom
 
 from ..core.grid import synthetic_arrival_times
-from ..core.settings import settings
+from microquake.core.settings import settings
 from .processing_unit import ProcessingUnit
 
 

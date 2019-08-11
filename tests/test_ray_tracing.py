@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from importlib import reload
 import numpy as np
 from spp.core.grid import get_grid
-from spp.core.settings import settings
 
 reload(eik)
 tt_grid = get_grid(20, 'P')

@@ -7,7 +7,7 @@ from microquake.core import UTCDateTime
 from microquake.core.stream import Stream, Trace
 from spp.core.connectors import create_postgres_session
 from spp.core.db_models import Recording
-from spp.core.settings import settings
+from microquake.core.settings import settings
 
 
 def get_continuous_data(starttime, endtime):

@@ -1,8 +1,7 @@
 from spp.pipeline import (nlloc, measure_amplitudes,
                           measure_smom, focal_mechanism, measure_energy,
                           magnitude, event_database)
-from loguru import logger
-from spp.core.settings import settings
+from microquake.core.settings import settings
 from io import BytesIO
 from microquake.core import read, read_events, UTCDateTime
 from microquake.core.event import (Pick, Arrival, Origin, WaveformStreamID,

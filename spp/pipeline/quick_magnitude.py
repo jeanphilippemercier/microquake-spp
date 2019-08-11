@@ -1,8 +1,7 @@
 # This module calculates the magnitude base of a simple GMPE
-from loguru import logger
 import numpy as np
 from microquake.core.event import Magnitude, QuantityError
-from spp.core.settings import settings
+from microquake.core.settings import settings
 
 from .processing_unit import ProcessingUnit
 

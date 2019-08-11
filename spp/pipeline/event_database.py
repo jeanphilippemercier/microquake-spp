@@ -4,7 +4,7 @@
 from loguru import logger
 from spp.utils.seismic_client import (post_data_from_objects)
 
-from ..core.settings import settings
+from microquake.core.settings import settings
 from .processing_unit import ProcessingUnit
 
 

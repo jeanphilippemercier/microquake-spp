@@ -9,7 +9,7 @@ from microquake.core.data.grid import read_grid
 from microquake.core.event import Arrival, Pick, WaveformStreamID
 from microquake.core.simul.eik import ray_tracer
 
-from .settings import settings
+from microquake.core.settings import settings
 from .velocity import get_current_velocity_model_id
 
 

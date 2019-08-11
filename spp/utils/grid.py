@@ -3,7 +3,7 @@ import os
 from microquake.core.data.grid import create, read_grid
 from microquake.core.simul.eik import ray_tracer
 
-from ..core.settings import settings
+from microquake.core.settings import settings
 
 
 class Grid(object):

@@ -3,7 +3,7 @@ from typing import List
 from uplink import Body, Consumer, Part, get, multipart, post, response_handler, put
 from uplink.auth import ApiTokenHeader
 
-from ..core.settings import settings
+from microquake.core.settings import settings
 # Local imports
 from .schemas import Cable, CableSchema, Event, EventSchema, Ray, RaySchema
 

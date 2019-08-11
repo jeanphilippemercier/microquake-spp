@@ -2,7 +2,7 @@ from loguru import logger
 from microquake.waveform.amp_measures import calc_velocity_flux
 from microquake.waveform.mag import calculate_energy_from_flux
 
-from ..core.settings import settings
+from microquake.core.settings import settings
 from .processing_unit import ProcessingUnit
 
 

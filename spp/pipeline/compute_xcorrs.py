@@ -4,12 +4,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from xseis2 import xchange, xio
 from xseis2.h5stream import H5Stream
-from xseis2.xsql import Base, XCorr
+from xseis2.xsql import XCorr
 
 import redis
 from loguru import logger
 
-from ..core.settings import settings
+from microquake.core.settings import settings
 from .processing_unit import ProcessingUnit
 
 

@@ -12,7 +12,7 @@ from microquake.core.stream import Stream, Trace
 from redis import ConnectionPool, Redis
 from rq import Queue
 from spp.core.db_models import Recording
-from spp.core.settings import settings
+from microquake.core.settings import settings
 from spp.stats_collector import db_models
 from spp.stats_collector.db_models import processing_logs
 

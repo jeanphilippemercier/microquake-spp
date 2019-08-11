@@ -15,7 +15,7 @@ from microquake.clients.ims import web_client
 from spp.core.connectors import RedisQueue, connect_postgres, record_processing_logs_pg
 from spp.core.db_models import processing_logs
 from spp.core.serializers.seismic_objects import serialize
-from spp.core.settings import settings
+from microquake.core.settings import settings
 from spp.core.time import get_time_zone
 from spp.data_connector import pre_processing
 from spp.data_connector.pre_processing import pre_process

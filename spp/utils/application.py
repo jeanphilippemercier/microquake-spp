@@ -9,7 +9,7 @@ from loguru import logger
 from microquake.core import read_events
 from microquake.io import msgpack
 
-from ..core.settings import settings
+from microquake.core.settings import settings
 from ..core.utils import timing
 
 

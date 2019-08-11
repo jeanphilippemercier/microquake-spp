@@ -3,7 +3,7 @@ from microquake.core.stream import Stream
 from loguru import logger
 import numpy as np
 
-from ..core.settings import settings
+from microquake.core.settings import settings
 
 class Processor(ProcessingUnit):
     @property

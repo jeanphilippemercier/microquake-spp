@@ -2,7 +2,7 @@ from numpy import array
 
 from microquake.core.util.attribdict import AttribDict
 
-from .settings import settings
+from microquake.core.settings import settings
 from .velocity import get_velocities
 
 

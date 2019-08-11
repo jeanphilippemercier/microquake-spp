@@ -1,6 +1,6 @@
 import pytz
 from dateutil.tz import tzoffset
-from .settings import settings
+from microquake.core.settings import settings
 
 
 def get_time_zone():

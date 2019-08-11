@@ -1,18 +1,13 @@
 # import pytest
 # from tests.helpers.data_utils import get_test_data
 
-import json
 from io import BytesIO
-from spp.core.settings import settings
+from microquake.core.settings import settings
 import requests
 from spp.utils import seismic_client
-from microquake.core import UTCDateTime, read, read_events
-from redis import Redis
-from loguru import logger
+from microquake.core import read_events
 
 import msgpack
-
-from time import time
 
 # from spp.pipeline.interactive_pipeline import interactive_pipeline
 base_url = settings.get('api_base_url')

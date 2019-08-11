@@ -4,7 +4,7 @@ import numpy as np
 
 from microquake.core.data.grid import create, read_grid
 
-from .settings import settings
+from microquake.core.settings import settings
 
 
 def get_current_velocity_model_id(phase='P'):

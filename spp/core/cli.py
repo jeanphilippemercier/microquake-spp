@@ -22,12 +22,9 @@ import logging
 
 import click
 import msgpack
-import traceback
-import sys
 
 from loguru import logger
 from microquake.core.nlloc import NLL
-from redis import Redis
 
 from .. import __version__
 from ..pipeline.automatic_pipeline import automatic_pipeline
@@ -35,7 +32,7 @@ from ..pipeline.interactive_pipeline import interactive_pipeline
 from ..utils.kafka_redis_application import KafkaRedisApplication
 from .hdf5 import write_ttable_h5
 from .nlloc import nll_sensors, nll_velgrids
-from .settings import settings
+from microquake.core.settings import settings
 from .velocity import create_velocities
 from .connectors import connect_redis
 

@@ -8,7 +8,7 @@ import importlib.util
 
 from loguru import logger
 
-from ..core.settings import settings
+from microquake.core.settings import settings
 
 
 class CLI:

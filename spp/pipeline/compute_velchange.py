@@ -1,15 +1,13 @@
-import os
 import numpy as np
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from xseis2 import xchange, xio, xutil
+from xseis2 import xchange, xio
 from xseis2.xsql import XCorr, ChanPair
 
 import redis
 from loguru import logger
 
-from ..core.settings import settings
 from .processing_unit import ProcessingUnit
 
 

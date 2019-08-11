@@ -2,7 +2,7 @@ from os import path
 
 from microquake.core.data import ttable
 
-from .settings import settings
+from microquake.core.settings import settings
 
 
 def get_ttable_h5():

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from loguru import logger
 
-from ..core.settings import settings
+from microquake.core.settings import settings
 
 
 class ProcessingUnit(ABC):
