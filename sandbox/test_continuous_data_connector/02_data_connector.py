@@ -15,7 +15,7 @@ from microquake.core import UTCDateTime
 from confluent_kafka import Producer
 from struct import unpack
 from microquake.io.waveform import mseed_date_from_header
-import toml
+
 # from kafka import KafkaProducer
 
 # reading the continuous data connector specific settings (not yet
@@ -70,9 +70,7 @@ def extract_mseed_header(mseed_bytes):
 def write_mseed_chunk(stream, brokers, mseed_chunk_size=4096):
 
     from io import BytesIO
-    from microquake.core import read
     import numpy as np
-    from uuid import uuid4
     from confluent_kafka import Producer
     import time
 
@@ -104,9 +102,8 @@ def write_mseed_chunk(stream, brokers, mseed_chunk_size=4096):
 
     return 1
 
-from io import BytesIO
-from microquake.IMS import web_client
-from microquake.core import read, UTCDateTime
+
+from microquake.clients.ims import web_client
 import numpy as np
 
 brokers = app.settings.get('kafka').brokers
@@ -119,7 +116,7 @@ def extract_data_from_ims(ims_base_url, station_code,
     #time.sleep(1)
     #return 1
     st = web_client.get_continuous(ims_base_url, start_time, end_time,
-                                    [station_code], tz)
+                                   [station_code], tz)
 
     write_mseed_chunk(st, brokers)
 

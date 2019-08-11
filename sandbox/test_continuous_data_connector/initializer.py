@@ -1,16 +1,12 @@
 from datetime import datetime, timedelta
 from spp.utils.application import Application
-from microquake.IMS import web_client
+from microquake.clients.ims import web_client
 import faust
-import time
 from dateutil.parser import parse
 from pytz import utc
-import numpy as np
 from model import seismic_data
 from io import BytesIO
-from microquake.core import read
 import numpy as np
-from uuid import uuid4
 from struct import unpack
 from microquake.io.waveform import mseed_date_from_header
 

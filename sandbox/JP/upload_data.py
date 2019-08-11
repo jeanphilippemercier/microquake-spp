@@ -1,15 +1,12 @@
 import colorama
 colorama.init(convert=True)
 
-from microquake.IMS import web_client
+from microquake.clients.ims import web_client
 from microquake.core import UTCDateTime
 from spp.utils.application import Application
 import pytz
-import os
 from io import BytesIO
 from spp.utils import seismic_client
-from datetime import datetime
-
 
 app = Application()
 site = app.get_stations()
@@ -44,7 +41,7 @@ for evt in cat:
     evt.write(ev_io, format='QUAKEML')
     event_bytes = ev_io.getvalue()
 
-    data, files = seismic_client.build_request_data_from_bytes(event_id, event_bytes, 
+    data, files = seismic_client.build_request_data_from_bytes(event_id, event_bytes,
                                                                mseed_bytes, None)
 
     seismic_client.post_event_data(api_base_url, data, files)
