@@ -74,6 +74,8 @@ test:
   image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:$CI_COMMIT_SHA
   stage: test
   script:
+    - poetry config repositories.microquake https://pkg.microquake.org
+    - poetry config http-basic.microquake $PYPI_USER $PYPI_PASS
     - bash -c ". /ve/bin/activate ; pip install poetry"
     - bash -c ". /ve/bin/activate ; poetry install"
     - bash -c ". /ve/bin/activate ; poetry run seismic_platform velocities"
