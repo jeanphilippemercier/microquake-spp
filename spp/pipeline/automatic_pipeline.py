@@ -5,7 +5,7 @@ import requests
 
 from loguru import logger
 from microquake.core.event import Catalog, Event
-from spp.core.connectors import RedisQueue
+from microquake.db.connectors import RedisQueue
 from spp.core.serializers.seismic_objects import deserialize_message, serialize
 from microquake.core.settings import settings
 from spp.pipeline import (clean_data, focal_mechanism, magnitude, measure_amplitudes, measure_energy, measure_smom,

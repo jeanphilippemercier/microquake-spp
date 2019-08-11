@@ -178,7 +178,7 @@ def test_interactive_pipeline(picks, event_bytes, mseed_bytes):
 
     msg = msgpack.dumps(params)
 
-    from spp.core.connectors import connect_redis
+    from microquake.db.connectors import connect_redis
 
     redis = connect_redis()
 

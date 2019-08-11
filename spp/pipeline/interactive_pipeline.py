@@ -9,7 +9,7 @@ from microquake.core.event import (Pick, Arrival, Origin, WaveformStreamID,
 import json
 from dateutil.parser import parse
 
-from spp.core.connectors import connect_redis
+from microquake.db.connectors import connect_redis
 
 
 redis = connect_redis()

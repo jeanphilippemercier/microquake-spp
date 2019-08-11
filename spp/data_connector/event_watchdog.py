@@ -12,8 +12,8 @@ from pytz import utc
 
 from loguru import logger
 from microquake.clients.ims import web_client
-from spp.core.connectors import RedisQueue, connect_postgres, record_processing_logs_pg
-from spp.core.db_models import processing_logs
+from microquake.db.connectors import RedisQueue, connect_postgres, record_processing_logs_pg
+from microquake.db.models import processing_logs
 from spp.core.serializers.seismic_objects import serialize
 from microquake.core.settings import settings
 from microquake.core.helpers.time import get_time_zone
