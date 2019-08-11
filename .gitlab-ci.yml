@@ -12,6 +12,7 @@ variables:
   DOCKER_HOST: tcp://docker:2375/
   # See https://github.com/docker-library/docker/pull/166
   DOCKER_TLS_CERTDIR: ""
+  GIT_SUBMODULE_STRATEGY: recursive
 
 services:
   - name: docker:dind
