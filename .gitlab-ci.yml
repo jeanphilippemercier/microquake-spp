@@ -10,13 +10,19 @@ variables:
   KUBE_VERSION: v1.12.1
   SPP_COMMON: /app/common
 
+services:
+  - name: docker:dind
+    entrypoint: ["env", "-u", "DOCKER_HOST"]
+    command: ["dockerd-entrypoint.sh"]
+    variables:
+      DOCKER_HOST: tcp://docker:2375/
+      DOCKER_DRIVER: overlay2
+      # See https://github.com/docker-library/docker/pull/166
+      DOCKER_TLS_CERTDIR: ""
+
 spp:
   image: docker:stable
   stage: build
-  services:
-    - name: docker:18-dind
-      entrypoint:
-        - dockerd-entrypoint.sh
   before_script:
     - apk add --update openssh-client make ca-certificates openssl python git bash
   script:
