@@ -3,10 +3,11 @@ from datetime import datetime
 from time import time
 
 import numpy as np
+from obspy.core import UTCDateTime
+from obspy.core.util.attribdict import AttribDict
 from xseis2 import xspy
 
 from loguru import logger
-from microquake.core import AttribDict, UTCDateTime
 from microquake.core.event import Origin
 from microquake.core.util import tools
 
