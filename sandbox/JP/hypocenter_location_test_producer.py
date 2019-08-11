@@ -2,7 +2,8 @@ from microquake.io import msgpack
 from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
 from microquake.core import read
-from microquake.core import read_events
+from obspy.core.stream import read
+from obspy.core.event import read_events
 from io import BytesIO
 import numpy as np
 from glob import glob

@@ -1,8 +1,9 @@
 from spp.utils.application import Application
 from microquake.nlloc import NLL
-from microquake.core.event import read_events
-from microquake.core import UTCDateTime
-from microquake.IMS import web_client
+from obspy.core.stream import read
+from obspy.core.event import read_events
+from obspy.core import UTCDateTime
+from microquake.clients.ims import web_client
 from msgpack import unpackb
 from msgpack import packb
 

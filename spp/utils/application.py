@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from loguru import logger
-from microquake.core import read_events
+from obspy.core.stream import read
+from obspy.core.event import read_events
 from microquake.io import msgpack
 
 from ..core.settings import settings

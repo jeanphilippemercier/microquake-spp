@@ -2,7 +2,8 @@ from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
 from microquake.waveform import mag
 from microquake.io import msgpack
-from microquake.core import read_events, read
+from obspy.core.stream import read
+from obspy.core.event import read_events, read
 from io import BytesIO
 from IPython.core.debugger import Tracer
 

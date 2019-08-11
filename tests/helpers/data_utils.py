@@ -3,7 +3,8 @@ import os
 import requests
 from dynaconf import LazySettings, settings
 
-from microquake.core import read_events
+from obspy.core.stream import read
+from obspy.core.event import read_events
 from microquake.core.stream import read
 
 

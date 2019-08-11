@@ -11,7 +11,7 @@ import sqlalchemy as db
 from pytz import utc
 
 from loguru import logger
-from microquake.IMS import web_client
+from microquake.clients.ims import web_client
 from spp.core.connectors import RedisQueue, connect_postgres, record_processing_logs_pg
 from spp.core.db_models import processing_logs
 from spp.core.serializers.seismic_objects import serialize

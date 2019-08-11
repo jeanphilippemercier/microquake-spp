@@ -1,6 +1,7 @@
 import msgpack
 from io import BytesIO
-from microquake.core import read, read_events
+from obspy.core.stream import read
+from obspy.core.event import read_events
 from functools import wraps
 
 def serialize(catalogue=None, fixed_length=None, context=None,

@@ -11,7 +11,7 @@ try:
 except:
     pass
 from spp.utils.application import Application
-from microquake.core import UTCDateTime
+from obspy.core import UTCDateTime
 from confluent_kafka import Producer
 from struct import unpack
 from microquake.io.waveform import mseed_date_from_header
@@ -105,7 +105,7 @@ def write_mseed_chunk(stream, brokers, mseed_chunk_size=4096):
     return 1
 
 from io import BytesIO
-from microquake.IMS import web_client
+from microquake.clients.ims import web_client
 from microquake.core import read, UTCDateTime
 import numpy as np
 
@@ -119,7 +119,7 @@ def extract_data_from_ims(ims_base_url, station_code,
     #time.sleep(1)
     #return 1
     st = web_client.get_continuous(ims_base_url, start_time, end_time,
-                                    [station_code], tz)
+                                   [station_code], tz)
 
     write_mseed_chunk(st, brokers)
 
