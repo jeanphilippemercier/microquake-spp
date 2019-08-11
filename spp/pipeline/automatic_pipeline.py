@@ -10,7 +10,7 @@ from spp.core.serializers.seismic_objects import deserialize_message, serialize
 from microquake.core.settings import settings
 from microquake.processors import clean_data, measure_amplitudes, measure_energy, picker, magnitude, measure_smom, \
   nlloc, focal_mechanism
-from spp.utils.seismic_client import put_event_from_objects, reject_event
+from microquake.clients.api_client import put_event_from_objects, reject_event
 
 api_base_url = settings.get('api_base_url')
 

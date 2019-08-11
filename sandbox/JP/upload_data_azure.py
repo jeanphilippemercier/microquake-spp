@@ -1,9 +1,9 @@
-from spp.utils import seismic_client
+from microquake.clients import api_client
 from glob import glob
 import numpy as np
 from importlib import reload
 from spp.utils.application import Application
-reload(seismic_client)
+reload(api_client)
 
 app = Application()
 api_base_url = app.settings.seismic_api.base_url
@@ -13,12 +13,12 @@ with open('bad_files.txt', 'w') as ofile:
         print(event_file)
         try:
             mseed_file = event_file.replace('xml', 'mseed')
-            data, files = seismic_client.build_request_data_from_files(None,
-                                                                       event_file,
-                                                                       mseed_file,
-                                                                       None)
+            data, files = api_client.build_request_data_from_files(None,
+                                                                   event_file,
+                                                                   mseed_file,
+                                                                   None)
 
-            seismic_client.post_event_data(api_base_url, data, files)
+            api_client.post_event_data(api_base_url, data, files)
         except:
             ofile.write(event_file)
 

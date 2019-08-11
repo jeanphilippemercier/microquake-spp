@@ -1,6 +1,6 @@
 from datetime import datetime
 from microquake.core import UTCDateTime, read
-from spp.utils import seismic_client
+from microquake.clients import api_client
 from spp.utils.application import Application
 import numpy as np
 import pickle
@@ -321,7 +321,7 @@ base_url = app.settings.seismic_api.base_url
 logger = app.get_logger('sensor_orientation', 'sensor_orientation.log')
 logger.info('requesting event list from the API')
 t0 = time()
-event_list = seismic_client.get_events_catalog(base_url, starttime, endtime)
+event_list = api_client.get_events_catalog(base_url, starttime, endtime)
 t1 = time()
 logger.info('done requesting event list. The API returned %d events in %0.3f seconds' % (len(event_list), (t1 - t0)))
 # cat.write('events.xml', format='QUAKEML')

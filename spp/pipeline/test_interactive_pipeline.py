@@ -4,7 +4,7 @@
 from io import BytesIO
 from microquake.core.settings import settings
 import requests
-from spp.utils import seismic_client
+from microquake.clients import api_client
 from microquake.core import read_events
 
 import msgpack
@@ -15,7 +15,7 @@ base_url = settings.get('api_base_url')
 test_data_name = "test_interactive_pipeline"
 
 event_id = "smi:local/2019/06/27/08/25_47_115750099.e"
-re = seismic_client.get_event_by_id(base_url, event_id)
+re = api_client.get_event_by_id(base_url, event_id)
 
 event_bytes = requests.get(re.event_file).content
 mseed_bytes = requests.get(re.waveform_file).content

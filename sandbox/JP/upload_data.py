@@ -6,7 +6,7 @@ from microquake.core import UTCDateTime
 from spp.utils.application import Application
 import pytz
 from io import BytesIO
-from spp.utils import seismic_client
+from microquake.clients import api_client
 
 app = Application()
 site = app.get_stations()
@@ -41,10 +41,10 @@ for evt in cat:
     evt.write(ev_io, format='QUAKEML')
     event_bytes = ev_io.getvalue()
 
-    data, files = seismic_client.build_request_data_from_bytes(event_id, event_bytes,
-                                                               mseed_bytes, None)
+    data, files = api_client.build_request_data_from_bytes(event_id, event_bytes,
+                                                           mseed_bytes, None)
 
-    seismic_client.post_event_data(api_base_url, data, files)
+    api_client.post_event_data(api_base_url, data, files)
 
     # time = evt.preferred_origin().time
     # stime = (time - 10).datetime.replace(tzinfo=pytz.utc)

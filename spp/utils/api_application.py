@@ -1,4 +1,4 @@
-from spp.utils import seismic_client
+from microquake.clients import api_client
 
 from .application import Application
 from loguru import logger
@@ -22,7 +22,7 @@ class APIApplication(Application):
 
     def retrieve_api_data(self, event_id):
         logger.info("Retrieving data from web_api")
-        request = seismic_client.get_event_by_id(self.api_base_url, event_id)
+        request = api_client.get_event_by_id(self.api_base_url, event_id)
         if request is None:
             return None
         cat = request.get_event()
@@ -33,7 +33,7 @@ class APIApplication(Application):
     def send_api_data(self, catalog, waveform_stream):
         logger.info("Sending data from web_api")
         event_id = catalog.resource_id.id
-        seismic_client.post_data_from_objects(
+        api_client.post_data_from_objects(
             self.api_base_url, event_id=event_id, event=catalog, stream=waveform_stream
         )
         logger.info("Sent data from web_api")

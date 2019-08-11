@@ -17,7 +17,7 @@ from spp.core.serializers.seismic_objects import deserialize_message, serialize
 from microquake.core.settings import settings
 from microquake.processors import clean_data, event_classifier, quick_magnitude, interloc
 from spp.pipeline.automatic_pipeline import automatic_pipeline
-from spp.utils.seismic_client import post_data_from_objects
+from microquake.clients.api_client import post_data_from_objects
 
 automatic_message_queue = settings.AUTOMATIC_PIPELINE_MESSAGE_QUEUE
 automatic_job_queue = RedisQueue(automatic_message_queue)
