@@ -129,7 +129,7 @@ def update_stationxml(files):
     return
 
 def update_nllocgrids(app):
-    from microquake.nlloc import NLL
+    from microquake.core.nlloc import NLL
     settings = app.settings
     params = settings.nlloc
 

@@ -1,5 +1,5 @@
 from spp.utils.application import Application
-from microquake.nlloc import NLL
+from microquake.core.nlloc import NLL
 from microquake.core.event import read_events
 from microquake.core import UTCDateTime
 from microquake.clients.ims import web_client

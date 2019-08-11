@@ -1,6 +1,6 @@
 from spp.utils.application import Application
 from spp.utils.kafka import KafkaHandler
-from microquake.nlloc import NLL
+from microquake.core.nlloc import NLL
 from microquake.io import msgpack
 from microquake.core import read_events, read
 from io import BytesIO

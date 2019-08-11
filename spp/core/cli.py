@@ -26,7 +26,7 @@ import traceback
 import sys
 
 from loguru import logger
-from microquake.nlloc import NLL
+from microquake.core.nlloc import NLL
 from redis import Redis
 
 from .. import __version__

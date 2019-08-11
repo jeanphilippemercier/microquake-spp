@@ -7,7 +7,7 @@ from time import time
 import numpy as np
 
 from loguru import logger
-from microquake.nlloc import NLL, calculate_uncertainty
+from microquake.core.nlloc import NLL, calculate_uncertainty
 
 from ..core.grid import fix_arr_takeoff_and_azimuth
 from ..core.nlloc import nll_sensors, nll_velgrids
