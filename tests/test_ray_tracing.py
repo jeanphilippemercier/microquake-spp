@@ -1,12 +1,13 @@
-from spp.utils.application import Application
-from microquake.simul import eik
+from microquake.core.simul import eik
 import matplotlib.pyplot as plt
 from importlib import reload
 import numpy as np
+from spp.core.grid import get_grid
+from spp.core.settings import settings
 
 reload(eik)
-app = Application()
-tt_grid = app.get_grid(20, 'P')
+tt_grid = get_grid(20, 'P')
+print(tt_grid)
 
 # array([61.20536, 32.686  , 47.13392])
 
@@ -32,7 +33,7 @@ plt.plot([ray.nodes[0,0], ray.nodes[-1,0]],
          [ray.nodes[0,1], ray.nodes[-1,1]],
          ':r')
 
-plt.show()
+# plt.show()
 
 
 
