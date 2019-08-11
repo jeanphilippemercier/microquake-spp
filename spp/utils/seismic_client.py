@@ -6,9 +6,7 @@ import requests
 import urllib.parse
 from dateutil import parser
 
-from obspy.core import AttribDict, UTCDateTime
-from obspy.core.stream import read
-from obspy.core.event import read_events
+from microquake.core import AttribDict, UTCDateTime, read, read_events
 from microquake.core.event import Ray
 
 

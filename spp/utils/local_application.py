@@ -1,8 +1,7 @@
 from datetime import datetime, timezone
 from shutil import copyfile
 
-from obspy.core.stream import read
-from obspy.core.event import read_events
+from microquake.core import read_events
 from microquake.core.stream import read
 
 from .application import Application

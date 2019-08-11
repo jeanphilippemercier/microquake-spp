@@ -6,7 +6,7 @@ import numpy as np
 from xseis2 import xspy
 
 from loguru import logger
-from obspy.core import AttribDict, UTCDateTime
+from microquake.core import AttribDict, UTCDateTime
 from microquake.core.event import Origin
 from microquake.core.util import tools
 

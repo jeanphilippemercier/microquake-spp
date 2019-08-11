@@ -6,9 +6,7 @@ from io import BytesIO
 from spp.core.settings import settings
 import requests
 from spp.utils import seismic_client
-from obspy.core import UTCDateTime
-from obspy.core.stream import read
-from obspy.core.event import read_events
+from microquake.core import UTCDateTime, read, read_events
 from redis import Redis
 from loguru import logger
 

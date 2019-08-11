@@ -4,9 +4,7 @@ from spp.pipeline import (nlloc, measure_amplitudes,
 from loguru import logger
 from spp.core.settings import settings
 from io import BytesIO
-from obspy.core.stream import read
-from obspy.core.event import read_events
-from obspy.core import UTCDateTime
+from microquake.core import read, read_events, UTCDateTime
 from microquake.core.event import (Pick, Arrival, Origin, WaveformStreamID,
                                    ResourceIdentifier, CreationInfo)
 import json

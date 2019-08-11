@@ -1,8 +1,7 @@
 from datetime import datetime
-from microquake.clients.ims import web_client
-from obspy.core.stream import read
-from obspy.core.event import read_events
-from obspy.core import UTCDateTime, read
+from microquake.IMS import web_client
+from microquake.core import read_events
+from microquake.core import UTCDateTime, read
 from spp.utils import seismic_client
 from spp.utils.application import Application
 from microquake.simul import eik

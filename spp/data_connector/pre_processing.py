@@ -11,7 +11,7 @@ from pytz import utc
 
 from loguru import logger
 from microquake.core import Stream, UTCDateTime
-from microquake.clients.ims import web_client
+from microquake.IMS import web_client
 from spp.core.connectors import RedisQueue, record_processing_logs_pg
 from spp.core.serializers.seismic_objects import deserialize_message, serialize
 from spp.core.settings import settings

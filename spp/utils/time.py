@@ -1,5 +1,5 @@
 def convert_datetime_to_epoch_nanoseconds(datetime_str):
-    from obspy.core import UTCDateTime
+    from microquake.core import UTCDateTime
     import numpy as np
     dt_epoch = int(np.float64(UTCDateTime(datetime_str).timestamp) * 1e9)
     return dt_epoch

@@ -1,7 +1,7 @@
 import numpy as np
 
 from loguru import logger
-from obspy.core import UTCDateTime
+from microquake.core import UTCDateTime
 
 from .processing_unit import ProcessingUnit
 

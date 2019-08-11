@@ -1,6 +1,5 @@
 import waveform_pb2
-from obspy.core.stream import read
-from obspy.core.event import read_events
+from microquake.core import read, read_events
 from base64 import b64encode, b64decode
 from time import time
 from importlib import reload

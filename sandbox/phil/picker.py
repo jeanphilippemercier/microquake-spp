@@ -8,7 +8,7 @@ from microquake.core.event import ResourceIdentifier
 # from microquake.core import Stream
 # from microquake.core import Trace
 from microquake.core import read
-from obspy.core import UTCDateTime
+from microquake.core import UTCDateTime
 from spp.utils.application import Application
 
 from microquake.core.util import tools
