@@ -1,3 +1,10 @@
+# Poetry configuration
+
+```
+poetry config http-basic.microquake micro quake
+poetry config repositories.microquake https://pkg.microquake.org
+```
+
 # Installing the package
 
 The package can be installed by simply executing the following command from this directory
