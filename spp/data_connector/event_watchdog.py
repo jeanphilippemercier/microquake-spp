@@ -12,11 +12,11 @@ from pytz import utc
 
 from loguru import logger
 from microquake.clients.ims import web_client
+from microquake.core.helpers.time import get_time_zone
+from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue, connect_postgres, record_processing_logs_pg
 from microquake.db.models import processing_logs
-from spp.core.serializers.seismic_objects import serialize
-from microquake.core.settings import settings
-from microquake.core.helpers.time import get_time_zone
+from microquake.db.models.redis import set_event
 from spp.data_connector import pre_processing
 from spp.data_connector.pre_processing import pre_process
 
@@ -106,10 +106,10 @@ while 1:
                         'message_queue'.format(event.resource_id.id,
                                                we_message_queue))
             try:
-                message = serialize(catalogue=event.copy())
+                set_event(catalogue=event.copy())
+
                 result = we_job_queue.submit_task(pre_process,
-                                                  kwargs={'data': message,
-                                                          'serialized': True})
+                                                  kwargs={'event_id': event_id})
 
                 logger.info('sent {} events for further processing'.format(ct))
                 status = 'success'
@@ -120,6 +120,3 @@ while 1:
             end_processing_time = time()
             processing_time = end_processing_time - start_processing_time
             result = record_processing_logs_pg(event, status,
-                                               __processing_step__,
-                                               __processing_step_id__,
-                                               processing_time)

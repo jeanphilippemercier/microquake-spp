@@ -10,14 +10,15 @@ import requests
 from pytz import utc
 
 from loguru import logger
-from microquake.core import Stream, UTCDateTime
-from microquake.clients.ims import web_client
-from microquake.db.connectors import RedisQueue, record_processing_logs_pg
-from spp.core.serializers.seismic_objects import deserialize_message, serialize
-from microquake.core.settings import settings
-from microquake.processors import clean_data, event_classifier, quick_magnitude, interloc
-from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.clients.api_client import post_data_from_objects
+from microquake.clients.ims import web_client
+from microquake.core import Stream, UTCDateTime
+from microquake.core.settings import settings
+from microquake.db.connectors import RedisQueue, record_processing_logs_pg
+from microquake.db.models.redis import set_event
+from microquake.db.serializers.seismic_objects import deserialize_message
+from microquake.pipelines.automatic_pipeline import automatic_pipeline
+from microquake.processors import clean_data, event_classifier, interloc, quick_magnitude
 
 automatic_message_queue = settings.AUTOMATIC_PIPELINE_MESSAGE_QUEUE
 automatic_job_queue = RedisQueue(automatic_message_queue)
@@ -148,6 +149,7 @@ def get_waveforms(interloc_dict, event):
 @deserialize_message
 def send_to_api(catalogue=None, fixed_length=None, context=None,
                 variable_length=None, **kwargs):
+    event_id = kwargs['event_id']
     api_base_url = settings.get('api_base_url')
     response = post_data_from_objects(api_base_url, event_id=None,
                                       event=catalogue,
@@ -165,16 +167,17 @@ def send_to_api(catalogue=None, fixed_length=None, context=None,
                     'context': context,
                     'variable_length': variable_length}
 
-        message = serialize(**dict_out)
+        set_event(event_id, **dict_out)
 
         result = api_job_queue.submit_task(send_to_api,
-                                           kwargs={'data': message,
-                                                   'serialized': True})
+                                           kwargs={'event_id': event_id})
+
         return result
 
 
 @deserialize_message
 def pre_process(catalogue=None, **kwargs):
+    event_id = kwargs['event_id']
 
     logger.info('message received')
 
@@ -299,11 +302,10 @@ def pre_process(catalogue=None, **kwargs):
 
     new_cat.write('catalogue', format='quakeml')
 
-    message = serialize(**dict_out)
+    set_event(event_id, **dict_out)
 
     result = api_job_queue.submit_task(send_to_api,
-                                       kwargs={'data': message,
-                                               'serialized': True})
+                                       kwargs={'event_id': event_id})
 
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
@@ -313,8 +315,8 @@ def pre_process(catalogue=None, **kwargs):
     logger.info('sending to automatic pipeline')
 
     result = automatic_job_queue.submit_task(automatic_pipeline,
-                                             kwargs={'data': message,
-                                                     'serialized': True})
+                                             kwargs={'event_id': event_id})
 
     logger.info('done collecting the waveform, happy processing!')
+
     return result
