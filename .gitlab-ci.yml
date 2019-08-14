@@ -18,6 +18,7 @@ services:
   - name: docker:dind
     entrypoint: ["env", "-u", "DOCKER_HOST"]
     command: ["dockerd-entrypoint.sh"]
+  - redis:latest
 
 spp:
   image: docker:stable
