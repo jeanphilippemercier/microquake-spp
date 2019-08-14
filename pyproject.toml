@@ -61,6 +61,7 @@ microquake = { path = "libs/microquake" }
 tensorflow = "^1.14"
 pottery = "^0.62.0"
 fakeredis = "^1.0"
+skidmarks = "^0.0.6"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
