@@ -48,7 +48,7 @@ matplotlib = "^3.0"
 numpy = "^1.16"
 h5py = "^2.9"
 pandas = "^0.24.2"
-loguru = "^0.2.5"
+loguru = "^0.3.0"
 click = "^7.0"
 microquake-hashwrap = "^0.0.4"
 confluent-kafka = "^1.0"
@@ -59,6 +59,8 @@ rq = "*"
 librosa = "0.6.3"
 microquake = { path = "libs/microquake" }
 tensorflow = "^1.14"
+pottery = "^0.62.0"
+fakeredis = "^1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
