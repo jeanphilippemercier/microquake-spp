@@ -5,20 +5,9 @@ ims_base_url = 'http://10.95.74.35:8002/ims-database-server/databases/mgl'
 redis_url = 'redis://redisdb:6379/0'
 postgres_url = 'postgresql://grafana:Vd73uSUnTGK@10.95.74.90:80/'
 postgres_db_name = 'grafana'
-kafka.brokers = 'spp-confluent-cp-kafka-headless:9092'
+kafka.brokers = 'spp-confluent:9092'
 kafka.group_id = 'seismic_processing_platform'
 kafka.threads = 3
-event_db.uri = 'mongodb://localhost:27017/'
-event_db.name = 'OT'
-event_db.trace_collection = 'traces'
-event_db.event_collection = 'events'
-event_db.events_inuse_collection = 'event_in_use'
-event_db.in_use_ttl = 1
-event_db.filestore_base_dir = '/var/ot/'
-event_db.kafka_topic = 'event_database'
-event_db.log_file_name = 'event_db_insertion_update.log'
-event_db.log_topic = 'insertion and update into event DB'
-
 elastic_db.host = 'dev-spp-elastic'
 elastic_db.port = 9200
 
@@ -30,35 +19,3 @@ elastic_db.port = 9200
 kafka.brokers = 'broker:9092'
 kafka.group_id = 'seismic_processing_platform'
 kafka.threads = 3
-mongo_db.url = 'mongodb://mongodb:27017'
-mongo_db.db_processed_events = 'processed_event'
-
-[k8s-onprem-dev]
-redis_db.host = 'spp-redis-master'
-redis_db.password = '4HyuSWZVHU'
-redis_db.port = 6379
-kafka.brokers = 'spp-confluent:9092'
-kafka.group_id = 'seismic_processing_platform'
-kafka.threads = 3
-mongo_db.url = 'mongodb://spp-mongo-mongodb:27017'
-mongo_db.db_processed_events = 'processed_event'
-
-[k8sdevel]
-redis_db.host = 'spp-redis-master'
-redis_db.password = '4HyuSWZVHU'
-redis_db.port = 6379
-kafka.brokers = 'spp-confluent:9092'
-kafka.group_id = 'seismic_processing_platform'
-kafka.threads = 3
-mongo_db.url = 'mongodb://spp-mongo-mongodb:27017'
-mongo_db.db_processed_events = 'processed_event'
-
-[k8sstage]
-redis_db.host = 'spp-redis-master'
-redis_db.password = '4HyuSWZVHU'
-redis_db.port = 6379
-kafka.brokers = 'spp-confluent:9092'
-kafka.group_id = 'seismic_processing_platform'
-kafka.threads = 3
-mongo_db.url = 'spp-mongo-mongodb'
-mongo_db.db_processed_events = 'processed_event'
