@@ -15,7 +15,7 @@ from microquake.clients.ims import web_client
 from microquake.core.helpers.time import get_time_zone
 from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue, connect_postgres, record_processing_logs_pg
-from microquake.db.models import processing_logs
+from microquake.db.models.alchemy import processing_logs
 from microquake.db.models.redis import set_event
 from spp.data_connector import pre_processing
 from spp.data_connector.pre_processing import pre_process

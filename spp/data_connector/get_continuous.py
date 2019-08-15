@@ -6,7 +6,7 @@ from loguru import logger
 from microquake.core import UTCDateTime
 from microquake.core.stream import Stream, Trace
 from microquake.db.connectors import create_postgres_session
-from microquake.db.models import Recording
+from microquake.db.models.alchemy import Recording
 from microquake.core.settings import settings
 
 
