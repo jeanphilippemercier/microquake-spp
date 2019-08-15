@@ -120,3 +120,6 @@ while 1:
             end_processing_time = time()
             processing_time = end_processing_time - start_processing_time
             result = record_processing_logs_pg(event, status,
+                                               __processing_step__,
+                                               __processing_step_id__,
+                                               processing_time)
