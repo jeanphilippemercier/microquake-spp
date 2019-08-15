@@ -105,7 +105,7 @@ while 1:
             logger.info('sending events with event_id {} to redis the {} '
                         'message_queue'.format(event.resource_id.id,
                                                we_message_queue))
-            set_event(catalogue=event.copy())
+            set_event(event_id, catalogue=event.copy())
 
             result = we_job_queue.submit_task(pre_process,
                                               kwargs={'event_id': event_id})
