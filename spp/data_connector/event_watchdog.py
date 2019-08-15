@@ -105,17 +105,13 @@ while 1:
             logger.info('sending events with event_id {} to redis the {} '
                         'message_queue'.format(event.resource_id.id,
                                                we_message_queue))
-            try:
-                set_event(catalogue=event.copy())
+            set_event(catalogue=event.copy())
 
-                result = we_job_queue.submit_task(pre_process,
-                                                  kwargs={'event_id': event_id})
+            result = we_job_queue.submit_task(pre_process,
+                                              kwargs={'event_id': event_id})
 
-                logger.info('sent {} events for further processing'.format(ct))
-                status = 'success'
-            except:
-                logger.error('Sending to redis failed')
-                status = 'failed'
+            logger.info('sent {} events for further processing'.format(ct))
+            status = 'success'
 
             end_processing_time = time()
             processing_time = end_processing_time - start_processing_time
