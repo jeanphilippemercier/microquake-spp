@@ -1,12 +1,9 @@
 import os
-import sys
 
 import pytest
 
 from fakeredis import FakeStrictRedis
 import microquake.core.settings as sppsettings
-
-sys.path.append(os.path.join(os.path.dirname(__file__), 'helpers'))
 
 
 @pytest.fixture(scope="session", autouse=True)

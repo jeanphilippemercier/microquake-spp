@@ -1,5 +1,5 @@
 import pytest
-from tests.helpers.data_utils import get_test_data
+from .helpers.data_utils import get_test_data
 
 from microquake.core.event import OriginUncertainty
 from microquake.processors.nlloc import Processor
