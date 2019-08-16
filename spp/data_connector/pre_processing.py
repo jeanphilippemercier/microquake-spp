@@ -147,9 +147,8 @@ def get_waveforms(interloc_dict, event):
 
 
 @deserialize_message
-def send_to_api(catalogue=None, fixed_length=None, context=None,
+def send_to_api(event_id, catalogue=None, fixed_length=None, context=None,
                 variable_length=None, **kwargs):
-    event_id = kwargs['event_id']
     api_base_url = settings.get('api_base_url')
     response = post_data_from_objects(api_base_url, event_id=None,
                                       event=catalogue,
@@ -169,16 +168,13 @@ def send_to_api(catalogue=None, fixed_length=None, context=None,
 
         set_event(event_id, **dict_out)
 
-        result = api_job_queue.submit_task(send_to_api,
-                                           kwargs={'event_id': event_id})
+        result = api_job_queue.submit_task(send_to_api, event_id=event_id)
 
         return result
 
 
 @deserialize_message
-def pre_process(catalogue=None, **kwargs):
-    event_id = kwargs['event_id']
-
+def pre_process(event_id, catalogue=None, **kwargs):
     logger.info('message received')
 
     # tmp = deserialize(message)
@@ -304,8 +300,7 @@ def pre_process(catalogue=None, **kwargs):
 
     set_event(event_id, **dict_out)
 
-    result = api_job_queue.submit_task(send_to_api,
-                                       kwargs={'event_id': event_id})
+    result = api_job_queue.submit_task(send_to_api, event_id=event_id)
 
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
@@ -314,8 +309,7 @@ def pre_process(catalogue=None, **kwargs):
 
     logger.info('sending to automatic pipeline')
 
-    result = automatic_job_queue.submit_task(automatic_pipeline,
-                                             kwargs={'event_id': event_id})
+    result = automatic_job_queue.submit_task(automatic_pipeline, event_id=event_id)
 
     logger.info('done collecting the waveform, happy processing!')
 

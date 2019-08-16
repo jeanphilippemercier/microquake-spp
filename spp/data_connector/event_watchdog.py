@@ -107,8 +107,7 @@ while 1:
                                                we_message_queue))
             set_event(event_id, catalogue=event.copy())
 
-            result = we_job_queue.submit_task(pre_process,
-                                              kwargs={'event_id': event_id})
+            result = we_job_queue.submit_task(pre_process, event_id=event_id)
 
             logger.info('sent {} events for further processing'.format(ct))
             status = 'success'
