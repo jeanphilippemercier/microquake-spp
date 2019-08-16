@@ -3,7 +3,7 @@ import sys
 
 import pytest
 
-from pottery.base import _default_redis
+from fakeredis import FakeStrictRedis
 import microquake.core.settings as sppsettings
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'helpers'))
@@ -11,7 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'helpers'))
 
 @pytest.fixture(scope="session", autouse=True)
 def redis():
-    return _default_redis
+    return FakeStrictRedis()
 
 
 @pytest.fixture(scope="session", autouse=True)
