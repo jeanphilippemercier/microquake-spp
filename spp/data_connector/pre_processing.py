@@ -15,7 +15,7 @@ from microquake.clients.ims import web_client
 from microquake.core import Stream, UTCDateTime
 from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue, record_processing_logs_pg
-from microquake.db.models.redis import set_event
+from microquake.db.models.redis import set_event, get_event
 from microquake.db.serializers.seismic_objects import deserialize_message
 from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.processors import clean_data, event_classifier, interloc, quick_magnitude
@@ -146,42 +146,35 @@ def get_waveforms(interloc_dict, event):
     return waveforms
 
 
-@deserialize_message
 def send_to_api(event_id, catalogue=None, fixed_length=None, context=None,
                 variable_length=None, **kwargs):
+
     api_base_url = settings.get('api_base_url')
+    event = get_event(event_id)
     response = post_data_from_objects(api_base_url, event_id=None,
-                                      event=catalogue,
-                                      stream=fixed_length,
-                                      context_stream=context,
-                                      variable_length_stream=variable_length,
+                                      event=event['catalogue'],
+                                      stream=event['fixed_length'],
+                                      context_stream=event['context'],
+                                      variable_length_stream=event['variable_length'],
                                       tolerance=None,
                                       send_to_bus=False)
 
     if response.status_code != requests.codes.ok:
 
         logger.info('request failed, resending to the queue')
-        dict_out = {'catalogue': catalogue,
-                    'fixed_length': fixed_length,
-                    'context': context,
-                    'variable_length': variable_length}
-
-        set_event(event_id, **dict_out)
 
         result = api_job_queue.submit_task(send_to_api, event_id=event_id)
 
         return result
 
 
-@deserialize_message
-def pre_process(event_id, catalogue=None, **kwargs):
+def pre_process(event_id, **kwargs):
     logger.info('message received')
 
     # tmp = deserialize(message)
     start_processing_time = time()
-
-    old_cat = catalogue
-    cat = old_cat.copy()
+    event = get_event(event_id)
+    cat = event['catalogue']
 
     event_time = cat[0].preferred_origin().time.datetime.timestamp()
 
