@@ -233,10 +233,18 @@ def pre_process(event_id, **kwargs):
 
     z = new_cat[0].preferred_origin().z
 
+    quick_magnitude_processor = quick_magnitude.Processor()
+    result = quick_magnitude_processor.process(stream=waveforms[
+        'fixed_length'], cat=new_cat)
+    magnitude = result[0]
+    new_cat = quick_magnitude_processor.output_catalog(new_cat)
+
+
     category = event_classifier.Processor().process(stream=context_2s_new,
                                                     context=waveforms[
                                                         'context'],
-                                                    height=z)
+                                                    height=z,
+                                                    magnitude=magnitude)
 
     sorted_list = sorted(category.items(), reverse=True,
                          key=lambda x: x[1])
@@ -280,15 +288,10 @@ def pre_process(event_id, **kwargs):
 
         return
 
-    quick_magnitude_processor = quick_magnitude.Processor()
-    result = quick_magnitude_processor.process(stream=waveforms[
-        'fixed_length'], cat=new_cat)
-    mag_cat = quick_magnitude_processor.output_catalog(new_cat)
-
     dict_out = waveforms
-    dict_out['catalogue'] = mag_cat
+    dict_out['catalogue'] = new_cat
 
-    new_cat.write('catalogue', format='quakeml')
+    # new_cat.write('catalogue', format='quakeml')
 
     set_event(event_id, **dict_out)
 
