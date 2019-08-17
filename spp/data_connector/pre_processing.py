@@ -16,7 +16,6 @@ from microquake.core import Stream, UTCDateTime
 from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue, record_processing_logs_pg
 from microquake.db.models.redis import set_event, get_event
-from microquake.db.serializers.seismic_objects import deserialize_message
 from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.processors import clean_data, event_classifier, interloc, quick_magnitude
 
