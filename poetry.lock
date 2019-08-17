@@ -753,7 +753,7 @@ description = ""
 name = "microquake"
 optional = false
 python-versions = "^3.6 || ^3.7"
-version = "0.1.12"
+version = "0.1.13"
 
 [package.dependencies]
 cachier = "^1.2"
