@@ -26,7 +26,6 @@ url = "https://pkg.microquake.org/simple/"
 
 [tool.poetry.scripts]
 seismic_platform = 'spp.core.cli:cli'
-seismic_client = 'spp.client.cli:cli'
 
 [tool.poetry.dependencies]
 python = "^3.6 || ^3.7"
