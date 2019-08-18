@@ -1,7 +1,7 @@
 import pytest
 from .helpers.data_utils import get_test_data
 
-from microquake.core.event import OriginUncertainty
+from obspy.core.event import OriginUncertainty
 from microquake.processors.nlloc import Processor
 
 test_data_name = "test_output_picker"
