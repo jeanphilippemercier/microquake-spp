@@ -12,7 +12,8 @@ from pytz import utc
 from loguru import logger
 from microquake.clients.api_client import post_data_from_objects
 from microquake.clients.ims import web_client
-from microquake.core import Stream, UTCDateTime
+from microquake.core import Stream
+from obspy import UTCDateTime
 from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue, record_processing_logs_pg
 from microquake.db.models.redis import set_event, get_event
