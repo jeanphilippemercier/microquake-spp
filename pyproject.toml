@@ -26,7 +26,6 @@ url = "https://pkg.microquake.org/simple/"
 
 [tool.poetry.scripts]
 seismic_platform = 'spp.core.cli:cli'
-seismic_client = 'spp.client.cli:cli'
 
 [tool.poetry.dependencies]
 python = "^3.6 || ^3.7"
@@ -65,6 +64,7 @@ skidmarks = "^0.0.6"
 cachier = "^1.2"
 walrus = "^0.7.1"
 xseis2 = "^0.1.8"
+seismic_client = "^0.1.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"

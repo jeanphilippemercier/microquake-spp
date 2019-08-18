@@ -1,5 +1,6 @@
 from datetime import datetime
-from microquake.core import UTCDateTime, read
+from obspy import UTCDateTime
+from microquake.core import read
 from microquake.clients import api_client
 from spp.utils.application import Application
 import numpy as np

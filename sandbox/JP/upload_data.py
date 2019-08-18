@@ -2,7 +2,7 @@ import colorama
 colorama.init(convert=True)
 
 from microquake.clients.ims import web_client
-from microquake.core import UTCDateTime
+from obspy import UTCDateTime
 from spp.utils.application import Application
 import pytz
 from io import BytesIO
