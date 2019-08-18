@@ -1,7 +1,7 @@
 from spp.utils.application import Application
 from microquake.core.nlloc import NLL
 from microquake.core.event import read_events
-from microquake.core import UTCDateTime
+from obspy import UTCDateTime
 from microquake.clients.ims import web_client
 
 # msgpack.unpackb(packed_dict, object_hook=decode_datetime, raw=False)

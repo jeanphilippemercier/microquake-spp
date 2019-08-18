@@ -11,7 +11,7 @@ try:
 except:
     pass
 from spp.utils.application import Application
-from microquake.core import UTCDateTime
+from obspy import UTCDateTime
 from confluent_kafka import Producer
 from struct import unpack
 from microquake.io.waveform import mseed_date_from_header
