@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 
 # from xseis2 import xutil
 from microquake.core.event import Arrival, Event, Origin, Pick
-from microquake.core.event import ResourceIdentifier
+from obspy.core.event import ResourceIdentifier
 # from microquake.core import Stream
 # from microquake.core import Trace
 from microquake.core import read
-from microquake.core import UTCDateTime
+from obspy import UTCDateTime
 from spp.utils.application import Application
 
 from microquake.core.util import tools

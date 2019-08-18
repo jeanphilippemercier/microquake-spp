@@ -1,5 +1,5 @@
 from microquake.clients.api_client import get_events_catalog
-from microquake.core import UTCDateTime
+from obspy import UTCDateTime
 from spp.utils.application import Application
 import matplotlib.pyplot as plt
 import numpy as np

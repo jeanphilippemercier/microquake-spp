@@ -1,7 +1,7 @@
 import pytest
 from .helpers.data_utils import get_test_data
 
-from microquake.core import UTCDateTime
+from obspy import UTCDateTime
 from microquake.processors.measure_amplitudes import Processor
 
 test_data_name = "test_output_nlloc"

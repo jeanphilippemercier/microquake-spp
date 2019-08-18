@@ -3,7 +3,7 @@ from time import time
 import numpy as np
 
 from loguru import logger
-from microquake.core import UTCDateTime
+from obspy import UTCDateTime
 from microquake.core.stream import Stream, Trace
 from microquake.db.connectors import create_postgres_session
 from microquake.db.models.alchemy import Recording

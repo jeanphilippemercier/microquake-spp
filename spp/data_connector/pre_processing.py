@@ -145,8 +145,7 @@ def get_waveforms(interloc_dict, event):
     return waveforms
 
 
-def send_to_api(event_id, catalogue=None, fixed_length=None, context=None,
-                variable_length=None, **kwargs):
+def send_to_api(event_id, **kwargs):
 
     api_base_url = settings.get('api_base_url')
     event = get_event(event_id)
