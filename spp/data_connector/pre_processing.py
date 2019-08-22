@@ -54,7 +54,7 @@ def interloc_election(cat):
 
     complete_wf = web_client.get_continuous(base_url, starttime, endtime,
                                             sites, utc,
-                                            network_code=network_code)
+                                            network=network_code)
 
     complete_wf.detrend('demean').taper(max_percentage=0.001,
                                         max_length=0.01).filter('bandpass',
