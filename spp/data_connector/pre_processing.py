@@ -102,7 +102,7 @@ def get_waveforms(interloc_dict, event):
 
     fixed_length_wf = web_client.get_continuous(base_url, starttime, endtime,
                                                 sites, utc,
-                                                network_code=network_code)
+                                                network=network_code)
 
     # finding the station that is the closest to the event
     starttime = local_time - timedelta(seconds=10)
@@ -137,7 +137,7 @@ def get_waveforms(interloc_dict, event):
         logger.info('getting context trace for station {}'.format(stations[i]))
         context = web_client.get_continuous(base_url, starttime, endtime,
                                             [stations[i]], utc,
-                                            network_code=network_code)
+                                            network=network_code)
         context.filter('bandpass', **context_trace_filter)
 
         if context:
