@@ -183,14 +183,14 @@ def pre_process(event_id, **kwargs):
     closing_window_time_seconds = settings.get(
         'data_connector').closing_window_time_seconds
 
-    if UTCDateTime.now() - event_time < closing_window_time_seconds:
-        logger.info('Delay between the detection of the event and the '
-                    'current time ({} s) is lower than the closing window '
-                    'time threshold ({} s). The event will resent to the '
-                    'queue and reprocessed at a later time '.format(
-                        UTCDateTime.now() - event_time, closing_window_time_seconds))
-
-        return
+    # if UTCDateTime.now() - event_time < closing_window_time_seconds:
+    #     logger.info('Delay between the detection of the event and the '
+    #                 'current time ({} s) is smaller than the closing window '
+    #                 'time threshold ({} s). The event will be resent to the '
+    #                 'queue and reprocessed at a later time '.format(
+    #             UTCDateTime.now() - event_time, closing_window_time_seconds))
+    #
+    #     return
 
     try:
         variable_length_wf = web_client.get_seismogram_event(base_url, cat[0],
