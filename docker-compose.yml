@@ -27,31 +27,15 @@ services:
 #    tty: true
 #
 
-#  interactive:
-#    networks:
-#      - spp-network
-#    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
-#    hostname: interactive
-#    container_name: interactive
-#    external_links:
-#      - redisdb
-#    volumes:
-#      - $SPP_COMMON/:/data/common
-#      - $SPP_CONFIG/:/data/config
-#      - ./spp:/app/spp
-#    environment:
-#      SPP_COMMON: "/data/common"
-#      SPP_CONFIG: "/data/config"
-#    command: bash -c "seismic_platform interactive"
-#    working_dir:
-#      /app/bin
-#    restart: always
-#    tty: true
-#
   event_connector:
     networks:
       - spp-network
     image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
+    build:
+      context: .
+      args:
+        PYPI_USER: $PYPI_USER
+        PYPI_PASS: $PYPI_PASS
     hostname: event_connector
     container_name: event_connector
     external_links:
@@ -63,7 +47,6 @@ services:
       - $SPP_CONFIG/:/data/config
       - ./spp:/app/spp
       - ./data/weights:/app/data/weights
-      - ./libs/microquake:/app/libs/microquake
     environment:
       SPP_COMMON: "/data/common"
       SPP_CONFIG: "/data/config"
@@ -84,8 +67,8 @@ services:
       TIMESCALEDB_TELEMETRY: "off"
       POSTGRES_PASSWORD: password
     volumes:
-      - ./data/timescale-initdb.sql:/docker-entrypoint-initdb.d/timescale-initdb.sql
-      - ./data/grafana-initdb.sql:/docker-entrypoint-initdb.d/grafana-initdb.sql
+      - ${PWD}/data/timescale-initdb.sql:/docker-entrypoint-initdb.d/timescale-initdb.sql
+      - ${PWD}/data/grafana-initdb.sql:/docker-entrypoint-initdb.d/grafana-initdb.sql
       - .tmp/postgres:/data/postgres
 #      - 'postgresql_data:/bitnami/postgresql'
 
