@@ -4,7 +4,7 @@ dist-dir = "dist/source"
 
 [tox]
 minversion = "3.4.0"
-requires = ["tox-venv", "setuptools >= 30.0.0"]
+requires = ["tox-venv", "setuptools >= 41.0.0"]
 
 [tool.poetry]
 name = "spp"
@@ -28,7 +28,7 @@ url = "https://pkg.microquake.org/simple/"
 seismic_platform = 'spp.core.cli:cli'
 
 [tool.poetry.dependencies]
-python = "^3.6 || ^3.7"
+python = "^3.7"
 scikit-fmm = "^2019.1"
 prometheus-client = "*"
 pyyaml = "*"
