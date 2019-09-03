@@ -14,7 +14,8 @@ from loguru import logger
 from microquake.clients.ims import web_client
 from microquake.core.helpers.time import get_time_zone
 from microquake.core.settings import settings
-from microquake.db.connectors import RedisQueue, connect_postgres, record_processing_logs_pg
+from microquake.db.connectors import (RedisQueue, connect_postgres,
+                                      record_processing_logs_pg)
 from microquake.db.models.alchemy import processing_logs
 from microquake.db.models.redis import set_event
 from spp.data_connector import pre_processing
@@ -22,8 +23,7 @@ from spp.data_connector.pre_processing import pre_process
 
 reload(pre_processing)
 
-
-__processing_step__ = 'initializer'
+__processing_step__ = 'event-watchdog'
 __processing_step_id__ = 1
 
 request_range_hours = settings.get('data_connector').request_range_hours
@@ -109,7 +109,6 @@ while 1:
 
             result = we_job_queue.submit_task(pre_process, event_id=event_id)
 
-            logger.info('sent {} events for further processing'.format(ct))
             status = 'success'
 
             end_processing_time = time()
@@ -118,3 +117,5 @@ while 1:
                                                __processing_step__,
                                                __processing_step_id__,
                                                processing_time)
+
+        logger.info('sent {} events for further processing'.format(ct))

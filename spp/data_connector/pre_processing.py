@@ -25,7 +25,7 @@ automatic_job_queue = RedisQueue(automatic_message_queue)
 api_message_queue = settings.API_MESSAGE_QUEUE
 api_job_queue = RedisQueue(api_message_queue)
 
-__processing_step__ = 'waveform_extractor'
+__processing_step__ = 'pre_processing'
 __processing_step_id__ = 2
 
 sites = [int(station.code) for station in settings.inventory.stations()]
@@ -151,6 +151,10 @@ def get_waveforms(interloc_dict, event):
 
 def send_to_api(event_id, **kwargs):
 
+    processing_step = 'post_event_api'
+    processing_step_id = 4
+    start_processing_time = time()
+
     api_base_url = settings.get('api_base_url')
     event = get_event(event_id)
     response = post_data_from_objects(api_base_url, event_id=None,
@@ -167,10 +171,19 @@ def send_to_api(event_id, **kwargs):
 
         result = api_job_queue.submit_task(send_to_api, event_id=event_id)
 
+        end_processing_time = time()
+        processing_time = end_processing_time - start_processing_time
+
+        record_processing_logs_pg(event, 'success', processing_step,
+                                  processing_step_id, processing_time)
+
         return result
 
 
 def pre_process(event_id, **kwargs):
+
+    start_processing_time = time()
+
     logger.info('message received')
 
     # tmp = deserialize(message)
@@ -242,7 +255,6 @@ def pre_process(event_id, **kwargs):
     magnitude = result[0]
     new_cat = quick_magnitude_processor.output_catalog(new_cat)
 
-
     category = event_classifier.Processor().process(stream=context_2s_new,
                                                     context=waveforms[
                                                         'context'],
@@ -307,7 +319,8 @@ def pre_process(event_id, **kwargs):
 
     logger.info('sending to automatic pipeline')
 
-    result = automatic_job_queue.submit_task(automatic_pipeline, event_id=event_id)
+    result = automatic_job_queue.submit_task(automatic_pipeline,
+                                             event_id=event_id)
 
     logger.info('done collecting the waveform, happy processing!')
 
