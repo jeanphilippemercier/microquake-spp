@@ -74,16 +74,8 @@ while 1:
 
     starttime = get_starttime()
 
-    try:
-        cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
+    cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
                                        utc, accepted=False, manual=False)
-    except:
-        logger.error('Connection to the IMS server on {} failed!'.format(
-            base_url))
-        sleep(30)
-
-        continue
-
     logger.info('recovered {} events'.format(len(cat)))
 
     if len(cat) == 0:
