@@ -94,4 +94,4 @@ test:
     - bash -c ". /ve/bin/activate ; poetry install"
     - bash -c ". /ve/bin/activate ; poetry run seismic_platform velocities"
     - bash -c ". /ve/bin/activate ; poetry run seismic_platform prepare"
-    - bash -c ". /ve/bin/activate ; pytest tests"
+#    - bash -c ". /ve/bin/activate ; pytest tests"
