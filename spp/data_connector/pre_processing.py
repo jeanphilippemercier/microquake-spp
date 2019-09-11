@@ -10,8 +10,8 @@ import requests
 from pytz import utc
 
 from loguru import logger
-from microquake.clients.api_client import post_data_from_objects
 from microquake.clients.ims import web_client
+from microquake.clients.api_client import post_data_from_objects
 from microquake.core import Stream
 from obspy import UTCDateTime
 from microquake.core.settings import settings
