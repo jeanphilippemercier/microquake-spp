@@ -20,7 +20,7 @@ description = "Async http client/server framework (asyncio)"
 marker = "python_version >= \"3.4\" and extra == \"aiohttp\""
 name = "aiohttp"
 optional = false
-python-versions = ">=3.5.3"
+python-versions = "*"
 version = "3.6.0"
 
 [package.dependencies]
@@ -86,7 +86,7 @@ category = "main"
 description = "Read/rewrite/write Python ASTs"
 name = "astor"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "0.8.0"
 
 [package.source]
@@ -100,7 +100,7 @@ description = "Timeout context manager for asyncio programs"
 marker = "python_version >= \"3.4\" and extra == \"aiohttp\""
 name = "async-timeout"
 optional = false
-python-versions = ">=3.5.3"
+python-versions = "*"
 version = "3.0.1"
 
 [package.source]
@@ -113,7 +113,7 @@ category = "dev"
 description = "Atomic file writes."
 name = "atomicwrites"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "1.3.0"
 
 [package.source]
@@ -126,7 +126,7 @@ category = "main"
 description = "Classes Without Boilerplate"
 name = "attrs"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "19.1.0"
 
 [package.source]
@@ -170,19 +170,6 @@ name = "backcall"
 optional = false
 python-versions = "*"
 version = "0.1.0"
-
-[package.source]
-reference = "microquake"
-type = "legacy"
-url = "https://pkg.microquake.org/simple"
-
-[[package]]
-category = "main"
-description = ""
-name = "backports.weakref"
-optional = false
-python-versions = ">=3.6,<4.0"
-version = "1.0.post1"
 
 [package.source]
 reference = "microquake"
@@ -237,7 +224,7 @@ category = "main"
 description = "Composable command line interface toolkit"
 name = "click"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "7.0"
 
 [package.source]
@@ -251,7 +238,7 @@ description = "Cross-platform colored terminal text."
 marker = "sys_platform == \"win32\""
 name = "colorama"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "0.4.1"
 
 [package.source]
@@ -293,7 +280,7 @@ category = "main"
 description = "Better living through Python with decorators"
 name = "decorator"
 optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*"
+python-versions = "*"
 version = "4.4.0"
 
 [package.source]
@@ -306,7 +293,7 @@ category = "main"
 description = "serialize all of python"
 name = "dill"
 optional = false
-python-versions = ">=2.6, !=3.0.*"
+python-versions = "*"
 version = "0.3.0"
 
 [package.source]
@@ -319,7 +306,7 @@ category = "main"
 description = "Dynamic version generation"
 name = "dunamai"
 optional = false
-python-versions = ">=3.5,<4.0"
+python-versions = "*"
 version = "0.8.1"
 
 [package.source]
@@ -340,19 +327,6 @@ click = "*"
 python-box = "*"
 python-dotenv = "*"
 toml = "*"
-
-[package.source]
-reference = "microquake"
-type = "legacy"
-url = "https://pkg.microquake.org/simple"
-
-[[package]]
-category = "main"
-description = "hello"
-name = "enum34"
-optional = false
-python-versions = ">=3.6,<4.0"
-version = "1.1.6"
 
 [package.source]
 reference = "microquake"
@@ -382,7 +356,7 @@ category = "main"
 description = "Clean single-source support for Python 3 and 2"
 name = "future"
 optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+python-versions = "*"
 version = "0.17.1"
 
 [package.source]
@@ -395,7 +369,7 @@ category = "main"
 description = "Python AST that abstracts the underlying Python version"
 name = "gast"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "0.3.1"
 
 [package.source]
@@ -454,7 +428,7 @@ category = "main"
 description = "Internationalized Domain Names in Applications (IDNA)"
 name = "idna"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "2.8"
 
 [package.source]
@@ -468,7 +442,7 @@ description = "Read metadata from Python packages"
 marker = "python_version < \"3.8\""
 name = "importlib-metadata"
 optional = false
-python-versions = ">=2.7,!=3.0,!=3.1,!=3.2,!=3.3"
+python-versions = "*"
 version = "0.22"
 
 [package.dependencies]
@@ -501,7 +475,7 @@ category = "dev"
 description = "IPython: Productive Interactive Computing"
 name = "ipython"
 optional = false
-python-versions = ">=3.5"
+python-versions = "*"
 version = "7.8.0"
 
 [package.dependencies]
@@ -540,7 +514,7 @@ category = "dev"
 description = "An autocompletion tool for Python that can be used for text editors."
 name = "jedi"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "0.15.1"
 
 [package.dependencies]
@@ -625,7 +599,7 @@ category = "main"
 description = "A fast implementation of the Cassowary constraint solver"
 name = "kiwisolver"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "1.1.0"
 
 [package.dependencies]
@@ -678,7 +652,7 @@ category = "main"
 description = "Python logging made (stupidly) simple"
 name = "loguru"
 optional = false
-python-versions = ">=3.5"
+python-versions = "*"
 version = "0.3.2"
 
 [package.dependencies]
@@ -695,7 +669,7 @@ category = "main"
 description = "Powerful and Pythonic XML processing library combining libxml2/libxslt with the ElementTree API."
 name = "lxml"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, != 3.4.*"
+python-versions = "*"
 version = "4.4.1"
 
 [package.source]
@@ -708,7 +682,7 @@ category = "main"
 description = "Python implementation of Markdown."
 name = "markdown"
 optional = false
-python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*"
+python-versions = "*"
 version = "3.1.1"
 
 [package.dependencies]
@@ -725,8 +699,8 @@ description = "A lightweight library for converting complex datatypes to and fro
 marker = "extra == \"marshmallow\""
 name = "marshmallow"
 optional = false
-python-versions = ">=3.5"
-version = "3.0.4"
+python-versions = "*"
+version = "3.0.5"
 
 [package.source]
 reference = "microquake"
@@ -738,7 +712,7 @@ category = "main"
 description = "Python plotting package"
 name = "matplotlib"
 optional = false
-python-versions = ">=3.6"
+python-versions = "*"
 version = "3.1.1"
 
 [package.dependencies]
@@ -758,8 +732,8 @@ category = "main"
 description = "Python library that is an extension/expansion/adaptation of ObsPy to microseismic data"
 name = "microquake"
 optional = false
-python-versions = ">=3.6,<4.0"
-version = "0.1.97"
+python-versions = "*"
+version = "0.1.99"
 
 [package.dependencies]
 cachier = ">=1.2,<2.0"
@@ -800,27 +774,11 @@ type = "legacy"
 url = "https://pkg.microquake.org/simple"
 
 [[package]]
-category = "main"
-description = "Rolling backport of unittest.mock for all Pythons"
-name = "mock"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "3.0.5"
-
-[package.dependencies]
-six = "*"
-
-[package.source]
-reference = "microquake"
-type = "legacy"
-url = "https://pkg.microquake.org/simple"
-
-[[package]]
 category = "dev"
 description = "More routines for operating on iterables, beyond itertools"
 name = "more-itertools"
 optional = false
-python-versions = ">=3.4"
+python-versions = "*"
 version = "7.2.0"
 
 [package.source]
@@ -847,7 +805,7 @@ description = "multidict implementation"
 marker = "python_version >= \"3.4\" and extra == \"aiohttp\""
 name = "multidict"
 optional = false
-python-versions = ">=3.4.1"
+python-versions = "*"
 version = "4.5.2"
 
 [package.source]
@@ -893,7 +851,7 @@ category = "main"
 description = "NumPy is the fundamental package for array computing with Python."
 name = "numpy"
 optional = false
-python-versions = ">=3.5"
+python-versions = "*"
 version = "1.17.2"
 
 [package.source]
@@ -930,7 +888,7 @@ category = "main"
 description = "Powerful data structures for data analysis, time series, and statistics"
 name = "pandas"
 optional = false
-python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*"
+python-versions = "*"
 version = "0.24.2"
 
 [package.dependencies]
@@ -1023,7 +981,7 @@ category = "dev"
 description = "plugin and hook calling mechanisms for python"
 name = "pluggy"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "0.13.0"
 
 [package.dependencies]
@@ -1130,7 +1088,7 @@ category = "main"
 description = "psycopg2 - Python-PostgreSQL Database Adapter"
 name = "psycopg2"
 optional = false
-python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
+python-versions = "*"
 version = "2.8.3"
 
 [package.source]
@@ -1157,7 +1115,7 @@ category = "dev"
 description = "library with cross-python path, ini-parsing, io, code, log facilities"
 name = "py"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "1.8.0"
 
 [package.source]
@@ -1170,7 +1128,7 @@ category = "dev"
 description = "Python style guide checker"
 name = "pycodestyle"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "2.5.0"
 
 [package.source]
@@ -1183,7 +1141,7 @@ category = "dev"
 description = "Pygments is a syntax highlighting package written in Python."
 name = "pygments"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+python-versions = "*"
 version = "2.4.2"
 
 [package.source]
@@ -1196,7 +1154,7 @@ category = "main"
 description = "Python parsing module"
 name = "pyparsing"
 optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+python-versions = "*"
 version = "2.4.2"
 
 [package.source]
@@ -1226,7 +1184,7 @@ category = "dev"
 description = "pytest: simple powerful testing with Python"
 name = "pytest"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "3.10.1"
 
 [package.dependencies]
@@ -1278,7 +1236,7 @@ category = "main"
 description = "Extensions to the standard Python datetime module"
 name = "python-dateutil"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
+python-versions = "*"
 version = "2.8.0"
 
 [package.dependencies]
@@ -1334,7 +1292,7 @@ category = "main"
 description = "YAML parser and emitter for Python"
 name = "pyyaml"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "5.1.2"
 
 [package.source]
@@ -1347,7 +1305,7 @@ category = "main"
 description = "Python client for Redis key-value store"
 name = "redis"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "3.3.8"
 
 [package.source]
@@ -1360,7 +1318,7 @@ category = "main"
 description = "Python HTTP for Humans."
 name = "requests"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+python-versions = "*"
 version = "2.22.0"
 
 [package.dependencies]
@@ -1398,7 +1356,7 @@ category = "main"
 description = "RQ is a simple, lightweight, library for creating background jobs, and processing them."
 name = "rq"
 optional = false
-python-versions = ">=2.7"
+python-versions = "*"
 version = "1.1.0"
 
 [package.dependencies]
@@ -1434,6 +1392,11 @@ optional = false
 python-versions = "*"
 version = "0.21.3"
 
+[package.dependencies]
+joblib = ">=0.11"
+numpy = ">=1.11.0"
+scipy = ">=0.17.0"
+
 [package.source]
 reference = "microquake"
 type = "legacy"
@@ -1444,8 +1407,11 @@ category = "main"
 description = "SciPy: Scientific Library for Python"
 name = "scipy"
 optional = false
-python-versions = ">=3.5"
+python-versions = "*"
 version = "1.3.1"
+
+[package.dependencies]
+numpy = ">=1.13.3"
 
 [package.source]
 reference = "microquake"
@@ -1457,7 +1423,7 @@ category = "main"
 description = "Seismic Platform API Client"
 name = "seismic-client"
 optional = false
-python-versions = ">=3.6,<4.0"
+python-versions = "*"
 version = "0.1.3"
 
 [package.dependencies]
@@ -1475,7 +1441,7 @@ category = "main"
 description = "Python 2 and 3 compatibility utilities"
 name = "six"
 optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*"
+python-versions = "*"
 version = "1.12.0"
 
 [package.source]
@@ -1514,7 +1480,7 @@ category = "main"
 description = "Database Abstraction Library"
 name = "sqlalchemy"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "1.3.8"
 
 [package.source]
@@ -1543,7 +1509,7 @@ category = "main"
 description = "TensorBoard lets you watch Tensors Flow"
 name = "tensorboard"
 optional = false
-python-versions = ">= 2.7, != 3.0.*, != 3.1.*"
+python-versions = "*"
 version = "1.14.0"
 
 [package.dependencies]
@@ -1576,21 +1542,18 @@ version = "1.14.0"
 [package.dependencies]
 absl-py = ">=0.7.0"
 astor = ">=0.6.0"
-"backports.weakref" = ">=1.0rc1"
-enum34 = ">=1.1.6"
 gast = ">=0.2.0"
 google-pasta = ">=0.1.6"
 grpcio = ">=1.8.6"
 keras-applications = ">=1.0.6"
 keras-preprocessing = ">=1.0.5"
-mock = ">=2.0.0"
 numpy = ">=1.14.5,<2.0"
 protobuf = ">=3.6.1"
 six = ">=1.10.0"
 tensorboard = ">=1.14.0,<1.15.0"
 tensorflow-estimator = ">=1.14.0rc0,<1.15.0rc0"
 termcolor = ">=1.1.0"
-wheel = "*"
+wheel = ">=0.26"
 wrapt = ">=1.11.1"
 
 [package.source]
@@ -1642,7 +1605,7 @@ category = "main"
 description = "List processing tools and functional utilities"
 name = "toolz"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "0.10.0"
 
 [package.source]
@@ -1655,7 +1618,7 @@ category = "main"
 description = "Fast, Extensible Progress Meter"
 name = "tqdm"
 optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*"
+python-versions = "*"
 version = "4.35.0"
 
 [package.source]
@@ -1738,7 +1701,7 @@ category = "main"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 name = "urllib3"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4"
+python-versions = "*"
 version = "1.25.3"
 
 [package.source]
@@ -1798,7 +1761,7 @@ category = "main"
 description = "The comprehensive WSGI web application library."
 name = "werkzeug"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "0.15.6"
 
 [package.source]
@@ -1811,7 +1774,7 @@ category = "main"
 description = "A built-package format for Python."
 name = "wheel"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "*"
 version = "0.33.6"
 
 [package.source]
@@ -1825,7 +1788,7 @@ description = "A small Python utility to set file creation time on Windows"
 marker = "sys_platform == \"win32\""
 name = "win32-setctime"
 optional = false
-python-versions = ">=3.5"
+python-versions = "*"
 version = "1.0.1"
 
 [package.source]
@@ -1868,7 +1831,7 @@ description = "Yet another URL library"
 marker = "python_version >= \"3.4\" and extra == \"aiohttp\""
 name = "yarl"
 optional = false
-python-versions = ">=3.5.3"
+python-versions = "*"
 version = "1.3.0"
 
 [package.dependencies]
@@ -1886,7 +1849,7 @@ description = "Backport of pathlib-compatible object wrapper for zip files"
 marker = "python_version < \"3.8\""
 name = "zipp"
 optional = false
-python-versions = ">=2.7"
+python-versions = "*"
 version = "0.6.0"
 
 [package.dependencies]
@@ -1898,7 +1861,7 @@ type = "legacy"
 url = "https://pkg.microquake.org/simple"
 
 [metadata]
-content-hash = "0d5e75841938a37e9f954e04ae1bb82d76051424db7d6c44cf59cf38ffd0c932"
+content-hash = "6ab93c781a41dd2209d396c30a1e427928e8028df9726726d091e606dcb70591"
 python-versions = "^3.7"
 
 [metadata.hashes]
@@ -1914,7 +1877,6 @@ attrs = ["69c0dbf2ed392de1cb5ec704444b08a5ef81680a61cb899dc08127123af36a79", "f0
 audioread = ["073904fabc842881e07bd3e4a5776623535562f70b1655b635d22886168dd168"]
 autopep8 = ["4d8eec30cc81bc5617dbf1218201d770dc35629363547f17577c61683ccfb3ee"]
 backcall = ["38ecd85be2c1e78f77fd91700c76e14667dc21e2713b63876c0eb901196e01e4", "bbbf4b1e5cd2bdb08f915895b51081c041bac22394fdfcfdfbe9f14b77c08bf2"]
-"backports.weakref" = ["md5:014ecf17a7e73c1ab27e060932ee5a4b", "md5:a42136e3c7e81fb0735aa1d253a45840"]
 cachier = ["14cec0db80d041754272a97ea381458528e7d4a7fb5a112ddde7bf65fe95af2c", "dc1653832050b5829b7f510c2f952dc8ef6bfdf542c288a647d8f06abe34937b"]
 certifi = ["e4f3620cfea4f83eedc95b24abd9cd56f3c4b146dd0177e83a21b4eb49e21e50", "fd7c7c74727ddcf00e9acd26bba8da604ffec95bf1c2144e67aff7a8b50e6cef"]
 chardet = ["84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae", "fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"]
@@ -1926,7 +1888,6 @@ decorator = ["86156361c50488b84a3f148056ea716ca587df2f0de1d34750d35c21312725de",
 dill = ["993409439ebf7f7902d9de93eaa2a395e0446ff773d29f13dc46646482f76906"]
 dunamai = ["1c15905073ef3568f087e65fadff8e28c0520a8556af3f5d1dfc6f75dda41dbd", "bb64d7f055a33b00c72410e1201379fbd9e1956eb9bc89b3729005824aa802d4"]
 dynaconf = ["6ad4f7e78c47e4b20184d5be2b9ccefc49e46b2da7cc9e4e178f6648e87d5c1c", "c88d8f38fc7cb8dc32729002c0f09755e404550b4795c157878d2e6776ee4d61"]
-enum34 = ["md5:13e189767668268b0681eb2fc179684d", "md5:24ce80a5bd49cdae528af9e5b9c033eb"]
 fakeredis = ["1993b88bd629b1d651312757aa091a93612ae8772777e1a441bae81e7b013e25", "3e1bfb9de5a5ab5796b6101fbe7927fe1456fa8e72cbcd3625c9437e278bf581"]
 future = ["67045236dcfd6816dc439556d009594abf643e5eb48992e36beac09c2ca659b8"]
 gast = ["cc987dad3bea3104cd1cc4832c7d864023eb4578043b63ee061c7b42febd4c16"]
@@ -1949,11 +1910,10 @@ llvmlite = ["0c3d593de39ea75bb72011dfb49657677eade16eb9958865acc7773d13827424", 
 loguru = ["b6fad0d7aed357b5c147edcc6982606b933754338950b72d8123f48c150c5a4f", "e3138bfdee5f57481a2a6e078714be20f8c71ab1ff3f07f8fb1cfa25191fed2a"]
 lxml = ["02ca7bf899da57084041bb0f6095333e4d239948ad3169443f454add9f4e9cb4", "096b82c5e0ea27ce9138bcbb205313343ee66a6e132f25c5ed67e2c8d960a1bc", "0a920ff98cf1aac310470c644bc23b326402d3ef667ddafecb024e1713d485f1", "17cae1730a782858a6e2758fd20dd0ef7567916c47757b694a06ffafdec20046", "17e3950add54c882e032527795c625929613adbd2ce5162b94667334458b5a36", "1f4f214337f6ee5825bf90a65d04d70aab05526c08191ab888cb5149501923c5", "2e8f77db25b0a96af679e64ff9bf9dddb27d379c9900c3272f3041c4d1327c9d", "4dffd405390a45ecb95ab5ab1c1b847553c18b0ef8ed01e10c1c8b1a76452916", "6b899931a5648862c7b88c795eddff7588fb585e81cecce20f8d9da16eff96e0", "726c17f3e0d7a7200718c9a890ccfeab391c9133e363a577a44717c85c71db27", "760c12276fee05c36f95f8040180abc7fbebb9e5011447a97cdc289b5d6ab6fc", "796685d3969815a633827c818863ee199440696b0961e200b011d79b9394bbe7", "891fe897b49abb7db470c55664b198b1095e4943b9f82b7dcab317a19116cd38", "a471628e20f03dcdfde00770eeaf9c77811f0c331c8805219ca7b87ac17576c5", "a63b4fd3e2cabdcc9d918ed280bdde3e8e9641e04f3c59a2a3109644a07b9832", "b0b84408d4eabc6de9dd1e1e0bc63e7731e890c0b378a62443e5741cfd0ae90a", "be78485e5d5f3684e875dab60f40cddace2f5b2a8f7fede412358ab3214c3a6f", "c27eaed872185f047bb7f7da2d21a7d8913457678c9a100a50db6da890bc28b9", "c81cb40bff373ab7a7446d6bbca0190bccc5be3448b47b51d729e37799bb5692", "d11874b3c33ee441059464711cd365b89fa1a9cf19ae75b0c189b01fbf735b84", "e9c028b5897901361d81a4718d1db217b716424a0283afe9d6735fe0caf70f79", "fe489d486cd00b739be826e8c1be188ddb74c7a1ca784d93d06fda882a6a1681"]
 markdown = ["2e50876bcdd74517e7b71f3e7a76102050edec255b3983403f1a63e7c8a41e7a", "56a46ac655704b91e5b7e6326ce43d5ef72411376588afa1dd90e881b83c7e8c"]
-marshmallow = ["5d6412948383b8d628b9d267045e83a5c4c387300ee7d7d57edc93d375be2660", "76603a8a7517e753ff4ab811b8b987bc14cba206cf0aa7473142120dee6b9a78"]
+marshmallow = ["4b790b6910c0261d22de296ed42569affcbd80097eb770eb6088a79bef69c330", "fe31ac05fbde972909a752d12b808cbbc15a50ed0a692410e1b227ff10b483ff"]
 matplotlib = ["1febd22afe1489b13c6749ea059d392c03261b2950d1d45c17e3aed812080c93", "31a30d03f39528c79f3a592857be62a08595dec4ac034978ecd0f814fa0eec2d", "4442ce720907f67a79d45de9ada47be81ce17e6c2f448b3c64765af93f6829c9", "796edbd1182cbffa7e1e7a97f1e141f875a8501ba8dd834269ae3cd45a8c976f", "934e6243df7165aad097572abf5b6003c77c9b6c480c3c4de6f2ef1b5fdd4ec0", "bab9d848dbf1517bc58d1f486772e99919b19efef5dd8596d4b26f9f5ee08b6b", "c1fe1e6cdaa53f11f088b7470c2056c0df7d80ee4858dadf6cbe433fcba4323b", "e5b8aeca9276a3a988caebe9f08366ed519fff98f77c6df5b64d7603d0e42e36", "ec6bd0a6a58df3628ff269978f4a4b924a0d371ad8ce1f8e2b635b99e482877a"]
-microquake = ["md5:330c8a5420df731b7634f1288ad7617e", "md5:eac9acc33d8e7495e85f977db39612e4"]
+microquake = []
 microquake-hashwrap = ["06d70baa5a1d03e81aa8c3fb5eea90015e77961b987548602d2f77c391ecb535", "2df1593640d35209e27a3dd8f418d3f04729008210bd80b84896f9b191f928cd", "7a909f7d1e578f4c3574e44ec8d752aca53cf35f8c120dff4bbd126b5cbec596", "7d0b96b7a86f771ea8b0a66f890b02173e5f3e26bb8519758b7e58b10d19d9a1", "86b516988ce509b651cc02fa90ebe1749b2482c28919db6a50505d18b857aefc", "d6e8057bfbda0b51c79ff3547d00a412134885028c8d33f96f06d17b5c6dceef", "f67c62b992368274d771f47cf1d5c9d1302400b8feb45c77abfdb0f4a303d2e8"]
-mock = ["83657d894c90d5681d62155c82bda9c1187827525880eda8ff5df4ec813437c3", "d157e52d4e5b938c550f39eb2fd15610db062441a9c2747d3dbfa9298211d0f8"]
 more-itertools = ["409cd48d4db7052af495b09dec721011634af3753ae1ef92d2b32f73a745f832", "92b8c4b06dac4f0611c0729b2f2ede52b2e1bac1ab48f089c7ddc12e26bb60c4"]
 msgpack = ["26cb40116111c232bc235ce131cc3b4e76549088cb154e66a2eb8ff6fcc907ec", "300fd3f2c664a3bf473d6a952f843b4a71454f4c592ed7e74a36b205c1782d28", "3129c355342853007de4a2a86e75eab966119733eb15748819b6554363d4e85c", "31f6d645ee5a97d59d3263fab9e6be76f69fa131cddc0d94091a3c8aca30d67a", "3ce7ef7ee2546c3903ca8c934d09250531b80c6127e6478781ae31ed835aac4c", "4008c72f5ef2b7936447dcb83db41d97e9791c83221be13d5e19db0796df1972", "62bd8e43d204580308d477a157b78d3fee2fb4c15d32578108dc5d89866036c8", "70cebfe08fb32f83051971264466eadf183101e335d8107b80002e632f425511", "72cb7cf85e9df5251abd7b61a1af1fb77add15f40fa7328e924a9c0b6bc7a533", "7c55649965c35eb32c499d17dadfb8f53358b961582846e1bc06f66b9bccc556", "86b963a5de11336ec26bc4f839327673c9796b398b9f1fe6bb6150c2a5d00f0f", "8c73c9bcdfb526247c5e4f4f6cf581b9bb86b388df82cfcaffde0a6e7bf3b43a", "8e68c76c6aff4849089962d25346d6784d38e02baa23ffa513cf46be72e3a540", "97ac6b867a8f63debc64f44efdc695109d541ecc361ee2dce2c8884ab37360a1", "9d4f546af72aa001241d74a79caec278bcc007b4bcde4099994732e98012c858", "a28e69fe5468c9f5251c7e4e7232286d71b7dfadc74f312006ebe984433e9746", "fd509d4aa95404ce8d86b4e32ce66d5d706fd6646c205e1c2a715d87078683a2"]
 multidict = ["024b8129695a952ebd93373e45b5d341dbb87c17ce49637b34000093f243dd4f", "041e9442b11409be5e4fc8b6a97e4bcead758ab1e11768d1e69160bdde18acc3", "045b4dd0e5f6121e6f314d81759abd2c257db4634260abcfe0d3f7083c4908ef", "047c0a04e382ef8bd74b0de01407e8d8632d7d1b4db6f2561106af812a68741b", "068167c2d7bbeebd359665ac4fff756be5ffac9cda02375b5c5a7c4777038e73", "148ff60e0fffa2f5fad2eb25aae7bef23d8f3b8bdaf947a65cdbe84a978092bc", "1d1c77013a259971a72ddaa83b9f42c80a93ff12df6a4723be99d858fa30bee3", "1d48bc124a6b7a55006d97917f695effa9725d05abe8ee78fd60d6588b8344cd", "31dfa2fc323097f8ad7acd41aa38d7c614dd1960ac6681745b6da124093dc351", "34f82db7f80c49f38b032c5abb605c458bac997a6c3142e0d6c130be6fb2b941", "3d5dd8e5998fb4ace04789d1d008e2bb532de501218519d70bb672c4c5a2fc5d", "4a6ae52bd3ee41ee0f3acf4c60ceb3f44e0e3bc52ab7da1c2b2aa6703363a3d1", "4b02a3b2a2f01d0490dd39321c74273fed0568568ea0e7ea23e02bd1fb10a10b", "4b843f8e1dd6a3195679d9838eb4670222e8b8d01bc36c9894d6c3538316fa0a", "5de53a28f40ef3c4fd57aeab6b590c2c663de87a5af76136ced519923d3efbb3", "61b2b33ede821b94fa99ce0b09c9ece049c7067a33b279f343adfe35108a4ea7", "6a3a9b0f45fd75dc05d8e93dc21b18fc1670135ec9544d1ad4acbcf6b86781d0", "76ad8e4c69dadbb31bad17c16baee61c0d1a4a73bed2590b741b2e1a46d3edd0", "7ba19b777dc00194d1b473180d4ca89a054dd18de27d0ee2e42a103ec9b7d014", "7c1b7eab7a49aa96f3db1f716f0113a8a2e93c7375dd3d5d21c4941f1405c9c5", "7fc0eee3046041387cbace9314926aa48b681202f8897f8bff3809967a049036", "8ccd1c5fff1aa1427100ce188557fc31f1e0a383ad8ec42c559aabd4ff08802d", "8e08dd76de80539d613654915a2f5196dbccc67448df291e69a88712ea21e24a", "c18498c50c59263841862ea0501da9f2b3659c00db54abfbf823a80787fde8ce", "c49db89d602c24928e68c0d510f4fcf8989d77defd01c973d6cbe27e684833b1", "ce20044d0317649ddbb4e54dab3c1bcc7483c78c27d3f58ab3d0c7e6bc60d26a", "d1071414dd06ca2eafa90c85a079169bfeb0e5f57fd0b45d44c092546fcd6fd9", "d3be11ac43ab1a3e979dac80843b42226d5d3cccd3986f2e03152720a4297cd7", "db603a1c235d110c860d5f39988ebc8218ee028f07a7cbc056ba6424372ca31b"]
@@ -1996,7 +1956,7 @@ rq = ["2798d26a7b850e759f23f69695a389d676a9c08f2c14f96f0d34d9648c9d5616", "4f27c
 scikit-fmm = ["2f07f9e444383d438fe4f7817740f21968a430c8cb04272c486837c8d19be9af", "49ad88b361b1a5103d2ba042a36fbb3810511cad4489848cec45432032128c41", "eb64b6d8e30b8df8f8636d5fc4fd7ca6a9b05938ccd62518c80c1d9e823069dd"]
 scikit-learn = ["1ac81293d261747c25ea5a0ee8cd2bb1f3b5ba9ec05421a7f9f0feb4eb7c4116", "289361cf003d90b007f5066b27fcddc2d71324c82f1c88e316fedacb0dfdd516", "3a14d0abd4281fc3fd2149c486c3ec7cedad848b8d5f7b6f61522029d65a29f8", "5083a5e50d9d54548e4ada829598ae63a05651dd2bb319f821ffd9e8388384a6", "777cdd5c077b7ca9cb381396c81990cf41d2fa8350760d3cad3b4c460a7db644", "8bf2ff63da820d09b96b18e88f9625228457bff8df4618f6b087e12442ef9e15", "8d319b71c449627d178f21c57614e21747e54bb3fc9602b6f42906c3931aa320", "928050b65781fea9542dfe9bfe02d8c4f5530baa8472ec60782ea77347d2c836", "92c903613ff50e22aa95d589f9fff5deb6f34e79f7f21f609680087f137bb524", "ae322235def5ce8fae645b439e332e6f25d34bb90d6a6c8e261f17eb476457b7", "c1cd6b29eb1fd1cc672ac5e4a8be5f6ea936d094a3dc659ada0746d6fac750b1", "c41a6e2685d06bcdb0d26533af2540f54884d40db7e48baed6a5bcbf1a7cc642", "d07fcb0c0acbc043faa0e7cf4d2037f71193de3fb04fb8ed5c259b089af1cf5c", "d146d5443cda0a41f74276e42faf8c7f283fef49e8a853b832885239ef544e05", "eb2b7bed0a26ba5ce3700e15938b28a4f4513578d3e54a2156c29df19ac5fd01", "eb9b8ebf59eddd8b96366428238ab27d05a19e89c5516ce294abc35cea75d003"]
 scipy = ["0baa64bf42592032f6f6445a07144e355ca876b177f47ad8d0612901c9375bef", "243b04730d7223d2b844bda9500310eecc9eda0cba9ceaf0cde1839f8287dfa8", "2643cfb46d97b7797d1dbdb6f3c23fe3402904e3c90e6facfe6a9b98d808c1b5", "396eb4cdad421f846a1498299474f0a3752921229388f91f60dc3eda55a00488", "3ae3692616975d3c10aca6d574d6b4ff95568768d4525f76222fb60f142075b9", "435d19f80b4dcf67dc090cc04fde2c5c8a70b3372e64f6a9c58c5b806abfa5a8", "46a5e55850cfe02332998b3aef481d33f1efee1960fe6cfee0202c7dd6fc21ab", "75b513c462e58eeca82b22fc00f0d1875a37b12913eee9d979233349fce5c8b2", "7ccfa44a08226825126c4ef0027aa46a38c928a10f0a8a8483c80dd9f9a0ad44", "89dd6a6d329e3f693d1204d5562dd63af0fd7a17854ced17f9cbc37d5b853c8d", "a81da2fe32f4eab8b60d56ad43e44d93d392da228a77e229e59b51508a00299c", "a9d606d11eb2eec7ef893eb825017fbb6eef1e1d0b98a5b7fc11446ebeb2b9b1", "ac37eb652248e2d7cbbfd89619dce5ecfd27d657e714ed049d82f19b162e8d45", "cbc0611699e420774e945f6a4e2830f7ca2b3ee3483fca1aa659100049487dd5", "d02d813ec9958ed63b390ded463163685af6025cb2e9a226ec2c477df90c6957", "dd3b52e00f93fd1c86f2d78243dfb0d02743c94dd1d34ffea10055438e63b99d"]
-seismic-client = ["md5:381853f03755e8e002ac452ad3e8c103", "md5:d947f64da1e960febff08ff932dbcd8c"]
+seismic-client = []
 six = ["3350809f0555b11f552448330d0b52d5f24c91a322ea4a15ef22629740f3761c", "d16a0141ec1a18405cd4ce8b4613101da75da0e9a7aec5bdd4fa804d0e0eba73"]
 skidmarks = ["cd52dbf4ba0a0a49b8ab3b693f123d42b8bf1380a5927bf4ebe650a389c68efd"]
 sortedcontainers = ["974e9a32f56b17c1bac2aebd9dcf197f3eb9cd30553c5852a3187ad162e1a03a", "d9e96492dd51fae31e60837736b38fe42a187b5404c16606ff7ee7cd582d4c60"]
@@ -2021,6 +1981,6 @@ werkzeug = ["00d32beac38fcd48d329566f80d39f10ec2ed994efbecfb8dd4b320062d05902", 
 wheel = ["10c9da68765315ed98850f8e048347c3eb06dd81822dc2ab1d4fde9dc9702646", "f4da1763d3becf2e2cd92a14a7c920f0f00eca30fdde9ea992c836685b9faf28"]
 win32-setctime = ["568fd636c68350bcc54755213fe01966fe0a6c90b386c0776425944a0382abef", "b47e5023ec7f0b4962950902b15bc56464a380d869f59d27dbf9ab423b23e8f9"]
 wrapt = ["565a021fd19419476b9362b05eeaa094178de64f8361e44468f9e9d7843901e1"]
-xseis2 = ["md5:66e63b703f5329d23e44184fc2d3fed8"]
+xseis2 = []
 yarl = ["024ecdc12bc02b321bc66b41327f930d1c2c543fa9a561b39861da9388ba7aa9", "2f3010703295fbe1aec51023740871e64bb9664c789cba5a6bdf404e93f7568f", "3890ab952d508523ef4881457c4099056546593fa05e93da84c7250516e632eb", "3e2724eb9af5dc41648e5bb304fcf4891adc33258c6e14e2a7414ea32541e320", "5badb97dd0abf26623a9982cd448ff12cb39b8e4c94032ccdedf22ce01a64842", "73f447d11b530d860ca1e6b582f947688286ad16ca42256413083d13f260b7a0", "7ab825726f2940c16d92aaec7d204cfc34ac26c0040da727cf8ba87255a33829", "b25de84a8c20540531526dfbb0e2d2b648c13fd5dd126728c496d7c3fea33310", "c6e341f5a6562af74ba55205dbd56d248daf1b5748ec48a0200ba227bb9e33f4", "c9bb7c249c4432cd47e75af3864bc02d26c9594f49c82e2a28624417f0ae63b8", "e060906c0c585565c718d1c3841747b61c5439af2211e185f6739a9412dfbde1"]
 zipp = ["3718b1cbcd963c7d4c5511a8240812904164b7f381b647143a89d3b98f9bcd8e", "f06903e9f1f43b12d371004b4ac7b06ab39a44adc747266928ae6debfa7b3335"]
