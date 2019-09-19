@@ -18,7 +18,8 @@ from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue, record_processing_logs_pg
 from microquake.db.models.redis import set_event, get_event
 from microquake.pipelines.automatic_pipeline import automatic_pipeline
-from microquake.processors import clean_data, event_classifier, interloc, quick_magnitude
+from microquake.processors import (clean_data, event_classifier, interloc,
+                                   quick_magnitude ,ray_tracer)
 
 automatic_message_queue = settings.AUTOMATIC_PIPELINE_MESSAGE_QUEUE
 automatic_job_queue = RedisQueue(automatic_message_queue)
@@ -254,6 +255,15 @@ def pre_process(event_id, **kwargs):
         'fixed_length'], cat=new_cat)
     magnitude = result[0]
     new_cat = quick_magnitude_processor.output_catalog(new_cat)
+
+    logger.info('calculating rays')
+    rt_start_time = time()
+    rtp = ray_tracer.Processor()
+    rtp.process(cat=new_cat)
+    new_cat = rtp.output_catalog(new_cat)
+    rt_end_time = time()
+    rt_processing_time = rt_end_time - rt_start_time
+    logger.info(f'done calculating rays in {rt_processing_time} seconds')
 
     category = event_classifier.Processor().process(stream=context_2s_new,
                                                     context=waveforms[
