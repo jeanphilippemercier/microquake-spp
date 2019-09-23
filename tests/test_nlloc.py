@@ -1,24 +1,8 @@
 import pytest
-from .helpers.data_utils import get_test_data
-
-from obspy.core.event import OriginUncertainty
 from microquake.processors.nlloc import Processor
+from obspy.core.event import OriginUncertainty
 
-test_data_name = "test_output_picker"
-
-
-@pytest.fixture
-def catalog():
-    file_name = test_data_name + ".xml"
-    test_data = get_test_data(file_name, "QUAKEML")
-    yield test_data
-
-
-@pytest.fixture
-def waveform_stream():
-    file_name = test_data_name + ".mseed"
-    test_data = get_test_data(file_name, "MSEED")
-    yield test_data
+pytest.test_data_name = "test_output_picker"
 
 
 def test_hypocenter_location(catalog, waveform_stream):
@@ -26,12 +10,10 @@ def test_hypocenter_location(catalog, waveform_stream):
     processor.process(cat=catalog, stream=waveform_stream)
     output_catalog = processor.output_catalog(catalog)
 
-    check_hypocenter_location((catalog, waveform_stream), output_catalog)
+    check_hypocenter_location(catalog, output_catalog)
 
 
-def check_hypocenter_location(input_data, output_catalog):
-    (input_catalog, input_waveform_stream) = input_data
-
+def check_hypocenter_location(input_catalog, output_catalog):
     assert input_catalog[0].preferred_origin().origin_uncertainty is None
     origin_uncertainty = output_catalog[0].preferred_origin().origin_uncertainty
     assert isinstance(origin_uncertainty, OriginUncertainty)

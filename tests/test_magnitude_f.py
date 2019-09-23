@@ -1,35 +1,17 @@
 import pytest
-from .helpers.data_utils import get_test_data
-
 from microquake.processors.magnitude import Processor
 
-test_data_name = "test_output_magnitude"
+pytest.test_data_name = "test_output_magnitude"
 
 
-@pytest.fixture
-def catalog():
-    file_name = test_data_name + ".xml"
-    test_data = get_test_data(file_name, "QUAKEML")
-    yield test_data
-
-
-@pytest.fixture
-def waveform_stream():
-    file_name = test_data_name + ".mseed"
-    test_data = get_test_data(file_name, "MSEED")
-    yield test_data
-
-
-def test_magnitude_f(catalog, waveform_stream):
+def test_magnitude_f(catalog):
     processor = Processor(module_type="frequency")
     res = processor.process(cat=catalog.copy())
 
-    check_magnitude_f_data((catalog, waveform_stream), res['cat'])
+    check_magnitude_f_data(catalog, res['cat'])
 
 
-def check_magnitude_f_data(input_data, output_catalog):
-    (input_catalog, input_waveform_stream) = input_data
-
+def check_magnitude_f_data(input_catalog, output_catalog):
     input_magnitude_f_count = len(input_catalog[0].magnitudes)
 
     event = output_catalog[0]

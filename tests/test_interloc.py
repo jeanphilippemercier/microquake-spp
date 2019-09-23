@@ -1,24 +1,8 @@
 import pytest
-from tests.helpers.data_utils import get_test_data
-
 from microquake.core.event import Origin
 from microquake.processors.interloc import Processor
 
-test_data_name = "test_end_to_end"
-
-
-@pytest.fixture
-def catalog():
-    file_name = test_data_name + ".xml"
-    test_data = get_test_data(file_name, "QUAKEML")
-    yield test_data
-
-
-@pytest.fixture
-def waveform_stream():
-    file_name = test_data_name + ".mseed"
-    test_data = get_test_data(file_name, "MSEED")
-    yield test_data
+pytest.test_data_name = "test_end_to_end"
 
 
 def test_interloc(catalog, waveform_stream):
@@ -26,12 +10,10 @@ def test_interloc(catalog, waveform_stream):
     processor.process(stream=waveform_stream)
     output_catalog = processor.output_catalog(catalog)
 
-    check_interloc_data((catalog, waveform_stream), output_catalog)
+    check_interloc_data(catalog, output_catalog)
 
 
-def check_interloc_data(input_data, output_catalog):
-    (input_catalog, input_waveform_stream) = input_data
-
+def check_interloc_data(input_catalog, output_catalog):
     original_origin_count = len(input_catalog[0].origins)
 
     assert len(output_catalog[0].origins) == (original_origin_count + 1)
@@ -44,7 +26,6 @@ def check_interloc_data(input_data, output_catalog):
 # Some interloc data is removed later in the pipeline
 
 
-def check_interloc_data_end_to_end(input_data, output_catalog):
-    (input_catalog, input_waveform_stream) = input_data
+def check_interloc_data_end_to_end(output_catalog):
     assert isinstance(output_catalog[0].origins[0], Origin)
     assert output_catalog[0].preferred_origin_id is not None

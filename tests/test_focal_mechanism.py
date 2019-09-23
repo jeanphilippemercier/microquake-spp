@@ -1,35 +1,17 @@
 import pytest
-from .helpers.data_utils import get_test_data
-
 from microquake.processors.focal_mechanism import Processor
 
-test_data_name = "test_output_smom"
-
-
-@pytest.fixture
-def catalog():
-    file_name = test_data_name + ".xml"
-    test_data = get_test_data(file_name, "QUAKEML")
-    yield test_data
-
-
-@pytest.fixture
-def waveform_stream():
-    file_name = test_data_name + ".mseed"
-    test_data = get_test_data(file_name, "MSEED")
-    yield test_data
+pytest.test_data_name = "test_output_smom"
 
 
 def test_focal_mechanism(catalog, waveform_stream):
     processor = Processor()
     res = processor.process(cat=catalog, stream=waveform_stream)
 
-    check_focal_mechanism_data((catalog, waveform_stream), res['cat'])
+    check_focal_mechanism_data(res['cat'])
 
 
-def check_focal_mechanism_data(input_data, output_catalog):
-    (input_catalog, input_waveform_stream) = input_data
-
+def check_focal_mechanism_data(output_catalog):
     for event in output_catalog:
         assert len(event.focal_mechanisms) > 0
         assert event.preferred_focal_mechanism_id
