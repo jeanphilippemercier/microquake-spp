@@ -166,7 +166,7 @@ def send_to_api(event_id, **kwargs):
                                       tolerance=None,
                                       send_to_bus=False)
 
-    if response.status_code != requests.codes.ok:
+    if response.ok:
 
         logger.info('request failed, resending to the queue')
 
