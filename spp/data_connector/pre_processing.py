@@ -175,7 +175,9 @@ def send_to_api(event_id, **kwargs):
         end_processing_time = time()
         processing_time = end_processing_time - start_processing_time
 
-        record_processing_logs_pg(event, 'success', processing_step,
+        evt = event['catalogue'][0]
+
+        record_processing_logs_pg(evt, 'success', processing_step,
                                   processing_step_id, processing_time)
 
         return result
