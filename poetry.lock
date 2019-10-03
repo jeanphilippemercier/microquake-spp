@@ -181,7 +181,7 @@ category = "main"
 description = ""
 name = "backports.weakref"
 optional = false
-python-versions = ">=3.6,<4.0"
+python-versions = "*"
 version = "1.0.post1"
 
 [package.source]
@@ -351,7 +351,7 @@ category = "main"
 description = "hello"
 name = "enum34"
 optional = false
-python-versions = ">=3.6,<4.0"
+python-versions = "*"
 version = "1.1.6"
 
 [package.source]
@@ -1928,7 +1928,7 @@ attrs = ["ec20e7a4825331c1b5ebf261d111e16fa9612c1f7a5e1f884f12bd53a664dfd2", "f9
 audioread = ["073904fabc842881e07bd3e4a5776623535562f70b1655b635d22886168dd168"]
 autopep8 = ["4d8eec30cc81bc5617dbf1218201d770dc35629363547f17577c61683ccfb3ee"]
 backcall = ["38ecd85be2c1e78f77fd91700c76e14667dc21e2713b63876c0eb901196e01e4", "bbbf4b1e5cd2bdb08f915895b51081c041bac22394fdfcfdfbe9f14b77c08bf2"]
-"backports.weakref" = ["md5:014ecf17a7e73c1ab27e060932ee5a4b", "md5:a42136e3c7e81fb0735aa1d253a45840"]
+"backports.weakref" = ["md5:54343885ec112f05d304369085ee4afe", "md5:54f53ceeef6cc1cc07904e38e441de84", "md5:a42136e3c7e81fb0735aa1d253a45840"]
 cachier = ["14cec0db80d041754272a97ea381458528e7d4a7fb5a112ddde7bf65fe95af2c", "dc1653832050b5829b7f510c2f952dc8ef6bfdf542c288a647d8f06abe34937b"]
 certifi = ["e4f3620cfea4f83eedc95b24abd9cd56f3c4b146dd0177e83a21b4eb49e21e50", "fd7c7c74727ddcf00e9acd26bba8da604ffec95bf1c2144e67aff7a8b50e6cef"]
 chardet = ["84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae", "fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"]
@@ -1940,7 +1940,7 @@ decorator = ["86156361c50488b84a3f148056ea716ca587df2f0de1d34750d35c21312725de",
 dill = ["42d8ef819367516592a825746a18073ced42ca169ab1f5f4044134703e7a049c"]
 dunamai = ["1c15905073ef3568f087e65fadff8e28c0520a8556af3f5d1dfc6f75dda41dbd", "bb64d7f055a33b00c72410e1201379fbd9e1956eb9bc89b3729005824aa802d4"]
 dynaconf = ["74e0b88252008370195d7ff1f5f39cb8a389ca6a33538a50463f25b084d66218", "b9b55b4ffd108b6f356e8bad46f39daad2172d8b08330b18f9c6b55ce2e62f9b"]
-enum34 = ["md5:13e189767668268b0681eb2fc179684d", "md5:24ce80a5bd49cdae528af9e5b9c033eb"]
+enum34 = ["md5:24ce80a5bd49cdae528af9e5b9c033eb", "md5:3bb4434661001a3b536bfebb3023916e", "md5:74d7abfc882f7c235faa1b475e8b3f55"]
 fakeredis = ["1993b88bd629b1d651312757aa091a93612ae8772777e1a441bae81e7b013e25", "3e1bfb9de5a5ab5796b6101fbe7927fe1456fa8e72cbcd3625c9437e278bf581"]
 future = ["67045236dcfd6816dc439556d009594abf643e5eb48992e36beac09c2ca659b8"]
 gast = ["5c7617f1f6c8b8b426819642b16b9016727ddaecd16af9a07753e537eba8a3a5"]
