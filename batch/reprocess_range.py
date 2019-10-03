@@ -8,7 +8,7 @@ from microquake.processors import interloc, quick_magnitude, ray_tracer
 from obspy.core.event import ResourceIdentifier
 from datetime import datetime
 from loguru import logger
-from microquake.core.event import Catalog
+from microquake.core.event import Catalog, Event
 
 api_base_url = settings.get('API_BASE_URL')
 
@@ -23,7 +23,8 @@ inventory = settings.inventory
 
 # ims_event = web_client.get_catalogue(start_time, end_time, )
 
-res = get_events_catalog(api_base_url, start_time, end_time)
+res = get_events_catalog(api_base_url, start_time, end_time,
+                         event_type='earthquake')
 res_rejected = get_events_catalog(api_base_url, start_time, end_time,
                                   status='rejected')
 
@@ -50,7 +51,7 @@ for i in range(len(res)):
     vl = re.get_variable_length_waveforms()
 
     tmp = ilp.process(stream=st)
-    cat_interloc = ilp.output_catalog(cat.copy())
+    cat_interloc = ilp.output_catalog(Catalog(events=[Event()]))
     tmp = qmp.process(cat=cat_interloc.copy(), stream=st)
     cat_qm = qmp.output_catalog(cat_interloc.copy())
     tmp = rtp.process(cat=cat_qm.copy())
@@ -59,8 +60,6 @@ for i in range(len(res)):
     logger.info('automatic processing')
     cat_out = automatic_pipeline.automatic_pipeline_processor(cat_rt.copy(),
                                                               st)
-
-    cat_out[0].resource_id = ResourceIdentifier()
 
     # from ipdb import set_trace; set_trace()
 
