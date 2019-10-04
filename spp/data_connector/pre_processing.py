@@ -159,7 +159,7 @@ def send_to_api(event_id, **kwargs):
     api_base_url = settings.get('api_base_url')
     event = get_event(event_id)
     response = post_data_from_objects(api_base_url, event_id=None,
-                                      event=event['catalogue'],
+                                      cat=event['catalogue'],
                                       stream=event['fixed_length'],
                                       context_stream=event['context'],
                                       variable_length_stream=event['variable_length'],
