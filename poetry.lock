@@ -733,7 +733,7 @@ description = "Python library that is an extension/expansion/adaptation of ObsPy
 name = "microquake"
 optional = false
 python-versions = "*"
-version = "0.1.135"
+version = "0.1.136"
 
 [package.dependencies]
 cachier = ">=1.2,<2.0"
@@ -1890,7 +1890,7 @@ type = "legacy"
 url = "https://pkg.microquake.org/simple"
 
 [metadata]
-content-hash = "4554e86afb60e7269169a0e6307a5e6f171e555c9a753fe3874d4c04889cf848"
+content-hash = "76b3b680ab9f9a4d0a3b72d1adbea06acf1ec1463ca54acdd2a66094c118db73"
 python-versions = "^3.7"
 
 [metadata.hashes]

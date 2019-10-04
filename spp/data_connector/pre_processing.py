@@ -161,7 +161,7 @@ def send_to_api(event_id, **kwargs):
     response = post_data_from_objects(api_base_url, event_id=None,
                                       cat=event['catalogue'],
                                       stream=event['fixed_length'],
-                                      context_stream=event['context'],
+                                      context=event['context'],
                                       variable_length_stream=event['variable_length'],
                                       tolerance=None,
                                       send_to_bus=False)
