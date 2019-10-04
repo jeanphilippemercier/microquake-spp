@@ -4,11 +4,13 @@ from microquake.clients.api_client import (get_events_catalog,
                                            put_data_from_objects)
 from microquake.clients.ims import web_client
 from microquake.core.settings import settings
-from microquake.processors import interloc, quick_magnitude, ray_tracer
+from microquake.processors import (interloc, quick_magnitude, ray_tracer,
+                                   event_classifier)
 from obspy.core.event import ResourceIdentifier
 from datetime import datetime
 from loguru import logger
 from microquake.core.event import Catalog, Event
+import requests
 
 api_base_url = settings.get('API_BASE_URL')
 
@@ -31,6 +33,7 @@ res_rejected = get_events_catalog(api_base_url, start_time, end_time,
 ilp = interloc.Processor()
 qmp = quick_magnitude.Processor()
 rtp = ray_tracer.Processor()
+ecp = event_classifier.Processor()
 
 nb_event = len(res)
 for i in range(len(res)):
@@ -54,12 +57,14 @@ for i in range(len(res)):
     cat_interloc = ilp.output_catalog(Catalog(events=[Event()]))
     tmp = qmp.process(cat=cat_interloc.copy(), stream=st)
     cat_qm = qmp.output_catalog(cat_interloc.copy())
-    tmp = rtp.process(cat=cat_qm.copy())
-    cat_rt = rtp.output_catalog(cat_qm.copy())
-
     logger.info('automatic processing')
-    cat_out = automatic_pipeline.automatic_pipeline_processor(cat_rt.copy(),
-                                                              st)
+
+    cat_auto = automatic_pipeline.automatic_pipeline_processor(cat_qm.copy(),
+                                                               st)
+
+    tmp = rtp.process(cat=cat_auto.copy())
+    cat_out = rtp.output_catalog(cat_auto.copy())
+
 
     # from ipdb import set_trace; set_trace()
 
@@ -97,7 +102,30 @@ for i in range(len(res)):
     context = context.trim(starttime=event_time-10, endtime=event_time+10,
                            pad=True, fill_value=0)
 
+    categories = ecp.process(cat=cat_out, stream=st, context=context)
+
+    sorted_list = sorted(categories.items(), reverse=True,
+                         key=lambda x: x[1])
+
+    threshold = settings.get('data_connector').likelihood_threshold
+    if sorted_list[0][1] > threshold:
+        if cat_out[0].event_type is not 'explosion':
+            cat_out[0].event_type = sorted_list[0][0]
+    else:
+        cat_out[0].event_type = 'other event'
+        cat_out[0].preferred_origin().evaluation_status = 'rejected'
+
     logger.info(f'event time {cat_out[0].preferred_origin().time}')
+    url = api_base_url + 'events/' + event_id
+    requests.delete(url)
+
+    cat_out[0].resource_id = ResourceIdentifier()
+    for j, origin in enumerate(cat_out[0].origins):
+        cat_out[0].origins[j].resource_id = ResourceIdentifier()
+
+    cat_out[0].preferred_origin_id = cat_out[0].origins[-1].resource_id
+
+
     post_data_from_objects(api_base_url, cat=cat_out, stream=st,
                            context=context, variable_length=vl, tolerance=None)
     # from ipdb import set_trace; set_trace()
