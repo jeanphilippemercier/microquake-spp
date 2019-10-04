@@ -244,18 +244,12 @@ def pre_process(event_id, **kwargs):
 
     index = np.argmax(vars)
 
-    composite = np.sqrt(composite) * np.sign(context_2s[index].data)
-
-    tr = context_2s[0]
-    tr.data = composite
-    context_2s_new = Stream(traces=[tr])
-
-    z = new_cat[0].preferred_origin().z
+    fixed_length = waveforms['fixed_length']
+    context = waveforms['context']
 
     quick_magnitude_processor = quick_magnitude.Processor()
-    result = quick_magnitude_processor.process(stream=waveforms[
-        'fixed_length'], cat=new_cat)
-    magnitude = result[0]
+    result = quick_magnitude_processor.process(stream=fixed_length,
+                                               cat=new_cat)
     new_cat = quick_magnitude_processor.output_catalog(new_cat)
 
     logger.info('calculating rays')
@@ -267,11 +261,9 @@ def pre_process(event_id, **kwargs):
     rt_processing_time = rt_end_time - rt_start_time
     logger.info(f'done calculating rays in {rt_processing_time} seconds')
 
-    category = event_classifier.Processor().process(stream=context_2s_new,
-                                                    context=waveforms[
-                                                        'context'],
-                                                    height=z,
-                                                    magnitude=magnitude)
+    category = event_classifier.Processor().process(stream=fixed_length,
+                                                    context=context,
+                                                    cat=new_cat)
 
     sorted_list = sorted(category.items(), reverse=True,
                          key=lambda x: x[1])
@@ -337,3 +329,5 @@ def pre_process(event_id, **kwargs):
     logger.info('done collecting the waveform, happy processing!')
 
     return result
+
+def processor(cat):
