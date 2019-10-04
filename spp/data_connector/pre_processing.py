@@ -162,7 +162,7 @@ def send_to_api(event_id, **kwargs):
                                       cat=event['catalogue'],
                                       stream=event['fixed_length'],
                                       context=event['context'],
-                                      variable_length_=event['variable_length'],
+                                      variable_length=event['variable_length'],
                                       tolerance=None,
                                       send_to_bus=False)
 
