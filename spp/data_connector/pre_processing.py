@@ -329,5 +329,3 @@ def pre_process(event_id, **kwargs):
     logger.info('done collecting the waveform, happy processing!')
 
     return result
-
-def processor(cat):
