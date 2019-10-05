@@ -166,21 +166,24 @@ def send_to_api(event_id, **kwargs):
                                       tolerance=None,
                                       send_to_bus=False)
 
-    if 200 <= response.status_code < 400:
+    if response:
 
-        logger.info('request failed, resending to the queue')
+        logger.info('request successful')
+        return response
 
-        result = api_job_queue.submit_task(send_to_api, event_id=event_id)
+    logger.info('request failed, resending to the queue')
 
-        end_processing_time = time()
-        processing_time = end_processing_time - start_processing_time
+    result = api_job_queue.submit_task(send_to_api, event_id=event_id)
 
-        evt = event['catalogue'][0]
+    end_processing_time = time()
+    processing_time = end_processing_time - start_processing_time
 
-        record_processing_logs_pg(evt, 'success', processing_step,
-                                  processing_step_id, processing_time)
+    evt = event['catalogue'][0]
 
-        return result
+    record_processing_logs_pg(evt, 'success', processing_step,
+                              processing_step_id, processing_time)
+
+    return result
 
 
 def pre_process(event_id, **kwargs):
