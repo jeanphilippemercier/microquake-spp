@@ -27,8 +27,8 @@ inventory = settings.inventory
 
 res = get_events_catalog(api_base_url, start_time, end_time,
                          event_type='earthquake')
-res_rejected = get_events_catalog(api_base_url, start_time, end_time,
-                                  status='rejected')
+# res_rejected = get_events_catalog(api_base_url, start_time, end_time,
+#                                   status='rejected')
 
 ilp = interloc.Processor()
 qmp = quick_magnitude.Processor()
@@ -44,14 +44,24 @@ for i in range(len(res)):
 
     logger.info('{:0.2f}% - event {} of {}: {}'.format(percent, i+1,
                                                        nb_event, event_id))
-    logger.info('downloading catalog')
-    cat = re.get_event()
-    cat.origins = []
-    cat.magnitudes = []
-    logger.info('downloading waveforms')
-    st = re.get_waveforms()
-    context = re.get_context_waveforms()
-    vl = re.get_variable_length_waveforms()
+
+    try:
+        logger.info('downloading catalog')
+        cat = re.get_event()
+        cat.origins = []
+        cat.magnitudes = []
+        logger.info('downloading waveforms')
+        st = re.get_waveforms()
+        context = re.get_context_waveforms()
+        vl = re.get_variable_length_waveforms()
+    except KeyboardInterrupt:
+        exit()
+    except:
+        continue
+
+    # make sur the channel is upper case.
+    for tr in st:
+        tr.stats.channel = tr.stats.channel.upper()
 
     tmp = ilp.process(stream=st)
     cat_interloc = ilp.output_catalog(Catalog(events=[Event()]))
@@ -61,31 +71,17 @@ for i in range(len(res)):
 
     cat_auto = automatic_pipeline.automatic_pipeline_processor(cat_qm.copy(),
                                                                st)
-
-    tmp = rtp.process(cat=cat_auto.copy())
-    cat_out = rtp.output_catalog(cat_auto.copy())
-
-
-    # from ipdb import set_trace; set_trace()
-
     logger.info('putting data to the api')
-
-    # post_data_from_objects(api_base_url, event_id=event_id, event=cat_out,
-    #                        stream=st, context_stream=context,
-    #                        variable_length_stream=vl, tolerance=0.5,
-    #                        send_to_bus=False)
-
-    # automatic_pipeline.put_data_processor(cat_out)
 
     api_base_url = settings.get('API_BASE_URL')
 
-    event_time = cat_out[0].preferred_origin().time
+    event_time = cat_auto[0].preferred_origin().time
     context_start_time = context[0].stats.starttime
     context_end_time = context[0].stats.endtime
     if context_end_time - context_start_time < 10:
         min_dist = 1e10
         sensor = ''
-        for ray in cat_out[0].preferred_origin().rays:
+        for ray in cat_auto[0].preferred_origin().rays:
 
             if ray.station_code in settings.get('sensors').black_list:
                 continue
@@ -96,37 +92,35 @@ for i in range(len(res)):
             min_dist = ray.length
             sensor = ray.station_code
 
-        context = st.select(station=sensor).copy()
+        context = st.select(station=sensor).copy().composite()
 
     context = context.taper(max_percentage=0.01)
     context = context.trim(starttime=event_time-10, endtime=event_time+10,
-                           pad=True, fill_value=0)
+                           pad=True, fill_value=0).composite()
 
-    categories = ecp.process(cat=cat_out, stream=st, context=context)
+    categories = ecp.process(cat=cat_auto, stream=st, context=context)
 
     sorted_list = sorted(categories.items(), reverse=True,
                          key=lambda x: x[1])
 
     threshold = settings.get('data_connector').likelihood_threshold
     if sorted_list[0][1] > threshold:
-        if cat_out[0].event_type is not 'explosion':
-            cat_out[0].event_type = sorted_list[0][0]
+        if cat_auto[0].event_type is not 'explosion':
+            cat_auto[0].event_type = sorted_list[0][0]
     else:
-        cat_out[0].event_type = 'other event'
-        cat_out[0].preferred_origin().evaluation_status = 'rejected'
+        cat_auto[0].event_type = 'other event'
+        cat_auto[0].preferred_origin().evaluation_status = 'rejected'
 
-    logger.info(f'event time {cat_out[0].preferred_origin().time}')
+    logger.info(f'event time {cat_auto[0].preferred_origin().time}')
     url = api_base_url + 'events/' + event_id
     requests.delete(url)
 
-    cat_out[0].resource_id = ResourceIdentifier()
-    for j, origin in enumerate(cat_out[0].origins):
-        cat_out[0].origins[j].resource_id = ResourceIdentifier()
+    cat_auto[0].resource_id = ResourceIdentifier()
+    for j, origin in enumerate(cat_auto[0].origins):
+        cat_auto[0].origins[j].resource_id = ResourceIdentifier()
 
-    cat_out[0].preferred_origin_id = cat_out[0].origins[-1].resource_id
+    cat_auto[0].preferred_origin_id = cat_auto[0].origins[-1].resource_id
 
-
-    post_data_from_objects(api_base_url, cat=cat_out, stream=st,
+    post_data_from_objects(api_base_url, cat=cat_auto, stream=st,
                            context=context, variable_length=vl, tolerance=None)
-    # from ipdb import set_trace; set_trace()
 
