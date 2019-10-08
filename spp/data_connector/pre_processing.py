@@ -19,7 +19,7 @@ from microquake.db.connectors import RedisQueue, record_processing_logs_pg
 from microquake.db.models.redis import set_event, get_event
 from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.processors import (clean_data, event_classifier, interloc,
-                                   quick_magnitude ,ray_tracer)
+                                   quick_magnitude, ray_tracer)
 
 automatic_message_queue = settings.AUTOMATIC_PIPELINE_MESSAGE_QUEUE
 automatic_job_queue = RedisQueue(automatic_message_queue)
@@ -279,24 +279,33 @@ def pre_process(event_id, **kwargs):
 
     event_type = sorted_list[0][0]
 
-    if event_type == 'other event':
-        logger.info('event categorized as noise are not further processed '
-                    'and will not be saved in the database')
+    likelihood_threshold = settings.get('data_connector').likelihood_threshold
 
-        end_processing_time = time()
-        processing_time = end_processing_time - start_processing_time
-        record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
-                                  __processing_step_id__, processing_time)
+    if event_type in ['anthropogenic event', 'other event']:
+        if sorted_list[1][1] < likelihood_threshold / 2:
+            logger.info('event categorized as noise are not further processed '
+                        'and will not be saved in the database')
+            end_processing_time = time()
+            processing_time = end_processing_time - start_processing_time
+            record_processing_logs_pg(new_cat[0], 'success',
+                                      __processing_step__,
+                                      __processing_step_id__, processing_time)
+            return
 
-        return
+        elif elevation < maximum_event_elevation:
+            new_cat[0].event_type = event_type
+            new_cat[0].preferred_origin().evaluation_status = 'preliminary'
+            logger.info('event categorized noise but could also be {} with '
+                        'a likelihood of {}.'.format(sorted_list[1][0],
+                                                     sorted_list[1][1]))
+            logger.info('The event will be kept and further processed')
 
-    if sorted_list[0][1] > settings.get(
-            'data_connector').likelihood_threshold and elevation < \
+    elif sorted_list[0][1] > likelihood_threshold and elevation < \
             maximum_event_elevation:
-        new_cat[0].event_type = sorted_list[0][0]
+        new_cat[0].event_type = event_type
         new_cat[0].preferred_origin().evaluation_status = 'preliminary'
 
-        logger.info('event categorized as {} with an likelihoold of {}'
+        logger.info('event categorized as {} with a likelihood of {}'
                     ''.format(sorted_list[0][0], sorted_list[0][1]))
 
     else:
@@ -312,8 +321,6 @@ def pre_process(event_id, **kwargs):
 
     dict_out = waveforms
     dict_out['catalogue'] = new_cat
-
-    # new_cat.write('catalogue', format='quakeml')
 
     set_event(event_id, **dict_out)
 
