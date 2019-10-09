@@ -158,23 +158,41 @@ def send_to_api(event_id, **kwargs):
 
     api_base_url = settings.get('api_base_url')
     event = get_event(event_id)
-    response = post_data_from_objects(api_base_url, event_id=None,
-                                      cat=event['catalogue'],
-                                      stream=event['fixed_length'],
-                                      context=event['context'],
-                                      variable_length=event['variable_length'],
-                                      tolerance=None,
-                                      send_to_bus=False)
 
-    if response:
+    if event is None:
+        logger.error(f'The event {event_id} is not available anymore, exiting')
+        return
 
-        logger.info('request successful')
-        return response
+    if 'attempt_number' in event.keys():
+        event['attempt_number'] += 1
 
-    logger.info('request failed, resending to the queue')
+    else:
+        event['attempt_number'] = 1
 
-    result = api_job_queue.submit_task(send_to_api, event_id=event_id)
+    try:
+        response = post_data_from_objects(api_base_url, event_id=None,
+                                          cat=event['catalogue'],
+                                          stream=event['fixed_length'],
+                                          context=event['context'],
+                                          variable_length=event['variable_length'],
+                                          tolerance=None,
+                                          send_to_bus=False)
+    except ConnectionError as e:
+        logger.error(e)
+        logger.info('request failed, resending to queue')
 
+        set_event(event_id, **event)
+
+        result = api_job_queue.submit_task(send_to_api, event_id=event_id)
+
+    if not response:
+        logger.info('request failed, resending to the queue')
+
+        set_event(event_id, **event)
+
+        result = api_job_queue.submit_task(send_to_api, event_id=event_id)
+
+    logger.info('request successful')
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
 
@@ -183,7 +201,7 @@ def send_to_api(event_id, **kwargs):
     record_processing_logs_pg(evt, 'success', processing_step,
                               processing_step_id, processing_time)
 
-    return result
+    return response
 
 
 def pre_process(event_id, **kwargs):
