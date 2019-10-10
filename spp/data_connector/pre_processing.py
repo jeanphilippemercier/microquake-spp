@@ -20,6 +20,7 @@ from microquake.db.models.redis import set_event, get_event
 from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.processors import (clean_data, event_classifier, interloc,
                                    quick_magnitude, ray_tracer)
+from microquake.core.helpers.timescale_db import get_continuous_data
 
 automatic_message_queue = settings.AUTOMATIC_PIPELINE_MESSAGE_QUEUE
 automatic_job_queue = RedisQueue(automatic_message_queue)
@@ -53,9 +54,10 @@ def interloc_election(cat):
     starttime = event_time - timedelta(seconds=1.5)
     endtime = event_time + timedelta(seconds=1.5)
 
-    complete_wf = web_client.get_continuous(base_url, starttime, endtime,
-                                            sites, utc,
-                                            network=network_code)
+    complete_wf = get_continuous_data(starttime, endtime)
+    # complete_wf = web_client.get_continuous(base_url, starttime, endtime,
+    #                                             sites, utc,
+    #                                             network=network_code)
 
     complete_wf.detrend('demean').taper(max_percentage=0.001,
                                         max_length=0.01).filter('bandpass',
@@ -101,9 +103,11 @@ def get_waveforms(interloc_dict, event):
     starttime = local_time - timedelta(seconds=0.5)
     endtime = local_time + timedelta(seconds=1.5)
 
-    fixed_length_wf = web_client.get_continuous(base_url, starttime, endtime,
-                                                sites, utc,
-                                                network=network_code)
+    fixed_length_wf = get_continuous_data(starttime, endtime)
+
+    # fixed_length_wf = web_client.get_continuous(base_url, starttime, endtime,
+    #                                             sites, utc,
+    #                                             network=network_code)
 
     # finding the station that is the closest to the event
     starttime = local_time - timedelta(seconds=10)
@@ -136,9 +140,13 @@ def get_waveforms(interloc_dict, event):
         if stations[i] in settings.get('sensors').black_list:
             continue
         logger.info('getting context trace for station {}'.format(stations[i]))
-        context = web_client.get_continuous(base_url, starttime, endtime,
-                                            [stations[i]], utc,
-                                            network=network_code)
+
+        context = get_continuous_data(starttime, endtime,
+                                      station_id=stations[i])
+        # if len(context[0]) == 0:
+        #     context = web_client.get_continuous(base_url, starttime, endtime,
+        #                                         [stations[i]], utc,
+        #                                         network=network_code)
         context.filter('bandpass', **context_trace_filter)
 
         if context:
