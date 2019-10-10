@@ -63,7 +63,7 @@ cachier = "^1.2"
 walrus = "^0.7.1"
 xseis2 = "^0.1.8"
 seismic_client = "^0.1.3"
-microquake = "^0.1.145"
+microquake = "^0.1.146"
 timeloop = "^1.0"
 
 [tool.poetry.dev-dependencies]
