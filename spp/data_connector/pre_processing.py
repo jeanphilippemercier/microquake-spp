@@ -54,13 +54,11 @@ def interloc_election(cat):
     starttime = event_time - timedelta(seconds=1.5)
     endtime = event_time + timedelta(seconds=1.5)
 
-    try:
-        complete_wf = get_continuous_data(starttime, endtime)
-    except ValueError as e:
-        logger.error(e)
-        logger.error('request of the continuous data from the '
-                     'TimescaleDB failed. Requesting the data from the '
-                     'IMS system through the web API')
+    complete_wf = get_continuous_data(starttime, endtime)
+    if complete_wf is None:
+        logger.warning('request of the continuous data from the '
+                      'TimescaleDB returned None. Requesting the data from '
+                       'the IMS system through the web API instead!')
         complete_wf = web_client.get_continuous(base_url, starttime, endtime,
                                                 sites, utc,
                                                 network=network_code)
@@ -109,13 +107,11 @@ def get_waveforms(interloc_dict, event):
     starttime = local_time - timedelta(seconds=0.5)
     endtime = local_time + timedelta(seconds=1.5)
 
-    try:
-        fixed_length_wf = get_continuous_data(starttime, endtime)
-    except ValueError as e:
-        logger.error(e)
-        logger.error('request of the continuous data from the '
-                     'TimescaleDB failed. Requesting the data from the '
-                     'IMS system through the web API')
+    fixed_length_wf = get_continuous_data(starttime, endtime)
+    if fixed_length_wf is None:
+        logger.warning('request of the continuous data from the '
+                       'TimescaleDB return None. Requesting the data from '
+                       'the IMS system through the web API')
         fixed_length_wf = web_client.get_continuous(base_url, starttime,
                                                     endtime,
                                                     sites, utc,
@@ -152,15 +148,12 @@ def get_waveforms(interloc_dict, event):
             continue
         logger.info('getting context trace for station {}'.format(stations[i]))
 
-        try:
-            context = get_continuous_data(starttime, endtime,
-                                          station_id=stations[i])
-        except ValueError as e:
-            logger.error(e)
-            logger.error('request of the continuous data from the '
-                         'TimescaleDB failed. Requesting the data from the '
-                         'IMS system through the web API')
-        # if len(context[0]) == 0:
+        context = get_continuous_data(starttime, endtime,
+                                      station_id=stations[i])
+        if context is None:
+            logger.warning('request of the continuous data from the '
+                           'TimescaleDB returned None. Requesting the data '
+                           'from the IMS system through the web API instead!')
             context = web_client.get_continuous(base_url, starttime, endtime,
                                                 [stations[i]], utc,
                                                 network=network_code)
