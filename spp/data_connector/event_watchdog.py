@@ -71,9 +71,9 @@ while 1:
     closing_window_time_seconds = settings.get(
         'data_connector').closing_window_time_seconds
 
-    endtime = get_db_lag()
+    endtime = get_db_lag().replace(tzinfo=utc)
 
-    lag = (datetime.utcnow() - endtime).total_seconds()
+    lag = (datetime.utcnow().replace(tzinfo=utc) - endtime).total_seconds()
 
     logger.info(f'The data in the Timescale database are lagging by '
                 f'{lag} seconds')
