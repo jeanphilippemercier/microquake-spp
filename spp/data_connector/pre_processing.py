@@ -41,7 +41,8 @@ minimum_recovery_fraction = settings.get(
 
 
 def extract_continuous(starttime, endtime, sensor_id=None):
-    st = get_continuous_data(starttime, endtime, sensor_id)
+    # st = get_continuous_data(starttime, endtime, sensor_id)
+    st = None
 
     if sensor_id is not None:
         sensors = [sensor_id]
