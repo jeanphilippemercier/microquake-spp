@@ -160,9 +160,12 @@ def get_waveforms(interloc_dict, event):
     for i in indices:
         if stations[i] in settings.get('sensors').black_list:
             continue
+
         logger.info('getting context trace for station {}'.format(stations[i]))
 
-        context = extract_continuous(starttime, endtime, sensor_id=stations[i])
+        context = web_client.get_continuous(base_url, starttime, endtime,
+                                            stations[i], utc,
+                                            network=network_code)
 
         context.filter('bandpass', **context_trace_filter)
 
