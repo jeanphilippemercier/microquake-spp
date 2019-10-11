@@ -21,6 +21,8 @@ from microquake.db.models.redis import set_event
 from spp.data_connector import pre_processing
 from spp.data_connector.pre_processing import pre_process
 
+from microquake.core.helper.timescale_db import get_db_lag
+
 reload(pre_processing)
 
 __processing_step__ = 'event-watchdog'
@@ -69,13 +71,17 @@ while 1:
     closing_window_time_seconds = settings.get(
         'data_connector').closing_window_time_seconds
 
-    endtime = datetime.utcnow().replace(tzinfo=utc) - timedelta(
-        seconds=closing_window_time_seconds)
+    endtime = get_db_lag()
+
+    lag = (datetime.utcnow() - endtime).total_seconds()
+
+    logger.info(f'The data in the Timescale database are lagging by '
+                f'{lag} seconds')
 
     starttime = get_starttime()
 
     cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
-                                       utc, accepted=False, manual=False)
+                                   utc, accepted=False, manual=False)
     logger.info('recovered {} events'.format(len(cat)))
 
     if len(cat) == 0:
