@@ -75,10 +75,10 @@ while 1:
     endtime = datetime.utcnow() - \
               timedelta(seconds=closing_window_time_seconds)
 
-    lag = (datetime.utcnow().replace(tzinfo=utc) - endtime).total_seconds()
+    # lag = (datetime.utcnow().replace(tzinfo=utc) - endtime).total_seconds()
 
-    logger.info(f'The data in the Timescale database are lagging by '
-                f'{lag} seconds')
+    # logger.info(f'The data in the Timescale database are lagging by '
+    #             f'{lag} seconds')
 
     starttime = get_starttime()
 
