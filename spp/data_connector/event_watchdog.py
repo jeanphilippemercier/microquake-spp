@@ -21,7 +21,7 @@ from microquake.db.models.redis import set_event
 from spp.data_connector import pre_processing
 from spp.data_connector.pre_processing import pre_process
 
-from microquake.core.helper.timescale_db import get_db_lag
+from microquake.core.helpers.timescale_db import get_db_lag
 
 reload(pre_processing)
 
