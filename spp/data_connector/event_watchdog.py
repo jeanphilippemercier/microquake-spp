@@ -104,7 +104,6 @@ while True:
 
         cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
                                         utc, accepted=False, manual=False)
-        logger.warning('request to the IMS system timed out after 60 seconds')
 
 
         logger.info('done retrieving catalogue')
