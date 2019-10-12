@@ -23,6 +23,9 @@ from spp.data_connector.pre_processing import pre_process
 
 from microquake.core.helpers.timescale_db import get_db_lag
 
+from timeloop import Timeloop
+tl = Timeloop()
+
 reload(pre_processing)
 
 __processing_step__ = 'event-watchdog'
@@ -64,7 +67,8 @@ def already_processed(event):
     return bool(pg.execute(query).scalar())
 
 
-while 1:
+@tl.job(interval=timedelta(seconds=5))
+def retrieve_event():
 
     # time in UTC
 
@@ -89,7 +93,7 @@ while 1:
     if len(cat) == 0:
         sleep(10)
 
-        continue
+        return
 
     ct = 0
 
@@ -119,3 +123,13 @@ while 1:
                                                processing_time)
 
         logger.info('sent {} events for further processing'.format(ct))
+
+
+tl.start(block=True)
+
+while True:
+    try:
+        time.sleep(1)
+    except KeyboardInterrupt:
+        tl.stop()
+        break
