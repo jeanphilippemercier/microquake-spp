@@ -112,8 +112,7 @@ while True:
 
         if len(cat) == 0:
             sleep(10)
-
-            return
+            continue
 
         ct = 0
 
