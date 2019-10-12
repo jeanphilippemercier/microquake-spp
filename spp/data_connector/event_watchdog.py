@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from importlib import reload
 from time import sleep, time
 
+import signal
+
 import sqlalchemy as db
 from pytz import utc
 
@@ -67,6 +69,20 @@ def already_processed(event):
     return bool(pg.execute(query).scalar())
 
 
+class TimeOutException(Exception):
+    def __init__(self, message, errors):
+        super(TimeOutException, self).__init__(message)
+        self.errors = errors
+
+
+def timeout_handler(signum, frame):
+    logger.error('process has timed out')
+    raise TimeOutException("Timeout", signum)
+
+
+signal.signal(signal.SIGALRM, timeout_handler)
+
+
 @tl.job(interval=timedelta(seconds=5))
 def retrieve_event():
 
@@ -86,8 +102,17 @@ def retrieve_event():
 
     starttime = get_starttime()
 
-    cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
-                                   utc, accepted=False, manual=False)
+    try:
+        signal.alarm(20)
+        cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
+                                       utc, accepted=False, manual=False)
+    except Exception:
+        logger.warning('request to the IMS system timed out after 60 seconds')
+        return
+    finally:
+        signal.alarm(0)
+
+    logger.info('done retrieving catalogue')
     logger.info('recovered {} events'.format(len(cat)))
 
     if len(cat) == 0:
@@ -117,12 +142,20 @@ def retrieve_event():
 
             end_processing_time = time()
             processing_time = end_processing_time - start_processing_time
-            result = record_processing_logs_pg(event, status,
-                                               __processing_step__,
-                                               __processing_step_id__,
-                                               processing_time)
 
-        logger.info('sent {} events for further processing'.format(ct))
+            try:
+                signal.alarm(2)
+                result = record_processing_logs_pg(event, status,
+                                                   __processing_step__,
+                                                   __processing_step_id__,
+                                                   processing_time)
+            except TimeoutError:
+                logger.error('saving event information in the database '
+                             'timed out')
+            finally:
+                signal.alarm(0)
+
+    logger.info(f'sent {ct} events for further processing')
 
 
 tl.start(block=True)
