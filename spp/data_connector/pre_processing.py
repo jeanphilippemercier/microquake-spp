@@ -162,7 +162,8 @@ def get_waveforms(interloc_dict, event):
         if stations[i] in settings.get('sensors').black_list:
             continue
 
-        logger.info('getting context trace for station {}'.format(stations[i]))
+        logger.info(f'getting context trace for station {station[i]} located '
+                    f'at {dists[i]} m from the event hypocenter')
 
         context = web_client.get_continuous(base_url, starttime, endtime,
                                             stations[i], utc,
@@ -172,6 +173,8 @@ def get_waveforms(interloc_dict, event):
 
         if context:
             break
+        else:
+            logger.warning('context trace malformed continuing')
 
     waveforms = {'fixed_length': fixed_length_wf,
                  'context': context}
