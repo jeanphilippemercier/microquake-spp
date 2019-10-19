@@ -12,12 +12,10 @@ from pytz import utc
 from loguru import logger
 from microquake.clients.ims import web_client
 from microquake.clients.api_client import post_data_from_objects
-from microquake.core import Stream
 from obspy import UTCDateTime
 from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue, record_processing_logs_pg
 from microquake.db.models.redis import set_event, get_event
-from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.processors import (clean_data, event_classifier, interloc,
                                    quick_magnitude, ray_tracer)
 from microquake.core.helpers.timescale_db import get_continuous_data
@@ -371,6 +369,9 @@ def pre_process(event_id, **kwargs):
     dict_out['catalogue'] = new_cat
 
     set_event(event_id, **dict_out)
+    # TODO do we need this still? ^
+
+    logger.info('sending to api')
 
     result = api_job_queue.submit_task(send_to_api, event_id=event_id)
 
@@ -379,11 +380,6 @@ def pre_process(event_id, **kwargs):
     record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
                               __processing_step_id__, processing_time)
 
-    logger.info('sending to automatic pipeline')
-
-    result = automatic_job_queue.submit_task(automatic_pipeline,
-                                             event_id=event_id)
-
-    logger.info('done collecting the waveform, happy processing!')
+    logger.info('done pre_processing, sent to api')
 
     return result
