@@ -25,6 +25,8 @@ from spp.data_connector.pre_processing import pre_process
 
 from microquake.core.helpers.timescale_db import get_db_lag
 
+import sys
+
 from timeloop import Timeloop
 tl = Timeloop()
 
@@ -111,8 +113,8 @@ logger.info('done retrieving catalogue')
 logger.info('recovered {} events'.format(len(cat)))
 
 if len(cat) == 0:
-    sleep(10)
-    continue
+    logger.info('nothing to do ... exiting')
+    sys.exit()
 
 ct = 0
 
