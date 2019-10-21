@@ -83,71 +83,65 @@ def timeout_handler(signum, frame):
 signal.signal(signal.SIGALRM, timeout_handler)
 
 
-while True:
-    signal.alarm(120)
-    try:
-        # time in UTC
+init_time = time()
 
-        closing_window_time_seconds = settings.get(
-            'data_connector').closing_window_time_seconds
+# run for 1 minutes
+while time() - init_time < 60:
+    # time in UTC
 
-        # endtime = get_db_lag().replace(tzinfo=utc)
-        endtime = datetime.utcnow().replace(tzinfo=utc) - \
-                  timedelta(seconds=closing_window_time_seconds)
+    closing_window_time_seconds = settings.get(
+        'data_connector').closing_window_time_seconds
 
-        # lag = (datetime.utcnow().replace(tzinfo=utc) - endtime).total_seconds()
+    # endtime = get_db_lag().replace(tzinfo=utc)
+    endtime = datetime.utcnow().replace(tzinfo=utc) - \
+              timedelta(seconds=closing_window_time_seconds)
 
-        # logger.info(f'The data in the Timescale database are lagging by '
-        #             f'{lag} seconds')
+    # lag = (datetime.utcnow().replace(tzinfo=utc) - endtime).total_seconds()
 
-        starttime = get_starttime()
+    # logger.info(f'The data in the Timescale database are lagging by '
+    #             f'{lag} seconds')
 
-        cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
-                                        utc, accepted=False, manual=False)
+    starttime = get_starttime()
 
-
-        logger.info('done retrieving catalogue')
-        logger.info('recovered {} events'.format(len(cat)))
-
-        if len(cat) == 0:
-            sleep(10)
-            continue
-
-        ct = 0
-
-        sorted_cat = sorted(cat, reverse=True,
-                            key=lambda x: x.preferred_origin().time)
-
-        for event in sorted_cat:
-            start_processing_time = time()
-            event_id = event.resource_id.id
-
-            if not already_processed(event):
-                ct += 1
-                logger.info('sending events with event_id {} to redis the {} '
-                            'message_queue'.format(event.resource_id.id,
-                                                   we_message_queue))
-                set_event(event_id, catalogue=event.copy())
-
-                result = we_job_queue.submit_task(pre_process, event_id=event_id)
-
-                status = 'success'
-
-                end_processing_time = time()
-                processing_time = end_processing_time - start_processing_time
-
-                result = record_processing_logs_pg(event, status,
-                                                    __processing_step__,
-                                                    __processing_step_id__,
-                                                    processing_time)
+    cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
+                                    utc, accepted=False, manual=False)
 
 
-        logger.info(f'sent {ct} events for further processing')
-    except TimeOutException:
-        logger.error('time out')
-    finally:
-        signal.alarm(0)
+    logger.info('done retrieving catalogue')
+    logger.info('recovered {} events'.format(len(cat)))
 
+    if len(cat) == 0:
+        sleep(10)
+        continue
 
+    ct = 0
+
+    sorted_cat = sorted(cat, reverse=True,
+                        key=lambda x: x.preferred_origin().time)
+
+    for event in sorted_cat:
+        start_processing_time = time()
+        event_id = event.resource_id.id
+
+        if not already_processed(event):
+            ct += 1
+            logger.info('sending events with event_id {} to redis the {} '
+                        'message_queue'.format(event.resource_id.id,
+                                               we_message_queue))
+            set_event(event_id, catalogue=event.copy())
+
+            result = we_job_queue.submit_task(pre_process, event_id=event_id)
+
+            status = 'success'
+
+            end_processing_time = time()
+            processing_time = end_processing_time - start_processing_time
+
+            result = record_processing_logs_pg(event, status,
+                                                __processing_step__,
+                                                __processing_step_id__,
+                                                processing_time)
+
+    logger.info(f'sent {ct} events for further processing')
 
 
