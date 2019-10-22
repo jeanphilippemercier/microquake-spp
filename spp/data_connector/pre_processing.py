@@ -21,6 +21,8 @@ from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.processors import (clean_data, event_classifier, interloc,
                                    quick_magnitude, ray_tracer)
 from microquake.core.helpers.timescale_db import get_continuous_data
+from microquake.core.helpers.time import get_time_zone
+import json
 
 automatic_message_queue = settings.AUTOMATIC_PIPELINE_MESSAGE_QUEUE
 automatic_job_queue = RedisQueue(automatic_message_queue)
@@ -32,12 +34,32 @@ __processing_step_id__ = 2
 
 sites = [int(station.code) for station in settings.inventory.stations()]
 base_url = settings.get('ims_base_url')
+api_base_url = settings.get('api_base_url')
 inventory = settings.inventory
 network_code = settings.NETWORK_CODE
 
 # tolerance for how many trace are not recovered
 minimum_recovery_fraction = settings.get(
     'data_connector').minimum_recovery_fraction
+
+
+def get_event_types():
+
+    url = api_base_url + 'inventory/microquake_event_types'
+    response = requests.get(url)
+
+    if not response:
+        raise Exception('API connection error')
+
+    data = json.loads(response.content)
+    dict_out = {}
+    for d in data:
+        dict_out[d['microquake_type']] = d['quakeml_type']
+
+    return dict_out
+
+
+event_types_lookup = get_event_types()
 
 
 def extract_continuous(starttime, endtime, sensor_id=None):
@@ -326,53 +348,87 @@ def pre_process(event_id, **kwargs):
     logger.info('{}'.format(sorted_list))
 
     event_type = sorted_list[0][0]
+    likelihood = sorted_list[0][1]
 
-    likelihood_threshold = settings.get('data_connector').likelihood_threshold
+    likelihood_threshold = settings.get(
+        'event_classifier').likelihood_threshold
+    accepted_event_types = settings.get('event_classifier').valid_event_types
+    uploaded_event_types = settings.get('event_classifier').valid_event_types
+    blast_window_starts = settings.get('event_classifier').blast_window_starts
+    blast_window_ends = settings.get('event_classifier').blast_window_ends
 
-    if event_type in ['anthropogenic event', 'other event']:
-        if sorted_list[1][1] < likelihood_threshold / 2:
-            logger.info('event categorized as noise are not further processed '
-                        'and will not be saved in the database')
-            end_processing_time = time()
-            processing_time = end_processing_time - start_processing_time
-            record_processing_logs_pg(new_cat[0], 'success',
-                                      __processing_step__,
-                                      __processing_step_id__, processing_time)
-            return
+    automatic_processing = False
+    save_event = False
 
-        elif elevation < maximum_event_elevation:
-            new_cat[0].event_type = event_type
+    event_time_local = new_cat[0].preferred_origin().time.datetime.replace(
+        tzinfo=utc).astimezone(get_time_zone())
+    hour = event_time_local.hour
+
+    ug_blast = False
+    if event_type is ['blast']:
+        for bws, bwe in zip(blast_window_starts, blast_window_ends):
+            if bws <= hour < bwe:
+                ug_blast = True
+
+        if ug_blast:
+            event_type = 'underground blast'
+        else:
+            event_type = 'other blast'
+
+    if event_type in accepted_event_types:
+
+        new_cat[0].event_type = event_types_lookup[event_type]
+        if likelihood >= likelihood_threshold:
             new_cat[0].preferred_origin().evaluation_status = 'preliminary'
-            logger.info('event categorized noise but could also be {} with '
-                        'a likelihood of {}.'.format(sorted_list[1][0],
-                                                     sorted_list[1][1]))
-            logger.info('The event will be kept and further processed')
+            logger.info(f'event categorized as {event_type} will be further '
+                        f'processed')
+            automatic_processing = True
+            save_event = True
+        else:
+            new_cat[0].preferred_origin().evaluation_status = 'rejected'
+            logger.info(f'event categorized as {event_type} but with a '
+                        f'likelihood of {likelihood} which is lower than '
+                        f'the threshold {likelihood_threshold}. The event '
+                        f'will be uploaded to the API and will be '
+                        f'further processed ')
+            automatic_processing = True
+            save_event = True
 
-    elif sorted_list[0][1] > likelihood_threshold and elevation < \
-            maximum_event_elevation:
-        new_cat[0].event_type = event_type
-        new_cat[0].preferred_origin().evaluation_status = 'preliminary'
+    elif (sorted_list[1][0] in accepted_event_types) and \
+            (sorted_list[1][1] > likelihood_threshold / 2):
+        new_cat[0].event_type = event_types_lookup[event_type]
+        new_cat[0].preferred_origin().evaluation_status = 'rejected'
 
-        logger.info('event categorized as {} with a likelihood of {}'
-                    ''.format(sorted_list[0][0], sorted_list[0][1]))
+        logger.info(f'event categorized as {event_type} but the event could '
+                    f'also be {sorted_list[1][0]} with a likelihood of '
+                    f'{sorted_list[1][1]}. The event will be marked '
+                    f'as rejected but uploaded to the API. The event will '
+                    f'be further processed.')
+        automatic_processing = True
+        save_event = True
+
+    elif event_type in uploaded_event_types:
+        if likelihood >= likelihood_threshold:
+            new_cat[0].event_type = event_types_lookup[event_type]
+            new_cat[0].preferred_origin().evaluation_status = 'rejected'
+            logger.info(f'event categorized as {event_type}. The event will be'
+                        f' marked as rejected but will not be further '
+                        f'processed')
+            save_event = True
 
     else:
-        logger.info('event categorized as noise are not further processed '
-                    'and will not be saved in the database')
+        logger.info(f'event categorized as {event_type}. The event will not '
+                    f'be send to the API nor further processed.')
 
-        end_processing_time = time()
-        processing_time = end_processing_time - start_processing_time
-        record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
-                                  __processing_step_id__, processing_time)
-
-        return
 
     dict_out = waveforms
     dict_out['catalogue'] = new_cat
 
     set_event(event_id, **dict_out)
 
-    result = api_job_queue.submit_task(send_to_api, event_id=event_id)
+    if save_event:
+        result = api_job_queue.submit_task(send_to_api, event_id=event_id)
+        logger.info('event save to the API')
 
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
@@ -381,9 +437,12 @@ def pre_process(event_id, **kwargs):
 
     logger.info('sending to automatic pipeline')
 
-    result = automatic_job_queue.submit_task(automatic_pipeline,
-                                             event_id=event_id)
+    if automatic_processing:
+        result = automatic_job_queue.submit_task(automatic_pipeline,
+                                                event_id=event_id)
 
-    logger.info('done collecting the waveform, happy processing!')
+        logger.info('event sent to for automatic processing')
+
+    logger.info('pre processing completed')
 
     return result
