@@ -444,6 +444,7 @@ def pre_process(event_id, **kwargs):
 
     logger.info('calculating rays')
     rt_start_time = time()
+    
     rtp = ray_tracer.Processor()
     rtp.process(cat=new_cat)
     new_cat = rtp.output_catalog(new_cat)
