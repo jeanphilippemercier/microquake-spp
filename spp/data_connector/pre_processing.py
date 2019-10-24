@@ -444,7 +444,6 @@ def pre_process(event_id, **kwargs):
 
     logger.info('calculating rays')
     rt_start_time = time()
-    
     rtp = ray_tracer.Processor()
     rtp.process(cat=new_cat)
     new_cat = rtp.output_catalog(new_cat)
@@ -452,10 +451,10 @@ def pre_process(event_id, **kwargs):
     rt_processing_time = rt_end_time - rt_start_time
     logger.info(f'done calculating rays in {rt_processing_time} seconds')
 
-    cat, send_automatic, send_api = event_classification(new_cat,
-                                                                 fixed_length,
-                                                                 context,
-                                                                 event_types_lookup)
+    new_cat, send_automatic, send_api = event_classification(new_cat,
+                                                             fixed_length,
+                                                             context,
+                                                             event_types_lookup)
 
     dict_out = waveforms
     dict_out['catalogue'] = new_cat
