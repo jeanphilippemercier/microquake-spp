@@ -451,7 +451,7 @@ def pre_process(event_id, **kwargs):
     rt_processing_time = rt_end_time - rt_start_time
     logger.info(f'done calculating rays in {rt_processing_time} seconds')
 
-    cat, automatic_processing, save_event = event_classification(new_cat,
+    cat, send_automatic, send_api = event_classification(new_cat,
                                                                  fixed_length,
                                                                  context,
                                                                  event_types_lookup)
@@ -461,7 +461,7 @@ def pre_process(event_id, **kwargs):
 
     set_event(event_id, **dict_out)
 
-    if save_event:
+    if send_api:
         result = api_job_queue.submit_task(send_to_api, event_id=event_id)
         logger.info('event save to the API')
 
@@ -472,7 +472,7 @@ def pre_process(event_id, **kwargs):
 
     logger.info('sending to automatic pipeline')
 
-    if automatic_processing:
+    if send_automatic:
         result = automatic_job_queue.submit_task(automatic_pipeline,
                                                 event_id=event_id)
 
