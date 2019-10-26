@@ -219,6 +219,7 @@ def send_to_api(event_id, **kwargs):
     processing_step = 'post_event_api'
     processing_step_id = 4
     start_processing_time = time()
+    send_to_bus = kwargs.get('send_to_bus', True)
 
     api_base_url = settings.get('api_base_url')
     event = get_event(event_id)
@@ -240,7 +241,7 @@ def send_to_api(event_id, **kwargs):
                                           context=event['context'],
                                           variable_length=event['variable_length'],
                                           tolerance=None,
-                                          send_to_bus=False)
+                                          send_to_bus=send_to_bus)
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
         logger.info('request failed, resending to queue')
@@ -463,7 +464,11 @@ def pre_process(event_id, **kwargs):
     logger.info('sending to api')
 
     if send_api:
-        result = api_job_queue.submit_task(send_to_api, event_id=event_id)
+        result = api_job_queue.submit_task(
+            send_to_api,
+            event_id=event_id,
+            send_to_bus=send_automatic,
+        )
         logger.info('event save to the API')
 
     end_processing_time = time()
