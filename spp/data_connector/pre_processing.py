@@ -365,7 +365,8 @@ def event_classification(cat, fixed_length, context, event_types_lookup):
     return cat, automatic_processing, save_event
 
 
-def pre_process(event_id, **kwargs):
+def pre_process(event_id, force_send_to_api=False,
+                force_send_to_automatic=False, **kwargs):
 
     start_processing_time = time()
 
@@ -382,7 +383,6 @@ def pre_process(event_id, **kwargs):
         logger.error('api connection error, resending to the queue')
         set_event(event_id, **event)
         we_job_queue.submit_task(pre_process, event_id=event_id)
-
 
     event_time = cat[0].preferred_origin().time.datetime.timestamp()
 
@@ -461,7 +461,7 @@ def pre_process(event_id, **kwargs):
 
     set_event(event_id, **dict_out)
 
-    if send_api:
+    if send_api or force_send_to_api:
         result = api_job_queue.submit_task(send_to_api, event_id=event_id)
         logger.info('event save to the API')
 
@@ -472,9 +472,9 @@ def pre_process(event_id, **kwargs):
 
     logger.info('sending to automatic pipeline')
 
-    if send_automatic:
+    if send_automatic or force_send_to_automatic:
         result = automatic_job_queue.submit_task(automatic_pipeline,
-                                                event_id=event_id)
+                                                 event_id=event_id)
 
         logger.info('event sent to for automatic processing')
 
