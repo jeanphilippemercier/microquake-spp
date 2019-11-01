@@ -3,27 +3,40 @@ from microquake.clients import api_client
 from microquake.core.settings import settings
 from datetime import datetime, timedelta
 from pytz import utc
-from.pre_processing import pre_process
+from spp.data_connector.pre_processing import pre_process
+from microquake.db.connectors import RedisQueue
 from microquake.db.models.redis import set_event
-
+from loguru import logger
 
 api_base_url = settings.get('api_base_url')
 ims_base_url = settings.get('ims_base_url')
 
+we_message_queue = settings.PRE_PROCESSING_MESSAGE_QUEUE
+we_job_queue = RedisQueue(we_message_queue)
+
 # will look at the last day of data
 end_time = datetime.utcnow() - timedelta(hours=1)
+
+# looking at the events for the last month
 start_time = end_time - timedelta(hours=24)
 inventory = settings.inventory
-
-cat = web_client.get_catalogue()
 
 cat = web_client.get_catalogue(ims_base_url, start_time, end_time, inventory,
                                utc, blast=True, event=True, accepted=True,
                                manual=True, get_arrivals=False)
 
-for event in cat:
+ct = 0
+for i, event in enumerate(cat):
+    logger.info(f'processing event {i} of {len(cat)} -- ({i/len(cat) * 100}%)')
     event_id = event.resource_id.id
     if api_client.get_event_by_id(api_base_url, event_id):
+        logger.info(f'sending event {ct} to the queue')
         set_event(event_id, catalogue=event.copy())
-        pre_process(event_id, force_send_to_api=True,
-                    force_send_to_automatic=True)
+        logger.info(f'sending event with event id {event_id} to the '
+                    f'pre_processng queue')
+        result = we_job_queue.submit_task(pre_process,
+                                          args=(event_id,),
+                                          kwargs={'force_send_to_api': True,
+                                                  'force_send_to_automatic':
+                                                  True})
+        ct += 1
