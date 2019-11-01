@@ -228,6 +228,11 @@ def send_to_api(event_id, **kwargs):
         logger.error(f'The event {event_id} is not available anymore, exiting')
         return
 
+    if event['attempt_number'] > 5:
+        logger.warning('maximum number of attempt (5) reached. The event '
+                       'will not be posted to the API')
+        return
+
     if 'attempt_number' in event.keys():
         event['attempt_number'] += 1
 
@@ -412,6 +417,7 @@ def pre_process(event_id, force_send_to_api=False,
         return
 
     new_cat = interloc_results['catalog']
+    new_cat[0].preferred_origin().evaluation_status = 'preliminary'
     waveforms = get_waveforms(interloc_results, new_cat)
     waveforms['variable_length'] = variable_length_wf
 

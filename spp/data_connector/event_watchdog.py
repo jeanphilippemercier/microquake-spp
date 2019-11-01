@@ -88,6 +88,8 @@ init_time = time()
 
 # run for 1 minutes
 while time() - init_time < 60:
+
+    logger.info(f'Time remaining (s): {60 - (time() - init_time)}')
     # time in UTC
 
     closing_window_time_seconds = settings.get(
@@ -113,6 +115,7 @@ while time() - init_time < 60:
     if len(cat) == 0:
         logger.info('nothing to do ... exiting')
         # sys.exit()
+        sleep(10)
         continue
 
     ct = 0
@@ -143,6 +146,6 @@ while time() - init_time < 60:
                                                __processing_step_id__,
                                                processing_time)
 
-        logger.info(f'sent {ct} events for further processing')
+    logger.info(f'sent {ct} events for further processing')
 
 
