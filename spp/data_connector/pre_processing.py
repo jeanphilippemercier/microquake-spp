@@ -473,7 +473,7 @@ def pre_process(event_id, force_send_to_api=False,
         result = api_job_queue.submit_task(
             send_to_api,
             event_id=event_id,
-            network={"code": network_code},
+            network=network_code,
             send_to_bus=send_automatic or force_send_to_automatic,
         )
         logger.info('event save to the API')
