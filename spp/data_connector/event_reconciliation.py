@@ -17,8 +17,10 @@ we_job_queue = RedisQueue(we_message_queue)
 # will look at the last day of data
 end_time = datetime.utcnow() - timedelta(hours=1)
 
+reconciliation_period = settings.get('reconciliation_period_days')
+
 # looking at the events for the last month
-start_time = end_time - timedelta(hours=24)
+start_time = end_time - timedelta(days=reconciliation_period)
 inventory = settings.inventory
 
 cat = web_client.get_catalogue(ims_base_url, start_time, end_time, inventory,
