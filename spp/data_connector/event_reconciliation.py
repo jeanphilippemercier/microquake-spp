@@ -26,7 +26,6 @@ inventory = settings.inventory
 cat = web_client.get_catalogue(ims_base_url, start_time, end_time, inventory,
                                utc, blast=True, event=True, accepted=True,
                                manual=True, get_arrivals=False)
-
 ct = 0
 for i, event in enumerate(cat):
     logger.info(f'processing event {i} of {len(cat)} -- ({i/len(cat) * 100}%)')
@@ -35,10 +34,11 @@ for i, event in enumerate(cat):
         logger.info(f'sending event {ct} to the queue')
         set_event(event_id, catalogue=event.copy())
         logger.info(f'sending event with event id {event_id} to the '
-                    f'pre_processng queue')
-        result = we_job_queue.submit_task(pre_process,
-                                          args=(event_id,),
-                                          kwargs={'force_send_to_api': True,
-                                                  'force_send_to_automatic':
-                                                  True})
+                    f'pre_processing queue')
+        result = we_job_queue.rq_queue.enqueue(pre_process,
+                                               args=(event_id,),
+                                               kwargs={'force_send_to_api':
+                                                       True,
+                                                       'force_send_to_automatic':
+                                                       True})
         ct += 1

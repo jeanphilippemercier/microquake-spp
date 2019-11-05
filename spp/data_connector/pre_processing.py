@@ -476,9 +476,11 @@ def pre_process(event_id, force_send_to_api=False,
     record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
                               __processing_step_id__, processing_time)
 
-    logger.info('sending to automatic pipeline')
 
     if send_automatic or force_send_to_automatic:
+
+        logger.info('sending to automatic pipeline')
+
         result = automatic_job_queue.submit_task(automatic_pipeline,
                                                  event_id=event_id)
 
