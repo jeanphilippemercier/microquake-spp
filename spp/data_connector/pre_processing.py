@@ -465,9 +465,6 @@ def pre_process(event_id, force_send_to_api=False,
     dict_out['catalogue'] = new_cat
 
     set_event(event_id, **dict_out)
-    # TODO do we need this still? ^
-
-    logger.info('sending to api')
 
     if send_api or force_send_to_api:
         result = api_job_queue.submit_task(
