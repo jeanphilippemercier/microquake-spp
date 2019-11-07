@@ -95,9 +95,9 @@ while time() - init_time < 60:
     closing_window_time_seconds = settings.get(
         'data_connector').closing_window_time_seconds
 
-    # endtime = get_db_lag().replace(tzinfo=utc)
-    endtime = datetime.utcnow().replace(tzinfo=utc) - \
-              timedelta(seconds=closing_window_time_seconds)
+    endtime = get_db_lag().replace(tzinfo=utc)
+    # endtime = datetime.utcnow().replace(tzinfo=utc) - \
+    #           timedelta(seconds=closing_window_time_seconds)
 
     # lag = (datetime.utcnow().replace(tzinfo=utc) - endtime).total_seconds()
 

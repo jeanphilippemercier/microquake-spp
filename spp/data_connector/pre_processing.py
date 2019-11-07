@@ -73,8 +73,8 @@ def get_event_types():
 
 
 def extract_continuous(starttime, endtime, sensor_id=None):
-    # st = get_continuous_data(starttime, endtime, sensor_id)
-    st = None
+    st = get_continuous_data(starttime, endtime, sensor_id)
+    # st = None
 
     if sensor_id is not None:
         sensors = [sensor_id]
@@ -483,6 +483,6 @@ def pre_process(event_id, force_send_to_api=False,
     record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
                               __processing_step_id__, processing_time)
 
-    logger.info('done pre_processing, sent to api')
+    logger.info('pre processing completed')
 
     return result
