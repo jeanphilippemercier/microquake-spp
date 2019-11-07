@@ -25,11 +25,6 @@ from spp.data_connector.pre_processing import pre_process
 
 from microquake.core.helpers.timescale_db import get_db_lag
 
-import sys
-
-from timeloop import Timeloop
-tl = Timeloop()
-
 reload(pre_processing)
 
 __processing_step__ = 'event-watchdog'
@@ -86,8 +81,8 @@ signal.signal(signal.SIGALRM, timeout_handler)
 
 init_time = time()
 
-# run for 1 minutes
-while time() - init_time < 60:
+# run for 10 minutes
+while time() - init_time < 600:
 
     logger.info(f'Time remaining (s): {60 - (time() - init_time)}')
     # time in UTC
@@ -95,7 +90,9 @@ while time() - init_time < 60:
     closing_window_time_seconds = settings.get(
         'data_connector').closing_window_time_seconds
 
-    endtime = get_db_lag().replace(tzinfo=utc)
+    endtime = datetime.utcnow().replace(tzinfo=utc) + timedelta(
+        seconds=get_db_lag())
+    logger.info(f'the timescale database lag is {get_db_lag()}')
     # endtime = datetime.utcnow().replace(tzinfo=utc) - \
     #           timedelta(seconds=closing_window_time_seconds)
 

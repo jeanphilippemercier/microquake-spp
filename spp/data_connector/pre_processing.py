@@ -20,7 +20,8 @@ from microquake.db.models.redis import set_event, get_event
 from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.processors import (clean_data, event_classifier, interloc,
                                    quick_magnitude, ray_tracer)
-from microquake.core.helpers.timescale_db import get_continuous_data
+from microquake.core.helpers.timescale_db import (get_continuous_data,
+                                                  get_db_lag)
 from microquake.core.helpers.time import get_time_zone
 import json
 
@@ -87,6 +88,8 @@ def extract_continuous(starttime, endtime, sensor_id=None):
         logger.warning('request of the continuous data from the '
                        'TimescaleDB returned None... requesting data from '
                        'the IMS system through the web API instead!')
+
+        logger.warning(f'the database lag is {get_db_lag} seconds')
 
         st = web_client.get_continuous(base_url, starttime, endtime,
                                        sensors, utc, network=network_code)
