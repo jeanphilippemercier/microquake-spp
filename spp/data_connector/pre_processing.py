@@ -12,12 +12,10 @@ from pytz import utc
 from loguru import logger
 from microquake.clients.ims import web_client
 from microquake.clients.api_client import post_data_from_objects
-from microquake.core import Stream
 from obspy import UTCDateTime
 from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue, record_processing_logs_pg
 from microquake.db.models.redis import set_event, get_event
-from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.processors import (clean_data, event_classifier, interloc,
                                    quick_magnitude, ray_tracer)
 from microquake.core.helpers.timescale_db import (get_continuous_data,
@@ -224,6 +222,7 @@ def send_to_api(event_id, **kwargs):
     processing_step = 'post_event_api'
     processing_step_id = 4
     start_processing_time = time()
+    send_to_bus = kwargs.get('send_to_bus', True)
 
     api_base_url = settings.get('api_base_url')
     event = get_event(event_id)
@@ -250,7 +249,7 @@ def send_to_api(event_id, **kwargs):
                                           context=event['context'],
                                           variable_length=event['variable_length'],
                                           tolerance=None,
-                                          send_to_bus=False)
+                                          send_to_bus=send_to_bus)
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
         logger.info('request failed, resending to queue')
@@ -471,23 +470,18 @@ def pre_process(event_id, force_send_to_api=False,
     set_event(event_id, **dict_out)
 
     if send_api or force_send_to_api:
-        result = api_job_queue.submit_task(send_to_api, event_id=event_id)
+        result = api_job_queue.submit_task(
+            send_to_api,
+            event_id=event_id,
+            network=network_code,
+            send_to_bus=send_automatic or force_send_to_automatic,
+        )
         logger.info('event save to the API')
 
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
     record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
                               __processing_step_id__, processing_time)
-
-
-    if send_automatic or force_send_to_automatic:
-
-        logger.info('sending to automatic pipeline')
-
-        result = automatic_job_queue.submit_task(automatic_pipeline,
-                                                 event_id=event_id)
-
-        logger.info('event sent to for automatic processing')
 
     logger.info('pre processing completed')
 
