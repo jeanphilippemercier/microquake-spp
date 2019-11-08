@@ -166,6 +166,8 @@ def get_waveforms(interloc_dict, event):
     endtime = local_time + timedelta(seconds=1.5)
 
     fixed_length_wf = extract_continuous(starttime, endtime)
+    clean_data_processor = clean_data.Processor()
+    fixed_length_wf = clean_data_processor.process(waveform=fixed_length_wf)
 
     starttime = local_time - timedelta(seconds=10)
     endtime = local_time + timedelta(seconds=10)
@@ -195,6 +197,8 @@ def get_waveforms(interloc_dict, event):
 
     for i in indices:
         if stations[i] in settings.get('sensors').black_list:
+            continue
+        if not inventory.select(stations[i]):
             continue
 
         logger.info(f'getting context trace for station {stations[i]} located '
@@ -390,20 +394,6 @@ def pre_process(event_id, force_send_to_api=False,
         logger.error('api connection error, resending to the queue')
         set_event(event_id, **event)
         we_job_queue.submit_task(pre_process, event_id=event_id)
-
-    event_time = cat[0].preferred_origin().time.datetime.timestamp()
-
-    closing_window_time_seconds = settings.get(
-        'data_connector').closing_window_time_seconds
-
-    # if UTCDateTime.now() - event_time < closing_window_time_seconds:
-    #     logger.info('Delay between the detection of the event and the '
-    #                 'current time ({} s) is smaller than the closing window '
-    #                 'time threshold ({} s). The event will be resent to the '
-    #                 'queue and reprocessed at a later time '.format(
-    #             UTCDateTime.now() - event_time, closing_window_time_seconds))
-    #
-    #     return
 
     try:
         variable_length_wf = web_client.get_seismogram_event(base_url, cat[0],

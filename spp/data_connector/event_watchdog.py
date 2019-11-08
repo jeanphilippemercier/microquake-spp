@@ -84,7 +84,7 @@ init_time = time()
 # run for 10 minutes
 while time() - init_time < 600:
 
-    logger.info(f'Time remaining (s): {60 - (time() - init_time)}')
+    logger.info(f'Time remaining (s): {600 - (time() - init_time)}')
     # time in UTC
 
     closing_window_time_seconds = settings.get(
