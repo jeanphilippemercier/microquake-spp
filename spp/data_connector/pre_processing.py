@@ -74,8 +74,8 @@ def get_event_types():
 
 
 def extract_continuous(starttime, endtime, sensor_id=None):
-    st = get_continuous_data(starttime, endtime, sensor_id)
-    # st = None
+    # st = get_continuous_data(starttime, endtime, sensor_id)
+    st = None
 
     if sensor_id is not None:
         sensors = [sensor_id]
@@ -87,7 +87,7 @@ def extract_continuous(starttime, endtime, sensor_id=None):
                        'TimescaleDB returned None... requesting data from '
                        'the IMS system through the web API instead!')
 
-        logger.warning(f'the database lag is {get_db_lag} seconds')
+        logger.warning(f'the database lag is {get_db_lag()} seconds')
 
         st = web_client.get_continuous(base_url, starttime, endtime,
                                        sensors, utc, network=network_code)

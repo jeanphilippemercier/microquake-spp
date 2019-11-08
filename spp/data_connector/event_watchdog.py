@@ -90,11 +90,11 @@ while time() - init_time < 600:
     closing_window_time_seconds = settings.get(
         'data_connector').closing_window_time_seconds
 
-    endtime = datetime.utcnow().replace(tzinfo=utc) + timedelta(
-        seconds=get_db_lag())
-    logger.info(f'the timescale database lag is {get_db_lag()}')
-    # endtime = datetime.utcnow().replace(tzinfo=utc) - \
-    #           timedelta(seconds=closing_window_time_seconds)
+    # endtime = datetime.utcnow().replace(tzinfo=utc) + timedelta(
+    #     seconds=get_db_lag())
+    # logger.info(f'the timescale database lag is {get_db_lag()}')
+    endtime = datetime.utcnow().replace(tzinfo=utc) - \
+              timedelta(seconds=closing_window_time_seconds)
 
     # lag = (datetime.utcnow().replace(tzinfo=utc) - endtime).total_seconds()
 
