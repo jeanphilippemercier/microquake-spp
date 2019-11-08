@@ -74,8 +74,8 @@ def get_event_types():
 
 
 def extract_continuous(starttime, endtime, sensor_id=None):
-    # st = get_continuous_data(starttime, endtime, sensor_id)
-    st = None
+    st = get_continuous_data(starttime, endtime, sensor_id)
+    # st = None
 
     if sensor_id is not None:
         sensors = [sensor_id]
