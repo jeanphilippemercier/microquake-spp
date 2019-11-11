@@ -145,7 +145,6 @@ while time() - init_time < 600:
                                                __processing_step__,
                                                __processing_step_id__,
                                                processing_time)
-            sleep(0.25)
 
     pg.close()
     engine.dispose()
