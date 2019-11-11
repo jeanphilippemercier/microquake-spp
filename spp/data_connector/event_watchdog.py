@@ -146,9 +146,9 @@ while time() - init_time < 600:
                                                __processing_step_id__,
                                                processing_time)
 
-    pg.close()
-    engine.dispose()
-
     logger.info(f'sent {ct} events for further processing')
+    
+pg.close()
+engine.dispose()
 
 
