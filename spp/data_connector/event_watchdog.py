@@ -45,7 +45,7 @@ def get_starttime():
         processing_logs.columns.event_timestamp)]).where(
         processing_logs.columns.processing_step_name == __processing_step__)
 
-    pg.execute(query).scalar()
+    result = pg.execute(query).scalar()
 
     if result is None:
         starttime = datetime.utcnow().replace(tzinfo=utc) - \
