@@ -23,8 +23,6 @@ from microquake.db.models.redis import set_event
 from spp.data_connector import pre_processing
 from spp.data_connector.pre_processing import pre_process
 
-from microquake.core.helpers.timescale_db import get_db_lag
-
 reload(pre_processing)
 
 __processing_step__ = 'event-watchdog'
@@ -32,7 +30,7 @@ __processing_step_id__ = 1
 
 request_range_hours = settings.get('data_connector').request_range_hours
 
-pg = connect_postgres()
+pg, engine = connect_postgres()
 
 tz = get_time_zone()
 sites = [station.code for station in settings.inventory.stations()]
@@ -47,7 +45,7 @@ def get_starttime():
         processing_logs.columns.event_timestamp)]).where(
         processing_logs.columns.processing_step_name == __processing_step__)
 
-    result = pg.execute(query).scalar()
+    pg.execute(query).scalar()
 
     if result is None:
         starttime = datetime.utcnow().replace(tzinfo=utc) - \
@@ -59,9 +57,9 @@ def get_starttime():
     return starttime
 
 
-def already_processed(event):
+def already_processed(seismic_event):
     query = db.select([db.func.count(processing_logs.columns.event_id)]).where(
-        processing_logs.columns.event_id == event.resource_id.id)
+        processing_logs.columns.event_id == seismic_event.resource_id.id)
 
     return bool(pg.execute(query).scalar())
 
@@ -81,8 +79,20 @@ signal.signal(signal.SIGALRM, timeout_handler)
 
 init_time = time()
 
+
+def heartbeat():
+    import requests
+    base_url = settings.get('API_BASE_URL')
+    if base_url[-1] == '/':
+        base_url = base_url[:-1]
+    url = base_url + '/inventory/heartbeat'
+    return requests.post(url, json={'source': 'event_connector'})
+
+
 # run for 10 minutes
 while time() - init_time < 600:
+
+    heartbeat()
 
     logger.info(f'Time remaining (s): {600 - (time() - init_time)}')
     # time in UTC
@@ -90,19 +100,12 @@ while time() - init_time < 600:
     closing_window_time_seconds = settings.get(
         'data_connector').closing_window_time_seconds
 
-    # endtime = datetime.utcnow().replace(tzinfo=utc) + timedelta(
-    #     seconds=get_db_lag())
-    # logger.info(f'the timescale database lag is {get_db_lag()}')
     endtime = datetime.utcnow().replace(tzinfo=utc) - \
               timedelta(seconds=closing_window_time_seconds)
 
-    # lag = (datetime.utcnow().replace(tzinfo=utc) - endtime).total_seconds()
-
-    # logger.info(f'The data in the Timescale database are lagging by '
-    #             f'{lag} seconds')
-
     starttime = get_starttime()
 
+    logger.info('retrieving catalogue from the IMS system')
     cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
                                     utc, accepted=False, manual=False)
 
@@ -142,6 +145,10 @@ while time() - init_time < 600:
                                                __processing_step__,
                                                __processing_step_id__,
                                                processing_time)
+            sleep(0.25)
+
+    pg.close()
+    engine.dispose()
 
     logger.info(f'sent {ct} events for further processing')
 
