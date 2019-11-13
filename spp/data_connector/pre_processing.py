@@ -254,6 +254,8 @@ def send_to_api(event_id, **kwargs):
     else:
         event['attempt_number'] = 1
 
+    response = None
+
     try:
         response = post_data_from_objects(api_base_url, event_id=None,
                                           cat=event['catalogue'],
@@ -263,7 +265,7 @@ def send_to_api(event_id, **kwargs):
                                           tolerance=None,
                                           send_to_bus=send_to_bus)
 
-    except requests.exceptions.ConnectionError as e:
+    except requests.exceptions.RequestException as e:
         logger.error(e)
         return
         logger.info('request failed, resending to queue')
