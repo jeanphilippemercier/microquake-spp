@@ -254,21 +254,23 @@ def send_to_api(event_id, **kwargs):
                                           variable_length=event['variable_length'],
                                           tolerance=None,
                                           send_to_bus=send_to_bus)
+
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
-        # logger.info('request failed, resending to queue')
-
-        # set_event(event_id, **event)
-
-        # result = api_job_queue.submit_task(send_to_api, event_id=event_id)
+        return
+        logger.info('request failed, resending to queue')
+        set_event(event_id, **event)
+        result = api_job_queue.submit_task(send_to_api, event_id=event_id)
 
     if not response:
         logger.info('request failed')
+        return
         # logger.info('request failed, resending to the queue')
         # set_event(event_id, **event)
         # result = api_job_queue.submit_task(send_to_api, event_id=event_id)
 
-    logger.info('request successful')
+    else:
+        logger.info('request successful')
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
 

@@ -20,17 +20,21 @@ end_time = datetime.utcnow() - timedelta(hours=1)
 reconciliation_period = settings.get('reconciliation_period_days')
 
 # looking at the events for the last month
-start_time = end_time - timedelta(days=reconciliation_period)
+start_time = end_time - timedelta(hours=reconciliation_period)
 inventory = settings.inventory
 
 cat = web_client.get_catalogue(ims_base_url, start_time, end_time, inventory,
                                utc, blast=True, event=True, accepted=True,
                                manual=True, get_arrivals=False)
 ct = 0
-for i, event in enumerate(cat):
+
+sorted_cat = sorted(cat, reverse=True,
+                    key=lambda x: x.preferred_origin().time)
+
+for i, event in enumerate(sorted_cat):
     logger.info(f'processing event {i} of {len(cat)} -- ({i/len(cat) * 100}%)')
     event_id = event.resource_id.id
-    if api_client.get_event_by_id(api_base_url, event_id):
+    if not api_client.get_event_by_id(api_base_url, event_id):
         logger.info(f'sending event {ct} to the queue')
         set_event(event_id, catalogue=event.copy())
         logger.info(f'sending event with event id {event_id} to the '
