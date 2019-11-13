@@ -11,7 +11,8 @@ from pytz import utc
 
 from loguru import logger
 from microquake.clients.ims import web_client
-from microquake.clients.api_client import post_data_from_objects
+from microquake.clients.api_client import (post_data_from_objects,
+                                           get_event_by_id)
 from obspy import UTCDateTime
 from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue, record_processing_logs_pg
@@ -231,6 +232,13 @@ def send_to_api(event_id, **kwargs):
     api_base_url = settings.get('api_base_url')
     event = get_event(event_id)
 
+    event_resource_id = event['catalogue'][0].resource_id
+
+    if get_event_by_id(api_base_url, event_resource_id):
+        logger.warning('event already exists in the database... the event '
+                       'will not be uploaded... exiting')
+        return
+
     if event is None:
         logger.error(f'The event {event_id} is not available anymore, exiting')
         return
@@ -269,8 +277,7 @@ def send_to_api(event_id, **kwargs):
         # set_event(event_id, **event)
         # result = api_job_queue.submit_task(send_to_api, event_id=event_id)
 
-    else:
-        logger.info('request successful')
+    logger.info('request successful')
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
 
