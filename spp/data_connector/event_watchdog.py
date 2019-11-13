@@ -113,7 +113,7 @@ while time() - init_time < 600:
     logger.info('recovered {} events'.format(len(cat)))
 
     if len(cat) == 0:
-        logger.info('nothing to do ... exiting')
+        logger.info('nothing to do ...')
         # sys.exit()
         sleep(10)
         continue

@@ -232,7 +232,7 @@ def send_to_api(event_id, **kwargs):
     api_base_url = settings.get('api_base_url')
     event = get_event(event_id)
 
-    event_resource_id = event['catalogue'][0].resource_id
+    event_resource_id = event['catalogue'][0].resource_id.id
 
     if get_event_by_id(api_base_url, event_resource_id):
         logger.warning('event already exists in the database... the event '
