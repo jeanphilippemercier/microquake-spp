@@ -75,7 +75,11 @@ def get_event_types():
 
 
 def extract_continuous(starttime, endtime, sensor_id=None):
+    s_time = time()
     st = get_continuous_data(starttime, endtime, sensor_id)
+    e_time = time()
+
+    r_time = int(e_time - s_time)
     # st = None
 
     if sensor_id is not None:
@@ -100,8 +104,16 @@ def extract_continuous(starttime, endtime, sensor_id=None):
                        'of traces (less than 50%)... requesting the data from '
                        'the IMS system through the web API instead!')
 
+        s_time = time()
         st = web_client.get_continuous(base_url, starttime, endtime,
                                        sensors, utc, network=network_code)
+        e_time = time()
+        r_time = int(e_time - s_time)
+        logger.info(f'recovered data from the IMS system in {r_time} seconds')
+
+    else:
+        logger.info(f'recovered data from the Timescale DB in {r_time} '
+                    f'seconds')
 
     return st
 
