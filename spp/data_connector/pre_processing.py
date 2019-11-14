@@ -87,6 +87,17 @@ def extract_continuous(starttime, endtime, sensor_id=None):
     else:
         sensors = sites
 
+    sens = []
+    for sensor in inventory.stations():
+        if sensor not in st.unique_stations():
+            sens.append(sensor.code)
+
+    trs = web_client.get_continuous(base_url, starttime, endtime,
+                                    sens, utc, network=network_code)
+
+    for tr in trs:
+        st.traces.append(tr)
+
     if st is None:
         logger.warning('request of the continuous data from the '
                        'TimescaleDB returned None... requesting data from '
