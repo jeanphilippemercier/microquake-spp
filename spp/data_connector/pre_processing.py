@@ -79,15 +79,14 @@ def extract_continuous(starttime, endtime, sensor_id=None):
     # st = get_continuous_data(starttime, endtime, sensor_id)
     st = None
     e_time = time()
+    r_time = int(e_time - s_time)
+
+    if sensor_id is not None:
+        sensors = [sensor_id]
+    else:
+        sensors = sites
 
     if st is not None:
-        r_time = int(e_time - s_time)
-        # st = None
-
-        if sensor_id is not None:
-            sensors = [sensor_id]
-        else:
-            sensors = sites
 
         sens = []
         for sensor in inventory.stations():
