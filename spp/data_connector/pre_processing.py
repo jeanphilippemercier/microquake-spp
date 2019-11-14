@@ -92,8 +92,10 @@ def extract_continuous(starttime, endtime, sensor_id=None):
         if sensor not in st.unique_stations():
             sens.append(sensor.code)
 
-    trs = web_client.get_continuous(base_url, starttime, endtime,
-                                    sens, utc, network=network_code)
+    if sens:
+
+        trs = web_client.get_continuous(base_url, starttime, endtime,
+                                        sens, utc, network=network_code)
 
     for tr in trs:
         st.traces.append(tr)
