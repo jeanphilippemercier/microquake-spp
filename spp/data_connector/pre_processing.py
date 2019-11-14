@@ -400,6 +400,16 @@ def pre_process(event_id, force_send_to_api=False,
     event = get_event(event_id)
     cat = event['catalogue']
 
+    event_resource_id = cat[0].resource_id.id
+
+    if get_event_by_id(api_base_url, event_resource_id):
+        logger.warning('event already exists in the database... sorry I do '
+                       'not have time to waste, I am a busy processor. \nIf '
+                       'you are not satisfied with the level of service I am '
+                       'providing please reach out to your IT department. \n'
+                       'Have a wonderful day!')
+        return
+
     try:
         event_types_lookup = get_event_types()
     except ConnectionError:
