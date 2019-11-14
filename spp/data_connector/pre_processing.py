@@ -77,6 +77,7 @@ def get_event_types():
 def extract_continuous(starttime, endtime, sensor_id=None):
     s_time = time()
     st = get_continuous_data(starttime, endtime, sensor_id)
+    st = None
     e_time = time()
 
     r_time = int(e_time - s_time)
