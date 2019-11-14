@@ -76,37 +76,38 @@ def get_event_types():
 
 def extract_continuous(starttime, endtime, sensor_id=None):
     s_time = time()
-    st = get_continuous_data(starttime, endtime, sensor_id)
+    # st = get_continuous_data(starttime, endtime, sensor_id)
     st = None
     e_time = time()
 
-    r_time = int(e_time - s_time)
-    # st = None
+    if st is not None:
+        r_time = int(e_time - s_time)
+        # st = None
 
-    if sensor_id is not None:
-        sensors = [sensor_id]
+        if sensor_id is not None:
+            sensors = [sensor_id]
+        else:
+            sensors = sites
+
+        sens = []
+        for sensor in inventory.stations():
+            if sensor.code not in st.unique_stations():
+                sens.append(sensor.code)
+
+        if sens:
+
+            trs = web_client.get_continuous(base_url, starttime, endtime,
+                                            sens, utc, network=network_code)
+
+        for tr in trs:
+            st.traces.append(tr)
+
     else:
-        sensors = sites
-
-    sens = []
-    for sensor in inventory.stations():
-        if sensor.code not in st.unique_stations():
-            sens.append(sensor.code)
-
-    if sens:
-
-        trs = web_client.get_continuous(base_url, starttime, endtime,
-                                        sens, utc, network=network_code)
-
-    for tr in trs:
-        st.traces.append(tr)
-
-    if st is None:
         logger.warning('request of the continuous data from the '
                        'TimescaleDB returned None... requesting data from '
                        'the IMS system through the web API instead!')
 
-        logger.warning(f'the database lag is {get_db_lag()} seconds')
+        # logger.warning(f'the database lag is {get_db_lag()} seconds')
 
         st = web_client.get_continuous(base_url, starttime, endtime,
                                        sensors, utc, network=network_code)
