@@ -89,7 +89,7 @@ def extract_continuous(starttime, endtime, sensor_id=None):
 
     sens = []
     for sensor in inventory.stations():
-        if sensor not in st.unique_stations():
+        if sensor.code not in st.unique_stations():
             sens.append(sensor.code)
 
     if sens:
