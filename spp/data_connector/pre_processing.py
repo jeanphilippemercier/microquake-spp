@@ -163,7 +163,7 @@ def interloc_election(cat):
         wf = wf.detrend('demean').taper(max_length=0.01, max_percentage=0.01)
 
         clean_data_processor = clean_data.Processor()
-        clean_wf = clean_data_processor.process(waveform=wf)
+        clean_wf = clean_data_processor.process(waveform=wf.copy())
 
         max_len = np.max([len(tr) for tr in clean_wf])
         trs = [tr for tr in clean_wf if len(tr) == max_len]
@@ -193,8 +193,6 @@ def get_waveforms(interloc_dict, event):
     endtime = local_time + timedelta(seconds=1.5)
 
     fixed_length_wf = extract_continuous(starttime, endtime)
-    clean_data_processor = clean_data.Processor()
-    fixed_length_wf = clean_data_processor.process(waveform=fixed_length_wf)
 
     starttime = local_time - timedelta(seconds=10)
     endtime = local_time + timedelta(seconds=10)
@@ -476,7 +474,9 @@ def pre_process(event_id, force_send_to_api=False,
 
     index = np.argmax(vars)
 
-    fixed_length = waveforms['fixed_length']
+    clean_data_processor = clean_data.Processor()
+    fixed_length = clean_data_processor.process(waveform=waveforms[
+        'fixed_length'].copy())
     context = waveforms['context']
 
     quick_magnitude_processor = quick_magnitude.Processor()
