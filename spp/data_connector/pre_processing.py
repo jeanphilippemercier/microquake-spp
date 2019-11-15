@@ -12,17 +12,20 @@ from pytz import utc
 from loguru import logger
 from microquake.clients.ims import web_client
 from microquake.clients.api_client import (post_data_from_objects,
-                                           get_event_by_id)
+                                           get_event_by_id,
+                                           put_data_from_objects)
 from obspy import UTCDateTime
 from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue, record_processing_logs_pg
 from microquake.db.models.redis import set_event, get_event
 from microquake.processors import (clean_data, event_classifier, interloc,
                                    quick_magnitude, ray_tracer)
+from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.core.helpers.timescale_db import (get_continuous_data,
                                                   get_db_lag)
 from microquake.core.helpers.time import get_time_zone
 import json
+
 
 automatic_message_queue = settings.AUTOMATIC_PIPELINE_MESSAGE_QUEUE
 try:
@@ -256,7 +259,10 @@ def send_to_api(event_id, **kwargs):
     api_base_url = settings.get('api_base_url')
     event = get_event(event_id)
 
-    event_resource_id = event['catalogue'][0].resource_id.id
+    cat = event['catalogue']
+    fixed_length = event['fixed_length']
+
+    event_resource_id = cat[0].resource_id.id
 
     if get_event_by_id(api_base_url, event_resource_id):
         logger.warning('event already exists in the database... the event '
@@ -311,6 +317,12 @@ def send_to_api(event_id, **kwargs):
 
     record_processing_logs_pg(evt, 'success', processing_step,
                               processing_step_id, processing_time)
+
+    if cat[0].event_type == 'earthquake':
+        logger.info('automatic processing')
+        cat_auto = automatic_pipeline(cat=cat, stream=fixed_length)
+
+        put_data_from_objects(api_base_url, cat=cat_auto)
 
     return response
 
@@ -508,7 +520,8 @@ def pre_process(event_id, force_send_to_api=False,
             send_to_api,
             event_id=event_id,
             network=network_code,
-            send_to_bus=send_automatic or force_send_to_automatic,
+            send_to_bus=False,
+            # send_to_bus=send_automatic or force_send_to_automatic,
         )
         logger.info('event save to the API')
 
