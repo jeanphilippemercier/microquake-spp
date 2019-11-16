@@ -324,7 +324,8 @@ def send_to_api(event_id, **kwargs):
     record_processing_logs_pg(evt, 'success', processing_step,
                               processing_step_id, processing_time)
 
-    if cat[0].event_type == 'earthquake':
+    if (cat[0].event_type == 'earthquake') or (cat[0].event_type ==
+                                               'explosion'):
         logger.info('automatic processing')
         cat_auto = automatic_pipeline(cat=cat, stream=fixed_length)
 
