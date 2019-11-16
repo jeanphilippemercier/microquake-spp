@@ -91,6 +91,10 @@ def extract_continuous(starttime, endtime, sensor_id=None):
 
     st = get_continuous_data(starttime, endtime, sensor_id=sensor_id)
 
+    if st is not None:
+        for tr in st:
+            trs.append(tr)
+
     if sensor_id is not None:
         if st is None:
             st = web_client.get_continuous(base_url, starttime, endtime,
@@ -107,15 +111,20 @@ def extract_continuous(starttime, endtime, sensor_id=None):
 
         return st
 
+
     for sensor in inventory.stations():
+        if sensor.code in st.unique_stations():
+            continue
+
         logger.info(f'requesting data for sensor {sensor.code}')
-        st_tmp = get_continuous_data(starttime, endtime, sensor.code)
-        if st_tmp is None:
-            logger.info('no data in the timescale db, requesting from the '
-                        'IMS system')
-            st_tmp = web_client.get_continuous(base_url, starttime, endtime,
-                                               [sensor.code], utc,
-                                               network=network_code)
+        logger.info('no data in the timescale db, requesting from the '
+                    'IMS system')
+        st_tmp = web_client.get_continuous(base_url, starttime, endtime,
+                                           [sensor.code], utc,
+                                           network=network_code)
+
+        if (st_tmp is None) or (len(st_tmp) == 0):
+            continue
 
         expected_number_sample = duration * st_tmp[0].stats.sampling_rate
         if len(st_tmp[0].data) < 0.9 * expected_number_sample:
