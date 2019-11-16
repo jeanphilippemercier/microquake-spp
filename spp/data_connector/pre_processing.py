@@ -81,7 +81,33 @@ def get_event_types():
 def extract_continuous(starttime, endtime, sensor_id=None):
     s_time = time()
     trs = []
-    for sensor in inventory.stations:
+
+    if type(starttime) is datetime:
+        starttime = UTCDateTime(starttime)
+    if type(endtime) is datetime:
+        endtime = UTCDateTime(endtime)
+
+    duration = endtime - starttime
+
+    st = get_continuous_data(starttime, endtime, sensor_id=sensor_id)
+
+    if sensor_id is not None:
+        if st is None:
+            st = web_client.get_continuous(base_url, starttime, endtime,
+                                           [str(sensor_id)], utc,
+                                           network=network_code)
+
+            if st is None:
+                return None
+
+            expected_number_sample = duration * st[0].stats.sampling_rate
+            if len(st[0].data) < 0.9 * expected_number_sample:
+                logger.warning(f'not enough data for sensor {sensor_id}')
+                return None
+
+        return st
+
+    for sensor in inventory.stations():
         logger.info(f'requesting data for sensor {sensor.code}')
         st_tmp = get_continuous_data(starttime, endtime, sensor.code)
         if st_tmp is None:
@@ -91,8 +117,17 @@ def extract_continuous(starttime, endtime, sensor_id=None):
                                                [sensor.code], utc,
                                                network=network_code)
 
+        expected_number_sample = duration * st_tmp[0].stats.sampling_rate
+        if len(st_tmp[0].data) < 0.9 * expected_number_sample:
+            logger.warning(f'data only partially recovered for sensor'
+                           f'{sensor}. The trace will not be kept')
+            continue
+
         for tr in st_tmp:
             trs.append(tr)
+
+    if not trs:
+        return None
 
     return Stream(traces=trs)
 
