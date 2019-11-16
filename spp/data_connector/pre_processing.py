@@ -10,6 +10,7 @@ import requests
 from pytz import utc
 
 from loguru import logger
+from microquake.core.stream import Stream
 from microquake.clients.ims import web_client
 from microquake.clients.api_client import (post_data_from_objects,
                                            get_event_by_id,
@@ -79,60 +80,21 @@ def get_event_types():
 
 def extract_continuous(starttime, endtime, sensor_id=None):
     s_time = time()
-    # st = get_continuous_data(starttime, endtime, sensor_id)
-    st = None
-    e_time = time()
-    r_time = int(e_time - s_time)
+    trs = []
+    for sensor in inventory.stations:
+        logger.info(f'requesting data for sensor {sensor.code}')
+        st_tmp = get_continuous_data(starttime, endtime, sensor.code)
+        if st_tmp is None:
+            logger.info('no data in the timescale db, requesting from the '
+                        'IMS system')
+            st_tmp = web_client.get_continuous(base_url, starttime, endtime,
+                                               [sensor.code], utc,
+                                               network=network_code)
 
-    if sensor_id is not None:
-        sensors = [sensor_id]
-    else:
-        sensors = sites
+        for tr in st_tmp:
+            trs.append(tr)
 
-    if st is not None:
-
-        sens = []
-        for sensor in inventory.stations():
-            if sensor.code not in st.unique_stations():
-                sens.append(sensor.code)
-
-        if sens:
-
-            trs = web_client.get_continuous(base_url, starttime, endtime,
-                                            sens, utc, network=network_code)
-
-        for tr in trs:
-            st.traces.append(tr)
-
-    else:
-        logger.warning('request of the continuous data from the '
-                       'TimescaleDB returned None... requesting data from '
-                       'the IMS system through the web API instead!')
-
-        # logger.warning(f'the database lag is {get_db_lag()} seconds')
-
-        st = web_client.get_continuous(base_url, starttime, endtime,
-                                       sensors, utc, network=network_code)
-
-    recovery_ratio = len(inventory.stations()) / len(st.unique_stations())
-    if recovery_ratio < 0.5:
-        logger.warning('request of the continuous data from the '
-                       'TimescaleDB returned an insufficient number '
-                       'of traces (less than 50%)... requesting the data from '
-                       'the IMS system through the web API instead!')
-
-        s_time = time()
-        st = web_client.get_continuous(base_url, starttime, endtime,
-                                       sensors, utc, network=network_code)
-        e_time = time()
-        r_time = int(e_time - s_time)
-        logger.info(f'recovered data from the IMS system in {r_time} seconds')
-
-    else:
-        logger.info(f'recovered data from the Timescale DB in {r_time} '
-                    f'seconds')
-
-    return st
+    return Stream(traces=trs)
 
 
 def interloc_election(cat):
