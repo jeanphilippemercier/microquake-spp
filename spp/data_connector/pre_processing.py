@@ -57,7 +57,7 @@ api_base_url = settings.get('api_base_url')
 inventory = settings.inventory
 network_code = settings.NETWORK_CODE
 
-use_time_scale = settings.USE_TIME_SCALE
+use_time_scale = settings.USE_TIMESCALE
 
 # tolerance for how many trace are not recovered
 minimum_recovery_fraction = settings.get(
