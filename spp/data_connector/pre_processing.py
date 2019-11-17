@@ -94,6 +94,13 @@ def extract_continuous(starttime, endtime, sensor_id=None):
     st = None
     if use_time_scale:
         st = get_continuous_data(starttime, endtime, sensor_id=sensor_id)
+    else:
+        trs = []
+        st = web_client.get_continuous(base_url, starttime, endtime,
+                                       inventory.stations(), utc,
+                                       network=network_code)
+
+        return st
 
     if st is not None:
         for tr in st:
