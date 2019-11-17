@@ -57,6 +57,8 @@ api_base_url = settings.get('api_base_url')
 inventory = settings.inventory
 network_code = settings.NETWORK_CODE
 
+use_time_scale = settings.USE_TIME_SCALE
+
 # tolerance for how many trace are not recovered
 minimum_recovery_fraction = settings.get(
     'data_connector').minimum_recovery_fraction
@@ -89,7 +91,9 @@ def extract_continuous(starttime, endtime, sensor_id=None):
 
     duration = endtime - starttime
 
-    st = get_continuous_data(starttime, endtime, sensor_id=sensor_id)
+    st = None
+    if use_time_scale:
+        st = get_continuous_data(starttime, endtime, sensor_id=sensor_id)
 
     if st is not None:
         for tr in st:
