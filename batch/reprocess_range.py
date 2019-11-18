@@ -1,7 +1,7 @@
 from microquake.pipelines import automatic_pipeline
 from microquake.clients.api_client import (get_events_catalog,
-                                           post_data_from_objects,
                                            put_data_from_objects)
+
 from microquake.clients.ims import web_client
 from microquake.core.settings import settings
 from microquake.processors import (interloc, quick_magnitude, ray_tracer,
@@ -14,26 +14,13 @@ import requests
 
 api_base_url = settings.get('API_BASE_URL')
 
-start_time = datetime(2019, 6, 1)
-end_time = datetime(2019, 7, 10)
+start_time = datetime(2019, 11, 1)
+end_time = datetime(2019, 11, 16)
 
-ims_base_url = settings.get('ims_base_url')
 inventory = settings.inventory
-
-# ims_cat = web_client.get_catalogue(ims_base_url, start_time, end_time,
-#                                    inventory, '')
-
-# ims_event = web_client.get_catalogue(start_time, end_time, )
 
 res = get_events_catalog(api_base_url, start_time, end_time,
                          event_type='earthquake')
-# res_rejected = get_events_catalog(api_base_url, start_time, end_time,
-#                                   status='rejected')
-
-ilp = interloc.Processor()
-qmp = quick_magnitude.Processor()
-rtp = ray_tracer.Processor()
-ecp = event_classifier.Processor()
 
 nb_event = len(res)
 for i in range(len(res)):
@@ -63,64 +50,9 @@ for i in range(len(res)):
     for tr in st:
         tr.stats.channel = tr.stats.channel.upper()
 
-    tmp = ilp.process(stream=st)
-    cat_interloc = ilp.output_catalog(Catalog(events=[Event()]))
-    tmp = qmp.process(cat=cat_interloc.copy(), stream=st)
-    cat_qm = qmp.output_catalog(cat_interloc.copy())
-    logger.info('automatic processing')
+    cat_auto = automatic_pipeline.automatic_pipeline(cat.copy(), st)
+    logger.info('sending data to the api')
 
-    cat_auto = automatic_pipeline.automatic_pipeline_processor(cat_qm.copy(),
-                                                               st)
-    logger.info('putting data to the api')
-
-    api_base_url = settings.get('API_BASE_URL')
-
-    event_time = cat_auto[0].preferred_origin().time
-    context_start_time = context[0].stats.starttime
-    context_end_time = context[0].stats.endtime
-    if context_end_time - context_start_time < 10:
-        min_dist = 1e10
-        sensor = ''
-        for ray in cat_auto[0].preferred_origin().rays:
-
-            if ray.station_code in settings.get('sensors').black_list:
-                continue
-            if ray.length > min_dist:
-                continue
-            if len(st.select(station=ray.station_code)) == 0:
-                continue
-            min_dist = ray.length
-            sensor = ray.station_code
-
-        context = st.select(station=sensor).copy().composite()
-
-    context = context.taper(max_percentage=0.01)
-    context = context.trim(starttime=event_time-10, endtime=event_time+10,
-                           pad=True, fill_value=0).composite()
-
-    categories = ecp.process(cat=cat_auto, stream=st, context=context)
-
-    sorted_list = sorted(categories.items(), reverse=True,
-                         key=lambda x: x[1])
-
-    threshold = settings.get('data_connector').likelihood_threshold
-    if sorted_list[0][1] > threshold:
-        if cat_auto[0].event_type is not 'explosion':
-            cat_auto[0].event_type = sorted_list[0][0]
-    else:
-        cat_auto[0].event_type = 'other event'
-        cat_auto[0].preferred_origin().evaluation_status = 'rejected'
-
-    logger.info(f'event time {cat_auto[0].preferred_origin().time}')
-    url = api_base_url + 'events/' + event_id
-    requests.delete(url)
-
-    cat_auto[0].resource_id = ResourceIdentifier()
-    for j, origin in enumerate(cat_auto[0].origins):
-        cat_auto[0].origins[j].resource_id = ResourceIdentifier()
-
-    cat_auto[0].preferred_origin_id = cat_auto[0].origins[-1].resource_id
-
-    post_data_from_objects(api_base_url, cat=cat_auto, stream=st,
-                           context=context, variable_length=vl, tolerance=None)
-
+    response = put_data_from_objects(api_base_url, cat=cat_auto)
+    print(response)
+    input('bayaralala')
