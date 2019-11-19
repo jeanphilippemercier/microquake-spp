@@ -14,7 +14,8 @@ from microquake.core.stream import Stream
 from microquake.clients.ims import web_client
 from microquake.clients.api_client import (post_data_from_objects,
                                            get_event_by_id,
-                                           put_data_from_objects)
+                                           put_data_from_objects,
+                                           get_event_types)
 from obspy import UTCDateTime
 from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue, record_processing_logs_pg
@@ -25,6 +26,7 @@ from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.core.helpers.timescale_db import (get_continuous_data,
                                                   get_db_lag)
 from microquake.core.helpers.time import get_time_zone
+
 import json
 
 
@@ -62,22 +64,6 @@ use_time_scale = settings.USE_TIMESCALE
 # tolerance for how many trace are not recovered
 minimum_recovery_fraction = settings.get(
     'data_connector').minimum_recovery_fraction
-
-
-def get_event_types():
-
-    url = api_base_url + 'inventory/microquake_event_types'
-    response = requests.get(url)
-
-    if not response:
-        raise ConnectionError('API Connection Error')
-
-    data = json.loads(response.content)
-    dict_out = {}
-    for d in data:
-        dict_out[d['microquake_type']] = d['quakeml_type']
-
-    return dict_out
 
 
 def extract_continuous(starttime, endtime, sensor_id=None):
@@ -121,7 +107,6 @@ def extract_continuous(starttime, endtime, sensor_id=None):
                 return None
 
         return st
-
 
     for sensor in inventory.stations():
         if sensor.code in st.unique_stations():
@@ -461,7 +446,7 @@ def pre_process(event_id, force_send_to_api=False,
         return
 
     try:
-        event_types_lookup = get_event_types()
+        event_types_lookup = get_event_types(api_base_url)
     except ConnectionError:
         logger.error('api connection error, resending to the queue')
         set_event(event_id, **event)
