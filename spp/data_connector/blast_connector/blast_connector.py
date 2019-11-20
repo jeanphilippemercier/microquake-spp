@@ -12,17 +12,24 @@ from dynaconf import settings
 __author__ = "Geotechnical Monitoring Team/Munkhtsolmon Munkhchuluun"
 
 
-class blast_connector(object):
+class BlastConnector(object):
     """This class will create blast_log (X, Y, X, DateTime, Accuracy, Heading name).
     """
     def __init__(self, module_name="blast_connector"):
         """
-        :param module_name: name of the module, the name must be coherent with a section in the config file.
+        :param module_name: name of the module, the name must be coherent
+        with a section in the config file.
         :param days_old: defining date filter [aka. call last "days_old"]
         :param sql: sql script, filtered by "days_old", to read connect_pitram
-        :param input_dir: location of the blast_log sqlite db - having the DB means not to regenerate matched blast logs.
-        :param days_range: defining - for the same heading, how many days old blasts are to be considered proper approximation in coordinate of unprocessed blast (laserscanning)
-        :param chainage_range: defining - for the blast with chainage and without coordinates, known closer (chainage_range) blast with chainages and with coordinate will be used to calculate coordinate of unknown coordinate using definition of point in 3D line
+        :param input_dir: location of the blast_log sqlite db - having the
+        DB means not to regenerate matched blast logs.
+        :param days_range: defining - for the same heading, how many days
+        old blasts are to be considered proper approximation in coordinate
+        of unprocessed blast (laserscanning)
+        :param chainage_range: defining - for the blast with chainage and
+        without coordinates, known closer (chainage_range) blast with
+        chainages and with coordinate will be used to calculate coordinate
+        of unknown coordinate using definition of point in 3D line
         :return: None
         """
         self.settings = settings
@@ -32,29 +39,42 @@ class blast_connector(object):
         self.input_dir = self.settings.get(module_name)['input_dir']
         self.days_range = self.settings.get(module_name)['days_range']
         self.chainage_range = self.settings.get(module_name)['chainage_range']
-        self.start_time= datetime.now().replace(tzinfo=tzoffset('uln', 8 * 3600))
+        self.start_time = datetime.now().replace(tzinfo=tzoffset('uln',
+                                                                8*3600))
+
     def application(self):
         def connect_pitram(self):
-            """Returns a pd.DataFrame with blast related attributes, sourced from pitram DB. It filtered by days_old. The DataFrame was pre-processed to conform with latter matching algorithms.
-            :param module_name.connect_pitram: parameters to connect to Pitram MSSQL DB.
+            """Returns a pd.DataFrame with blast related attributes, sourced
+            from pitram DB. It filtered by days_old. The DataFrame was
+            pre-processed to conform with latter matching algorithms.
+
+            :param module_name.connect_pitram: parameters to connect to Pitram
+            MSSQL DB.
             :raises [ErrorType]: [ErrorDescription]
             :return: a pd.DataFrame filtered by days_old in the config file
             :rtype: pd.DataFrame
             """
-            self.host = self.settings.get(self.module_name)['connect_pitram']['host']
-            self.database = self.settings.get(self.module_name)['connect_pitram']['database']
-            self.user = self.settings.get(self.module_name)['connect_pitram']['user']
-            self.password = self.settings.get(self.module_name)['connect_pitram']['password']
-            self.port = self.settings.get(self.module_name)['connect_pitram']['port']
+            self.host = self.settings.get(self.module_name)[
+                'connect_pitram']['host']
+            self.database = self.settings.get(self.module_name)[
+                'connect_pitram']['database']
+            self.user = self.settings.get(self.module_name)[
+                'connect_pitram']['user']
+            self.password = self.settings.get(self.module_name)[
+                'connect_pitram']['password']
+            self.port = self.settings.get(self.module_name)[
+                'connect_pitram']['port']
             engine = create_engine("mssql+pyodbc://" +
                                    self.user + ":" + self.password + "@" +
                                    self.host + ":" + self.port + "/" +
-                                   self.database + "?driver=ODBC+Driver+13+for+SQL+Server")
+                                   self.database +
+                                   "?driver=ODBC+Driver+17+for+SQL+Server")
             conn = engine.connect()
             df_pitram = pd.read_sql(self.sql, conn)
 
             '''Data pre-processing
-            1. Formatting location of blasts in order to match Pitram with CaveCad
+            1. Formatting location of blasts in order to match Pitram with 
+            CaveCad  
             1.1 "Location_modified" indicates the location name without
             multi-attribute. The first round of matches takes the chainage and
             location into account. So, change in multi-atrribute will not
@@ -86,14 +106,15 @@ class blast_connector(object):
                 except Exception as e:
                     counter += 1
                     print(str(e) + " Pitram: " +
-                          str(counter) + " location(s) name was/were not recorded under right convention")
-                    blastlocation.append((date.replace("-", "")).replace("_", "")[0:4] +
-                                         "-" + (date.replace("-", ""))
+                          str(counter) + " location(s) name was/were not "
+                                         "recorded under right convention")
+                    blastlocation.append((date.replace("-", "")).replace(
+                        "_", "")[0:4] + "-" + (date.replace("-", ""))
                                          .replace("_", "")[4:8])
 
             df_pitram['Location_modified'] = blastlocation
-            '''1.2 'Location_modified_exact' refers actual location name. "-", "_", and
-            "____" are reformatted'''
+            '''1.2 'Location_modified_exact' refers actual location name. 
+            "-", "_", and  "____" are reformatted'''
             blastlocation = []
             for date in df_pitram['CycleLocation']:
                 counter = 0
@@ -103,8 +124,8 @@ class blast_connector(object):
                         blastlocation.append((date.replace("-", ""))
                                              .replace("_", "")[0:4] + "-" +
                                              (date.replace("-", ""))
-                                             .replace("_", "")[4:8] + "-" + "____" +
-                                             "-" + date.split('-')[3])
+                                             .replace("_", "")[4:8] + "-" +
+                                             "____" + "-" + date.split('-')[3])
                     elif (len((date.replace("-", "")).replace("_", "")) > 8) \
                             & ("_" not in (date.split('-')[2])):
                         blastlocation.append((date.replace("-", ""))
@@ -113,7 +134,7 @@ class blast_connector(object):
                                              .replace("_", "")[4:8] + "-" +
                                              date.split('-')[2] + "-" +
                                              date.split('-')[3])
-                    elif (len((date.replace("-", "")).replace("_", "")) <= 8):
+                    elif len((date.replace("-", "")).replace("_", "")) <= 8:
                         blastlocation.append((date.replace("-", ""))
                                              .replace("_", "")[0:4] + "-" +
                                              (date.replace("-", ""))
@@ -122,46 +143,58 @@ class blast_connector(object):
                 except Exception as e:
                     counter += 1
                     print(str(e) + " Pitram: " +
-                          str(counter) + " location(s) name was/were not recorded under right convention")
-                    blastlocation.append((date.replace("-", "")).replace("_", "")[0:4] +
-                                         "-" + (date.replace("-", ""))
-                                         .replace("_", "")[4:8])
+                          str(counter) + " location(s) name was/were not "
+                                         "recorded under right convention")
+                    blastlocation.append((date.replace("-", "")).replace(
+                        "_", "")[0:4] + "-" + (date.replace("-", ""))
+                        .replace("_", "")[4:8])
             df_pitram['Location_modified_exact'] = blastlocation
 
             # 2. Removing Pitram logged blasts which does not have timestamp.
-            endtime = datetime.now().replace(tzinfo=tzoffset('uln', 8 * 3600)).\
-                __format__("%m/%d/%y %H:%M:%S")
-            df_pitram = df_pitram[((df_pitram['BlastedTime'] <= endtime))].\
+            endtime = datetime.now().replace(tzinfo=
+                                             tzoffset('uln',
+                                                      8 * 3600))._format__("%m/%d/%y %H:%M:%S")
+            df_pitram = df_pitram[df_pitram['BlastedTime'] <= endtime].\
                 reset_index(drop=True)
-            df_pitram['UniqueID'] = list(map(lambda date, location: (str(date) + '/' +
-                                         location), df_pitram['BlastedTime'],
+            df_pitram['UniqueID'] = list(map(lambda date, location: (str(
+                date) + '/' + location), df_pitram['BlastedTime'],
                                          df_pitram['CycleLocation']))
             return df_pitram
         self.df_pitram = connect_pitram(self)
 
         def connect_cavecad(self):
-            """Returns a pd.DataFrame with blast related attributes, sourced from cavecad DB. it is filtered by days_old. The DataFrame was pre-processed to conform with latter matching algorithms.
-            :param module_name.connect_pitram: parameters to connect to Pitram MSSQL DB.
+            """Returns a pd.DataFrame with blast related attributes, sourced
+            from cavecad DB. it is filtered by days_old. The DataFrame was
+            pre-processed to conform with latter matching algorithms.
+            :param module_name.connect_pitram: parameters to connect to Pitram
+            MSSQL DB.
             :raises [ErrorType]: [ErrorDescription]
             :return: a pd.DataFrame filtered by days_old in the config file
             :rtype: pd.DataFrame
             """
-            self.host = self.settings.get(self.module_name)['connect_cavecad']['host']
-            self.database = self.settings.get(self.module_name)['connect_cavecad']['database']
-            self.user = self.settings.get(self.module_name)['connect_cavecad']['user']
-            self.password = self.settings.get(self.module_name)['connect_cavecad']['password']
-            self.port = self.settings.get(self.module_name)['connect_cavecad']['port']
+            self.host = self.settings.get(self.module_name)[
+                'connect_cavecad']['host']
+            self.database = self.settings.get(self.module_name)[
+                'connect_cavecad']['database']
+            self.user = self.settings.get(self.module_name)[
+                'connect_cavecad']['user']
+            self.password = self.settings.get(self.module_name)[
+                'connect_cavecad']['password']
+            self.port = self.settings.get(self.module_name)[
+                'connect_cavecad']['port']
 
             engine = create_engine("mssql+pyodbc://" +
                                    self.user + ":" + self.password + "@" +
                                    self.host + ":" + self.port + "/" +
-                                   self.database + "?driver=ODBC+Driver+13+for+SQL+Server")
+                                   self.database +
+                                   "?driver=ODBC+Driver+17+for+SQL+Server")
             conn = engine.connect()
             sql = '''prc_ExcavationAttributes'''
 
             df = pd.read_sql(sql, conn)[['LOMDriveName',
-                                         'ChainageFrom', 'ChainageTo', 'FromX', 'FromY',
-                                         'FromZ', 'ToX', 'ToY', 'ToZ', 'Date Fired',
+                                         'ChainageFrom', 'ChainageTo',
+                                         'FromX', 'FromY', 'FromZ', 'ToX',
+                                         'ToY', 'ToZ', 'Date Fired',
                                          'ExcavationDate']]
             conn.begin().commit()
             conn.close()
@@ -172,11 +205,13 @@ class blast_connector(object):
                      .__format__("%Y-%m-%d"))].reset_index(drop=True)
 
             '''Data pre-processing
-            1. Formatting Location of Data in order to match CaveCad with Pitram
+            1. Formatting Location of Data in order to match CaveCad with 
+            Pitram 
             1.1 "Location_modified" indicates the location name without
-            multi-attribute.The first round of the matches takes the chainage and
-            location into account. So, change in multi-atrribute (which does not
-            make the chainage to alter) in the drive will not affect accuracy of match.
+            multi-attribute.The first round of the matches takes the 
+            chainage and location into account. So, change in 
+            multi-atrribute (which does not make the chainage to alter) in 
+            the drive will not affect accuracy of match. 
             '''
 
             blastlocation = []
@@ -212,7 +247,8 @@ class blast_connector(object):
                 except Exception as e:
                     counter += 1
                     print(str(e) + " CaveCad: " +
-                          str(counter) + " location(s) name was/were not recorded under right convention")
+                          str(counter) + " location(s) name was/were not "
+                                         "recorded under right convention")
                     blastlocation.append(date)
 
             df['Location_modified'] = blastlocation
@@ -253,7 +289,8 @@ class blast_connector(object):
                 except Exception as e:
                     counter += 1
                     print(str(e) + " CaveCad: " +
-                          str(counter) + " location(s) name was/were not recorded under right convention")
+                          str(counter) + " location(s) name was/were not "
+                                         "recorded under right convention")
                     blastlocation.append(date)
 
             df['Location_modified_exact'] = blastlocation
@@ -269,11 +306,12 @@ class blast_connector(object):
         '''Get_unmatched_Data and approximate match from last iteration to the
         new iteration in order to reduce amount of data to match'''
 
-
         def append_unmatched_approximate(self):
-            """Calling matched blast_log from last iterations [sqlite db] and exclude those from this
-            iteration [df_pitram] using primary key. Contrarily, fetching unmatched data from last iteration
-            [sqlite db] and append it to newly generated blasts [df_pitram]. if the sqlite db does not exist, create an empty one.
+            """Calling matched blast_log from last iterations [sqlite db]
+            and exclude those from this iteration [df_pitram] using primary
+            key. Contrarily, fetching unmatched data from last iteration
+            [sqlite db] and append it to newly generated blasts [df_pitram].
+            if the sqlite db does not exist, create an empty one.
 
             :raises [ErrorType]: [ErrorDescription]
             :return: modified connect_pitram [df_pitram] pd.DataFrame
@@ -281,7 +319,8 @@ class blast_connector(object):
             """
             df_pitram = self.df_pitram
             try:
-                engine = create_engine("sqlite:///" + self.input_dir, echo=False)
+                engine = create_engine("sqlite:///" + self.input_dir,
+                                       echo=False)
                 conn = engine.connect()
                 sql = '''Select
                 * FROM Matched_Blasts
@@ -318,7 +357,8 @@ class blast_connector(object):
                 conn.begin().commit()
                 conn.close()
                 engine.dispose()
-                engine = create_engine("sqlite:///" + self.input_dir, echo=False)
+                engine = create_engine("sqlite:///" + self.input_dir,
+                                       echo=False)
                 conn = engine.connect()
                 meta = MetaData()
                 Matched_Blasts = Table(
@@ -375,9 +415,14 @@ class blast_connector(object):
         self.df_pitram = append_unmatched_approximate(self)
 
         def merge_on_chainage_exact(self):
-            """Iteration #1 - Merging based on matching chainage and location in both connect_cavecad (coordinate) and connect_pitram (blast date and time)
+            """Iteration #1 - Merging based on matching chainage and
+            location in both connect_cavecad (coordinate) and connect_pitram
+            (blast date and time)
             :raises [ErrorType]: [ErrorDescription]
-            :return: tuple (df_matched_accurate - accurately matched set of blasts, index1 - index of them in initial connect_pitram [df_pitram] to exclude them in next iterations, df_unmatched - remaining unmatched blast_logs in connect_pitram [pitram])
+            :return: tuple (df_matched_accurate - accurately matched set of
+            blasts, index1 - index of them in initial connect_pitram
+            [df_pitram] to exclude them in next iterations, df_unmatched -
+            ]remaining unmatched blast_logs in connect_pitram [pitram])
             :rtype: tuple(pd.DataFrame, list, pd.DataFrame)
             """
             data = {}
@@ -393,7 +438,8 @@ class blast_connector(object):
             data["Correctness"] = []
             data["Min_Error"] = []
             index1 = []
-            # Location must match. Chainage must be within the Pitram chainage range.
+            # Location must match. Chainage must be within the Pitram
+            # chainage range.
             df_pitram = self.df_pitram
             df = self.df
             for i in range(0, len(df)):
@@ -428,18 +474,24 @@ class blast_connector(object):
         self.index1 = merge_on_chainage_exact(self)[1]
         self.df_unmatched = merge_on_chainage_exact(self)[2]
 
-
         def merge_on_matched_date_approximate(self):
-            """Iteration #2 - approximate matching on "df_matched_accurate" - connect_pitram with coordinate
-                                and left unmatched blast logs - connect_pitram without coordinate.
+            """Iteration #2 - approximate matching on "df_matched_accurate" -
+            connect_pitram with coordinate and left unmatched blast logs -
+            connect_pitram without coordinate.
 
-            Unmatched blasts which blasted within 2 weeks of "df_matched_accurate" blasts; then, adopt their coordinate
-            as approximate - Heading name must match, blasted date must be within days_range [scenario: 5 heading in 2 weeks = 25m].
-            Once the Geotechnical Data Management team process the blast, this approximate
-            coordinate can be replaced by accurate blast coordinate in next iteration.
+            Unmatched blasts which blasted within 2 weeks of
+            "df_matched_accurate" blasts; then, adopt their coordinate
+            as approximate - Heading name must match, blasted date must be
+            within days_range [scenario: 5 heading in 2 weeks = 25m].
+            Once the Geotechnical Data Management team process the blast,
+            this approximate coordinate can be replaced by accurate blast
+            coordinate in next iteration.
 
             :raises [ErrorType]: [ErrorDescription]
-            :return: tuple (df_matched_approx_00 - approximately matched set of blasts, index2 - index of them in initial connect_pitram [df_pitram] to exclude them in next iterations, df_unmatched - remaining unmatched blast_logs in connect_pitram [pitram])
+            :return: tuple (df_matched_approx_00 - approximately matched set of
+            blasts, index2 - index of them in initial connect_pitram
+            [df_pitram] to exclude them in next iterations, df_unmatched -
+            remaining unmatched blast_logs in connect_pitram [pitram])
             :rtype: tuple(pd.DataFrame, list, pd.DataFrame)
             """
             data = {}
@@ -497,24 +549,34 @@ class blast_connector(object):
         self.index2 = merge_on_matched_date_approximate(self)[1]
         self.df_unmatched = merge_on_matched_date_approximate(self)[2]
 
-
         def merge_on_predictive_mode_approximate(self):
             """Iteration #3 - Finding coordinate of blast based on predictive mode.
 
-                The coordinates of accurate 2 adjacent blasts can make a 3D line.Or an accurate blast's "from" and "to"
-                [connect_cavecad] coordinates will make 3D line either. As the majority of the drives are straight, it is safe
-                to assume that blast with chainage and without coordinate can be predicted using definition of point in
-                3D line - see func() below. If the unknown blasts's chainage is within within 30m range [chainge_range] of
-                known blasts chainage, it is considered here. Once the Geotechnical Data Management team process the blast,
-                this approximate coordinate can be replaced by accurate blast coordinate in next iteration.
-                Note: even if it is ramp, the 30m still is reasonable range for deviation]
+                The coordinates of accurate 2 adjacent blasts can make a 3D
+                line.Or an accurate blast's "from" and "to"
+                [connect_cavecad] coordinates will make 3D line either. As
+                the majority of the drives are straight, it is safe
+                to assume that blast with chainage and without coordinate
+                can be predicted using definition of point in
+                3D line - see func() below. If the unknown blasts's chainage is
+                within within 30m range [chainge_range] of
+                known blasts chainage, it is considered here. Once the
+                Geotechnical Data Management team process the blast,
+                this approximate coordinate can be replaced by accurate blast
+                coordinate in next iteration.
+                Note: even if it is ramp, the 30m still is reasonable range
+                for deviation]
 
             :raises [ErrorType]: [ErrorDescription]
-            :return: tuple (df_matched_approx_00 - approximately matched set of blasts, index3 - index of them in initial connect_pitram [df_pitram] to exclude them in next iterations, df_unmatched - remaining unmatched blast_logs in connect_pitram [pitram])
+            :return: tuple (df_matched_approx_00 - approximately matched set of
+             blasts, index3 - index of them in initial connect_pitram
+             [df_pitram] to exclude them in next iterations, df_unmatched -
+             remaining unmatched blast_logs in connect_pitram [pitram])
             :rtype: tuple(df_matched_approx_01, list, pd.DataFrame)
             """
             def func(x1, y1, z1, x2, y2, z2, m1, m2, m3):
-                """Calculating point in 3D line using distance between points and coordinate of 2 points.
+                """Calculating point in 3D line using distance between points
+                and coordinate of 2 points.
 
                 :param x1:  A float, Easting of the known coorinate #1
                 :type x1: float, required
@@ -708,23 +770,33 @@ class blast_connector(object):
             df_unmatched.reset_index(drop=True, inplace=True)
 
             return df_matched_approx_01, index3, df_unmatched
+
         self.df_matched_approx_01 = merge_on_predictive_mode_approximate(self)[0]
         self.index3 = merge_on_predictive_mode_approximate(self)[1]
         self.df_unmatched = merge_on_predictive_mode_approximate(self)[2]
 
         def merge_on_cavecad_processed_date_approximate(self):
-            """Iteration #4 - approximate matching unmatched blasts [connect_pitram] on connect_cavecad.
-                Heading name must match and blasted date must be within days_range [scenario: 5 heading in 2 weeks = 25m]
+            """Iteration #4 - approximate matching unmatched blasts [
+            connect_pitram] on connect_cavecad.
+                Heading name must match and blasted date must be within
+                days_range [scenario: 5 heading in 2 weeks = 25m]
 
-                The day, Data Management team finished processing the scanning, was logged in CaveCad as
-                "ExcavationDate". Even though there are "Date Fired" attribute, it has shown inconsistent
-                formatting and varying accuracy while "ExcavationDate" was appended without human interference.
-                Therefore, "BlastedTime" [connect_pitram]and  "ExcavationDate" were matched.
+                The day, Data Management team finished processing the
+                scanning, was logged in CaveCad as
+                "ExcavationDate". Even though there are "Date Fired"
+                attribute, it has shown inconsistent
+                formatting and varying accuracy while "ExcavationDate" was
+                appended without human interference.
+                Therefore, "BlastedTime" [connect_pitram]and
+                "ExcavationDate" were matched.
 
-                Iterations are finished here: Results from all iterations are combined here.
+                Iterations are finished here: Results from all iterations
+                are combined here.
 
             :raises [ErrorType]: [ErrorDescription]
-            :return: tuple (df_unmatched - left unmatched blasts from connect pitram, df_matched_all - combining all blasts with coordinate)
+            :return: tuple (df_unmatched - left unmatched blasts from
+            connect pitram, df_matched_all - combining all blasts with
+            coordinate)
             :rtype: tuple(df_unmatched, df_matched_all)
             """
             data = {}
@@ -783,13 +855,15 @@ class blast_connector(object):
             df_matched_accurate = self.df_matched_accurate
             df_matched_approx_00 = self.df_matched_approx_00
             df_matched_approx_01 = self.df_matched_approx_01
-            df_matched_all = df_matched_accurate.append([df_matched_approx_00, df_matched_approx_01,
-                                                        df_matched_approx_02], sort=False)
+            df_matched_all = df_matched_accurate.append([
+                df_matched_approx_00, df_matched_approx_01,
+                df_matched_approx_02], sort=False)
             df_matched_all.reset_index(drop=True, inplace=True)
 
 
-            df_matched_all['UniqueID'] = list(map(lambda date, location: (str(date) + '/' + location),
-                                              df_matched_all['BlastedTime'], df_matched_all['CycleLocation']))
+            df_matched_all['UniqueID'] = list(map(lambda date, location: (
+                    str(date) + '/' + location), df_matched_all[
+                'BlastedTime'], df_matched_all['CycleLocation']))
 
             return df_unmatched, df_matched_all
         self.df_unmatched = merge_on_cavecad_processed_date_approximate(self)[0]
@@ -806,7 +880,8 @@ class blast_connector(object):
             df_matched_all = self.df_matched_all
             df_unmatched = self.df_unmatched
             for i in range(0, len(df_matched_all)):
-                conn.execute('REPLACE into Matched_Blasts values (?,?,?,?,?,?,?,?,?,?)',
+                conn.execute('REPLACE into Matched_Blasts values (?,?,?,?,?,'
+                             '?,?,?,?,?)',
                              [str(df_matched_all['BlastedTime'][i]),
                               df_matched_all['ChainageFrom'][i],
                               df_matched_all['ChainageTo'][i],
@@ -818,7 +893,8 @@ class blast_connector(object):
                               df_matched_all['UniqueID'][i]])
 
             for i in range(0, len(df_unmatched)):
-                conn.execute('REPLACE into Unmatched_Blasts values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                conn.execute('REPLACE into Unmatched_Blasts values (?,?,?,?,'
+                             '?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
                              [df_unmatched['MineCycleID'][i],
                               df_unmatched['CycleLocation'][i],
                               str(df_unmatched['CycleStartDate'][i]),
@@ -845,6 +921,9 @@ class blast_connector(object):
             conn.begin().commit()
             conn.close()
             engine.dispose()
-            self.end_time= datetime.now().replace(tzinfo=tzoffset('uln', 8 * 3600))
-            return print("TIME to update SQLite: {}".format(self.end_time - self.start_time))
-        return print("Successfully updated SQLite database"), write_to_sql(self)
+            self.end_time= datetime.now().replace(tzinfo=tzoffset('uln',
+                                                                  8 * 3600))
+            return print("TIME to update SQLite: {}".format(self.end_time -
+                                                            self.start_time))
+        return print("Successfully updated SQLite database"), write_to_sql(
+            self)
