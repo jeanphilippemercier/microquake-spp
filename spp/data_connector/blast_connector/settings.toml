@@ -1,15 +1,14 @@
 [default]
 
-blast_connector.connect_pitram.host = 'mnoytsql15'
+blast_connector.connect_pitram.host = 'mnoytsql15.corp.riotinto.org'
 blast_connector.connect_pitram.database = 'PITRAMReporting'
 blast_connector.connect_pitram.user = 'Psreportreader'
 blast_connector.connect_pitram.password = "KFR7T4LWwk"
 blast_connector.connect_pitram.port = '1433'
 
-
 blast_connector.days_old=60
 
-blast_connector.connect_cavecad.host = 'mnoytsql42'
+blast_connector.connect_cavecad.host = 'mnoytsql42.corp.riotinto.org'
 blast_connector.connect_cavecad.database = 'CaveCadOT'
 blast_connector.connect_cavecad.user = 'localVizCaveCad'
 blast_connector.connect_cavecad.password = 'g5gHd319wtOT'
@@ -17,4 +16,4 @@ blast_connector.connect_cavecad.port = '1433'
 
 blast_connector.days_range=14
 blast_connector.chainage_range=30
-blast_connector.input_dir = '\\tuul\Data\UndergroundOperations\10.0 Geosciences\Geotechnical\27 Monitoring\20_Personnal_Folders\Munkhtsolmon.M\scripts\blast\Blast_Log.db'
+blast_connector.input_dir = '/app/common/Blast_Log.db'

@@ -289,7 +289,8 @@ def send_to_api(event_id, **kwargs):
     response = None
 
     try:
-        response = post_data_from_objects(api_base_url, event_id=None,
+        response = post_data_from_objects(api_base_url,
+                                          network_code, event_id=None,
                                           cat=event['catalogue'],
                                           stream=event['fixed_length'],
                                           context=event['context'],
