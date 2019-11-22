@@ -82,10 +82,10 @@ init_time = time()
 
 def heartbeat():
     import requests
-    base_url = settings.get('API_BASE_URL')
-    if base_url[-1] == '/':
-        base_url = base_url[:-1]
-    url = base_url + '/inventory/heartbeat'
+    api_base_url = settings.get('API_BASE_URL')
+    if api_base_url[-1] == '/':
+        api_base_url = api_base_url[:-1]
+    url = api_base_url + '/inventory/heartbeat'
     return requests.post(url, json={'source': 'event_connector'})
 
 
@@ -107,7 +107,7 @@ while time() - init_time < 600:
 
     logger.info('retrieving catalogue from the IMS system')
     cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
-                                    utc, accepted=False, manual=False)
+                                   utc, accepted=False, manual=False)
 
     logger.info('done retrieving catalogue')
     logger.info('recovered {} events'.format(len(cat)))

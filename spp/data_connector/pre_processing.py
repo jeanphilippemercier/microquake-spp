@@ -177,7 +177,7 @@ def interloc_election(cat):
         interloc_processor = interloc.Processor()
         results = interloc_processor.process(stream=clean_wf)
         new_cat = interloc_processor.output_catalog(cat)
-        results['catalog'] = new_cat
+        results['catalog'] = new_cat.copy()
         interloc_results.append(results)
         wfs.append(wf)
         thresholds.append(results['normed_vmax'])
@@ -238,7 +238,13 @@ def get_waveforms(interloc_dict, event):
                                             [stations[i]], utc,
                                             network=network_code)
 
+        if not context:
+            continue
+
         context.filter('bandpass', **context_trace_filter)
+
+        if np.any(np.isnan(context.composite()[0].data)):
+            continue
 
         if context:
             break
@@ -321,12 +327,12 @@ def send_to_api(event_id, **kwargs):
     record_processing_logs_pg(evt, 'success', processing_step,
                               processing_step_id, processing_time)
 
-    if (cat[0].event_type == 'earthquake') or (cat[0].event_type ==
-                                               'explosion'):
-        logger.info('automatic processing')
-        cat_auto = automatic_pipeline(cat=cat, stream=fixed_length)
-
-        put_data_from_objects(api_base_url, cat=cat_auto)
+    # if (cat[0].event_type == 'earthquake') or (cat[0].event_type ==
+    #                                            'explosion'):
+    #     logger.info('automatic processing')
+    #     cat_auto = automatic_pipeline(cat=cat, stream=fixed_length)
+    #
+    #     put_data_from_objects(api_base_url, cat=cat_auto)
 
     return response
 
@@ -467,7 +473,7 @@ def pre_process(event_id, force_send_to_api=False,
 
         return
 
-    new_cat = interloc_results['catalog']
+    new_cat = interloc_results['catalog'].copy()
     new_cat[0].preferred_origin().evaluation_status = 'preliminary'
     waveforms = get_waveforms(interloc_results, new_cat)
     waveforms['variable_length'] = variable_length_wf
@@ -524,8 +530,7 @@ def pre_process(event_id, force_send_to_api=False,
             send_to_api,
             event_id=event_id,
             network=network_code,
-            send_to_bus=False,
-            # send_to_bus=send_automatic or force_send_to_automatic,
+            send_to_bus=send_automatic or force_send_to_automatic,
         )
         logger.info('event save to the API')
 
@@ -536,4 +541,4 @@ def pre_process(event_id, force_send_to_api=False,
 
     logger.info('pre processing completed')
 
-    return result
+    return dict_out
