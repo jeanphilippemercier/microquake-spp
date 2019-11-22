@@ -22,8 +22,9 @@ api_base_url = settings.get('API_BASE_URL')
 if api_base_url[-1] == '/':
     api_base_url = api_base_url[:-1]
 
-api_url = api_base_url + '/inventory/sensors'
-response = requests.get(api_url)
+api_url_sensors = api_base_url + '/inventory/sensors'
+api_url = api_base_url + '/signal_quality'
+response = requests.get(api_url_sensors)
 
 sensors = json.loads(response.content)['results']
 
@@ -44,10 +45,16 @@ for sensor in sensors:
 
     # st = get_continuous_data(starttime, endtime, sensor_id=str(sensor['code']))
 
-    signal_quality['sensor'] = sensor['id']
+    signal_quality['sensor_code'] = sensor['id']
     if len(st) == 0:
-        requests.patch(api_url + f'/{sensor["id"]}', json=sensor)
+        r = requests.post(api_url, json=signal_quality)
         continue
+
+        if r:
+            logger.info(f'successfully posted to the API')
+        else:
+            logger.info(f'post failed, the API responded with code '
+                        f'{r.status_code}')
 
     try:
         st = st.detrend('demean').detrend('linear')
@@ -58,17 +65,24 @@ for sensor in sensors:
             st[i].data = np.nan_to_num(st[i].data)
         st = st.detrend('demean').detrend('linear')
     c = st.composite()
+
     expected_signal_length = c[0].stats.sampling_rate * signal_duration_seconds
+    integrity = np.ceil(len(c[0].data) / expected_signal_length)
+
     signal_quality['energy'] = str(np.std(c[0].data))
-    signal_quality['integrity'] = str(len(c[0].data) / expected_signal_length)
+    signal_quality['integrity'] = str(integrity)
     signal_quality['sampling_rate'] = str(c[0].stats.sampling_rate)
     signal_quality['amplitude'] = str(np.max(np.abs(c[0].data)))
     signal_quality['num_sample'] = str(len(c[0]))
 
-    sensor['signal_quality'] = signal_quality
-
     integrity = int(float(signal_quality['integrity']) * 100)
     logger.info(f'signal recovery is {integrity} %')
 
-    requests.patch(api_url + f'/{sensor["id"]}', json=sensor)
+    r = requests.post(api_url, json=signal_quality)
+
+    if r:
+        logger.info(f'successfully posted to the API')
+    else:
+        logger.info(f'post failed, the API responded with code '
+                    f'{r.status_code}')
 

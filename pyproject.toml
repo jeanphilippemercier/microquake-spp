@@ -61,8 +61,9 @@ skidmarks = "^0.0.6"
 cachier = "^1.2"
 walrus = "^0.7.1"
 xseis2 = "^0.1.8"
-microquake = "^0.1.196"
+microquake = "^0.1.199"
 timeloop = "^1.0.2"
+pyodbc = "^4.0.27"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
