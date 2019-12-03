@@ -43,9 +43,7 @@ for sensor in sensors:
                                    [str(sensor['code'])], utc,
                                    network=network_code)
 
-    # st = get_continuous_data(starttime, endtime, sensor_id=str(sensor['code']))
-
-    signal_quality['sensor_code'] = sensor['id']
+    signal_quality['sensor_code'] = sensor['code']
     if len(st) == 0:
         r = requests.post(api_url, json=signal_quality)
         continue
@@ -67,7 +65,7 @@ for sensor in sensors:
     c = st.composite()
 
     expected_signal_length = c[0].stats.sampling_rate * signal_duration_seconds
-    integrity = np.ceil(len(c[0].data) / expected_signal_length)
+    integrity = len(c[0].data) / expected_signal_length
 
     signal_quality['energy'] = str(np.std(c[0].data))
     signal_quality['integrity'] = str(integrity)
