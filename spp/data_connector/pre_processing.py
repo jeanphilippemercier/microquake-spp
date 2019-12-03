@@ -148,8 +148,8 @@ def interloc_election(cat):
     thresholds = []
     wfs = []
 
-    starttime = event_time - timedelta(seconds=-5)
-    endtime = event_time + timedelta(seconds=5)
+    starttime = event_time - timedelta(seconds=10)
+    endtime = event_time + timedelta(seconds=10)
 
     complete_wf = extract_continuous(starttime, endtime)
 
