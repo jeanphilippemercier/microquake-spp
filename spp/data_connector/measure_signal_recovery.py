@@ -22,7 +22,7 @@ api_base_url = settings.get('API_BASE_URL')
 if api_base_url[-1] == '/':
     api_base_url = api_base_url[:-1]
 
-api_url_sensors = api_base_url + '/inventory/sensors'
+api_url_sensors = api_base_url + '/inventory/sensors?page_size=1000'
 api_url = api_base_url + '/signal_quality'
 response = requests.get(api_url_sensors)
 
