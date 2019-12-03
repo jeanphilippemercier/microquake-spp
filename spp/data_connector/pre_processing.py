@@ -183,7 +183,7 @@ def interloc_election(cat):
 
     index = np.argmax(thresholds)
 
-    cat_out = interloc_results[index]['catalog']
+    cat_out = interloc_results[index]['catalog'].copy()
 
     logger.info('Event location: {}'.format(cat_out[0].preferred_origin().loc))
     logger.info('Event time: {}'.format(cat_out[0].preferred_origin().time))
