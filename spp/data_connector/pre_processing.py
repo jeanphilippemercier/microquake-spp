@@ -157,7 +157,6 @@ def interloc_election(cat):
                                         max_length=0.01).filter('bandpass',
                                                                 freqmin=60,
                                                                 freqmax=500)
-    cats =
     for offset in [-3.5, -2.5, -1, -0.5, 1.5, 2.5]:
         starttime = event_time + timedelta(seconds=offset)
         endtime = starttime + timedelta(seconds=2)
