@@ -157,7 +157,7 @@ def interloc_election(cat):
                                         max_length=0.01).filter('bandpass',
                                                                 freqmin=60,
                                                                 freqmax=500)
-
+    cats =
     for offset in [-3.5, -2.5, -1, -0.5, 1.5, 2.5]:
         starttime = event_time + timedelta(seconds=offset)
         endtime = starttime + timedelta(seconds=2)
@@ -184,8 +184,10 @@ def interloc_election(cat):
 
     index = np.argmax(thresholds)
 
-    logger.info('Event location: {}'.format(new_cat[0].preferred_origin().loc))
-    logger.info('Event time: {}'.format(new_cat[0].preferred_origin().time))
+    cat_out = interloc_results[index]['catalog']
+
+    logger.info('Event location: {}'.format(cat_out[0].preferred_origin().loc))
+    logger.info('Event time: {}'.format(cat_out[0].preferred_origin().time))
 
     return interloc_results[index]
 
