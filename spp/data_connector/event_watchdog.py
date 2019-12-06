@@ -38,7 +38,7 @@ base_url = settings.get('ims_base_url')
 
 we_message_queue = settings.PRE_PROCESSING_MESSAGE_QUEUE
 we_job_queue = RedisQueue(we_message_queue)
-
+we_job_queue_slow = RedisQueue(we_message_queue + '.low_priority')
 
 def get_starttime():
     query = db.select([db.func.max(
@@ -133,8 +133,17 @@ while time() - init_time < 600:
                         'message_queue'.format(event.resource_id.id,
                                                we_message_queue))
             set_event(event_id, catalogue=event.copy())
-
+            
             result = we_job_queue.submit_task(pre_process, event_id=event_id)
+            
+            for i, offsets in enumerate([-5, -4, -3, -2, 1, 2, 3]):
+                event2 = event.copy()
+                event.resource_id.id += f'_{i}'
+                event_id = event.resource_id.id
+                event.preferred_origin().time += offset
+                set_event(event_id, catalogue=event.copy())
+                result2 = we_job_queue_slow.submit_task(pre_process, 
+                                                        event_id=event_id)
 
             status = 'success'
 
