@@ -136,7 +136,7 @@ while time() - init_time < 600:
             
             result = we_job_queue.submit_task(pre_process, event_id=event_id)
             
-            for i, offsets in enumerate([-5, -4, -3, -2, 1, 2, 3]):
+            for i, offset in enumerate([-5, -4, -3, -2, 1, 2, 3]):
                 event2 = event.copy()
                 event.resource_id.id += f'_{i}'
                 event_id = event.resource_id.id
