@@ -157,7 +157,7 @@ def interloc_election(cat):
                                         max_length=0.01).filter('bandpass',
                                                                 freqmin=60,
                                                                 freqmax=500)
-    for offset in [-0.5]:
+    for offset in [-1.5, -0.5, 0.5]:
         starttime = event_time + timedelta(seconds=offset)
         endtime = starttime + timedelta(seconds=2)
 
@@ -302,7 +302,7 @@ def send_to_api(event_id, **kwargs):
                                           stream=event['fixed_length'],
                                           context=event['context'],
                                           variable_length=event['variable_length'],
-                                          tolerance=None,
+                                          tolerance=0.5,
                                           send_to_bus=send_to_bus)
 
     except requests.exceptions.RequestException as e:
