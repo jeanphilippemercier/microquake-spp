@@ -44,5 +44,7 @@ for i, event in enumerate(sorted_cat):
                                                kwargs={'force_send_to_api':
                                                        True,
                                                        'force_send_to_automatic':
+                                                       True,
+                                                       'force_accept':
                                                        True})
         ct += 1

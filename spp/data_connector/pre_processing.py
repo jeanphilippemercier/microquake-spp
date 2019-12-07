@@ -157,7 +157,7 @@ def interloc_election(cat):
                                         max_length=0.01).filter('bandpass',
                                                                 freqmin=60,
                                                                 freqmax=500)
-    for offset in [-1.5, -0.5, 0.5]:
+    for offset in [-0.5]:
         starttime = event_time + timedelta(seconds=offset)
         endtime = starttime + timedelta(seconds=2)
 
@@ -436,7 +436,8 @@ def event_classification(cat, fixed_length, context, event_types_lookup):
 
 
 def pre_process(event_id, force_send_to_api=False,
-                force_send_to_automatic=False, **kwargs):
+                force_send_to_automatic=False,
+                force_accept=False, **kwargs):
 
     start_processing_time = time()
 
@@ -520,6 +521,9 @@ def pre_process(event_id, force_send_to_api=False,
                                                              fixed_length,
                                                              context,
                                                              event_types_lookup)
+
+    if force_accept:
+        new_cat[0].evaluation_status = 'preliminary'
 
     dict_out = waveforms
     dict_out['catalogue'] = new_cat

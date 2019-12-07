@@ -20,6 +20,7 @@ from microquake.db.connectors import (RedisQueue, connect_postgres,
                                       record_processing_logs_pg)
 from microquake.db.models.alchemy import processing_logs
 from microquake.db.models.redis import set_event
+from obspy.core.event import ResourceIdentifier
 from spp.data_connector import pre_processing
 from spp.data_connector.pre_processing import pre_process
 
@@ -136,9 +137,9 @@ while time() - init_time < 600:
             
             result = we_job_queue.submit_task(pre_process, event_id=event_id)
             
-            for i, offset in enumerate([-5, -4, -3, -2, 1, 2, 3]):
+            for i, offset in enumerate([-5, -3, -1, 1, 3, 5]):
                 event2 = event.copy()
-                event.resource_id.id += f'_{i}'
+                event.resource_id.id = ResourceIdentifier()
                 event_id = event.resource_id.id
                 event.preferred_origin().time += offset
                 set_event(event_id, catalogue=event.copy())
