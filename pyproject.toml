@@ -61,7 +61,7 @@ skidmarks = "^0.0.6"
 cachier = "^1.2"
 walrus = "^0.7.1"
 xseis2 = "^0.1.8"
-microquake = "^0.1.205"
+microquake = "^0.1.206"
 timeloop = "^1.0.2"
 
 [tool.poetry.dev-dependencies]

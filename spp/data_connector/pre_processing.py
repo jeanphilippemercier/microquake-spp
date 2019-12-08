@@ -463,11 +463,9 @@ def event_classification(cat, fixed_length, context, event_types_lookup):
         cat[0].event_type = event_types_lookup[event_type]
         cat[0].preferred_origin().evaluation_status = 'rejected'
 
-        logger.info(f'event categorized as {event_type} but the event could '
-                    f'also be {sorted_list[1][0]} with a likelihood of '
-                    f'{sorted_list[1][1]}. The event will be marked '
-                    f'as rejected but uploaded to the API. The event will '
-                    f'be further processed.')
+        logger.info(f'event categorized as {event_type}. The event will be '
+                    f'marked as rejected but uploaded to the API. The event '
+                    f'will be further processed.')
         automatic_processing = True
         save_event = True
 
