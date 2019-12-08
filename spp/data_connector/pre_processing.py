@@ -26,6 +26,10 @@ from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.core.helpers.timescale_db import (get_continuous_data,
                                                   get_db_lag)
 from microquake.core.helpers.time import get_time_zone
+from datetime import datetime
+import json
+import requests
+from urllib.parse import urlencode
 
 import json
 
@@ -64,6 +68,39 @@ use_time_scale = settings.USE_TIMESCALE
 # tolerance for how many trace are not recovered
 minimum_recovery_fraction = settings.get(
     'data_connector').minimum_recovery_fraction
+
+
+def event_within_tolerance(event_time, tolerance=0.5):
+    """
+    Return true if there is an event in the catalog within <tolerance>
+    seconds of the event time
+    :param time:
+    :param tolerance:
+    :return:
+    """
+
+    api_base_url = settings.get('api_base_url')
+
+    if isinstance(event_time, datetime):
+        event_time = UTCDateTime(event_time)
+
+    start_time = event_time - 0.25
+    end_time = event_time + 0.25
+
+    query = urlencode({'time_utc_after': start_time,
+                       'time_utc_before': end_time})
+
+    if api_base_url[-1] != '/':
+        api_base_url += '/'
+
+    url = f'{api_base_url}events?{query}'
+    # from pdb import set_trace; set_trace()
+    response = json.loads(requests.get(url).content)
+
+    if response['count']:
+        return True
+
+    return False
 
 
 def extract_continuous(starttime, endtime, sensor_id=None):
@@ -294,6 +331,9 @@ def send_to_api(event_id, **kwargs):
         event['attempt_number'] = 1
 
     response = None
+
+    if event_within_tolerance(event['catalogue'].preferred_origin().time):
+        return
 
     try:
         response = post_data_from_objects(api_base_url,
