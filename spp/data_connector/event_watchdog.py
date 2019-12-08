@@ -139,7 +139,7 @@ while time() - init_time < 600:
             
             for i, offset in enumerate([-5, -3, -1, 1, 3, 5]):
                 event2 = event.copy()
-                event.resource_id.id = ResourceIdentifier()
+                event.resource_id = ResourceIdentifier()
                 event_id = event.resource_id.id
                 event.preferred_origin().time += offset
                 set_event(event_id, catalogue=event.copy())
