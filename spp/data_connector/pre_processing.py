@@ -332,7 +332,7 @@ def send_to_api(event_id, **kwargs):
 
     response = None
 
-    if event_within_tolerance(event['catalogue'].preferred_origin().time):
+    if event_within_tolerance(event['catalogue'][0].preferred_origin().time):
         return
 
     try:
