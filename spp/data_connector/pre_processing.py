@@ -575,7 +575,7 @@ def pre_process(event_id, force_send_to_api=False,
                                                              event_types_lookup)
 
     if force_accept:
-        new_cat[0].evaluation_status = 'preliminary'
+        new_cat[0].preferred_origin().evaluation_status = 'preliminary'
 
     dict_out = waveforms
     dict_out['catalogue'] = new_cat
@@ -589,7 +589,7 @@ def pre_process(event_id, force_send_to_api=False,
             network=network_code,
             send_to_bus=send_automatic or force_send_to_automatic,
         )
-        logger.info('event save to the API')
+        logger.info('event will be saved to the API')
 
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
