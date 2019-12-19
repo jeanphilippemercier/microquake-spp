@@ -64,25 +64,25 @@ for i, event in enumerate(sorted_cat):
                                                    'force_accept':
                                                    True})
 
-    for i, offset in enumerate([-5, -3, -1, 1, 3, 5]):
-        event2 = event.copy()
-        event2.resource_id = ResourceIdentifier()
-        event_id = event2.resource_id.id
-
-        # changing the origin ids
-        po_id = event2.preferred_origin().resource_id.id
-        for j, origin in enumerate(event2.origins):
-            rid = ResourceIdentifier()
-            if event2.preferred_origin().resource_id.id == po_id:
-                event2.origins[j].resource_id = rid
-                event2.preferred_origin_id = rid
-
-            else:
-                event2.origins[j] = rid
-
-        event2.preferred_origin().time += offset
-        set_event(event_id, catalogue=event2.copy())
-        result2 = we_job_queue_low_priority.submit_task(pre_process,
-                                                        event_id=event_id)
+    # for i, offset in enumerate([-5, -3, -1, 1, 3, 5]):
+    #     event2 = event.copy()
+    #     event2.resource_id = ResourceIdentifier()
+    #     event_id = event2.resource_id.id
+    #
+    #     # changing the origin ids
+    #     po_id = event2.preferred_origin().resource_id.id
+    #     for j, origin in enumerate(event2.origins):
+    #         rid = ResourceIdentifier()
+    #         if event2.preferred_origin().resource_id.id == po_id:
+    #             event2.origins[j].resource_id = rid
+    #             event2.preferred_origin_id = rid
+    #
+    #         else:
+    #             event2.origins[j] = rid
+    #
+    #     event2.preferred_origin().time += offset
+    #     set_event(event_id, catalogue=event2.copy())
+    #     result2 = we_job_queue_low_priority.submit_task(pre_process,
+    #                                                     event_id=event_id)
 
     ct += 1

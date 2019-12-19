@@ -186,7 +186,7 @@ def interloc_election(cat):
     wfs = []
 
     starttime = event_time - timedelta(seconds=1.5)
-    endtime = event_time + timedelta(seconds=2.0)
+    endtime = event_time + timedelta(seconds=3.5)
 
     complete_wf = extract_continuous(starttime, endtime)
 
@@ -194,7 +194,7 @@ def interloc_election(cat):
                                         max_length=0.01).filter('bandpass',
                                                                 freqmin=60,
                                                                 freqmax=500)
-    for offset in [-1.5, -0.5, 0.5]:
+    for offset in [-1.5, -0.5, 0.5, 1.5]:
         starttime = event_time + timedelta(seconds=offset)
         endtime = starttime + timedelta(seconds=2)
 
