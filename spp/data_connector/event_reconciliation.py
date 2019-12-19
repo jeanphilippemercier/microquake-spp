@@ -35,40 +35,54 @@ sorted_cat = sorted(cat, reverse=True,
 
 for i, event in enumerate(sorted_cat):
     logger.info(f'processing event {i} of {len(cat)} -- ({i/len(cat) * 100}%)')
+
+    event_time = event.preferred_origin().time
+    tolerance = 0.5
+
+    start_time = event_time - tolerance
+    end_time = event_time + tolerance
+    re_list = api_client.get_events_catalog(api_base_url, start_time, end_time)
+
+    if re_list:
+        continue
+
     event_id = event.resource_id.id
-    if not api_client.get_event_by_id(api_base_url, event_id):
-        logger.info(f'sending event {ct} to the queue')
-        set_event(event_id, catalogue=event.copy())
-        logger.info(f'sending event with event id {event_id} to the '
-                    f'pre_processing queue')
-        result = we_job_queue.rq_queue.enqueue(pre_process,
-                                               args=(event_id,),
-                                               kwargs={'force_send_to_api':
-                                                       True,
-                                                       'force_send_to_automatic':
-                                                       True,
-                                                       'force_accept':
-                                                       True})
 
-        for i, offset in enumerate([-5, -3, -1, 1, 3, 5]):
-            event2 = event.copy()
-            event2.resource_id = ResourceIdentifier()
-            event_id = event2.resource_id.id
+    if api_client.get_event_by_id(api_base_url, event_id):
+        continue
 
-            # changing the origin ids
-            po_id = event2.preferred_origin().resource_id.id
-            for j, origin in enumerate(event2.origins):
-                rid = ResourceIdentifier()
-                if event2.preferred_origin().resource_id.id == po_id:
-                    event2.origins[j].resource_id = rid
-                    event2.preferred_origin_id = rid
+    logger.info(f'sending event {ct} to the queue')
+    set_event(event_id, catalogue=event.copy())
+    logger.info(f'sending event with event id {event_id} to the '
+                f'pre_processing queue')
+    result = we_job_queue.rq_queue.enqueue(pre_process,
+                                           args=(event_id,),
+                                           kwargs={'force_send_to_api':
+                                                   True,
+                                                   'force_send_to_automatic':
+                                                   True,
+                                                   'force_accept':
+                                                   True})
 
-                else:
-                    event2.origins[j] = rid
+    for i, offset in enumerate([-5, -3, -1, 1, 3, 5]):
+        event2 = event.copy()
+        event2.resource_id = ResourceIdentifier()
+        event_id = event2.resource_id.id
 
-            event2.preferred_origin().time += offset
-            set_event(event_id, catalogue=event2.copy())
-            result2 = we_job_queue_low_priority.submit_task(pre_process,
-                                                            event_id=event_id)
+        # changing the origin ids
+        po_id = event2.preferred_origin().resource_id.id
+        for j, origin in enumerate(event2.origins):
+            rid = ResourceIdentifier()
+            if event2.preferred_origin().resource_id.id == po_id:
+                event2.origins[j].resource_id = rid
+                event2.preferred_origin_id = rid
 
-        ct += 1
+            else:
+                event2.origins[j] = rid
+
+        event2.preferred_origin().time += offset
+        set_event(event_id, catalogue=event2.copy())
+        result2 = we_job_queue_low_priority.submit_task(pre_process,
+                                                        event_id=event_id)
+
+    ct += 1
