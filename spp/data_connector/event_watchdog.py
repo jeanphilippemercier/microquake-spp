@@ -23,6 +23,7 @@ from microquake.db.models.redis import set_event
 from obspy.core.event import ResourceIdentifier
 from spp.data_connector import pre_processing
 from spp.data_connector.pre_processing import pre_process
+from requests.exceptions import ConnectionError
 
 reload(pre_processing)
 
@@ -107,8 +108,13 @@ while time() - init_time < 600:
     starttime = get_starttime()
 
     logger.info('retrieving catalogue from the IMS system')
-    cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
-                                   utc, accepted=False, manual=False)
+    try:
+        cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
+                                       utc, accepted=False, manual=False)
+    except ConnectionError as ce:
+        logger.error(ce)
+        sleep(10)
+        continue
 
     logger.info('done retrieving catalogue')
     logger.info('recovered {} events'.format(len(cat)))
