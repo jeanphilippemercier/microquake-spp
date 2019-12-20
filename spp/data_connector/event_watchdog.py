@@ -109,13 +109,19 @@ while time() - init_time < 600:
 
     logger.info('retrieving catalogue from the IMS system')
     try:
+        signal.alarm(10)
         cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
                                        utc, accepted=False, manual=False)
     except RequestException as e:
         logger.error(e)
         sleep(10)
         continue
+    except TimeOutException as te:
+        logger('IMS request timed out')
+        continue
 
+
+    signal.alarm(0)
     logger.info('done retrieving catalogue')
     logger.info('recovered {} events'.format(len(cat)))
 
