@@ -23,7 +23,7 @@ from microquake.db.models.redis import set_event
 from obspy.core.event import ResourceIdentifier
 from spp.data_connector import pre_processing
 from spp.data_connector.pre_processing import pre_process
-from requests.exceptions import ConnectionError
+from requests.exceptions import RequestException
 
 reload(pre_processing)
 
@@ -111,8 +111,8 @@ while time() - init_time < 600:
     try:
         cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
                                        utc, accepted=False, manual=False)
-    except ConnectionError as ce:
-        logger.error(ce)
+    except RequestException as e:
+        logger.error(e)
         sleep(10)
         continue
 
