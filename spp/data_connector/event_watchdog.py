@@ -109,7 +109,7 @@ while time() - init_time < 600:
 
     logger.info('retrieving catalogue from the IMS system')
     try:
-        signal.alarm(10)
+        signal.alarm(60)
         cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
                                        utc, accepted=False, manual=False)
     except RequestException as e:
