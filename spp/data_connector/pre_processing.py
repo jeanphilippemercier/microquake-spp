@@ -484,6 +484,17 @@ def event_classification(cat, fixed_length, context, event_types_lookup):
         cat[0].event_type = event_types_lookup[event_type]
         cat[0].preferred_origin().evaluation_status = 'rejected'
 
+    # superseeding the above if the magnitude of the event is greater than
+    # 0. Unless the event is categorized as a blast, it will automatically
+    # be categorized as a "genuine" seismic event, automatically processed
+    # and saved.
+    if (cat[0].preferred_magnitude().mag > 0) and \
+       (event_type not in blast_event_types):
+        cat[0].event_type = event_types_lookup['seismic event']
+        cat[0].preferred_origin().evaluation_status = 'preliminary'
+        automatic_processing = True
+        save_event = True
+
     return cat, automatic_processing, save_event
 
 
