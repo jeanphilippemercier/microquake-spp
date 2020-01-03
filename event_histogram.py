@@ -1,0 +1,101 @@
+from microquake.clients.api_client import get_events_catalog
+from microquake.core.settings import settings
+from microquake.core.helpers.time import get_time_zone
+from datetime import datetime, timedelta
+from obspy.core import UTCDateTime
+from dateutil.parser import parse
+import matplotlib.pyplot as plt
+from matplotlib.dates import date2num
+import numpy as np
+import pandas as pd
+import argparse
+
+parser = argparse.ArgumentParser(description='create a event histogram '
+                                             'between a start date and an '
+                                             'end date')
+
+parser.add_argument('--starttime', type=str, help='start time in system '
+                                                  'local time')
+parser.add_argument('--endtime', type=str, help='end time in system local '
+                                                'time')
+
+parser.add_argument('--bin_size', type=str,
+                    help='binning period\n possible values: d, w, m '
+                         'representing day, week, and month, respectively ('
+                         'default=d')
+
+parser.add_argument('--output_file', type=str, help='file path with extension')
+
+args = parser.parse_args()
+
+if args.bin_size is not None:
+    bin_size = args.bin_size
+else:
+    bin_size = 'd'
+
+if bin_size == 'd':
+    fact = 1
+elif bin_size == 'w':
+    fact = 7
+elif bin_size == 'm':
+    fact = 30.5
+
+output_file = args.output_file
+
+tz = get_time_zone()
+
+base_url = settings.get('api_base_url')
+starttime = UTCDateTime(parse(args.starttime).replace(tzinfo=tz))
+endtime = UTCDateTime(parse(args.endtime).replace(tzinfo=tz))
+
+re = get_events_catalog(base_url, starttime, endtime, event_type='earthquake')
+
+df = pd.DataFrame()
+
+df['magnitude'] = np.array([event.magnitude for event in re])
+
+df['time'] = np.array([datetime.fromtimestamp(event.time_epoch/1e9)
+                      for event in re])
+
+df = df.set_index('time')
+
+df['c1'] = np.array(df['magnitude'] < -1).astype(np.int)
+df['c2'] = np.array((-1 <= df['magnitude']) &
+                    (df['magnitude'] < 0)).astype(
+    np.int)
+df['c3'] = np.array((0 <= df['magnitude']) &
+                    (df['magnitude'] < 1)).astype(np.int)
+df['c4'] = np.array(1 <= df['magnitude']).astype(np.int)
+
+df_cat = df.resample(f'1{bin_size}').sum()
+
+fig, ax = plt.subplots()
+p4 = ax.bar(df_cat.index, df_cat['c4'], width=0.8*fact, label='$M_w > 2$')
+p3 = ax.bar(df_cat.index, df_cat['c3'], width=0.8*fact, label='$M_w = [0, '
+                                                               '1)$')
+p2 = ax.bar(df_cat.index, df_cat['c2'], width=0.8*fact, label='$M_w = [-1, '
+                                                               '0)$')
+p1 = ax.bar(df_cat.index, df_cat['c1'], width=0.8*fact, label='$M_w < -1$')
+
+ax.set_ylabel('frequency')
+plt.xticks(rotation=20, ha='right')
+plt.legend()
+# ax.set_xlim([date2num(starttime.datetime), date2num(endtime.datetime)])
+plt.tight_layout()
+plt.savefig(output_file)
+plt.show()
+# category_boundaries = [-2, -1, 0, 1, 2]
+#
+# c1 = times[magnitudes < -1]
+# c2 = times[(magnitudes < 0) and (magnitudes >= -1)]
+# c3 = times[(magnitudes < 1) and (magnitudes >= 0)]
+# c4 = times[(magnitudes ]
+
+
+
+
+
+
+
+
+
