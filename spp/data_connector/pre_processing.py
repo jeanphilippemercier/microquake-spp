@@ -378,7 +378,7 @@ def send_to_api(event_id, **kwargs):
     return response
 
 
-def event_classification(cat, fixed_length, context, event_types_lookup):
+def event_classification(cat, mag, fixed_length, context, event_types_lookup):
 
     category = event_classifier.Processor().process(stream=fixed_length,
                                                     context=context,
@@ -424,8 +424,6 @@ def event_classification(cat, fixed_length, context, event_types_lookup):
             event_type = 'underground blast'
         else:
             event_type = 'other blast'
-
-    # from ipdb import set_trace; set_trace()
 
     if event_type in accepted_event_types:
 
@@ -488,8 +486,7 @@ def event_classification(cat, fixed_length, context, event_types_lookup):
     # 0. Unless the event is categorized as a blast, it will automatically
     # be categorized as a "genuine" seismic event, automatically processed
     # and saved.
-    if (cat[0].preferred_magnitude().mag > 0) and \
-       (event_type not in blast_event_types):
+    if (mag > 0) and (event_type not in blast_event_types):
         cat[0].event_type = event_types_lookup['seismic event']
         cat[0].preferred_origin().evaluation_status = 'preliminary'
         automatic_processing = True
@@ -567,8 +564,8 @@ def pre_process(event_id, force_send_to_api=False,
     context = waveforms['context']
 
     quick_magnitude_processor = quick_magnitude.Processor()
-    result = quick_magnitude_processor.process(stream=fixed_length,
-                                               cat=new_cat)
+    qmag, _, _ = quick_magnitude_processor.process(stream=fixed_length,
+                                                   cat=new_cat)
     new_cat = quick_magnitude_processor.output_catalog(new_cat)
 
     logger.info('calculating rays')
@@ -580,7 +577,8 @@ def pre_process(event_id, force_send_to_api=False,
     rt_processing_time = rt_end_time - rt_start_time
     logger.info(f'done calculating rays in {rt_processing_time} seconds')
 
-    new_cat, send_automatic, send_api = event_classification(new_cat,
+    new_cat, send_automatic, send_api = event_classification(new_cat.copy(),
+                                                             qmag,
                                                              fixed_length,
                                                              context,
                                                              event_types_lookup)

@@ -15,8 +15,8 @@ tz = get_time_zone()
 # months = ['04', '05', '06', '07', '08', '09', '10', '11']
 
 # for month in ['04', '05', '06', '07', '08', '09', '10', '11']:
-query = urlencode({'time_utc_after': f'2019-04-01T00:00:00Z',
-                   'time_utc_before': f'2019-04-05T00:00:00Z',
+query = urlencode({'time_utc_after': f'2019-06-28T00:00:00Z',
+                   'time_utc_before': f'2019-07-01T00:00:00Z',
                    'event_type': 'earthquake',
                    'status': 'accepted'})
 
