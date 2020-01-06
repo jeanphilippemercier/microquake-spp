@@ -486,7 +486,8 @@ def event_classification(cat, mag, fixed_length, context, event_types_lookup):
     # 0. Unless the event is categorized as a blast, it will automatically
     # be categorized as a "genuine" seismic event, automatically processed
     # and saved.
-    if (mag > 0) and (event_type not in blast_event_types):
+    if (mag > 0) and (event_type not in blast_event_types) and \
+       (event_type != 'test_pulse'):
         cat[0].event_type = event_types_lookup['seismic event']
         cat[0].preferred_origin().evaluation_status = 'preliminary'
         automatic_processing = True
