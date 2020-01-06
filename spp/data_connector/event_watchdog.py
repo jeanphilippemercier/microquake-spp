@@ -117,9 +117,8 @@ while time() - init_time < 600:
         sleep(10)
         continue
     except TimeOutException as te:
-        logger('IMS request timed out')
+        logger.error('IMS request timed out')
         continue
-
 
     signal.alarm(0)
     logger.info('done retrieving catalogue')
