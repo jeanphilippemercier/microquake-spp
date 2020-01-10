@@ -378,7 +378,7 @@ def send_to_api(event_id, **kwargs):
     return response
 
 
-def event_classification(cat, fixed_length, context, event_types_lookup):
+def event_classification(cat, mag, fixed_length, context, event_types_lookup):
 
     category = event_classifier.Processor().process(stream=fixed_length,
                                                     context=context,
@@ -424,8 +424,6 @@ def event_classification(cat, fixed_length, context, event_types_lookup):
             event_type = 'underground blast'
         else:
             event_type = 'other blast'
-
-    # from ipdb import set_trace; set_trace()
 
     if event_type in accepted_event_types:
 
@@ -484,12 +482,17 @@ def event_classification(cat, fixed_length, context, event_types_lookup):
         cat[0].event_type = event_types_lookup[event_type]
         cat[0].preferred_origin().evaluation_status = 'rejected'
 
-    # superseeding the above if the magnitude of the event is greater than
+    # superseding the above if the magnitude of the event is greater than
     # 0. Unless the event is categorized as a blast, it will automatically
     # be categorized as a "genuine" seismic event, automatically processed
     # and saved.
-    if (cat[0].preferred_magnitude().mag > 0) and \
-       (event_type not in blast_event_types):
+    mag_threshold = settings.get(
+        'event_classifier').large_event_processing_threshold
+    ignored_types = settings.get('event_classifier').ignore_type_large_event
+    if (mag > mag_threshold) and (event_type not in ignored_types):
+        logger.info('superseding the classifier categorization, the event '
+                    'will be classified as a seismic event and further '
+                    'processed.')
         cat[0].event_type = event_types_lookup['seismic event']
         cat[0].preferred_origin().evaluation_status = 'preliminary'
         automatic_processing = True
@@ -567,8 +570,8 @@ def pre_process(event_id, force_send_to_api=False,
     context = waveforms['context']
 
     quick_magnitude_processor = quick_magnitude.Processor()
-    result = quick_magnitude_processor.process(stream=fixed_length,
-                                               cat=new_cat)
+    qmag, _, _ = quick_magnitude_processor.process(stream=fixed_length,
+                                                   cat=new_cat)
     new_cat = quick_magnitude_processor.output_catalog(new_cat)
 
     logger.info('calculating rays')
@@ -580,7 +583,8 @@ def pre_process(event_id, force_send_to_api=False,
     rt_processing_time = rt_end_time - rt_start_time
     logger.info(f'done calculating rays in {rt_processing_time} seconds')
 
-    new_cat, send_automatic, send_api = event_classification(new_cat,
+    new_cat, send_automatic, send_api = event_classification(new_cat.copy(),
+                                                             qmag,
                                                              fixed_length,
                                                              context,
                                                              event_types_lookup)
