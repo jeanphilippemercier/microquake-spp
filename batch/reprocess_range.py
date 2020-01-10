@@ -13,6 +13,7 @@ from datetime import datetime
 from loguru import logger
 from microquake.core.event import Catalog, Event
 import requests
+import urllib
 
 api_base_url = settings.get('API_BASE_URL')
 
@@ -57,7 +58,7 @@ for i in range(len(res)):
     # make sur the channel is upper case.
     for tr in st:
         tr.stats.channel = tr.stats.channel.upper()
-    
+
     interloc_processor = interloc.Processor()
     tmp = interloc_processor.process(stream=st)
     cat_interloc = interloc_processor.output_catalog(cat.copy())
@@ -66,13 +67,13 @@ for i in range(len(res)):
                                       stream=st)
     cat_magnitude = magnitude_processor.output_catalog(cat_interloc.copy())
 
-    cat_classified = event_classification(cat_magnitude.copy(), st, context, 
+    cat_classified = event_classification(cat_magnitude.copy(), st, context,
                                           event_types_lookup)[0]
-   
+
     ray_tracer_processor = ray_tracer.Processor()
     tmp = ray_tracer_processor.process(cat=cat_classified.copy())
     cat_ray_trace = ray_tracer_processor.output_catalog(cat_classified.copy())
-   
+
     cat_auto = automatic_pipeline.automatic_pipeline(cat_ray_trace.copy(), st)
     logger.info('sending data to the api')
 
