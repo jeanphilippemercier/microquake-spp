@@ -19,6 +19,7 @@ from microquake.core.helpers.time import get_time_zone
 
 reload(web_client)
 
+
 def prepare_context(event, st):
 
     distances = []
@@ -90,46 +91,10 @@ def estimate_origin_time_and_time_residuals(cat):
     return cat_out.copy()
 
 
-api_base_url = settings.get('api_base_url')
-
-# if api_base_url[-1] == '/':
-#     api_base_url = api_base_url[:-1]
-
-
-ims_base_url = settings.get('ims_base_url')
-
-event_types_lookup = api_client.get_event_types(api_base_url)
-
-# will look at the last day of data
-end_time = datetime.utcnow() - timedelta(hours=1)
-
-# looking at the events for the last month
-
-start_time = UTCDateTime(2016, 1, 1)
-end_time = UTCDateTime(2019, 4, 1)
-
-inventory = settings.inventory
-
-cat = web_client.get_catalogue(ims_base_url, start_time, end_time, inventory,
-                               utc, blast=True, event=True, accepted=True,
-                               manual=True, get_arrivals=False)
-ct = 0
-
-sorted_cat = sorted(cat, reverse=True,
-                    key=lambda x: x.preferred_origin().time)
-
-ecp = event_classifier.Processor()
-nllp = nlloc.Processor()
-rtp = ray_tracer.Processor()
-
-for i, event in enumerate(sorted_cat):
-
-    logger.info(f'processing event {i + 1} of {len(cat)} -- '
-                f'{(i + 1)/len(cat) * 100}%)')
-
+def process(event):
     if event.preferred_origin().evaluation_mode == 'automatic':
         logger.info('event automatically accepted... skipping!')
-        continue
+        return
 
     logger.info(f'getting picks for event: '
                 f'{str(event.preferred_origin().time)}')
@@ -137,7 +102,7 @@ for i, event in enumerate(sorted_cat):
 
     if not event.preferred_origin().arrivals:
         logger.info('This event does not contains pick... skipping')
-        continue
+        return
 
     logger.info(f'getting waveforms')
     st = web_client.get_seismogram_event(ims_base_url, event, 'OT', '')
@@ -147,14 +112,16 @@ for i, event in enumerate(sorted_cat):
 
     logger.info('locating the event using nlloc')
 
-    cat_nlloc = nllp.process(cat=cat_tmp.copy())['cat']
-    event_time_local = cat_nlloc[0].preferred_origin().time.datetime.replace(
+    cat_tmp = nllp.process(cat=cat_tmp.copy())['cat']
+    event_time_local = cat_tmp[0].preferred_origin().time.datetime.replace(
         tzinfo=utc).astimezone(get_time_zone())
 
     logger.info('categorizing event')
     # preparing the stream file
-    station = context[0].stats.station
-    event_types = ecp.process(cat=cat_nlloc.copy(), stream=st, context=context)
+    # station = context[0].stats.station
+    # cat_nlloc = cat_tmp.copy()
+    # cat_tmp = cat_nlloc.copy()
+    event_types = ecp.process(cat=cat_tmp.copy(), stream=st, context=context)
 
     sorted_event_types = sorted(event_types.items(), reverse=True,
                                 key=lambda x: x[1])
@@ -183,15 +150,13 @@ for i, event in enumerate(sorted_cat):
 
     logger.info(f'the event was categorized as {mq_event_type}')
 
-    cat_tmp = estimate_origin_time_and_time_residuals(cat_tmp.copy())
+    # cat_tmp = estimate_origin_time_and_time_residuals(cat_tmp.copy())
     _ = rtp.process(cat=cat_tmp.copy())
     cat_tmp = rtp.output_catalog(cat_tmp.copy())
     origin_time = cat_tmp[0].preferred_origin().time
 
     cat_tmp[0].preferred_origin().time = origin_time
 
-    start_time = origin_time - 1
-    end_time = origin_time + 1
     cat_tmp[0].preferred_magnitude_id = cat[0].magnitudes[-1].resource_id
     cat_tmp[0].preferred_magnitude().origin_id = cat_tmp[
         0].preferred_origin().resource_id
@@ -230,6 +195,48 @@ for i, event in enumerate(sorted_cat):
                                                      send_to_bus=False)
 
     logger.info(response)
+    return response
+
+
+api_base_url = settings.get('api_base_url')
+
+# if api_base_url[-1] == '/':
+#     api_base_url = api_base_url[:-1]
+
+
+ims_base_url = settings.get('ims_base_url')
+
+event_types_lookup = api_client.get_event_types(api_base_url)
+
+# will look at the last day of data
+end_time = datetime.utcnow() - timedelta(hours=1)
+
+# looking at the events for the last month
+
+start_time = UTCDateTime(2019, 4, 30)
+end_time = UTCDateTime(2019, 5, 2)
+
+inventory = settings.inventory
+
+cat = web_client.get_catalogue(ims_base_url, start_time, end_time, inventory,
+                               utc, blast=True, event=True, accepted=True,
+                               manual=True, get_arrivals=False)
+ct = 0
+
+sorted_cat = sorted(cat, reverse=True,
+                    key=lambda x: x.preferred_origin().time)
+
+ecp = event_classifier.Processor()
+nllp = nlloc.Processor()
+rtp = ray_tracer.Processor()
+
+for i, event in enumerate(sorted_cat):
+
+    logger.info(f'processing event {i + 1} of {len(cat)} -- '
+                f'{(i + 1)/len(cat) * 100}%)')
+
+    response = process(event)
+
 
     # rastapopoulos
 
