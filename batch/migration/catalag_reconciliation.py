@@ -9,15 +9,15 @@ from obspy.core.event import ResourceIdentifier
 from loguru import logger
 from obspy.core import UTCDateTime
 import numpy as np
-from microquake.processors import event_classifier
+from microquake.processors import event_classifier, ray_tracer, nlloc
 from microquake.core.event import Catalog
 from obspy.core.event import ResourceIdentifier
 from importlib import reload
 import requests
 from microquake.core.helpers.grid import get_grid_point
+from microquake.core.helpers.time import get_time_zone
 
 reload(web_client)
-
 
 def prepare_context(event, st):
 
@@ -31,7 +31,7 @@ def prepare_context(event, st):
     i = np.argmin(distances)
     station = stations[i]
 
-    trace = st.select(station=station).copy().composite()
+    trace = st.select(station=station).copy()
 
     # detrend and demean the trace
     trace = trace.detrend('linear').detrend('demean').taper(
@@ -79,7 +79,7 @@ def estimate_origin_time_and_time_residuals(cat):
     ot = ots[0] + mean_diff
     cat_out[0].preferred_origin().time = ot
 
-    for i, arr in enumerate(cat.preferred_origin().arrivals):
+    for i, arr in enumerate(cat[0].preferred_origin().arrivals):
         station = arr.get_pick().waveform_id.station_code
         phase = arr.phase
         tt = get_grid_point(station, phase, ev_loc)
@@ -105,8 +105,8 @@ end_time = datetime.utcnow() - timedelta(hours=1)
 
 # looking at the events for the last month
 
-start_time = UTCDateTime(2019, 1, 1)
-end_time = UTCDateTime(2019, 1, 10)
+start_time = UTCDateTime(2016, 1, 1)
+end_time = UTCDateTime(2019, 4, 1)
 
 inventory = settings.inventory
 
@@ -119,11 +119,13 @@ sorted_cat = sorted(cat, reverse=True,
                     key=lambda x: x.preferred_origin().time)
 
 ecp = event_classifier.Processor()
+nllp = nlloc.Processor()
+rtp = ray_tracer.Processor()
 
 for i, event in enumerate(sorted_cat):
 
-    logger.info(f'processing event {i} of {len(cat)} -- '
-                f'({i/len(cat) * 100}%)')
+    logger.info(f'processing event {i + 1} of {len(cat)} -- '
+                f'{(i + 1)/len(cat) * 100}%)')
 
     if event.preferred_origin().evaluation_mode == 'automatic':
         logger.info('event automatically accepted... skipping!')
@@ -141,29 +143,59 @@ for i, event in enumerate(sorted_cat):
     st = web_client.get_seismogram_event(ims_base_url, event, 'OT', '')
     context = prepare_context(event.copy(), st.copy())
 
-    logger.info('categorizing event')
     cat_tmp = Catalog(events=[event.copy()])
 
+    logger.info('locating the event using nlloc')
+
+    cat_nlloc = nllp.process(cat=cat_tmp.copy())['cat']
+    event_time_local = cat_nlloc[0].preferred_origin().time.datetime.replace(
+        tzinfo=utc).astimezone(get_time_zone())
+
+    logger.info('categorizing event')
     # preparing the stream file
     station = context[0].stats.station
-    event_types = ecp.process(cat=cat_tmp.copy(), stream=st, context=context)
+    event_types = ecp.process(cat=cat_nlloc.copy(), stream=st, context=context)
 
     sorted_event_types = sorted(event_types.items(), reverse=True,
                                 key=lambda x: x[1])
 
-    cat_tmp[0].event_type = event_types_lookup[sorted_event_types[0][0]]
+    blast_window_starts = settings.get('event_classifier').blast_window_starts
+    blast_window_ends = settings.get('event_classifier').blast_window_ends
 
-    event_type = event_types_lookup[sorted_event_types[0][0]]
+    hour = event_time_local.hour
 
     mq_event_type = sorted_event_types[0][0]
+
+    ug_blast = False
+    if mq_event_type == 'blast':
+        for bws, bwe in zip(blast_window_starts, blast_window_ends):
+            if bws <= hour < bwe:
+                ug_blast = True
+
+        if ug_blast:
+            mq_event_type = 'underground blast'
+        else:
+            mq_event_type = 'other blast'
+
+    cat_tmp[0].event_type = event_types_lookup[mq_event_type]
+
+    event_type = event_types_lookup[mq_event_type]
+
     logger.info(f'the event was categorized as {mq_event_type}')
 
     cat_tmp = estimate_origin_time_and_time_residuals(cat_tmp.copy())
-    # cat_tmp[0].preferred_origin().time = origin_time
+    _ = rtp.process(cat=cat_tmp.copy())
+    cat_tmp = rtp.output_catalog(cat_tmp.copy())
+    origin_time = cat_tmp[0].preferred_origin().time
+
+    cat_tmp[0].preferred_origin().time = origin_time
 
     start_time = origin_time - 1
     end_time = origin_time + 1
     cat_tmp[0].preferred_magnitude_id = cat[0].magnitudes[-1].resource_id
+    cat_tmp[0].preferred_magnitude().origin_id = cat_tmp[
+        0].preferred_origin().resource_id
+    cat_tmp[0].preferred_origin().evaluation_mode = 'automatic'
 
     event_resource_id = cat_tmp[0].resource_id.id
     if api_client.get_event_by_id(api_base_url, event_resource_id):
@@ -175,13 +207,15 @@ for i, event in enumerate(sorted_cat):
 
         files = api_client.prepare_data(cat=cat_tmp.copy(),
                                         context=context.copy(),
+                                        stream=st.copy(),
                                         variable_length=st.copy())
 
         patch_url = f'{api_base_url}events/{event_resource_id}'
 
         logger.info('patching the event!')
         response = requests.patch(patch_url, files=files.copy(),
-                                  params={'send_to_bus': False})
+                                  params={'send_to_bus': False},
+                                  headers={'connection': 'close'})
 
     else:
         logger.info('no event was found within the tolerance time')
@@ -197,6 +231,6 @@ for i, event in enumerate(sorted_cat):
 
     logger.info(response)
 
-    rastapopoulos
+    # rastapopoulos
 
 
