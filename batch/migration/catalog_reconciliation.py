@@ -20,15 +20,15 @@ from microquake.core.helpers.time import get_time_zone
 reload(web_client)
 
 
-def prepare_context(event, st):
+def prepare_context(evt, st):
 
     distances = []
     stations = []
 
-    for arr in event.preferred_origin().arrivals:
+    for arr in evt.preferred_origin().arrivals:
         distances.append(arr.distance)
         stations.append(arr.get_sta())
-
+    #
     i = np.argmin(distances)
     station = stations[i]
 
@@ -38,15 +38,17 @@ def prepare_context(event, st):
     trace = trace.detrend('linear').detrend('demean').taper(
         max_percentage=0.05, max_length=0.005)
 
-    trace_start_time = trace[0].stats.starttime
-    trace_end_time = trace[0].stats.endtime
+    ot = evt.preferred_origin().time
 
-    delta = (trace_end_time - trace_start_time) / 2
+    trace_start_time = ot - 10
+    trace_end_time = ot + 10
 
-    trace_mid_time = trace_start_time + delta
+    # delta = (trace_end_time - trace_start_time) / 2
 
-    context = trace.trim(starttime=trace_mid_time-10,
-                         endtime=trace_mid_time+10, pad=True, fill_value=0)
+    # trace_mid_time = trace_start_time + delta
+
+    context = trace.trim(starttime=trace_start_time,
+                         endtime=trace_end_time, pad=True, fill_value=0)
 
     return context
 
@@ -62,13 +64,13 @@ def prepare_stream(context, cat):
                                pad=True, fill_value=0)
 
 
-def estimate_origin_time_and_time_residuals(cat):
+def estimate_origin_time_and_time_residuals(cata):
 
-    ev_loc = cat[0].preferred_origin().loc
+    ev_loc = cata[0].preferred_origin().loc
 
     ots = []
-    cat_out = cat.copy()
-    for arr in cat[0].preferred_origin().arrivals:
+    cat_out = cata.copy()
+    for arr in cata[0].preferred_origin().arrivals:
         station = arr.get_pick().waveform_id.station_code
         phase = arr.phase
         tt = get_grid_point(station, phase, ev_loc)
@@ -77,51 +79,64 @@ def estimate_origin_time_and_time_residuals(cat):
 
     mean_diff = np.mean(np.diff(ots))
 
-    ot = ots[0] + mean_diff
-    cat_out[0].preferred_origin().time = ot
-
-    for i, arr in enumerate(cat[0].preferred_origin().arrivals):
-        station = arr.get_pick().waveform_id.station_code
-        phase = arr.phase
-        tt = get_grid_point(station, phase, ev_loc)
-        tp = ot + get_grid_point(station, phase, ev_loc)
-        residual = tp - arr.get_pick().time
-        cat_out[0].preferred_origin().arrivals[i].time_residual = residual
-
-    return cat_out.copy()
+    return ots[0] + mean_diff
+    # cat_out[0].preferred_origin().time = ot
+    #
+    # for i, arr in enumerate(cata[0].preferred_origin().arrivals):
+    #     station = arr.get_pick().waveform_id.station_code
+    #     phase = arr.phase
+    #     tt = get_grid_point(station, phase, ev_loc)
+    #     tp = ot + get_grid_point(station, phase, ev_loc)
+    #     residual = tp - arr.get_pick().time
+    #     cat_out[0].preferred_origin().arrivals[i].time_residual = residual
 
 
-def process(event):
-    if event.preferred_origin().evaluation_mode == 'automatic':
+def process(evt):
+    if evt.preferred_origin().evaluation_mode == 'automatic':
         logger.info('event automatically accepted... skipping!')
         return
 
     logger.info(f'getting picks for event: '
-                f'{str(event.preferred_origin().time)}')
-    event = web_client.get_picks_event(ims_base_url, event, inventory, '')
+                f'{str(evt.preferred_origin().time)}')
+    evt = web_client.get_picks_event(ims_base_url, evt, inventory, '')
 
-    if not event.preferred_origin().arrivals:
+    if not evt.preferred_origin().arrivals:
         logger.info('This event does not contains pick... skipping')
         return
 
     logger.info(f'getting waveforms')
-    st = web_client.get_seismogram_event(ims_base_url, event, 'OT', '')
-    context = prepare_context(event.copy(), st.copy())
+    st = web_client.get_seismogram_event(ims_base_url, evt, 'OT', '')
 
-    cat_tmp = Catalog(events=[event.copy()])
+    cat_tmp = Catalog(events=[evt.copy()])
+
+    event_time = estimate_origin_time_and_time_residuals(cat_tmp.copy())
+
+    tolerance = 1
+
+    start_time = event_time - tolerance
+    end_time = event_time + tolerance
+
+    re_list = api_client.get_events_catalog(api_base_url, start_time,
+                                            end_time, status='accepted,'
+                                                             'rejected')
+
+    if re_list:
+        logger.info('event already exists... skipping')
+        return
 
     logger.info('locating the event using nlloc')
 
-    cat_tmp = nllp.process(cat=cat_tmp.copy())['cat']
-    event_time_local = cat_tmp[0].preferred_origin().time.datetime.replace(
+    cat_nlloc = nllp.process(cat=cat_tmp.copy())['cat']
+    event_time_local = cat_nlloc[0].preferred_origin().time.datetime.replace(
         tzinfo=utc).astimezone(get_time_zone())
+    context = prepare_context(cat_nlloc[0].copy(), st.copy())
 
     logger.info('categorizing event')
     # preparing the stream file
     # station = context[0].stats.station
     # cat_nlloc = cat_tmp.copy()
     # cat_tmp = cat_nlloc.copy()
-    event_types = ecp.process(cat=cat_tmp.copy(), stream=st, context=context)
+    event_types = ecp.process(cat=cat_nlloc.copy(), stream=st, context=context)
 
     sorted_event_types = sorted(event_types.items(), reverse=True,
                                 key=lambda x: x[1])
@@ -144,33 +159,35 @@ def process(event):
         else:
             mq_event_type = 'other blast'
 
-    cat_tmp[0].event_type = event_types_lookup[mq_event_type]
+    cat_nlloc[0].event_type = event_types_lookup[mq_event_type]
 
     event_type = event_types_lookup[mq_event_type]
 
     logger.info(f'the event was categorized as {mq_event_type}')
 
     # cat_tmp = estimate_origin_time_and_time_residuals(cat_tmp.copy())
-    _ = rtp.process(cat=cat_tmp.copy())
-    cat_tmp = rtp.output_catalog(cat_tmp.copy())
-    origin_time = cat_tmp[0].preferred_origin().time
+    _ = rtp.process(cat=cat_nlloc.copy())
+    cat_ray = rtp.output_catalog(cat_nlloc.copy())
+    origin_time = cat_ray[0].preferred_origin().time
 
-    cat_tmp[0].preferred_origin().time = origin_time
+    cat_ray[0].preferred_origin().time = origin_time
 
-    cat_tmp[0].preferred_magnitude_id = cat[0].magnitudes[-1].resource_id
-    cat_tmp[0].preferred_magnitude().origin_id = cat_tmp[
-        0].preferred_origin().resource_id
-    cat_tmp[0].preferred_origin().evaluation_mode = 'automatic'
+    cat_ray[0].preferred_magnitude_id = cat_ray[0].magnitudes[-1].resource_id
+    cat_ray[0].preferred_magnitude().origin_id = cat_ray[
+        0].origins[-1].resource_id
+    cat_ray[0].preferred_origin().evaluation_mode = 'automatic'
 
-    event_resource_id = cat_tmp[0].resource_id.id
+    cat_ray[0].resource_id = ResourceIdentifier()
+
+    event_resource_id = cat_ray[0].resource_id.id
     if api_client.get_event_by_id(api_base_url, event_resource_id):
 
         logger.info(f'an event with event id {event_resource_id} was found '
                     f'within the tolerance time.')
 
-        cat_tmp[0].resource_id = ResourceIdentifier(event_resource_id)
+        cat_ray[0].resource_id = ResourceIdentifier(event_resource_id)
 
-        files = api_client.prepare_data(cat=cat_tmp.copy(),
+        files = api_client.prepare_data(cat=cat_ray.copy(),
                                         context=context.copy(),
                                         stream=st.copy(),
                                         variable_length=st.copy())
@@ -188,13 +205,18 @@ def process(event):
         response = api_client.post_data_from_objects(api_base_url,
                                                      'OT',
                                                      event_id=None,
-                                                     cat=cat_tmp.copy(),
+                                                     cat=cat_ray.copy(),
                                                      stream=st.copy(),
                                                      context=context.copy(),
                                                      variable_length=st.copy(),
                                                      send_to_bus=False)
 
     logger.info(response)
+    del cat_tmp
+    del cat_nlloc
+    del cat_ray
+    del st
+    del context
     return response
 
 
@@ -213,8 +235,8 @@ end_time = datetime.utcnow() - timedelta(hours=1)
 
 # looking at the events for the last month
 
-start_time = UTCDateTime(2019, 4, 30)
-end_time = UTCDateTime(2019, 5, 2)
+start_time = UTCDateTime(2019, 4, 1)
+end_time = UTCDateTime(2019, 8, 21)
 
 inventory = settings.inventory
 
@@ -235,7 +257,7 @@ for i, event in enumerate(sorted_cat):
     logger.info(f'processing event {i + 1} of {len(cat)} -- '
                 f'{(i + 1)/len(cat) * 100}%)')
 
-    response = process(event)
+    response = process(event.copy())
 
 
     # rastapopoulos
