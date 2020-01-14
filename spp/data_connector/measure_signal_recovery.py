@@ -76,7 +76,12 @@ for sensor in sensors:
     integrity = int(float(signal_quality['integrity']) * 100)
     logger.info(f'signal recovery is {integrity} %')
 
-    r = requests.post(api_url, json=signal_quality)
+    try:
+        r = requests.post(api_url, json=signal_quality)
+    except requests.exceptions.ConnectionError as r:
+        logger.error(f'connection error when attempting to POST information '
+                     f'for sensor {sensor}')
+        continue
 
     if r:
         logger.info(f'successfully posted to the API')
