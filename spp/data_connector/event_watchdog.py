@@ -42,6 +42,7 @@ we_message_queue = settings.PRE_PROCESSING_MESSAGE_QUEUE
 we_job_queue = RedisQueue(we_message_queue)
 we_job_queue_low_priority = RedisQueue(we_message_queue + '.low_priority')
 
+
 def get_starttime():
     query = db.select([db.func.max(
         processing_logs.columns.event_timestamp)]).where(
@@ -88,7 +89,14 @@ def heartbeat():
     if api_base_url[-1] == '/':
         api_base_url = api_base_url[:-1]
     url = api_base_url + '/inventory/heartbeat'
-    return requests.post(url, json={'source': 'event_connector'})
+
+    response = None
+    try:
+        response = requests.post(url, json={'source': 'event_connector'})
+    except RequestException:
+        logger.error(e)
+
+    return response
 
 
 # run for 10 minutes
