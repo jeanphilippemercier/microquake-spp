@@ -1,3 +1,16 @@
+# [ODS_Pitram_DOMEProduction], \
+# [ODS_Pitram_Pitram_Custom], \
+# [ODS_Pitram_PITRAMReporting]
+
+# [Pitram_DOMEProduction],
+# [Pitram_Pitram_Custom],
+# [Pitram_PITRAMReporting]
+
+# these databases already created in mnoytsqlc2
+# [DOMEProduction],
+# [Pitram_Custom],
+# [PITRAMReporting]
+
 #trialing less loop
 import os
 import pandas as pd

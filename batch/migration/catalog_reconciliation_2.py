@@ -30,25 +30,31 @@ def prepare_context(evt, st):
         stations.append(arr.get_sta())
     #
     i = np.argmin(distances)
+    indices = np.argsort(distances)
     station = stations[i]
 
-    trace = st.select(station=station).copy()
+    for i in indices:
+        station = stations[i]
+        trace = st.select(station=station).copy()
 
-    # detrend and demean the trace
-    trace = trace.detrend('linear').detrend('demean').taper(
-        max_percentage=0.05, max_length=0.005)
+        # detrend and demean the trace
+        trace = trace.detrend('linear').detrend('demean').taper(
+            max_percentage=0.05, max_length=0.005)
 
-    ot = evt.preferred_origin().time
+        ot = evt.preferred_origin().time
 
-    trace_start_time = ot - 10
-    trace_end_time = ot + 10
+        trace_start_time = ot - 10
+        trace_end_time = ot + 10
 
-    # delta = (trace_end_time - trace_start_time) / 2
+        # delta = (trace_end_time - trace_start_time) / 2
 
-    # trace_mid_time = trace_start_time + delta
+        # trace_mid_time = trace_start_time + delta
 
-    context = trace.trim(starttime=trace_start_time,
-                         endtime=trace_end_time, pad=True, fill_value=0)
+        context = trace.trim(starttime=trace_start_time,
+                             endtime=trace_end_time, pad=True, fill_value=0)
+
+        if context is not None:
+            break
 
     return context
 
@@ -121,8 +127,8 @@ def process(evt):
                                                              'rejected')
 
     if re_list:
-        logger.info('event already exists... skipping')
-        return
+        logger.info('event already exists... but continuing')
+        # return
 
     logger.info('locating the event using nlloc')
 
@@ -161,7 +167,7 @@ def process(evt):
 
     cat_nlloc[0].event_type = event_types_lookup[mq_event_type]
 
-    event_type = event_types_lookup[mq_event_type]
+    # event_type = event_types_lookup[mq_event_type]
 
     logger.info(f'the event was categorized as {mq_event_type}')
 
@@ -203,14 +209,21 @@ def process(evt):
     else:
         logger.info('no event was found within the tolerance time')
         logger.info('creating a new event')
-        response = api_client.post_data_from_objects(api_base_url,
-                                                     'OT',
-                                                     event_id=None,
-                                                     cat=cat_ray.copy(),
-                                                     stream=st.copy(),
-                                                     context=context.copy(),
-                                                     variable_length=st.copy(),
-                                                     send_to_bus=False)
+        post_url = f'{api_base_url}events'
+        files = api_client.prepare_data(cat=cat_ray.copy(),
+                                        context=context.copy(),
+                                        stream=st.copy(),
+                                        variable_length=st.copy())
+        response = requests.post(post_url, files=files.copy(),
+                                 params={'send_to_bus': False})
+        # response = api_client.post_data_from_objects(api_base_url,
+        #                                              'OT',
+        #                                              event_id=None,
+        #                                              cat=cat_ray.copy(),
+        #                                              stream=st.copy(),
+        #                                              context=context.copy(),
+        #                                              variable_length=st.copy(),
+        #                                              send_to_bus=False)
 
     logger.info(response)
     del cat_tmp
@@ -235,15 +248,23 @@ event_types_lookup = api_client.get_event_types(api_base_url)
 end_time = datetime.utcnow() - timedelta(hours=1)
 
 # looking at the events for the last month
-# 2019-04-22T23:50:32.132653Z
-start_time = UTCDateTime(2019, 4, 1)
-end_time = UTCDateTime(2019, 4, 22, 23, 50, 32)
+
+start_time = UTCDateTime(2018, 1, 1, 0, 0, 0)
+# 2019-02-24T05:19:31.704817Z
+# 2018-11-13T23:07:56.893230Z
+# 2018-10-13T11:15:59.593463Z
+# 2018-08-27T23:29:41.520066Z
+end_time = UTCDateTime(2018, 8, 27, 23, 40, 0)
 
 inventory = settings.inventory
 
 cat = web_client.get_catalogue(ims_base_url, start_time, end_time, inventory,
                                utc, blast=True, event=True, accepted=True,
                                manual=True, get_arrivals=False)
+
+res = api_client.get_events_catalog(api_base_url, start_time, end_time,
+                                    status='accepted, rejected')
+
 ct = 0
 
 sorted_cat = sorted(cat, reverse=True,

@@ -33,7 +33,7 @@ parser.add_argument('--bin_size', type=str,
 
 parser.add_argument('--output_file', type=str, help='file path with extension')
 
-dpi=400
+dpi = 400
 
 args = parser.parse_args()
 
