@@ -23,6 +23,8 @@ parser.add_argument('--endtime', type=str, help='end time in system local '
 
 parser.add_argument('--output', type=str, help='output file')
 
+# parser.add_argument('--mxrap', type=bool, help='MxRap output')
+
 args = parser.parse_args()
 
 start_time = UTCDateTime(parse(args.starttime).replace(tzinfo=tz))
@@ -34,7 +36,8 @@ end_time = UTCDateTime(parse(args.endtime).replace(tzinfo=tz))
 res = api_client.get_catalog(api_base_url, start_time, end_time,
                              event_type='seismic event', status='accepted')
 
-header = ('event time UTC, insertion time UTC, modification time UTC, '
+header = ('Event UUID, event time UTC, insertion time UTC, modification time '
+          'UTC, '
           'x, y, z, location uncertainty (m), event type, evaluation '
           'mode, evaluation status (Quakeml), number of picks, '
           'magnitude, magnitude type, scalar seismic moment (N m), corner '
@@ -68,8 +71,12 @@ with open(args.output, 'w') as ofile:
 
         event_type = inverted_lookup[re.event_type]
 
-        out_str = (f'{re.time_utc}, {re.insertion_timestamp}, '
-                   f'{re.modification_timestamp}, '
+        time_utc = re.time_utc.datetime()
+
+        out_str = (f'{re.event_resource_id}'
+                   f'{re.time_utc[:-4]}Z, '
+                   f'{re.insertion_timestamp[:-4]}Z, '
+                   f'{re.modification_timestamp[:-4]}Z, '
                    f'{re.x:0.2f}, {re.y:0.2f}, {re.z:0.2f}, '
                    f'{re.uncertainty}, '
                    f'{event_type}, {re.evaluation_mode}, {re.status}, '
