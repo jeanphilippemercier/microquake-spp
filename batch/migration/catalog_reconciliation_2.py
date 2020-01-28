@@ -83,7 +83,10 @@ def estimate_origin_time_and_time_residuals(cata):
 
         ots.append(arr.get_pick().time - tt)
 
-    mean_diff = np.mean(np.diff(ots))
+    if len(ots) == 0:
+        mean_diff = 0
+    else:
+        mean_diff = np.mean(np.diff(ots))
 
     return ots[0] + mean_diff
     # cat_out[0].preferred_origin().time = ot
@@ -249,12 +252,24 @@ end_time = datetime.utcnow() - timedelta(hours=1)
 
 # looking at the events for the last month
 
-start_time = UTCDateTime(2018, 1, 1, 0, 0, 0)
+start_time = UTCDateTime(2017, 1, 1, 0, 0, 0)
 # 2019-02-24T05:19:31.704817Z
 # 2018-11-13T23:07:56.893230Z
 # 2018-10-13T11:15:59.593463Z
 # 2018-08-27T23:29:41.520066Z
-end_time = UTCDateTime(2018, 8, 27, 23, 40, 0)
+# 2018-06-27T18:29:20.708693Z
+# 2018-04-07T23:15:03.545375Z
+# 2018-03-23T22:57:33.094229Z
+# 2018-03-01T21:20:18.321224
+# 2018-02-21T15:24:48.090395Z
+# 2018-02-15T22:35:05.260772Z
+# 2018-02-11T02:10:11.723759Z
+# 2018-01-25T23:15:18.531314Z
+# 2018-01-06T19:59:49.797682Z
+# 2018-01-01T10:42:46.530023Z
+# 2017-12-22T20:59:09.267085Z
+# 2017-12-17T11:03:46.931079Z
+end_time = UTCDateTime(2017, 12, 17, 11, 3,0 )
 
 inventory = settings.inventory
 
