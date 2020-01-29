@@ -118,7 +118,10 @@ def process(evt):
 
     cat_tmp = Catalog(events=[evt.copy()])
 
-    event_time = estimate_origin_time_and_time_residuals(cat_tmp.copy())
+    try:
+        event_time = estimate_origin_time_and_time_residuals(cat_tmp.copy())
+    except:
+        return
 
     tolerance = 1
 
@@ -140,12 +143,19 @@ def process(evt):
         tzinfo=utc).astimezone(get_time_zone())
     context = prepare_context(cat_nlloc[0].copy(), st.copy())
 
+    if context is None:
+        return
+
     logger.info('categorizing event')
     # preparing the stream file
     # station = context[0].stats.station
     # cat_nlloc = cat_tmp.copy()
     # cat_tmp = cat_nlloc.copy()
-    event_types = ecp.process(cat=cat_nlloc.copy(), stream=st, context=context)
+    try:
+        event_types = ecp.process(cat=cat_nlloc.copy(), stream=st,
+                                  context=context)
+    except:
+        return
 
     sorted_event_types = sorted(event_types.items(), reverse=True,
                                 key=lambda x: x[1])
@@ -269,7 +279,12 @@ start_time = UTCDateTime(2017, 1, 1, 0, 0, 0)
 # 2018-01-01T10:42:46.530023Z
 # 2017-12-22T20:59:09.267085Z
 # 2017-12-17T11:03:46.931079Z
-end_time = UTCDateTime(2017, 12, 17, 11, 3,0 )
+# 2017-12-03T19:58:53.303239Z
+# 2017-11-25T02:19:22.648916Z
+# 2017-11-02T10:12:15.188809Z
+# 2017-10-25T02:10:25.877681Z
+#2017-10-24T22:43:14.353598Z
+end_time = UTCDateTime(2017, 10, 24, 22, 43, 0)
 
 inventory = settings.inventory
 
