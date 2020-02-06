@@ -341,7 +341,7 @@ def send_to_api(event_id, **kwargs):
                                           cat=event['catalogue'],
                                           stream=event['fixed_length'],
                                           context=event['context'],
-                                          # variable_length=event['variable_length'],
+                                          variable_length=event['variable_length'],
                                           tolerance=0.5,
                                           send_to_bus=send_to_bus)
 
@@ -354,7 +354,7 @@ def send_to_api(event_id, **kwargs):
 
     if not response:
         logger.info('request failed')
-        return
+        # return
         # logger.info('request failed, resending to the queue')
         # set_event(event_id, **event)
         # result = api_job_queue.submit_task(send_to_api, event_id=event_id)
