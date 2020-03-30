@@ -88,6 +88,7 @@ test:
     - chmod 644 ~/.ssh/known_hosts
     - git submodule update --init --recursive
     - update-ca-certificates
+    - bash -c ". /ve/bin/activate ; pip install --upgrade setuptools
     - bash -c ". /ve/bin/activate ; pip install poetry"
     - bash -c ". /ve/bin/activate ; poetry config repositories.microquake https://pkg.microquake.org"
     - bash -c ". /ve/bin/activate ; poetry config http-basic.microquake $PYPI_USER $PYPI_PASS"
