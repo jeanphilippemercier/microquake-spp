@@ -2,6 +2,7 @@ from microquake.clients.api_client import get_event_by_id
 from microquake.core.settings import settings
 from microquake.pipelines.automatic_pipeline import automatic_pipeline
 
+
 def test_automatic_pipeline():
     event_id = 'smi:local/2020/03/04/23/29_32_096747140.e'
     api_url = settings.get('api_base_url')

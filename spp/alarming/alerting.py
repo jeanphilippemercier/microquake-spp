@@ -1,4 +1,5 @@
 import smtplib
+from os import environ
 from microquake.core.settings import settings
 from microquake.clients.api_client import get_catalog
 import requests
@@ -16,11 +17,18 @@ from loguru import logger
 import numpy as np
 from sqlalchemy import desc
 
-ms_host = settings.get('MAIL_SERVER_HOST')
-ms_port = settings.get('MAIL_SERVER_PORT')
-ms_username = settings.get('MAIL_SERVER_LOGIN')
-ms_password = settings.get('MAIL_SERVER_PASSWORD')
-ms_recipients = settings.get('ALERT_RECIPIENTS')
+# ms_host = settings.get('MAIL_SERVER_HOST')
+# ms_port = settings.get('MAIL_SERVER_PORT')
+# ms_username = settings.get('MAIL_SERVER_LOGIN')
+# ms_password = settings.get('MAIL_SERVER_PASSWORD')
+# ms_recipients = settings.get('ALERT_RECIPIENTS')
+
+ms_host = environ['SPP_MAIL_SERVER_HOST']
+ms_port = environ['SPP_MAIL_SERVER_PORT']
+ms_username = environ['SPP_MAIL_SERVER_LOGIN']
+ms_password = environ['SPP_MAIL_SERVER_PASSWORD']
+ms_recipients = environ['SPP_ALERT_RECIPIENTS']
+
 ms_sender = 'Seismic System Automatic Alerting Service <alerts@microquake.org>'
 
 
@@ -147,7 +155,6 @@ def seismic_activity_rate(end_time=datetime.now(),
                     f'({event_rate_level_1}). Exiting!')
         return 1
 
-
     df = pd.DataFrame({'x': x, 'y': y, 'z': z})
 
     # bandwidth = settings.get('clustering_mean_shift_bandwidth_meter')
@@ -188,6 +195,12 @@ def seismic_activity_rate(end_time=datetime.now(),
 
 
 def alert_heartbeat(test_mode=False):
+    """
+    Check if the heartbeat signal was received from the data connector. If
+    not an alert is raised. The alert is periodically raised again if the
+    :param test_mode:
+    :return:
+    """
     alert_topic = 'Data Connector'
 
     alert = AlarmingState()
@@ -208,6 +221,10 @@ def alert_heartbeat(test_mode=False):
 
     if last_alert is not None:
         last_alert_time = last_alert.time
+        delay_tmp = last_alert_time - obj.time
+        last_alert_delay_minute = delay_tmp.total_second() / 60
+    else:
+        last_alert_delay_minute = 0
 
     AlarmingState.time = datetime.utcnow().replace(tzinfo=utc)
 
@@ -222,6 +239,16 @@ def alert_heartbeat(test_mode=False):
     last_hb_delay_minute = last_hb_delay.total_seconds() / 60
 
     alert_recurrence_time = settings.get('ALERT_CONNECTOR_RECURRENCE_TIME_HOUR')
+
+    message_core = """
+    
+LEVEL {alert_level} ALERT!
+
+The data connector on-premise has been down for {minute} minutes.
+
+    """
+
+    send_message = False
 
     if test_mode:
         alert_level = 'test'
@@ -244,27 +271,27 @@ The current alert level is {alert_level}
 
         return
 
-    if last_hb_delay_minute > alert_connector_2:
+    elif last_hb_delay_minute > alert_connector_2:
 
         alert_level = 2
 
-        send_message=True
-
         if current_alert_level != 2:
 
-            send_message=True
+            send_message = True
 
-        elif last_alert_time > alert_recurrence_time:
+        elif last_alert_delay_minute > alert_recurrence_time:
 
-            send_message=True
+            send_message = True
 
     elif last_hb_delay_minute > alert_connector_1:
 
         alert_level = 1
 
         if current_alert_level != 1:
+            message_core.format(minute=last_hb_delay_minute,
+                                alert_level=alert_level)
 
-            send_message=True
+            send_message = True
 
     else:
         alert_level = 0
@@ -277,10 +304,8 @@ The current alert level is {alert_level}
     session.commit()
 
     if send_message:
-        message_core.format(alert_level=alert_level,
-                            time_since_last_heart_beat_hour=last_hb_delay_hour,
-                            time_since_last_heart_beat_minutes=
-                            int(last_hb_delay_minute))
+        message_core = message_core.format(minute=int(last_hb_delay_minute),
+                                           alert_level=alert_level)
         am = AlertMessage(ms_host, ms_port, ms_username, ms_password,
                           ms_sender, ms_recipients, alert_level,
                           alert_topic, message_core)
