@@ -8,6 +8,7 @@ ENV SPP_COMMON="/app/common"
 
 ARG PYPI_USER
 ARG PYPI_PASS
+RUN pip install 'setuptools==45.1.0'
 RUN poetry run pip install 'setuptools==45.1.0'
 RUN poetry config repositories.microquake https://pkg.microquake.org
 RUN poetry config http-basic.microquake $PYPI_USER $PYPI_PASS
