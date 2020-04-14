@@ -28,12 +28,12 @@ services:
       - spp-alert-postgres
       - grafana
     volumes:
-      - ${PWD}:/tmp
+      - ${PWD}:/app/spp/alerting
 #    environment:
     env_file:
       - environment.env
     working_dir:
-      /tmp
+      /app/spp/alerting
     tty: true
 
   grafana:

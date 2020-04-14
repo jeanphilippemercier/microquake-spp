@@ -46,13 +46,13 @@ for sensor in sensors:
     signal_quality['sensor_code'] = sensor['code']
     if len(st) == 0:
         r = requests.post(api_url, json=signal_quality)
-        continue
 
         if r:
             logger.info(f'successfully posted to the API')
         else:
             logger.info(f'post failed, the API responded with code '
                         f'{r.status_code}')
+        continue
 
     try:
         st = st.detrend('demean').detrend('linear')
