@@ -74,13 +74,15 @@ pass_info = click.make_pass_decorator(
 @click.option('--step', '-s', type=int, help="Step number, starts with 1", default=1)
 @click.option('--processing_flow', '-p', default="automatic", is_eager=True, help="Processing flow")
 @click.option('--once', '-1', is_flag=True, default=False, help="Run loop only once")
+@click.option('--no_hdf5', is_flag=True, default=False, help="Don't create HDF5 file")
 @pass_info
 def cli(info: Info,
         verbose: int,
         module_name: str,
         step: int,
         processing_flow: str,
-        once: bool
+        once: bool,
+        no_hdf5: bool
         ):
     """
     Run seismic platform.
@@ -106,6 +108,7 @@ def cli(info: Info,
     info.step = step-1
     info.processing_flow = processing_flow
     info.once = once
+    info.no_hdf5 = no_hdf5
 
 
 @cli.command()
@@ -209,7 +212,7 @@ def version():
 
 
 @cli.command()
-def prepare():
+def prepare(info: Info):
     """
     Prepare project and run NonLinLoc
     """
@@ -228,8 +231,9 @@ def prepare():
     logger.info('Done preparing NonLinLoc')
 
     # creating H5 grid from NLL grids
-    logger.info('Writing h5 travel time table')
-    write_ttable_h5()
+    if not info.no_hdf5:
+        logger.info('Writing h5 travel time table')
+        write_ttable_h5()
 
 
 @cli.command()

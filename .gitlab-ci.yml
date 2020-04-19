@@ -94,5 +94,5 @@ test:
     - bash -c ". /ve/bin/activate ; poetry config http-basic.microquake $PYPI_USER $PYPI_PASS"
     - bash -c ". /ve/bin/activate ; poetry install"
     - bash -c ". /ve/bin/activate ; poetry run seismic_platform velocities"
-    - bash -c ". /ve/bin/activate ; poetry run seismic_platform prepare"
+    - bash -c ". /ve/bin/activate ; poetry run seismic_platform prepare --no_hdf5"
 #    - bash -c ". /ve/bin/activate ; pytest tests"
