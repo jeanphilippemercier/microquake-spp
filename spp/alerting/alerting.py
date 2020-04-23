@@ -10,7 +10,7 @@ from pytz import utc
 #                                            AlarmingState)
 
 # from .alert_db_helpers import (create_postgres_session, AlarmingState)
-from alert_db_helpers import (create_postgres_session, AlarmingState)
+from .alert_db_helpers import (create_postgres_session, AlarmingState)
 import pandas as pd
 from sklearn.cluster import MeanShift
 from loguru import logger

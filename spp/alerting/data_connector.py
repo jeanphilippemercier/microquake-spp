@@ -5,8 +5,9 @@ from datetime import datetime
 from pytz import utc
 from os import environ
 
-from .alert_db_helpers import (create_postgres_session, AlarmingState)
-from .alerting import AlertMessage
+from spp.alerting.alert_db_helpers import (create_postgres_session,
+                                         AlarmingState)
+from spp.alerting.alerting import AlertMessage
 from sqlalchemy import desc
 
 api_base_url = settings.get('api_base_url')

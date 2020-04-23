@@ -2216,8 +2216,8 @@ matplotlib = [
     {file = "matplotlib-3.2.1.tar.gz", hash = "sha256:ffe2f9cdcea1086fc414e82f42271ecf1976700b8edd16ca9d376189c6d93aee"},
 ]
 microquake = [
-    {file = "microquake-0.1.235-py3-none-any.whl", hash = "md5:8c842ab24857ee202c01ef86646cae45"},
-    {file = "microquake-0.1.235.tar.gz", hash = "md5:d865e8d88188ac3fed7d403efe6fda6f"},
+    {file = "microquake-0.1.236-py3-none-any.whl", hash = "md5:8c842ab24857ee202c01ef86646cae45"},
+    {file = "microquake-0.1.236.tar.gz", hash = "md5:d865e8d88188ac3fed7d403efe6fda6f"},
 ]
 microquake-hashwrap = [
     {file = "microquake-hashwrap-0.0.4.tar.gz", hash = "sha256:86b516988ce509b651cc02fa90ebe1749b2482c28919db6a50505d18b857aefc"},

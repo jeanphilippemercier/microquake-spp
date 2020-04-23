@@ -26,7 +26,6 @@ services:
     container_name: alarm_module
     depends_on:
       - spp-alert-postgres
-      - grafana
     volumes:
       - ${PWD}:/app/spp/alerting
 #    environment:
@@ -36,21 +35,21 @@ services:
       /app/spp/alerting
     tty: true
 
-  grafana:
-    networks:
-      - new-network
-    image: grafana/grafana
-    hostname: grafana
-    depends_on:
-      - spp-alert-postgres
-    ports:
-      - 3000:3000
-    user: "104"
-#    command: -admin-password "admin"
-#    volumes:
-#      # storage need to be created before using
-#      # docker volume create grafana-storage
-#      graphana-storage:/var/lib/grafana
+#  grafana:
+#    networks:
+#      - new-network
+#    image: grafana/grafana
+#    hostname: grafana
+#    depends_on:
+#      - spp-alert-postgres
+#    ports:
+#      - 3000:3000
+#    user: "104"
+##    command: -admin-password "admin"
+##    volumes:
+##      # storage need to be created before using
+##      # docker volume create grafana-storage
+##      graphana-storage:/var/lib/grafana
 
 volumes:
     mi2: {}
