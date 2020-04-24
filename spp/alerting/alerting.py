@@ -33,26 +33,26 @@ ms_sender = 'Seismic System Automatic Alerting Service <alerts@microquake.org>'
 
 
 class AlertMessage():
-    def __init__(self, host, port, username, password, sender, recipients,
-                 alert_level, alert_topic):
+    def __init__(self, host, port, username, password, sender, recipients):
         self.host = host
         self.port = port
         self.username = username
         self.password = password
         self.sender = sender
         self.recipients = recipients
-        self.message = """From: {sender}
-To: Jean-Philippe Mercier <jpmercier01@gmail.com>
-Subject: MICROQUAKE ALERT / SEVERITY LEVEL {alert_level} / {alert_topic}
-
-{message}
-
-{link_waveform_ui}
-{link_3d_ui}
-        """.format(sender=sender, recipients=recipients,
-                   alert_level=alert_level, alert_topic=alert_topic,
-                   message=message, link_waveform_ui=link_waveform_ui,
-                   link_3d_ui=link_3d_ui)
+#         self.message_core = message_core
+#         self.message = """From: {sender}
+# To: Jean-Philippe Mercier <jpmercier01@gmail.com>
+# Subject: MICROQUAKE ALERT / SEVERITY LEVEL {alert_level} / {alert_topic}
+#
+# {message}
+#
+# {link_waveform_ui}
+# {link_3d_ui}
+#         """.format(sender=sender, recipients=recipients,
+#                    alert_level=alert_level, alert_topic=alert_topic,
+#                    message=message_core, link_waveform_ui=link_waveform_ui,
+#                    link_3d_ui=link_3d_ui)
 
     def send_message(self, alert_level, alert_topic, message,
                      link_waveform_ui="", link_3d_ui=""):

@@ -6,7 +6,7 @@ from pytz import utc
 from os import environ
 
 from spp.alerting.alert_db_helpers import (create_postgres_session,
-                                         AlarmingState)
+                                           AlarmingState)
 from spp.alerting.alerting import AlertMessage
 from sqlalchemy import desc
 
@@ -21,9 +21,13 @@ def alert_heartbeat(alert_connector_level_1, alert_connector_level_2,
     """
     Check if the heartbeat signal was received from the data connector. If
     not an alert is raised. The alert is periodically raised again if the
+    :param alert_connector_level_1:
+    :param alert_connector_level_2:
+    :param alert_recurrence_time:
     :param test_mode:
     :return:
     """
+
     alert_topic = 'Data Connector'
 
     alert = AlarmingState()
@@ -31,7 +35,7 @@ def alert_heartbeat(alert_connector_level_1, alert_connector_level_2,
     session, engine = create_postgres_session()
     obj = session.query(AlarmingState).filter(
         AlarmingState.alert_type == 'connector').order_by(desc(
-        'time')).first()
+           'time')).first()
 
     last_alert = session.query(AlarmingState).filter(
         AlarmingState.alert_type == 'connector').filter(
@@ -82,10 +86,10 @@ The current alert level is {alert_level}
 """.format(minute=last_hb_delay_minute, alert_level=current_alert_level)
 
         am = AlertMessage(ms_host, ms_port, ms_username, ms_password,
-                          ms_sender, ms_recipients, alert_level,
-                          alert_topic, message_core)
+                          ms_sender, ms_recipients)
 
-        am.send_message()
+        am.send_message(alert_level, alert_topic, message_core,
+                        link_waveform_ui="", link_3d_ui="")
 
         return
 
@@ -125,10 +129,11 @@ The current alert level is {alert_level}
         message_core = message_core.format(minute=int(last_hb_delay_minute),
                                            alert_level=alert_level)
         am = AlertMessage(ms_host, ms_port, ms_username, ms_password,
-                          ms_sender, ms_recipients, alert_level,
-                          alert_topic, message_core)
+                          ms_sender, ms_recipients)
 
-        am.send_message()
+        am.send_message(alert_level, alert_topic, message_core,
+                        link_waveform_ui="", link_3d_ui="")
+
 
 if __name__ == "__main__":
 
@@ -139,14 +144,10 @@ if __name__ == "__main__":
     ms_recipients = settings.get('ALERT_RECIPIENTS')
     ms_sender = settings.get('ALERT_SENDER')
 
-    alert_connector_level_1 = settings.get('alert_connector_level_1_min')
-    alert_connector_level_2 = settings.get('alert_connector_level_2_min')
+    alert_connector_l1 = settings.get('alert_connector_level_1_min')
+    alert_connector_l2 = settings.get('alert_connector_level_2_min')
 
-    alert_recurrence_time = settings.get(
-        'ALERT_CONNECTOR_RECURRENCE_TIME_HOUR')
+    art = settings.get('ALERT_CONNECTOR_RECURRENCE_TIME_HOUR')
 
-    am = AlertMessage(ms_host, ms_port, ms_username, ms_password, ms_sender,
-                      ms_recipients)
-
-    alert_heartbeat(alert_connector_level_1, alert_connector_level_2,
-                    alert_recurrence_time, am)
+    alert_heartbeat(alert_connector_l1, alert_connector_l2,
+                    art, test_mode=True)
