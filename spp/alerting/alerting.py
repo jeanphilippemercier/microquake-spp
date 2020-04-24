@@ -61,13 +61,13 @@ class AlertMessage():
         # recipients = 'jpmercier01@gmail.com'
 
         self.message = """From: {sender}
-        To: Jean-Philippe Mercier <jpmercier01@gmail.com>
-        Subject: MICROQUAKE ALERT / SEVERITY LEVEL {alert_level} / {alert_topic}
+To: Jean-Philippe Mercier <jpmercier01@gmail.com>
+Subject: MICROQUAKE ALERT / SEVERITY LEVEL {alert_level} / {alert_topic}
 
-        {message}
+{message}
 
-        {link_waveform_ui}
-        {link_3d_ui}
+{link_waveform_ui}
+{link_3d_ui}
                 """.format(sender=self.sender, recipients=self.recipients,
                            alert_level=alert_level, alert_topic=alert_topic,
                            message=message, link_waveform_ui=link_waveform_ui,

@@ -150,4 +150,4 @@ if __name__ == "__main__":
     art = settings.get('ALERT_CONNECTOR_RECURRENCE_TIME_HOUR')
 
     alert_heartbeat(alert_connector_l1, alert_connector_l2,
-                    art, test_mode=True)
+                    art, test_mode=False)
