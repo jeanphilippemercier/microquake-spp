@@ -10,3 +10,7 @@ def test_automatic_pipeline():
     cat = re.get_event()
     stream = re.get_waveforms()
     automatic_pipeline(cat, stream)
+
+
+if __name__ == '__main__':
+    test_automatic_pipeline()
