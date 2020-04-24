@@ -2,11 +2,6 @@ from microquake.clients.api_client import (get_events_catalog,
                                            put_data_from_objects)
 from microquake.core.settings import settings
 from microquake.core.helpers.time import get_time_zone
-from datetime import datetime, timedelta
-from obspy.core import UTCDateTime
-from microquake.pipelines.pipeline_meta_processors import \
-    magnitude_meta_processor
-from loguru import logger
 from urllib.parse import urlencode
 import requests
 

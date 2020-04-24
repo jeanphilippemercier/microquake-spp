@@ -684,7 +684,7 @@ description = "Python library that is an extension/expansion/adaptation of ObsPy
 name = "microquake"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "0.1.236"
+version = "0.1.240"
 
 [package.dependencies]
 cachier = ">=1.2,<2.0"
@@ -1763,7 +1763,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "9dfb3e40545eff3db130411f7ab0ed9e7e04e0edb39053f4def3d47d7af9e39a"
+content-hash = "a871f2efb7418db19b96d74cd9ff4a7d5ff5ee70f593c8df15b47c41b1f9a4c0"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -2169,8 +2169,8 @@ matplotlib = [
     {file = "matplotlib-3.2.1.tar.gz", hash = "sha256:ffe2f9cdcea1086fc414e82f42271ecf1976700b8edd16ca9d376189c6d93aee"},
 ]
 microquake = [
-    {file = "microquake-0.1.236-py3-none-any.whl", hash = "md5:d3643221452a3bd6bf1798be479aefdc"},
-    {file = "microquake-0.1.236.tar.gz", hash = "md5:ea796aff2a79b5c3246b330fe68cd960"},
+    {file = "microquake-0.1.240-py3-none-any.whl", hash = "md5:4d4e5a8bda56d0a18ae14d781dc0952b"},
+    {file = "microquake-0.1.240.tar.gz", hash = "md5:19f92cf73bff3358983ae8e9dc1f0c17"},
 ]
 microquake-hashwrap = [
     {file = "microquake-hashwrap-0.0.4.tar.gz", hash = "sha256:86b516988ce509b651cc02fa90ebe1749b2482c28919db6a50505d18b857aefc"},
