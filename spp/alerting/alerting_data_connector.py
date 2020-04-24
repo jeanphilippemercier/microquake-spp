@@ -3,7 +3,8 @@ import requests
 from dateutil.parser import parse
 from datetime import datetime
 from pytz import utc
-from os import environ
+from loguru import logger
+from time import sleep
 
 from spp.alerting.alert_db_helpers import (create_postgres_session,
                                            AlarmingState)
@@ -41,10 +42,14 @@ def alert_heartbeat(alert_connector_level_1, alert_connector_level_2,
         AlarmingState.alert_type == 'connector').filter(
         AlarmingState.alert_sent).order_by(desc('time')).first()
 
+    logger.info(f'last alert: {last_alert}')
+
     current_alert_level = 0
 
     if obj is not None:
         current_alert_level = obj.alert_level
+
+    logger.info(f'current alert level: {current_alert_level}')
 
     if last_alert is not None:
         last_alert_time = last_alert.time
@@ -60,7 +65,12 @@ def alert_heartbeat(alert_connector_level_1, alert_connector_level_2,
     last_hb_time = parse(eval(heartbeat.content.decode())['last_heard'])
     last_hb_time = last_hb_time.replace(tzinfo=utc)
     last_hb_delay = datetime.utcnow().replace(tzinfo=utc) - last_hb_time
+
+    logger.info(f'last heart beat time: {last_hb_time}')
+
     last_hb_delay_minute = last_hb_delay.total_seconds() / 60
+
+    logger.info(f'the data connector was last heard {last_hb_delay_minute:0.1f} minutes ago')
 
     message_core = """
 
@@ -73,6 +83,9 @@ The data connector on-premise has been down for {minute} minutes.
     send_message = False
 
     if test_mode:
+
+        logger.info('test mode activated')
+
         alert_level = 'test'
 
         message_core = """
@@ -91,6 +104,8 @@ The current alert level is {alert_level}
         am.send_message(alert_level, alert_topic, message_core,
                         link_waveform_ui="", link_3d_ui="")
 
+        logger.info('message sent successfully')
+
         return
 
     elif last_hb_delay_minute > alert_connector_level_2:
@@ -99,9 +114,12 @@ The current alert level is {alert_level}
 
         if current_alert_level != 2:
 
+            logger.info(f'the alert level was elevated to {alert_level}')
             send_message = True
 
         elif last_alert_delay_minute > alert_recurrence_time:
+
+            logger.info(f'alert level still at {alert_level}. A new message will be sent')
 
             send_message = True
 
@@ -110,6 +128,8 @@ The current alert level is {alert_level}
         alert_level = 1
 
         if current_alert_level != 1:
+            logger.info(f'the alert level was elevated to {alert_level}')
+
             message_core.format(minute=last_hb_delay_minute,
                                 alert_level=alert_level)
 
@@ -144,10 +164,15 @@ if __name__ == "__main__":
     ms_recipients = settings.get('ALERT_RECIPIENTS')
     ms_sender = settings.get('ALERT_SENDER')
 
+    logger.info('starting data connector health check')
+
     alert_connector_l1 = settings.get('alert_connector_level_1_min')
     alert_connector_l2 = settings.get('alert_connector_level_2_min')
 
     art = settings.get('ALERT_CONNECTOR_RECURRENCE_TIME_HOUR')
 
+    elapsed_time = 0
     alert_heartbeat(alert_connector_l1, alert_connector_l2,
                     art, test_mode=False)
+
+
