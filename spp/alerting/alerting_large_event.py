@@ -35,8 +35,19 @@ def alert_large_event(level_thresholds, severities, scanning_period_s=3600,
         AlarmingState.alert_type == __alerting_type__).order_by(desc(
            'time')).first()
 
+    if test:
+        logger.info('testing mode on...sending a test alert')
+        message_core = """
+    This is a test. 
+            """
+        am = AlertMessage(ms_host, ms_port, ms_username, ms_password,
+                          ms_sender, ms_recipients)
+        alert_level = 'test'
+        am.send_message(alert_level, __alerting_type__, message_core)
+        return
+
     if not res:
-        logger.info(f'No event in the last {scanning_period_s/3600:d} hour')
+        logger.info(f'No event in the last {scanning_period_s/3600:0.0f} hour')
         return
 
     logger.info(f'{len(res)} event in the last '
@@ -45,16 +56,6 @@ def alert_large_event(level_thresholds, severities, scanning_period_s=3600,
     indices = np.argsort(level_thresholds)
     level_thresholds = np.array(level_thresholds)[indices]
     severities = np.array(severities)[indices]
-
-    if test:
-        message_core = """
-This is a test. 
-        """
-        am = AlertMessage(ms_host, ms_port, ms_username, ms_password,
-                          ms_sender, ms_recipients)
-        alert_level = 'test'
-        am.send_message(alert_level, __alerting_type__, message_core)
-        return
 
     for re in res:
         i = bisect.bisect_right(level_thresholds, re.magnitude)
@@ -76,9 +77,13 @@ This is a test.
             time_utc = re.time_utc.datetime.replace(tzinfo=utc)
             time_local = time_utc.as_timezone(local_tz)
             logger.info(f'{severity} event occurred at {re.time_utc}')
+            insertion_time = re.insertion_timestamp.replace(tzinfo=utc)
+            insertion_time = insertion_time.astimezone(local_tz)
 
             message_core = """
 A event of severity level {severity_level} occurred at {local_time} local time, {utc_time} UTC time.
+
+The event was inserted in the database at {insertion_time} local time.
 
 Event info
 Moment Magnitude: {mw}
@@ -89,7 +94,7 @@ y: {y}
 z: {z}
 
             """.format(severity_level=alert_level, local_time=time_local, utc_time=time_utc,
-                       mw=re.magnitude, x=re.x, y=re.y, z=re.z)
+                       insertion_time=insertion_time, mw=re.magnitude, x=re.x, y=re.y, z=re.z)
 
         alert = AlarmingState()
 
@@ -143,7 +148,7 @@ if __name__ == "__main__":
     ths = []
     # converting text to int
     for item in thresholds:
-        ths.append(int(item))
+        ths.append(float(item))
 
     ths = np.array(ths)
     event_severities = np.array(event_severities)
