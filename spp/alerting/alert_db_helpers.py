@@ -22,6 +22,7 @@ class AlarmingState(Base):
     # integer from 0 to 3. Alarm level 0 means there is no alarm, alarm 3
     # means the highest level of alarm
     alert_sent = Column(BOOLEAN)
+    supplemental_info = Column(VARCHAR(128))
 
 
 def connect_postgres():
