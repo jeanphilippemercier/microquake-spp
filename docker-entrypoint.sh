@@ -9,8 +9,14 @@ prepare() {
 }
 
 if [ "$1" == "prepare" ]; then
-    wait_for_init
+    prepare
     exec "$@"
 fi
+
+if [ "$1" == "modelupdate" ]; then
+    seismic_client get-weight -i "${SPP_MODEL_WEIGHT_ID}"
+    exit $?
+fi
+
 
 exec "$@"
