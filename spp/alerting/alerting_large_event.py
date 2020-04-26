@@ -51,7 +51,7 @@ def alert_large_event(level_thresholds, severities, scanning_period_s=3600,
         return
 
     logger.info(f'{len(res)} event in the last '
-                f'{scanning_period_s / 3600:d} hour')
+                f'{scanning_period_s / 3600:0.0f} hour')
 
     indices = np.argsort(level_thresholds)
     level_thresholds = np.array(level_thresholds)[indices]
