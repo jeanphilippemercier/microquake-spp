@@ -75,7 +75,7 @@ def alert_large_event(level_thresholds, severities, scanning_period_s=3600,
             alert_level = i - 1
             severity = severities[alert_level]
             time_utc = re.time_utc.datetime.replace(tzinfo=utc)
-            time_local = time_utc.as_timezone(local_tz)
+            time_local = time_utc.astimezone(local_tz)
             logger.info(f'{severity} event occurred at {re.time_utc}')
             insertion_time = re.insertion_timestamp.replace(tzinfo=utc)
             insertion_time = insertion_time.astimezone(local_tz)
