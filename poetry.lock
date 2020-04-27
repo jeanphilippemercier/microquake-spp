@@ -273,6 +273,23 @@ graph = ["objgraph (>=1.7.2)"]
 
 [[package]]
 category = "main"
+description = "A quick module to help downloading files using python."
+name = "download"
+optional = false
+python-versions = "*"
+version = "0.3.5"
+
+[package.dependencies]
+requests = "*"
+six = "*"
+tqdm = "*"
+
+[package.extras]
+dev = ["numpy", "codecov", "pytest", "pytest-cov"]
+sphinx = ["matplotlib", "pandas", "sphinx", "sphinx-gallery", "pillow"]
+
+[[package]]
+category = "main"
 description = "Dynamic version generation"
 name = "dunamai"
 optional = false
@@ -684,7 +701,7 @@ description = "Python library that is an extension/expansion/adaptation of ObsPy
 name = "microquake"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "0.1.240"
+version = "0.1.241"
 
 [package.dependencies]
 cachier = ">=1.2,<2.0"
@@ -1213,14 +1230,6 @@ chardet = ">=3.0.2,<4"
 idna = ">=2.5,<3"
 urllib3 = ">=1.21.1,<1.25.0 || >1.25.0,<1.25.1 || >1.25.1,<1.26"
 
-[package.dependencies.cryptography]
-optional = true
-version = ">=1.3.4"
-
-[package.dependencies.pyOpenSSL]
-optional = true
-version = ">=0.14"
-
 [package.extras]
 security = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)"]
 socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7)", "win-inet-pton"]
@@ -1325,11 +1334,12 @@ description = "Seismic Platform API Client"
 name = "seismic-client"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "0.1.5"
+version = "0.1.6"
 
 [package.dependencies]
 cachier = ">=1.2,<2.0"
 click = ">=7.0,<8.0"
+download = ">=0.3.5,<0.4.0"
 microquake = ">=0.1.16,<0.2.0"
 ndg-httpsclient = ">=0.5.1,<0.6.0"
 pyasn1 = ">=0.4.6,<0.5.0"
@@ -1763,7 +1773,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "a871f2efb7418db19b96d74cd9ff4a7d5ff5ee70f593c8df15b47c41b1f9a4c0"
+content-hash = "4af1c91f9fcee3055da755e2dd678947e16aa5c43540955f5cbbae72470fe430"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1931,6 +1941,10 @@ decorator = [
 ]
 dill = [
     {file = "dill-0.3.1.1.tar.gz", hash = "sha256:42d8ef819367516592a825746a18073ced42ca169ab1f5f4044134703e7a049c"},
+]
+download = [
+    {file = "download-0.3.5-py3-none-any.whl", hash = "sha256:8b2f7695745254b0bebdfb789d426b35768366054538b4f8e7f9377dd5a9499d"},
+    {file = "download-0.3.5.tar.gz", hash = "sha256:884a885475b3cdbec0aa277e41643995c3394a1e064a0816f53fffae4a382130"},
 ]
 dunamai = [
     {file = "dunamai-0.8.1-py3-none-any.whl", hash = "sha256:bb64d7f055a33b00c72410e1201379fbd9e1956eb9bc89b3729005824aa802d4"},
@@ -2169,8 +2183,8 @@ matplotlib = [
     {file = "matplotlib-3.2.1.tar.gz", hash = "sha256:ffe2f9cdcea1086fc414e82f42271ecf1976700b8edd16ca9d376189c6d93aee"},
 ]
 microquake = [
-    {file = "microquake-0.1.240-py3-none-any.whl", hash = "md5:4d4e5a8bda56d0a18ae14d781dc0952b"},
-    {file = "microquake-0.1.240.tar.gz", hash = "md5:19f92cf73bff3358983ae8e9dc1f0c17"},
+    {file = "microquake-0.1.241-py3-none-any.whl", hash = "md5:16c9f52633c3028a5175195906626c11"},
+    {file = "microquake-0.1.241.tar.gz", hash = "md5:b54151d71e0615e01ca088275589036b"},
 ]
 microquake-hashwrap = [
     {file = "microquake-hashwrap-0.0.4.tar.gz", hash = "sha256:86b516988ce509b651cc02fa90ebe1749b2482c28919db6a50505d18b857aefc"},
@@ -2586,8 +2600,8 @@ scipy = [
     {file = "scipy-1.4.1.tar.gz", hash = "sha256:dee1bbf3a6c8f73b6b218cb28eed8dd13347ea2f87d572ce19b289d6fd3fbc59"},
 ]
 seismic-client = [
-    {file = "seismic_client-0.1.5-py3-none-any.whl", hash = "md5:2e702bcb31a173bb86087d185cc37096"},
-    {file = "seismic_client-0.1.5.tar.gz", hash = "md5:8fe6bf9cc749e0c74a88e333df50866c"},
+    {file = "seismic_client-0.1.6-py3-none-any.whl", hash = "md5:08b724ac87dccc19f51d986d14e289c5"},
+    {file = "seismic_client-0.1.6.tar.gz", hash = "md5:2734b827e6b6bf735234970d2cc37e0f"},
 ]
 six = [
     {file = "six-1.14.0-py2.py3-none-any.whl", hash = "sha256:8f3cd2e254d8f793e7f3d6d9df77b92252b52637291d0f0da013c76ea2724b6c"},
