@@ -18,7 +18,8 @@ from microquake.clients.api_client import (post_data_from_objects,
                                            get_event_types)
 from obspy import UTCDateTime
 from microquake.core.settings import settings
-from microquake.db.connectors import RedisQueue, record_processing_logs_pg
+from microquake.db.connectors import RedisQueue
+    # record_processing_logs_pg
 from microquake.db.models.redis import set_event, get_event
 from microquake.processors import (clean_data, event_classifier, interloc,
                                    quick_magnitude, ray_tracer)
@@ -365,8 +366,8 @@ def send_to_api(event_id, **kwargs):
 
     evt = event['catalogue'][0]
 
-    record_processing_logs_pg(evt, 'success', processing_step,
-                              processing_step_id, processing_time)
+    # record_processing_logs_pg(evt, 'success', processing_step,
+    #                           processing_step_id, processing_time)
 
     # if (cat[0].event_type == 'earthquake') or (cat[0].event_type ==
     #                                            'explosion'):
@@ -608,9 +609,9 @@ def pre_process(event_id, force_send_to_api=False,
 
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
-    record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
-                              __processing_step_id__, processing_time)
+    # record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
+    #                           __processing_step_id__, processing_time)
 
-    logger.info('pre processing completed')
+    logger.info(f'pre processing completed in {processing_time} s')
 
     return dict_out

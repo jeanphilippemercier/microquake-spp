@@ -24,6 +24,7 @@ from obspy.core.event import ResourceIdentifier
 from spp.data_connector import pre_processing
 from spp.data_connector.pre_processing import pre_process
 from requests.exceptions import RequestException
+import os
 
 reload(pre_processing)
 
@@ -32,32 +33,59 @@ __processing_step_id__ = 1
 
 request_range_hours = settings.get('data_connector').request_range_hours
 
-pg, engine = connect_postgres()
+# pg, engine = connect_postgres()
 
 tz = get_time_zone()
 sites = [station.code for station in settings.inventory.stations()]
 base_url = settings.get('ims_base_url')
 
+spp_common_path = settings.get('common')
+
 we_message_queue = settings.PRE_PROCESSING_MESSAGE_QUEUE
 we_job_queue = RedisQueue(we_message_queue)
 we_job_queue_low_priority = RedisQueue(we_message_queue + '.low_priority')
 
+last_run_file = os.path.join(spp_common_path, '.watchdog_last_run')
 
-def get_starttime():
-    query = db.select([db.func.max(
-        processing_logs.columns.event_timestamp)]).where(
-        processing_logs.columns.processing_step_name == __processing_step__)
 
-    result = pg.execute(query).scalar()
+def get_start_time():
+    # query = db.select([db.func.max(
+    #     processing_logs.columns.event_timestamp)]).where(
+    #     processing_logs.columns.processing_step_name == __processing_step__)
+    #
+    # result = pg.execute(query).scalar()
 
-    if result is None:
-        starttime = datetime.utcnow().replace(tzinfo=utc) - \
-            timedelta(hours=request_range_hours)
-    else:
-        starttime = result.replace(tzinfo=utc) + timedelta(
-            seconds=1)
+    # if result is None:
+    #     starttime = datetime.utcnow().replace(tzinfo=utc) - \
+    #         timedelta(hours=request_range_hours)
+    # else:
+    #     starttime = result.replace(tzinfo=utc) + timedelta(
+    #         seconds=1)
+    #
+    # return starttime
 
-    return starttime
+    # check if the file exists
+
+    s_time = datetime.utcnow().replace(tzinfo=utc) - \
+             timedelta(hours=request_range_hours)
+
+    if os.path.exists(last_run_file):
+        with open(last_run_file, 'r') as f_in:
+            try:
+                s_time = datetime.fromtimestamp(float(f_in.read()))
+            except Exception as e:
+                logger.error(e)
+
+    return s_time
+
+
+def set_end_processing_time(e_time):
+    with open(last_run_file, 'w') as f_out:
+        try:
+            f_out.write(str(e_time.timestamp()))
+        except Exception as e:
+            logger.error(e)
+    return
 
 
 def already_processed(seismic_event):
@@ -110,15 +138,15 @@ while time() - init_time < 600:
     closing_window_time_seconds = settings.get(
         'data_connector').closing_window_time_seconds
 
-    endtime = datetime.utcnow().replace(tzinfo=utc) - \
+    end_time = datetime.utcnow().replace(tzinfo=utc) - \
               timedelta(seconds=closing_window_time_seconds)
 
-    starttime = get_starttime()
+    start_time = get_start_time()
 
     logger.info('retrieving catalogue from the IMS system')
     try:
         signal.alarm(60)
-        cat = web_client.get_catalogue(base_url, starttime, endtime, sites,
+        cat = web_client.get_catalogue(base_url, start_time, end_time, sites,
                                        utc, accepted=False, manual=False)
     except RequestException as e:
         logger.error(e)
@@ -182,14 +210,16 @@ while time() - init_time < 600:
             end_processing_time = time()
             processing_time = end_processing_time - start_processing_time
 
-            result = record_processing_logs_pg(event, status,
-                                               __processing_step__,
-                                               __processing_step_id__,
-                                               processing_time)
+            set_end_processing_time(end_time)
+
+            # result = record_processing_logs_pg(event, status,
+            #                                    __processing_step__,
+            #                                    __processing_step_id__,
+            #                                    processing_time)
 
     logger.info(f'sent {ct} events for further processing')
     
-pg.close()
-engine.dispose()
+# pg.close()
+# engine.dispose()
 
 
