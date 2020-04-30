@@ -89,10 +89,11 @@ def set_end_processing_time(e_time):
 
 
 def already_processed(seismic_event):
-    query = db.select([db.func.count(processing_logs.columns.event_id)]).where(
-        processing_logs.columns.event_id == seismic_event.resource_id.id)
-
-    return bool(pg.execute(query).scalar())
+    # query = db.select([db.func.count(processing_logs.columns.event_id)]).where(
+    #     processing_logs.columns.event_id == seismic_event.resource_id.id)
+    #
+    # return bool(pg.execute(query).scalar())
+    return False
 
 
 class TimeOutException(Exception):
