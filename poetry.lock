@@ -701,7 +701,7 @@ description = "Python library that is an extension/expansion/adaptation of ObsPy
 name = "microquake"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "0.1.241"
+version = "0.1.243"
 
 [package.dependencies]
 cachier = ">=1.2,<2.0"
