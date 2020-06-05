@@ -6,9 +6,10 @@ from loguru import logger
 from tqdm import tqdm
 from pandas import DataFrame
 import numpy as np
-from microquake.processors import ray_tracer
+from microquake.processors import ray_tracer, simple_magnitude
 
 rt_processor = ray_tracer.Processor()
+sm_processor = simple_magnitude.Processor()
 
 inventory = settings.inventory
 
@@ -39,7 +40,8 @@ with open('ppv.csv', 'w') as f_out:
              'event x, event y, event z, sensor x, sensor y, sensor z, ' \
              'moment_magnitude, euclidean distance, distance (m), ' \
              'distance p-ray (m), distance s-ray (m), ' \
-             'back-azimuth (degrees), take-off angle (degrees), ppv (m/s)\n'
+             'back-azimuth (degrees), take-off angle (degrees), ppv, ' \
+             'ppa, ppd, ssd, energy\n'
 
     f_out.write(header)
 
@@ -55,15 +57,49 @@ with open('ppv.csv', 'w') as f_out:
             # url = f'{api_base_url}events/{e_resource_id}'
             # resp = requests.patch(url, data={'send_to_bus', True})
             # logger.info(resp.status_code)
-            rt_processor.process(cat=cat.copy())
-            cat = rt_processor.output_catalog(cat.copy())
+            # rt_processor.process(cat=cat.copy())
+            # cat = rt_processor.output_catalog(cat.copy())
+            continue
+
+        st = st.detrend('demean')
+        # st = st.detrend('linear')
+
+        trs = []
+
+        for tr in st:
+            if np.any(np.isnan(tr.data)):
+                continue
+            if np.all(tr.data == 0):
+                continue
+            tr.stats.network = 'OT'
+            trs.append(tr)
+
+        for station in ['6', '8']:
+            if len(st.select(station=station)) == 0:
+                continue
+            st.select(station=station)[0].stats.channel = 'Z'
+
+
+        st.traces = trs
+
+        st_acc = st.copy().remove_response(output='ACC', inventory=inventory)
+        st_vel = st.copy().remove_response(output='VEL', inventory=inventory)
+        st_dsp = st.copy().remove_response(output='DISP', inventory=inventory)
+
+        # cat = sm_processor.process(cat=cat, stream=st)
 
         ev_loc = cat[0].preferred_origin().loc
         origin = cat[0].preferred_origin()
         magnitude = cat[0].preferred_magnitude().mag
+        energy = cat[0].preferred_magnitude().energy_joule
+        static_stress_drop = cat[0].preferred_magnitude(
+                                ).static_stress_drop_mpa
 
-        for tr in st.composite():
-            tr = tr.detrend('demean')
+        for tr, tr_acc, tr_vel, tr_dsp in zip(st.composite(),
+                                              st_acc.composite(),
+                                              st_vel.composite(),
+                                              st_dsp.composite()):
+
             sensor_code = tr.stats.station
             sensor = inventory.select(str(sensor_code))
             reprocessed = False
@@ -74,13 +110,20 @@ with open('ppv.csv', 'w') as f_out:
                 logger.error(e)
                 logger.info(f'missing ray for event {cat[0].resource_id}')
 
+            ppd = np.abs(tr_dsp.data).max()
+            ppv = np.abs(tr_vel.data).max()
+            ppa = np.abs(tr_acc.data).max()
+
             euclidean_distance = np.linalg.norm(sensor.loc - origin.loc)
             if ray_p is not None:
                 distance_p_ray = ray_p.length
                 distance = ray_p.length
                 back_azimuth = ray_p.baz
                 take_off_angle = ray_p.takeoff_angle
+                if ray_p.arrival_id is None:
+                    continue
             else:
+                continue
                 distance_p_ray = 0
                 distance = euclidean_distance
                 back_azimuth = 0
@@ -100,19 +143,17 @@ with open('ppv.csv', 'w') as f_out:
             else:
                 distance_s_ray = 0
 
-            if sensor.motion == 'ACCELERATION':
-                tr = tr.integrate()
-            max = tr.data.max()
-            min = tr.data.min()
-            ppv = (max - min) / 2
-
-            data = f'{event.event_resource_id}, {sensor_code}, {str(event.time_epoch)}, ' \
-                   f'{event.time_utc}, {event.x:0.2f}, {event.y:0.2f}, {event.z:0.2f},' \
-                   f' {sensor.x:0.2f}, {sensor.y:0.2f}, {sensor.z:0.2f}, {magnitude}, ' \
+            data = f'{event.event_resource_id}, {sensor_code}, ' \
+                   f'{str(event.time_epoch)}, ' \
+                   f'{event.time_utc}, {event.x:0.2f}, {event.y:0.2f}, ' \
+                   f'{event.z:0.2f},' \
+                   f' {sensor.x:0.2f}, {sensor.y:0.2f}, {sensor.z:0.2f}, ' \
+                   f'{magnitude}, ' \
                    f'{euclidean_distance:0.2f}, {distance:0.2f}, ' \
-                   f'{distance_p_ray:0.2f}, {distance_s_ray:0.2f}, {back_azimuth:0.2f}, ' \
+                   f'{distance_p_ray:0.2f}, {distance_s_ray:0.2f}, ' \
+                   f'{back_azimuth:0.2f}, ' \
                    f'{take_off_angle:0.2f}, ' \
-                   f'{ppv}\n'
+                   f'{ppv}, {ppa}, {ppd}, {static_stress_drop}, {energy}\n'
 
             f_out.write(data)
 
