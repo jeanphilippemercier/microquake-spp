@@ -575,20 +575,21 @@ def pre_process(event_id, force_send_to_api=False,
                                                    cat=new_cat)
     new_cat = quick_magnitude_processor.output_catalog(new_cat)
 
-    logger.info('calculating rays')
-    rt_start_time = time()
-    rtp = ray_tracer.Processor()
-    rtp.process(cat=new_cat)
-    new_cat = rtp.output_catalog(new_cat)
-    rt_end_time = time()
-    rt_processing_time = rt_end_time - rt_start_time
-    logger.info(f'done calculating rays in {rt_processing_time} seconds')
-
     new_cat, send_automatic, send_api = event_classification(new_cat.copy(),
                                                              qmag,
                                                              fixed_length,
                                                              context,
                                                              event_types_lookup)
+
+    if send_api or force_send_to_api:
+        logger.info('calculating rays')
+        rt_start_time = time()
+        rtp = ray_tracer.Processor()
+        rtp.process(cat=new_cat)
+        new_cat = rtp.output_catalog(new_cat)
+        rt_end_time = time()
+        rt_processing_time = rt_end_time - rt_start_time
+        logger.info(f'done calculating rays in {rt_processing_time} seconds')
 
     if force_accept:
         new_cat[0].preferred_origin().evaluation_status = 'preliminary'
