@@ -24,6 +24,7 @@ spp:
   image: docker:stable
   stage: build
   before_script:
+    - apk add python3
     - apk add --update openssh-client make ca-certificates openssl python git bash
   script:
     - eval $(ssh-agent -s)
