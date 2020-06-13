@@ -21,8 +21,8 @@ services:
   - redis:latest
 
 spp:
-#  image: docker:19.03.10
-  image: docker:stable
+  image: docker:19.03.10
+#  image: docker:stable
   stage: build
   before_script:
     - apk add --update openssh-client make ca-certificates openssl python3 git bash
