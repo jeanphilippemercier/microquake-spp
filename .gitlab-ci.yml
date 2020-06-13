@@ -25,7 +25,7 @@ spp:
 #  image: docker:stable
   stage: build
   before_script:
-    - apk add --update openssh-client make ca-certificates openssl python3 git bash
+    - apk add --update openssh-client make ca-certificates openssl python git bash
   script:
     - eval $(ssh-agent -s)
     - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY")'
