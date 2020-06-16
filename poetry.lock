@@ -696,7 +696,7 @@ description = "Python library that is an extension/expansion/adaptation of ObsPy
 name = "microquake"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "0.1.252"
+version = "0.1.253"
 
 [package.dependencies]
 cachier = ">=1.2,<2.0"
@@ -781,10 +781,10 @@ description = "better multiprocessing and multithreading in python"
 name = "multiprocess"
 optional = false
 python-versions = "*"
-version = "0.70.9"
+version = "0.70.10"
 
 [package.dependencies]
-dill = ">=0.3.1"
+dill = ">=0.3.2"
 
 [[package]]
 category = "main"
@@ -901,13 +901,13 @@ description = "parallel graph management and execution in heterogeneous computin
 name = "pathos"
 optional = false
 python-versions = "*"
-version = "0.2.5"
+version = "0.2.6"
 
 [package.dependencies]
-dill = ">=0.3.1"
-multiprocess = ">=0.70.9"
-pox = ">=0.2.7"
-ppft = ">=1.6.6.1"
+dill = ">=0.3.2"
+multiprocess = ">=0.70.10"
+pox = ">=0.2.8"
+ppft = ">=1.6.6.2"
 
 [[package]]
 category = "main"
@@ -982,10 +982,13 @@ description = "distributed and parallel python"
 name = "ppft"
 optional = false
 python-versions = "*"
-version = "1.6.6.1"
+version = "1.6.6.2"
+
+[package.dependencies]
+six = ">=1.7.3"
 
 [package.extras]
-dill = ["dill (>=0.3.0)"]
+dill = ["dill (>=0.3.2)"]
 
 [[package]]
 category = "main"
@@ -1795,7 +1798,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "92fc826cc1e83c2fb38fa5207eb28b994e5f59d18924f1bd2625025966cd1583"
+content-hash = "f450b95a86d21ffd500b266fe169012ca7d50a2eda0a86c93017f0e85765df36"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -2212,8 +2215,8 @@ matplotlib = [
     {file = "matplotlib-3.2.1.tar.gz", hash = "sha256:ffe2f9cdcea1086fc414e82f42271ecf1976700b8edd16ca9d376189c6d93aee"},
 ]
 microquake = [
-    {file = "microquake-0.1.252-py3-none-any.whl", hash = "md5:9db568be4c305d163855f5f08f1b54d7"},
-    {file = "microquake-0.1.252.tar.gz", hash = "md5:19ad2bc499b043e9211214997cc8770a"},
+    {file = "microquake-0.1.253-py3-none-any.whl", hash = "md5:5e94abc2c39bac020caeb32bdef979d4"},
+    {file = "microquake-0.1.253.tar.gz", hash = "md5:05f3530be6ace8df07f091a79c6aaa1b"},
 ]
 microquake-hashwrap = [
     {file = "microquake-hashwrap-0.0.4.tar.gz", hash = "sha256:86b516988ce509b651cc02fa90ebe1749b2482c28919db6a50505d18b857aefc"},
@@ -2271,9 +2274,9 @@ multidict = [
     {file = "multidict-4.7.6.tar.gz", hash = "sha256:fbb77a75e529021e7c4a8d4e823d88ef4d23674a202be4f5addffc72cbb91430"},
 ]
 multiprocess = [
-    {file = "multiprocess-0.70.9-cp27-cp27m-win32.whl", hash = "sha256:0e4e65c2e74aa14fa0c9a1f838b5e9a5f8fe5b3a173925792260843c4a6157ec"},
-    {file = "multiprocess-0.70.9-cp27-cp27m-win_amd64.whl", hash = "sha256:1eb7dfe2d809d53be92e8a288ed1c01614fe5407bbc9d078ed451a749fb1bd34"},
-    {file = "multiprocess-0.70.9.tar.gz", hash = "sha256:9fd5bd990132da77e73dec6e9613408602a4612e1d73caf2e2b813d2b61508e5"},
+    {file = "multiprocess-0.70.10-cp27-cp27m-win32.whl", hash = "sha256:879ee48882bf7959102010058f30419d72abc90035de70b7259a386dc8b1946a"},
+    {file = "multiprocess-0.70.10-cp27-cp27m-win_amd64.whl", hash = "sha256:9e604ac3ff7d6aa7da8306e7dd3a76a8b6ba83f5a8a2d8590b2edd1468df6479"},
+    {file = "multiprocess-0.70.10.zip", hash = "sha256:81f388527a0c8766e94fe084fd8a408da5045a9fe7b28e199f684a796f3c6bf8"},
 ]
 ndg-httpsclient = [
     {file = "ndg_httpsclient-0.5.1-py2-none-any.whl", hash = "sha256:d2c7225f6a1c6cf698af4ebc962da70178a99bcde24ee6d1961c4f3338130d57"},
@@ -2368,7 +2371,7 @@ parso = [
     {file = "parso-0.7.0.tar.gz", hash = "sha256:908e9fae2144a076d72ae4e25539143d40b8e3eafbaeae03c1bfe226f4cdf12c"},
 ]
 pathos = [
-    {file = "pathos-0.2.5.tar.gz", hash = "sha256:21ae2cb1d5a76dcf57d5fe93ae8719c7339f467e246163650c08ccf35b87c846"},
+    {file = "pathos-0.2.6.zip", hash = "sha256:51b48e54870e4f83a262e49b6369116ab2ecc5a217569a84c7ab726e27b1bc10"},
 ]
 pathtools = [
     {file = "pathtools-0.1.2.tar.gz", hash = "sha256:7c35c5421a39bb82e58018febd90e3b6e5db34c5443aaaf742b3f33d4655f1c0"},
@@ -2393,7 +2396,7 @@ pox = [
     {file = "pox-0.2.8.zip", hash = "sha256:621f3a912531d0c5c71f7d5fd4815b15bf5d0db5b4cea352df14f2ff6bc7c615"},
 ]
 ppft = [
-    {file = "ppft-1.6.6.1.tar.gz", hash = "sha256:9e2173042edd5cc9c7bee0d7731873f17fcdce0e42e4b7ab68857d0de7b631fc"},
+    {file = "ppft-1.6.6.2.zip", hash = "sha256:cd1e39129fc9cbd4a877b1ff4fc5018051183c11bc9c9c0922efad80c57174f6"},
 ]
 prometheus-client = [
     {file = "prometheus_client-0.8.0-py2.py3-none-any.whl", hash = "sha256:983c7ac4b47478720db338f1491ef67a100b474e3bc7dafcbaefb7d0b8f9b01c"},
