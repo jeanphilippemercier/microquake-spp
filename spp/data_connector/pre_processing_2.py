@@ -502,117 +502,247 @@ def event_classification(cat, mag, fixed_length, context, event_types_lookup):
     return cat, automatic_processing, save_event
 
 
-def pre_process(event_id, force_send_to_api=False,
-                force_send_to_automatic=False,
-                force_accept=False, **kwargs):
+from microquake.db.connectors import RedisQueue
+from microquake.processors import event_detection
+# from obspy.signal.trigger import recursive_sta_lta, trigger_onset
+from pytz import utc
+from microquake.core.settings import settings
+from microquake.clients.ims import web_client
 
-    start_processing_time = time()
+evp = event_detection.Processor()
+# extract_continuous_queue = settings.get('EXTRACT_CONTINUOUS_QUEUE')
 
-    logger.info('message received')
+# rq = RedisQueue(extract_continuous_queue)
 
-    # tmp = deserialize(message)
-    start_processing_time = time()
-    event = get_event(event_id)
-    cat = event['catalogue']
+rq = RedisQueue('test')
 
-    event_resource_id = cat[0].resource_id.id
 
-    if get_event_by_id(api_base_url, event_resource_id):
-        logger.warning('event already exists in the database... skipping!')
-        return
+def extract_continuous_trigger(sensor_code, start_time, end_time):
 
-    try:
-        event_types_lookup = get_event_types(api_base_url)
-    except ConnectionError:
-        logger.error('api connection error, resending to the queue')
-        set_event(event_id, **event)
-        we_job_queue.submit_task(pre_process, event_id=event_id)
+    base_url = settings.get('IMS_BASE_URL')
+    network_code = settings.get('NETWORK_CODE')
 
-    try:
-        variable_length_wf = web_client.get_seismogram_event(base_url, cat[0],
-                                                             network_code, utc)
-    except AttributeError:
-        logger.warning('could not retrieve the variable length waveforms')
-        variable_length_wf = None
+    logger.info(f'getting trace for station {sensor_code}')
 
-    interloc_results = interloc_election(cat)
+    st = web_client.get_continuous(base_url, start_time, end_time,
+                                   [sensor_code], utc, network=network_code)
 
-    if not interloc_results:
-        logger.error('interloc failed')
+    if len(st) == 0:
+        logger.info('rouliboulou labadiboudou')
+        return 'marina'
+    logger.info(st)
+    logger.info(len(st[0].data))
+    logger.info('youppidou')
 
-        return
+    st = st.detrend('demean').detrend('linear')
+    tr = st.copy().composite()[0]
 
-    new_cat = interloc_results['catalog'].copy()
-    new_cat[0].preferred_origin().evaluation_status = 'preliminary'
-    waveforms = get_waveforms(interloc_results, new_cat)
-    waveforms['variable_length'] = variable_length_wf
+    return st, evp.process(trace=tr)
 
-    logger.info('event classification')
+    # sensor_response = inventory.select(sensor_code)
+    # if not sensor_response:
+    #     logger.warning(f'sensor response not found for sensor '
+    #                    f'{sensor_code}')
+    #     return
+    #
+    # poles = np.abs(sensor_response[0].response.get_paz().poles)
+    #
+    # # filter the traces
+    # low_freq = np.min(poles) / (2 * np.pi)
+    #
+    # tr = st.copy().filter('highpass', freq=low_freq).composite()[0]
+    #
+    # df = tr.stats.sampling_rate
+    # cft = recursive_sta_lta(tr.data, int(10e-3 * df), int(100e-3 * df))
+    # on_of = trigger_onset(cft, 5, 3)
+    # sr = tr.stats.sampling_rate
+    # stime = tr.stats.starttime
+    #
+    # on = []
+    # off = []
+    # sensors = []
+    # for of in on_of:
+    #     sensors.append(tr.stats.station)
+    #     on.append(stime + of[0] / sr)
+    #     off.append(st + of[1] / sr)
 
-    station_context = waveforms['context'][0].stats.station
 
-    context_2s = waveforms['fixed_length'].select(station=station_context)
+def pre_process(cat):
+    start_time = cat[0].preferred_origin().time - 10
+    end_time = start_time + 20
+    jobs = []
+    for sensor in inventory.stations():
+        job = rq.submit_task(extract_continuous_trigger, sensor.code,
+                             start_time, end_time)
+        jobs.append(job)
 
-    # clean the context trace
 
-    composite = np.zeros(len(context_2s[0].data))
-    vars = []
+def test():
 
-    for i, tr in enumerate(context_2s):
-        context_2s[i].data = np.nan_to_num(context_2s[i].data)
-        vars.append(np.var(context_2s[i].data))
-        composite += context_2s[i].data ** 2
+    from microquake.db.connectors import RedisQueue
+    from microquake.processors import event_detection
+    from obspy.core import UTCDateTime
+    from time import time
+    from microquake.core.settings import settings
+    from time import time
 
-    index = np.argmax(vars)
+    t0 = time()
+    inventory = settings.inventory
 
-    clean_data_processor = clean_data.Processor()
-    fixed_length = clean_data_processor.process(waveform=waveforms[
-        'fixed_length'].copy())
-    context = waveforms['context']
+    evt = UTCDateTime(2020, 6, 15, 23, 47, 16)
+    start_time = evt - 3
 
-    quick_magnitude_processor = quick_magnitude.Processor()
-    qmag, _, _ = quick_magnitude_processor.process(stream=fixed_length,
-                                                   cat=new_cat)
-    new_cat = quick_magnitude_processor.output_catalog(new_cat)
+    rq = RedisQueue('test')
+    end_time = start_time + 6
+    jobs = []
+    for sensor in inventory.stations():
+        if sensor.code in settings.get('sensors').black_list:
+            continue
+        jobs.append(rq.submit_task(extract_continuous_trigger, sensor.code,
+                             start_time, end_time))
+        # jobs.append(job)
 
-    new_cat, send_automatic, send_api = event_classification(new_cat.copy(),
-                                                             qmag,
-                                                             fixed_length,
-                                                             context,
-                                                             event_types_lookup)
+    time_out = 60
+    t = time()
 
-    if force_send_to_api or send_api:
-        logger.info('calculating rays')
-        rt_start_time = time()
-        rtp = ray_tracer.Processor()
-        rtp.process(cat=new_cat)
-        new_cat = rtp.output_catalog(new_cat)
-        rt_end_time = time()
-        rt_processing_time = rt_end_time - rt_start_time
-        logger.info(f'done calculating rays in {rt_processing_time} seconds')
+    is_finished = [job.is_finished for job in jobs]
+    time_since_started = np.zeros(len(jobs))
+    completed = [False] * len(jobs)
+    t0 = time()
+    time_out = 20
+    while not np.all(completed):
+        is_started = [job.is_started for job in jobs]
+        for i, (job, tss) in enumerate(zip(jobs, time_since_started)):
+            if job.is_finished:
+                completed[i] = True
+            elif job.is_started and (tss == 0):
+                time_since_started[i] = time()
+            elif not job.is_started:
+                pass
+            elif time() - tss > time_out:
+                completed[i] = True
+        print(completed)
 
-    if force_accept:
-        new_cat[0].preferred_origin().evaluation_status = 'preliminary'
+    results = [job.result if not job.is_failed else None for job in jobs]
 
-    dict_out = waveforms
-    dict_out['catalogue'] = new_cat
+    t1 = time()
 
-    set_event(event_id, **dict_out)
+    logger.info(f'ca a pris trop longtemps {t1 - t0}')
 
-    if send_api or force_send_to_api:
-        result = api_job_queue.submit_task(
-            send_to_api,
-            event_id=event_id,
-            network=network_code,
-            send_to_bus=send_automatic or force_send_to_automatic,
-        )
-        logger.info('event will be saved to the API')
+    return results
 
-    end_processing_time = time()
-    processing_time = end_processing_time - start_processing_time
-    # record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
-    #                           __processing_step_id__, processing_time)
 
-    logger.info(f'pre processing completed in {processing_time} s')
-
-    return dict_out
+# def pre_process(event_id, force_send_to_api=False,
+#                 force_send_to_automatic=False,
+#                 force_accept=False, **kwargs):
+#
+#     start_processing_time = time()
+#
+#     logger.info('message received')
+#
+#     # tmp = deserialize(message)
+#     start_processing_time = time()
+#     event = get_event(event_id)
+#     cat = event['catalogue']
+#
+#     event_resource_id = cat[0].resource_id.id
+#
+#     if get_event_by_id(api_base_url, event_resource_id):
+#         logger.warning('event already exists in the database... skipping!')
+#         return
+#
+#     try:
+#         event_types_lookup = get_event_types(api_base_url)
+#     except ConnectionError:
+#         logger.error('api connection error, resending to the queue')
+#         set_event(event_id, **event)
+#         we_job_queue.submit_task(pre_process, event_id=event_id)
+#
+#     try:
+#         variable_length_wf = web_client.get_seismogram_event(base_url, cat[0],
+#                                                              network_code, utc)
+#     except AttributeError:
+#         logger.warning('could not retrieve the variable length waveforms')
+#         variable_length_wf = None
+#
+#     interloc_results = interloc_election(cat)
+#
+#     if not interloc_results:
+#         logger.error('interloc failed')
+#
+#         return
+#
+#     new_cat = interloc_results['catalog'].copy()
+#     new_cat[0].preferred_origin().evaluation_status = 'preliminary'
+#     waveforms = get_waveforms(interloc_results, new_cat)
+#     waveforms['variable_length'] = variable_length_wf
+#
+#     logger.info('event classification')
+#
+#     station_context = waveforms['context'][0].stats.station
+#
+#     context_2s = waveforms['fixed_length'].select(station=station_context)
+#
+#     # clean the context trace
+#
+#     composite = np.zeros(len(context_2s[0].data))
+#     vars = []
+#
+#     for i, tr in enumerate(context_2s):
+#         context_2s[i].data = np.nan_to_num(context_2s[i].data)
+#         vars.append(np.var(context_2s[i].data))
+#         composite += context_2s[i].data ** 2
+#
+#     index = np.argmax(vars)
+#
+#     clean_data_processor = clean_data.Processor()
+#     fixed_length = clean_data_processor.process(waveform=waveforms[
+#         'fixed_length'].copy())
+#     context = waveforms['context']
+#
+#     quick_magnitude_processor = quick_magnitude.Processor()
+#     qmag, _, _ = quick_magnitude_processor.process(stream=fixed_length,
+#                                                    cat=new_cat)
+#     new_cat = quick_magnitude_processor.output_catalog(new_cat)
+#
+#     new_cat, send_automatic, send_api = event_classification(new_cat.copy(),
+#                                                              qmag,
+#                                                              fixed_length,
+#                                                              context,
+#                                                              event_types_lookup)
+#
+#     if force_send_to_api or send_api:
+#         logger.info('calculating rays')
+#         rt_start_time = time()
+#         rtp = ray_tracer.Processor()
+#         rtp.process(cat=new_cat)
+#         new_cat = rtp.output_catalog(new_cat)
+#         rt_end_time = time()
+#         rt_processing_time = rt_end_time - rt_start_time
+#         logger.info(f'done calculating rays in {rt_processing_time} seconds')
+#
+#     if force_accept:
+#         new_cat[0].preferred_origin().evaluation_status = 'preliminary'
+#
+#     dict_out = waveforms
+#     dict_out['catalogue'] = new_cat
+#
+#     set_event(event_id, **dict_out)
+#
+#     if send_api or force_send_to_api:
+#         result = api_job_queue.submit_task(
+#             send_to_api,
+#             event_id=event_id,
+#             network=network_code,
+#             send_to_bus=send_automatic or force_send_to_automatic,
+#         )
+#         logger.info('event will be saved to the API')
+#
+#     end_processing_time = time()
+#     processing_time = end_processing_time - start_processing_time
+#     # record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
+#     #                           __processing_step_id__, processing_time)
+#
+#     logger.info(f'pre processing completed in {processing_time} s')
+#
+#     return dict_out
