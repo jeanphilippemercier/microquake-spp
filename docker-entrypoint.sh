@@ -15,8 +15,10 @@ fi
 
 if [ "$1" == "modelupdate" ]; then
     seismic_client get-weight -i "${SPP_MODEL_WEIGHT_ID}"
+    seismic_client get-weight -i "${SPP_SIGNAL_NOISE_MODEL_WEIGHT_ID}"
     exit $?
 fi
+
 
 
 exec "$@"
