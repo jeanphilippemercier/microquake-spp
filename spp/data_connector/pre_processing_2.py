@@ -796,9 +796,13 @@ def extract_data_events(event_time, cat):
     logger.info('extracting')
 
 
-def pre_process(cat):
+def pre_process(event_id):
+    event = get_event(event_id)
+    cat = event['catalogue']
     event_time = cat[0].preferred_origin().time
     start_time = event_time - 3
+
+
 
     end_time = event_time + 3
 
