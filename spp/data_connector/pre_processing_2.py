@@ -602,11 +602,19 @@ def process_individual_event(input_dict, *args, force_send_to_api=False,
                                                    cat=cat_interloc.copy())
     new_cat = quick_magnitude_processor.output_catalog(cat_interloc.copy())
 
-    raboui
 
+    from microquake.ml.signal_noise_classifier import SignalNoiseClassifier
 
+    snc = SignalNoiseClassifier()
 
-
+    tr = fixed_length.select(station=context[0].stats.station)
+    classes = snc.predict(tr, context, new_cat.copy())
+    logger.info(classes)
+    if classes['signal'] < 0.1:
+        logger.info('event identified as noise...')
+        logger.info('the event will not be further processed')
+        logger.info('exiting')
+        return
 
     new_cat, send_automatic, send_api = event_classification(new_cat.copy(),
                                                              qmag,
@@ -788,7 +796,85 @@ def extract_data_events(event_time, cat):
     logger.info('extracting')
 
 
+def pre_process(cat):
+    event_time = cat[0].preferred_origin().time
+    start_time = event_time - 3
 
+    end_time = event_time + 3
+
+    sensors = []
+    for sensor in inventory.stations():
+        if sensor.code in settings.get('sensors').black_list:
+            continue
+        sensors.append(sensor.code)
+
+    logger.info('Extracting seismogram and triggering')
+
+    results = rq_map(extract_continuous_triggering, sensors, 'test',
+                     start_time,
+                     end_time, execution_time_out=20)
+
+    trs = []
+    triggers = {'sensor': [],
+                'trigger_time': []}
+    for result in results:
+        if not result:
+            continue
+        for tr in result[0]:
+            trs.append(tr)
+
+        if not result[1]:
+            continue
+        for trigger in result[1]:
+            triggers['sensor'].append(trigger[0])
+            triggers['trigger_time'].append(trigger[1])
+
+    st = Stream(traces=trs)
+
+    association_times = associate(triggers)
+
+    if not association_times:
+        associated_times = [event_time]
+
+    sts = []
+    cats = []
+    event_id_prefix = ''
+    for i, at in enumerate(association_times):
+        if (at - start_time < 0.5) or (end_time - at < 1.5):
+            stime = at - 0.5
+            etime = at + 1.5
+            tmp = rq_map(extract_continuous, sensors, 'test', stime, etime)
+
+        if event_id_prefix == '':
+            event_id_prefix = 'a'
+        else:
+            event_id_prefix = chr(ord(event_id_prefix) + 1)
+
+        # cat[0].resource_id.id = event_id_prefix + cat[0].resource_id.id
+        print(cat[0].resource_id)
+        cat[0].resource_id = ResourceIdentifier()
+        for j, ori in enumerate(cat[0].origins):
+            cat[0].origins[j].resource_id = ResourceIdentifier()
+        for j, mag in enumerate(cat[0].magnitudes):
+            cat[0].magnitudes[j].resource_id = ResourceIdentifier()
+        cat[0].preferred_origin().time = at
+        cats.append(cat.copy())
+        sts.append(st.copy().trim(starttime=at - 0.5, endtime=at + 1.5))
+
+    sts_cats = []
+    for c, s in zip(cats, sts):
+        st_cat = {'stream': s.copy(),
+                  'cat': c.copy()}
+        sts_cats.append(st_cat)
+        # rq.submit_task(process_individual_event, st_cat,
+        #                force_send_to_api=True)
+
+        process_individual_event(st_cat, force_send_to_api=True)
+
+    # results = rq_map(process_individual_event, sts_cats, 'test',
+    #                  execution_time_out=600, force_send_to_api=True)
+
+    logger.info('extracting')
 
 
 
@@ -805,17 +891,21 @@ def test():
     from loguru import logger
 
 
-    event_time = UTCDateTime(2020, 7, 5, 8, 51, 13)
+    event_time = UTCDateTime(2020, 7, 10, 14, 56, 14)
+    # event_time = UTCDateTime(2020, 7, 10, 20, 46, 16)
     start_time = event_time - 3
 
     rq = RedisQueue('test')
-    end_time = event_time + 10
+    end_time = event_time + 3
     jobs = []
 
     tz = tme.get_time_zone()
 
+    logger.info('retrieving catalog from the IMS system')
     cat = web_client.get_catalogue(ims_base_url, start_time, end_time,
-                                   inventory, tz)
+                                   inventory, tz, accepted=False)
+    logger.info('done retrieving the catalog from the IMS system')
+    logger.info(f'the catalog length is {len(cat)}')
 
     sensors = []
     for sensor in inventory.stations():
@@ -895,15 +985,15 @@ def test():
     return results
 
 
-def test_signal_noise_classifier():
-    from microquake.core.helpers import time as tme
-
-    start_time = UTCDateTime(2020, 7, 5, 8, 51, 13)
-    end_time = UTCDateTime.now()
-
-    tz = tme.get_time_zone()
-
-    cat = web_client.get_catalogue(ims_base_url, start_time, end_time,
-                                   inventory, tz)
-
-    for event in cat:
+# def test_signal_noise_classifier():
+#     from microquake.core.helpers import time as tme
+#
+#     start_time = UTCDateTime(2020, 7, 5, 8, 51, 13)
+#     end_time = UTCDateTime.now()
+#
+#     tz = tme.get_time_zone()
+#
+#     cat = web_client.get_catalogue(ims_base_url, start_time, end_time,
+#                                    inventory, tz)
+#
+#     for event in cat:

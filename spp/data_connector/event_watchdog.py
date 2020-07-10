@@ -23,6 +23,7 @@ from microquake.db.models.redis import set_event
 from obspy.core.event import ResourceIdentifier
 from spp.data_connector import pre_processing
 from spp.data_connector.pre_processing import pre_process
+from spp.data_connector.pre_processing_2 import pre_process as pre_process_2
 from requests.exceptions import RequestException
 import os
 
@@ -184,6 +185,9 @@ while time() - init_time < 600:
             set_event(event_id, catalogue=event.copy())
             
             result = we_job_queue.submit_task(pre_process, event_id=event_id)
+
+            rq = RedisQueue('test')
+            result = rq.submit_task(pre_process_2, cat)
             
             # for i, offset in enumerate([-5, -3, 3, 5]):
             #     event2 = event.copy()
