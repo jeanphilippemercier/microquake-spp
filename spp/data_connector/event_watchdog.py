@@ -187,7 +187,7 @@ while time() - init_time < 600:
             result = we_job_queue.submit_task(pre_process, event_id=event_id)
 
             rq = RedisQueue('test')
-            result = rq.submit_task(pre_process_2, cat)
+            result = rq.submit_task(pre_process_2, event_id)
             
             # for i, offset in enumerate([-5, -3, 3, 5]):
             #     event2 = event.copy()
