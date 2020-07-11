@@ -791,7 +791,7 @@ def extract_data_events(event_time, cat):
         process_individual_event(st_cat, force_send_to_api=True)
 
     results = rq_map(process_individual_event, sts_cats, 'test',
-                      execution_time_out=600, force_send_to_api=True)
+                     execution_time_out=600, force_send_to_api=True)
 
     logger.info('extracting')
 
@@ -801,8 +801,6 @@ def pre_process(event_id):
     cat = event['catalogue']
     event_time = cat[0].preferred_origin().time
     start_time = event_time - 3
-
-
 
     end_time = event_time + 3
 
