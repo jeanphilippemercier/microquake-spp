@@ -184,7 +184,7 @@ while time() - init_time < 600:
                                                we_message_queue))
             set_event(event_id, catalogue=event.copy())
             
-            result = we_job_queue.submit_task(pre_process, event_id=event_id)
+            # result = we_job_queue.submit_task(pre_process, event_id=event_id)
             result = we_job_queue.submit_task(pre_process_2, event_id)
             
             # for i, offset in enumerate([-5, -3, 3, 5]):

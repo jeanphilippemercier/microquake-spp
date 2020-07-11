@@ -17,6 +17,8 @@ from microquake.clients.api_client import (post_data_from_objects,
                                            get_event_by_id,
                                            put_data_from_objects,
                                            get_event_types)
+
+from microquake.ml.signal_noise_classifier import SignalNoiseClassifier
 from obspy import UTCDateTime
 from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue
@@ -320,6 +322,9 @@ def get_context_trace(cat, st):
     dists = []
     sensors = []
     for station in inventory.stations():
+        # we need to be careful here. This is very particular to Oyu Tolgoi
+        if station.motion != 'VELOCITY':
+            continue
         if len(st.select(station=station.code)) == 0:
             continue
         station_data = st.select(station=station.code)[0].data
@@ -602,9 +607,6 @@ def process_individual_event(input_dict, *args, force_send_to_api=False,
                                                    cat=cat_interloc.copy())
     new_cat = quick_magnitude_processor.output_catalog(cat_interloc.copy())
 
-
-    from microquake.ml.signal_noise_classifier import SignalNoiseClassifier
-
     snc = SignalNoiseClassifier()
 
     tr = fixed_length.select(station=context[0].stats.station)
@@ -612,9 +614,16 @@ def process_individual_event(input_dict, *args, force_send_to_api=False,
     logger.info(classes)
     if classes['signal'] < 0.1:
         logger.info('event identified as noise...')
-        logger.info('the event will not be further processed')
-        logger.info('exiting')
-        return
+
+        if not force_send_to_api or force_accept:
+            logger.info('the event will not be further processed')
+            logger.info('exiting')
+            return
+
+        if force_send_to_api:
+            logger.info('the event will be sent to the API')
+        if force_accept:
+            logger.info('the event will be shown as accepted')
 
     new_cat, send_automatic, send_api = event_classification(new_cat.copy(),
                                                              qmag,
@@ -657,7 +666,7 @@ def process_individual_event(input_dict, *args, force_send_to_api=False,
 
     rq = RedisQueue('test')
     if send_api or force_send_to_api:
-        logger.info('dequese')
+        logger.info('event will be saved!')
         send_to_api(new_cat, st, variable_length=variable_length_wf,
                     context=context, attempt_number=1, send_to_bus=True)
         # result = rq.submit_task(
@@ -796,7 +805,8 @@ def extract_data_events(event_time, cat):
     logger.info('extracting')
 
 
-def pre_process(event_id):
+def pre_process(event_id, force_send_to_api=False, force_accept=False,
+                force_send_to_automatic=False):
     event = get_event(event_id)
     cat = event['catalogue']
     event_time = cat[0].preferred_origin().time
@@ -871,13 +881,16 @@ def pre_process(event_id):
         # rq.submit_task(process_individual_event, st_cat,
         #                force_send_to_api=True)
 
-        process_individual_event(st_cat, force_send_to_api=True)
+        process_individual_event(st_cat,
+                                 force_send_to_api=force_send_to_api,
+                                 force_accept=force_accept,
+                                 force_send_to_automatic=
+                                 force_send_to_automatic)
 
     # results = rq_map(process_individual_event, sts_cats, 'test',
     #                  execution_time_out=600, force_send_to_api=True)
 
     logger.info('extracting')
-
 
 
 def test():
