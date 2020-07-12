@@ -27,6 +27,7 @@ from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.core.helpers.timescale_db import (get_continuous_data,
                                                   get_db_lag)
 from microquake.core.helpers.time import get_time_zone
+from microquake.ml.signal_noise_classifier import SignalNoiseClassifier
 from datetime import datetime
 import json
 import requests
@@ -575,11 +576,31 @@ def pre_process(event_id, force_send_to_api=False,
                                                    cat=new_cat)
     new_cat = quick_magnitude_processor.output_catalog(new_cat)
 
+    snc = SignalNoiseClassifier()
+
+    tr = fixed_length.select(station=context[0].stats.station)
+    classes = snc.predict(tr, context, new_cat.copy())
+    logger.info(classes)
+    if classes['signal'] < 0.1:
+        logger.info('event identified as noise...')
+
+        if not force_send_to_api or force_accept:
+            logger.info('the event will not be further processed')
+            logger.info('exiting')
+            return
+
+        if force_send_to_api:
+            logger.info('the event will be sent to the API')
+        if force_accept:
+            logger.info('the event will be shown as accepted')
+
     new_cat, send_automatic, send_api = event_classification(new_cat.copy(),
                                                              qmag,
                                                              fixed_length,
                                                              context,
                                                              event_types_lookup)
+
+    send_api = True
 
     if send_api or force_send_to_api:
         logger.info('calculating rays')
