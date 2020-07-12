@@ -123,7 +123,7 @@ def heartbeat():
     response = None
     try:
         response = requests.post(url, json={'source': 'event_connector'})
-    except RequestException:
+    except RequestException as e:
         logger.error(e)
 
     return response
@@ -156,6 +156,10 @@ while time() - init_time < 600:
         continue
     except TimeOutException as te:
         logger.error('IMS request timed out')
+        logger.error(te)
+        continue
+    except Exception as e:
+        logger.error(e)
         continue
 
     signal.alarm(0)
