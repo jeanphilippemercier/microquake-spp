@@ -573,8 +573,12 @@ def process_individual_event(input_dict, *args, force_send_to_api=False,
     try:
         variable_length_wf = web_client.get_seismogram_event(ims_base_url, cat[0],
                                                              network_code, utc)
-    except AttributeError:
+    except AttributeError as ae:
         logger.warning('could not retrieve the variable length waveforms')
+        logger.error(ae)
+        variable_length_wf = None
+    except Exception as exception:
+        logger.error(exception)
         variable_length_wf = None
 
     waveforms['variable_length'] = variable_length_wf
@@ -630,6 +634,10 @@ def process_individual_event(input_dict, *args, force_send_to_api=False,
                                                              fixed_length,
                                                              context,
                                                              event_types_lookup)
+
+    logger.info('all event that pass this point will be sent to the API')
+
+    send_api = True
 
     if force_send_to_api or send_api:
         logger.info('calculating rays')
