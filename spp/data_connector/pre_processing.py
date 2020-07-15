@@ -18,7 +18,8 @@ from microquake.clients.api_client import (post_data_from_objects,
                                            get_event_types)
 from obspy import UTCDateTime
 from microquake.core.settings import settings
-from microquake.db.connectors import RedisQueue, record_processing_logs_pg
+from microquake.db.connectors import RedisQueue
+    # record_processing_logs_pg
 from microquake.db.models.redis import set_event, get_event
 from microquake.processors import (clean_data, event_classifier, interloc,
                                    quick_magnitude, ray_tracer)
@@ -26,6 +27,11 @@ from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.core.helpers.timescale_db import (get_continuous_data,
                                                   get_db_lag)
 from microquake.core.helpers.time import get_time_zone
+from microquake.ml.signal_noise_classifier import SignalNoiseClassifier
+from datetime import datetime
+import json
+import requests
+from urllib.parse import urlencode
 
 import json
 
@@ -64,6 +70,39 @@ use_time_scale = settings.USE_TIMESCALE
 # tolerance for how many trace are not recovered
 minimum_recovery_fraction = settings.get(
     'data_connector').minimum_recovery_fraction
+
+
+def event_within_tolerance(event_time, tolerance=0.5):
+    """
+    Return true if there is an event in the catalog within <tolerance>
+    seconds of the event time
+    :param time:
+    :param tolerance:
+    :return:
+    """
+
+    api_base_url = settings.get('api_base_url')
+
+    if isinstance(event_time, datetime):
+        event_time = UTCDateTime(event_time)
+
+    start_time = event_time - 0.25
+    end_time = event_time + 0.25
+
+    query = urlencode({'time_utc_after': start_time,
+                       'time_utc_before': end_time})
+
+    if api_base_url[-1] != '/':
+        api_base_url += '/'
+
+    url = f'{api_base_url}events?{query}'
+    # from pdb import set_trace; set_trace()
+    response = json.loads(requests.get(url).content)
+
+    if response['count']:
+        return True
+
+    return False
 
 
 def extract_continuous(starttime, endtime, sensor_id=None):
@@ -149,7 +188,7 @@ def interloc_election(cat):
     wfs = []
 
     starttime = event_time - timedelta(seconds=1.5)
-    endtime = event_time + timedelta(seconds=1.5)
+    endtime = event_time + timedelta(seconds=3.5)
 
     complete_wf = extract_continuous(starttime, endtime)
 
@@ -157,8 +196,7 @@ def interloc_election(cat):
                                         max_length=0.01).filter('bandpass',
                                                                 freqmin=60,
                                                                 freqmax=500)
-
-    for offset in [-1.5, -1, -0.5]:
+    for offset in [-1.5, -0.5, 0.5, 1.5]:
         starttime = event_time + timedelta(seconds=offset)
         endtime = starttime + timedelta(seconds=2)
 
@@ -184,8 +222,10 @@ def interloc_election(cat):
 
     index = np.argmax(thresholds)
 
-    logger.info('Event location: {}'.format(new_cat[0].preferred_origin().loc))
-    logger.info('Event time: {}'.format(new_cat[0].preferred_origin().time))
+    cat_out = interloc_results[index]['catalog'].copy()
+
+    logger.info('Event location: {}'.format(cat_out[0].preferred_origin().loc))
+    logger.info('Event time: {}'.format(cat_out[0].preferred_origin().time))
 
     return interloc_results[index]
 
@@ -294,6 +334,9 @@ def send_to_api(event_id, **kwargs):
 
     response = None
 
+    if event_within_tolerance(event['catalogue'][0].preferred_origin().time):
+        return
+
     try:
         response = post_data_from_objects(api_base_url,
                                           network_code, event_id=None,
@@ -301,7 +344,7 @@ def send_to_api(event_id, **kwargs):
                                           stream=event['fixed_length'],
                                           context=event['context'],
                                           variable_length=event['variable_length'],
-                                          tolerance=None,
+                                          tolerance=0.5,
                                           send_to_bus=send_to_bus)
 
     except requests.exceptions.RequestException as e:
@@ -313,7 +356,7 @@ def send_to_api(event_id, **kwargs):
 
     if not response:
         logger.info('request failed')
-        return
+        # return
         # logger.info('request failed, resending to the queue')
         # set_event(event_id, **event)
         # result = api_job_queue.submit_task(send_to_api, event_id=event_id)
@@ -324,8 +367,8 @@ def send_to_api(event_id, **kwargs):
 
     evt = event['catalogue'][0]
 
-    record_processing_logs_pg(evt, 'success', processing_step,
-                              processing_step_id, processing_time)
+    # record_processing_logs_pg(evt, 'success', processing_step,
+    #                           processing_step_id, processing_time)
 
     # if (cat[0].event_type == 'earthquake') or (cat[0].event_type ==
     #                                            'explosion'):
@@ -337,7 +380,7 @@ def send_to_api(event_id, **kwargs):
     return response
 
 
-def event_classification(cat, fixed_length, context, event_types_lookup):
+def event_classification(cat, mag, fixed_length, context, event_types_lookup):
 
     category = event_classifier.Processor().process(stream=fixed_length,
                                                     context=context,
@@ -359,6 +402,8 @@ def event_classification(cat, fixed_length, context, event_types_lookup):
         'event_classifier').likelihood_threshold
     accepted_event_types = settings.get(
         'event_classifier').valid_event_types.to_list()
+    blast_event_types = settings.get(
+        'event_classifier').blast_event_types.to_list()
     uploaded_event_types = settings.get(
         'event_classifier').uploaded_event_types.to_list()
     blast_window_starts = settings.get('event_classifier').blast_window_starts
@@ -381,8 +426,6 @@ def event_classification(cat, fixed_length, context, event_types_lookup):
             event_type = 'underground blast'
         else:
             event_type = 'other blast'
-
-    # from ipdb import set_trace; set_trace()
 
     if event_type in accepted_event_types:
 
@@ -416,6 +459,16 @@ def event_classification(cat, fixed_length, context, event_types_lookup):
         automatic_processing = True
         save_event = True
 
+    elif event_type in blast_event_types:
+        cat[0].event_type = event_types_lookup[event_type]
+        cat[0].preferred_origin().evaluation_status = 'rejected'
+
+        logger.info(f'event categorized as {event_type}. The event will be '
+                    f'marked as rejected but uploaded to the API. The event '
+                    f'will be further processed.')
+        automatic_processing = True
+        save_event = True
+
     elif event_type in uploaded_event_types:
         if likelihood >= likelihood_threshold:
             cat[0].event_type = event_types_lookup[event_type]
@@ -431,11 +484,28 @@ def event_classification(cat, fixed_length, context, event_types_lookup):
         cat[0].event_type = event_types_lookup[event_type]
         cat[0].preferred_origin().evaluation_status = 'rejected'
 
+    # superseding the above if the magnitude of the event is greater than
+    # 0. Unless the event is categorized as a blast, it will automatically
+    # be categorized as a "genuine" seismic event, automatically processed
+    # and saved.
+    mag_threshold = settings.get(
+        'event_classifier').large_event_processing_threshold
+    ignored_types = settings.get('event_classifier').ignore_type_large_event
+    if (mag > mag_threshold) and (event_type not in ignored_types):
+        logger.info('superseding the classifier categorization, the event '
+                    'will be classified as a seismic event and further '
+                    'processed.')
+        cat[0].event_type = event_types_lookup['seismic event']
+        cat[0].preferred_origin().evaluation_status = 'preliminary'
+        automatic_processing = True
+        save_event = True
+
     return cat, automatic_processing, save_event
 
 
 def pre_process(event_id, force_send_to_api=False,
-                force_send_to_automatic=False, **kwargs):
+                force_send_to_automatic=False,
+                force_accept=False, **kwargs):
 
     start_processing_time = time()
 
@@ -502,23 +572,48 @@ def pre_process(event_id, force_send_to_api=False,
     context = waveforms['context']
 
     quick_magnitude_processor = quick_magnitude.Processor()
-    result = quick_magnitude_processor.process(stream=fixed_length,
-                                               cat=new_cat)
+    qmag, _, _ = quick_magnitude_processor.process(stream=fixed_length,
+                                                   cat=new_cat)
     new_cat = quick_magnitude_processor.output_catalog(new_cat)
 
-    logger.info('calculating rays')
-    rt_start_time = time()
-    rtp = ray_tracer.Processor()
-    rtp.process(cat=new_cat)
-    new_cat = rtp.output_catalog(new_cat)
-    rt_end_time = time()
-    rt_processing_time = rt_end_time - rt_start_time
-    logger.info(f'done calculating rays in {rt_processing_time} seconds')
+    snc = SignalNoiseClassifier()
 
-    new_cat, send_automatic, send_api = event_classification(new_cat,
+    tr = fixed_length.select(station=context[0].stats.station)
+    classes = snc.predict(tr, context, new_cat.copy())
+    logger.info(classes)
+    if classes['signal'] < 0.1:
+        logger.info('event identified as noise...')
+
+        if not force_send_to_api or force_accept:
+            logger.info('the event will not be further processed')
+            logger.info('exiting')
+            return
+
+        if force_send_to_api:
+            logger.info('the event will be sent to the API')
+        if force_accept:
+            logger.info('the event will be shown as accepted')
+
+    new_cat, send_automatic, send_api = event_classification(new_cat.copy(),
+                                                             qmag,
                                                              fixed_length,
                                                              context,
                                                              event_types_lookup)
+
+    send_api = True
+
+    if send_api or force_send_to_api:
+        logger.info('calculating rays')
+        rt_start_time = time()
+        rtp = ray_tracer.Processor()
+        rtp.process(cat=new_cat)
+        new_cat = rtp.output_catalog(new_cat)
+        rt_end_time = time()
+        rt_processing_time = rt_end_time - rt_start_time
+        logger.info(f'done calculating rays in {rt_processing_time} seconds')
+
+    if force_accept:
+        new_cat[0].preferred_origin().evaluation_status = 'preliminary'
 
     dict_out = waveforms
     dict_out['catalogue'] = new_cat
@@ -532,13 +627,13 @@ def pre_process(event_id, force_send_to_api=False,
             network=network_code,
             send_to_bus=send_automatic or force_send_to_automatic,
         )
-        logger.info('event save to the API')
+        logger.info('event will be saved to the API')
 
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
-    record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
-                              __processing_step_id__, processing_time)
+    # record_processing_logs_pg(new_cat[0], 'success', __processing_step__,
+    #                           __processing_step_id__, processing_time)
 
-    logger.info('pre processing completed')
+    logger.info(f'pre processing completed in {processing_time} s')
 
     return dict_out

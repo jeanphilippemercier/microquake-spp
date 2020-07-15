@@ -80,7 +80,7 @@ def cli(info: Info,
         module_name: str,
         step: int,
         processing_flow: str,
-        once: bool
+        once: bool,
         ):
     """
     Run seismic platform.
@@ -209,7 +209,8 @@ def version():
 
 
 @cli.command()
-def prepare():
+@click.option('--no_hdf5', is_flag=True, default=False, help="Don't create HDF5 file")
+def prepare(no_hdf5):
     """
     Prepare project and run NonLinLoc
     """
@@ -228,8 +229,9 @@ def prepare():
     logger.info('Done preparing NonLinLoc')
 
     # creating H5 grid from NLL grids
-    logger.info('Writing h5 travel time table')
-    write_ttable_h5()
+    if not no_hdf5:
+        logger.info('Writing h5 travel time table')
+        write_ttable_h5()
 
 
 @cli.command()

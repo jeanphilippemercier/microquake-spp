@@ -1,0 +1,55 @@
+version: "3.5"
+
+networks:
+  new-network:
+
+services:
+
+  spp-alert-postgres:
+    networks:
+      - new-network
+    image: postgres
+    hostname: spp-alert-postgres
+    container_name: spp-alert-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ${PWD}/alarm.sql:/docker-entrypoint-initdb.d/alarm.sql
+
+  alarm-module:
+    networks:
+      - new-network
+    image: registry.microquake.org/rio-tinto/seismic-processing-platform/spp:latest
+    hostname: alarm_module
+    container_name: alarm_module
+    depends_on:
+      - spp-alert-postgres
+    volumes:
+      - ${PWD}:/app/spp/alerting
+#    environment:
+    env_file:
+      - environment.env
+    working_dir:
+      /app/spp/alerting
+    tty: true
+
+#  grafana:
+#    networks:
+#      - new-network
+#    image: grafana/grafana
+#    hostname: grafana
+#    depends_on:
+#      - spp-alert-postgres
+#    ports:
+#      - 3000:3000
+#    user: "104"
+##    command: -admin-password "admin"
+##    volumes:
+##      # storage need to be created before using
+##      # docker volume create grafana-storage
+##      graphana-storage:/var/lib/grafana
+
+volumes:
+    mi2: {}

@@ -6,13 +6,16 @@ from pytz import utc
 from spp.data_connector.pre_processing import pre_process
 from microquake.db.connectors import RedisQueue
 from microquake.db.models.redis import set_event
+from obspy.core.event import ResourceIdentifier
 from loguru import logger
+from spp.data_connector.pre_processing_2 import pre_process as pre_process_2
 
 api_base_url = settings.get('api_base_url')
 ims_base_url = settings.get('ims_base_url')
 
 we_message_queue = settings.PRE_PROCESSING_MESSAGE_QUEUE
 we_job_queue = RedisQueue(we_message_queue)
+we_job_queue_low_priority = RedisQueue(we_message_queue + '.low_priority')
 
 # will look at the last day of data
 end_time = datetime.utcnow() - timedelta(hours=1)
@@ -33,16 +36,58 @@ sorted_cat = sorted(cat, reverse=True,
 
 for i, event in enumerate(sorted_cat):
     logger.info(f'processing event {i} of {len(cat)} -- ({i/len(cat) * 100}%)')
+
+    event_time = event.preferred_origin().time
+    tolerance = 0.5
+
+    start_time = event_time - tolerance
+    end_time = event_time + tolerance
+    re_list = api_client.get_events_catalog(api_base_url, start_time, end_time)
+
+    if re_list:
+        continue
+
     event_id = event.resource_id.id
-    if not api_client.get_event_by_id(api_base_url, event_id):
-        logger.info(f'sending event {ct} to the queue')
-        set_event(event_id, catalogue=event.copy())
-        logger.info(f'sending event with event id {event_id} to the '
-                    f'pre_processing queue')
-        result = we_job_queue.rq_queue.enqueue(pre_process,
-                                               args=(event_id,),
-                                               kwargs={'force_send_to_api':
-                                                       True,
-                                                       'force_send_to_automatic':
-                                                       True})
-        ct += 1
+
+    if api_client.get_event_by_id(api_base_url, event_id):
+        continue
+
+    logger.info(f'sending event {ct} to the queue')
+    set_event(event_id, catalogue=event.copy())
+    logger.info(f'sending event with event id {event_id} to the '
+                f'pre_processing queue')
+    result = we_job_queue.rq_queue.enqueue(pre_process,
+                                           args=(event_id,),
+                                           kwargs={'force_send_to_api':
+                                                   True,
+                                                   'force_send_to_automatic':
+                                                   True,
+                                                   'force_accept':
+                                                   True})
+    # result = we_job_queue.submit_task(pre_process_2, event_id,
+    #                                   force_send_to_api=True,
+    #                                   force_send_to_automatic=True,
+    #                                   force_accept=True)
+
+    # for i, offset in enumerate([-5, -3, -1, 1, 3, 5]):
+    #     event2 = event.copy()
+    #     event2.resource_id = ResourceIdentifier()
+    #     event_id = event2.resource_id.id
+    #
+    #     # changing the origin ids
+    #     po_id = event2.preferred_origin().resource_id.id
+    #     for j, origin in enumerate(event2.origins):
+    #         rid = ResourceIdentifier()
+    #         if event2.preferred_origin().resource_id.id == po_id:
+    #             event2.origins[j].resource_id = rid
+    #             event2.preferred_origin_id = rid
+    #
+    #         else:
+    #             event2.origins[j] = rid
+    #
+    #     event2.preferred_origin().time += offset
+    #     set_event(event_id, catalogue=event2.copy())
+    #     result2 = we_job_queue_low_priority.submit_task(pre_process,
+    #                                                     event_id=event_id)
+
+    ct += 1

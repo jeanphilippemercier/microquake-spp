@@ -22,7 +22,7 @@ api_base_url = settings.get('API_BASE_URL')
 if api_base_url[-1] == '/':
     api_base_url = api_base_url[:-1]
 
-api_url_sensors = api_base_url + '/inventory/sensors'
+api_url_sensors = api_base_url + '/inventory/sensors?page_size=1000'
 api_url = api_base_url + '/signal_quality'
 response = requests.get(api_url_sensors)
 
@@ -43,18 +43,16 @@ for sensor in sensors:
                                    [str(sensor['code'])], utc,
                                    network=network_code)
 
-    # st = get_continuous_data(starttime, endtime, sensor_id=str(sensor['code']))
-
-    signal_quality['sensor_code'] = sensor['id']
+    signal_quality['sensor_code'] = sensor['code']
     if len(st) == 0:
         r = requests.post(api_url, json=signal_quality)
-        continue
 
         if r:
             logger.info(f'successfully posted to the API')
         else:
             logger.info(f'post failed, the API responded with code '
                         f'{r.status_code}')
+        continue
 
     try:
         st = st.detrend('demean').detrend('linear')
@@ -67,7 +65,7 @@ for sensor in sensors:
     c = st.composite()
 
     expected_signal_length = c[0].stats.sampling_rate * signal_duration_seconds
-    integrity = np.ceil(len(c[0].data) / expected_signal_length)
+    integrity = len(c[0].data) / expected_signal_length
 
     signal_quality['energy'] = str(np.std(c[0].data))
     signal_quality['integrity'] = str(integrity)
@@ -78,7 +76,12 @@ for sensor in sensors:
     integrity = int(float(signal_quality['integrity']) * 100)
     logger.info(f'signal recovery is {integrity} %')
 
-    r = requests.post(api_url, json=signal_quality)
+    try:
+        r = requests.post(api_url, json=signal_quality)
+    except requests.exceptions.ConnectionError as r:
+        logger.error(f'connection error when attempting to POST information '
+                     f'for sensor {sensor}')
+        continue
 
     if r:
         logger.info(f'successfully posted to the API')
