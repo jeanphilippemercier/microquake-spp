@@ -33,8 +33,6 @@ class SignalNoiseClassifier:
         self.base_directory = Path(settings.common_dir) / '../data/weights'
         # Model was trained at these dimensions
         self.D = (128, 128, 1)
-        self.microquake_class_names = ['noise', 'signal']
-        self.num_classes = len(self.microquake_class_names)
         self.model_file = self.base_directory / f"{model_name}"
         self.create_model()
         self.qmp = quick_magnitude.Processor()
