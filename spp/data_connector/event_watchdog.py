@@ -45,6 +45,7 @@ spp_common_path = settings.get('common')
 we_message_queue = settings.PRE_PROCESSING_MESSAGE_QUEUE
 we_job_queue = RedisQueue(we_message_queue)
 we_job_queue_low_priority = RedisQueue(we_message_queue + '.low_priority')
+we_job_queue_test = RedisQueue('test')
 
 last_run_file = os.path.join(spp_common_path, '.watchdog_last_run')
 
@@ -189,6 +190,9 @@ while time() - init_time < 600:
             set_event(event_id, catalogue=event.copy())
             
             result = we_job_queue.submit_task(pre_process, event_id=event_id)
+            result = we_job_queue_test.submit_task(pre_process,
+                                                   event_id=event_id)
+
             # result = we_job_queue.submit_task(pre_process_2, event_id)
             
             # for i, offset in enumerate([-5, -3, 3, 5]):

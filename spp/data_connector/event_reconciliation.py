@@ -56,18 +56,18 @@ for i, event in enumerate(sorted_cat):
     set_event(event_id, catalogue=event.copy())
     logger.info(f'sending event with event id {event_id} to the '
                 f'pre_processing queue')
-    result = we_job_queue.rq_queue.enqueue(pre_process,
-                                           args=(event_id,),
-                                           kwargs={'force_send_to_api':
-                                                   True,
-                                                   'force_send_to_automatic':
-                                                   True,
-                                                   'force_accept':
-                                                   True})
-    # result = we_job_queue.submit_task(pre_process_2, event_id,
-    #                                   force_send_to_api=True,
-    #                                   force_send_to_automatic=True,
-    #                                   force_accept=True)
+    # result = we_job_queue.rq_queue.enqueue(pre_process,
+    #                                        args=(event_id,),
+    #                                        kwargs={'force_send_to_api':
+    #                                                True,
+    #                                                'force_send_to_automatic':
+    #                                                True,
+    #                                                'force_accept':
+    #                                                True})
+    result = we_job_queue.submit_task(pre_process, event_id,
+                                      force_send_to_api=True,
+                                      force_send_to_automatic=True,
+                                      force_accept=True)
 
     # for i, offset in enumerate([-5, -3, -1, 1, 3, 5]):
     #     event2 = event.copy()
