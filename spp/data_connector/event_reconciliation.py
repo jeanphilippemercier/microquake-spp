@@ -6,9 +6,7 @@ from pytz import utc
 from spp.data_connector.pre_processing import pre_process
 from microquake.db.connectors import RedisQueue
 from microquake.db.models.redis import set_event
-from obspy.core.event import ResourceIdentifier
 from loguru import logger
-from spp.data_connector.pre_processing_2 import pre_process as pre_process_2
 
 api_base_url = settings.get('api_base_url')
 ims_base_url = settings.get('ims_base_url')
