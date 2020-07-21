@@ -21,7 +21,7 @@ from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue
     # record_processing_logs_pg
 from microquake.db.models.redis import set_event, get_event
-from microquake.processors import (clean_data, event_classifier, interloc,
+from microquake.processors import (clean_data, interloc,
                                    quick_magnitude, ray_tracer)
 from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.core.helpers.timescale_db import (get_continuous_data,
