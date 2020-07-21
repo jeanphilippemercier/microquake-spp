@@ -28,6 +28,7 @@ from microquake.core.helpers.timescale_db import (get_continuous_data,
                                                   get_db_lag)
 from microquake.core.helpers.time import get_time_zone
 from microquake.ml.signal_noise_classifier import SignalNoiseClassifier
+from microquake.ml.classifier import EventClassifier
 from datetime import datetime
 import json
 import requests
@@ -382,21 +383,27 @@ def send_to_api(event_id, **kwargs):
 
 def event_classification(cat, mag, fixed_length, context, event_types_lookup):
 
-    category = event_classifier.Processor().process(stream=fixed_length,
-                                                    context=context,
-                                                    cat=cat)
+    ec = EventClassifier()
 
-    sorted_list = sorted(category.items(), reverse=True,
+    tr = fixed_length.select(station=context[0].stats.station)
+    classes = ec.predict(tr, context, cat.copy())
+    logger.info(classes)
+
+    # category = event_classifier.Processor().process(stream=fixed_length,
+    #                                                 context=context,
+    #                                                 cat=cat)
+
+    sorted_list = sorted(classes.items(), reverse=True,
                          key=lambda x: x[1])
-
-    elevation = cat[0].preferred_origin().z
-    maximum_event_elevation = settings.get(
-        'data_connector').maximum_event_elevation
 
     logger.info('{}'.format(sorted_list))
 
-    event_type = sorted_list[0][0]
-    likelihood = sorted_list[0][1]
+    if classes['seismic event'] > 0.1:
+        event_type = 'seismic event'
+        likelihood = classes['seismic event']
+    else:
+        event_type = sorted_list[0][0]
+        likelihood = sorted_list[0][1]
 
     likelihood_threshold = settings.get(
         'event_classifier').likelihood_threshold
@@ -410,7 +417,7 @@ def event_classification(cat, mag, fixed_length, context, event_types_lookup):
     blast_window_ends = settings.get('event_classifier').blast_window_ends
 
     automatic_processing = False
-    save_event = False
+    save_event = True
 
     event_time_local = cat[0].preferred_origin().time.datetime.replace(
         tzinfo=utc).astimezone(get_time_zone())
@@ -427,37 +434,14 @@ def event_classification(cat, mag, fixed_length, context, event_types_lookup):
         else:
             event_type = 'other blast'
 
-    if event_type in accepted_event_types:
+    if event_type in ['seismic event', 'unknown']:
 
         cat[0].event_type = event_types_lookup[event_type]
-        if likelihood >= likelihood_threshold:
-            cat[0].preferred_origin().evaluation_status = 'preliminary'
-            logger.info(f'event categorized as {event_type} will be further '
-                        f'processed')
-            automatic_processing = True
-            save_event = True
-        else:
-            cat[0].preferred_origin().evaluation_status = 'rejected'
-            logger.info(f'event categorized as {event_type} but with a '
-                        f'likelihood of {likelihood} which is lower than '
-                        f'the threshold {likelihood_threshold}. The event '
-                        f'will be uploaded to the API and will be '
-                        f'further processed ')
-            automatic_processing = True
-            save_event = True
-
-    elif (sorted_list[1][0] in accepted_event_types) and \
-            (sorted_list[1][1] > likelihood_threshold / 2):
-        cat[0].event_type = event_types_lookup[event_type]
-        cat[0].preferred_origin().evaluation_status = 'rejected'
-
-        logger.info(f'event categorized as {event_type} but the event could '
-                    f'also be {sorted_list[1][0]} with a likelihood of '
-                    f'{sorted_list[1][1]}. The event will be marked '
-                    f'as rejected but uploaded to the API. The event will '
-                    f'be further processed.')
+        # if likelihood >= likelihood_threshold:
+        cat[0].preferred_origin().evaluation_status = 'preliminary'
+        logger.info(f'event categorized as {event_type} will be further '
+                    f'processed')
         automatic_processing = True
-        save_event = True
 
     elif event_type in blast_event_types:
         cat[0].event_type = event_types_lookup[event_type]
@@ -467,38 +451,13 @@ def event_classification(cat, mag, fixed_length, context, event_types_lookup):
                     f'marked as rejected but uploaded to the API. The event '
                     f'will be further processed.')
         automatic_processing = True
-        save_event = True
-
-    elif event_type in uploaded_event_types:
-        if likelihood >= likelihood_threshold:
-            cat[0].event_type = event_types_lookup[event_type]
-            cat[0].preferred_origin().evaluation_status = 'rejected'
-            logger.info(f'event categorized as {event_type}. The event will be'
-                        f' marked as rejected but will not be further '
-                        f'processed')
-            save_event = True
 
     else:
-        logger.info(f'event categorized as {event_type}. The event will not '
-                    f'be send to the API nor be further processed.')
+        logger.info(f'event categorized as {event_type}. The event will '
+                    f'be send to the API but will not be be further'
+                    f' processed.')
         cat[0].event_type = event_types_lookup[event_type]
         cat[0].preferred_origin().evaluation_status = 'rejected'
-
-    # superseding the above if the magnitude of the event is greater than
-    # 0. Unless the event is categorized as a blast, it will automatically
-    # be categorized as a "genuine" seismic event, automatically processed
-    # and saved.
-    mag_threshold = settings.get(
-        'event_classifier').large_event_processing_threshold
-    ignored_types = settings.get('event_classifier').ignore_type_large_event
-    if (mag > mag_threshold) and (event_type not in ignored_types):
-        logger.info('superseding the classifier categorization, the event '
-                    'will be classified as a seismic event and further '
-                    'processed.')
-        cat[0].event_type = event_types_lookup['seismic event']
-        cat[0].preferred_origin().evaluation_status = 'preliminary'
-        automatic_processing = True
-        save_event = True
 
     return cat, automatic_processing, save_event
 
