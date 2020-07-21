@@ -23,7 +23,6 @@ from microquake.db.connectors import RedisQueue
 from microquake.db.models.redis import set_event, get_event
 from microquake.processors import (clean_data, interloc,
                                    quick_magnitude, ray_tracer)
-from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.core.helpers.timescale_db import (get_continuous_data,
                                                   get_db_lag)
 from microquake.core.helpers.time import get_time_zone
