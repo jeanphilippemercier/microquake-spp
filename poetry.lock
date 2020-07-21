@@ -1352,7 +1352,7 @@ description = "Seismic Platform API Client"
 name = "seismic-client"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "0.1.6"
+version = "0.1.10"
 
 [package.dependencies]
 cachier = ">=1.2,<2.0"
@@ -1808,7 +1808,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "1832b3c134d8f89ddb038e106f80bee1c01979ccaa01c260a23bc4e3f036b39a"
+content-hash = "13c482ddbccf4e11665fded677ec363362bce0cddd44f982724227614dbb83c7"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -2673,8 +2673,8 @@ scipy = [
     {file = "scipy-1.4.1.tar.gz", hash = "sha256:dee1bbf3a6c8f73b6b218cb28eed8dd13347ea2f87d572ce19b289d6fd3fbc59"},
 ]
 seismic-client = [
-    {file = "seismic_client-0.1.6-py3-none-any.whl", hash = "md5:08b724ac87dccc19f51d986d14e289c5"},
-    {file = "seismic_client-0.1.6.tar.gz", hash = "md5:2734b827e6b6bf735234970d2cc37e0f"},
+    {file = "seismic_client-0.1.10-py3-none-any.whl", hash = "md5:015ada902cb318a4d2e522e1df0f6a72"},
+    {file = "seismic_client-0.1.10.tar.gz", hash = "md5:871654225335ffaee2c89c0714fdde06"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},

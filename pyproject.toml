@@ -70,7 +70,7 @@ tensorboard = "^2.1"
 # setuptools = "^1.0.0"
 
 sqlalchemy_utils = "^0.36.1"
-seismic_client = "^0.1.6"
+seismic_client = "^0.1.10"
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
 autopep8 = "*"
