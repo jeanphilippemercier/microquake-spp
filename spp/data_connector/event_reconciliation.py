@@ -67,7 +67,7 @@ for i, event in enumerate(sorted_cat):
 
     data = {"evaluation_mode": "automatic",
             "status": "preliminary"}
-    
+
     encoded_id = urllib.parse.quote(event_id, safe='')
     if api_base_url[-1] != '/':
         api_base_url + '/'
