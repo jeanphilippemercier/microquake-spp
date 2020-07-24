@@ -493,12 +493,16 @@ def pre_process(event_id, force_send_to_api=False,
     except AttributeError:
         logger.warning('could not retrieve the variable length waveforms')
         variable_length_wf = None
+    except Exception as err:
+        logger.error(err)
+        logger.error('resending to the queue')
+        set_event(event_id, **event)
+        we_job_queue.submit_task(pre_process, event_id=event_id)
 
     interloc_results = interloc_election(cat)
 
     if not interloc_results:
         logger.error('interloc failed')
-
         return
 
     new_cat = interloc_results['catalog'].copy()

@@ -7,6 +7,8 @@ from spp.data_connector.pre_processing import pre_process
 from microquake.db.connectors import RedisQueue
 from microquake.db.models.redis import set_event
 from loguru import logger
+import requests
+import urllib
 
 api_base_url = settings.get('api_base_url')
 ims_base_url = settings.get('ims_base_url')
@@ -62,6 +64,21 @@ for i, event in enumerate(sorted_cat):
     #                                                True,
     #                                                'force_accept':
     #                                                True})
+
+    data = {"evaluation_mode": "automatic",
+            "status": "preliminary"}
+    
+    encoded_id = urllib.parse.quote(event_id, safe='')
+    if api_base_url[-1] != '/':
+        api_base_url + '/'
+
+    url = api_base_url + 'events/' + encoded_id
+
+    resp = requests.patch(url, json=data)
+
+    if resp:
+        continue
+
     result = we_job_queue.submit_task(pre_process, event_id,
                                       force_send_to_api=True,
                                       force_send_to_automatic=True,
