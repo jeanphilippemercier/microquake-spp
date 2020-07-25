@@ -698,7 +698,7 @@ description = "Python library that is an extension/expansion/adaptation of ObsPy
 name = "microquake"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "0.1.259"
+version = "0.1.261"
 
 [package.dependencies]
 cachier = ">=1.2,<2.0"
@@ -1352,7 +1352,7 @@ description = "Seismic Platform API Client"
 name = "seismic-client"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "0.1.12"
+version = "0.1.14"
 
 [package.dependencies]
 cachier = ">=1.2,<2.0"
@@ -1808,7 +1808,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "47d885a93a56d3ee311cae220c0bba1711c4fc4b4ef4c1a5f7ad6cfc2499a6ef"
+content-hash = "f7dc04cb372adb8b797a378eb144abd98d4eccf8c8345597952002a35e9cb2ec"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -2231,8 +2231,8 @@ matplotlib = [
     {file = "matplotlib-3.3.0.tar.gz", hash = "sha256:24e8db94948019d531ce0bcd637ac24b1c8f6744ac86d2aa0eb6dbaeb1386f82"},
 ]
 microquake = [
-    {file = "microquake-0.1.259-py3-none-any.whl", hash = "md5:0a63e3980cf3bb2bc785461df89b492d"},
-    {file = "microquake-0.1.259.tar.gz", hash = "md5:202ad976bd075789844cc1089581ebcc"},
+    {file = "microquake-0.1.261-py3-none-any.whl", hash = "md5:6dcb43383a5a004f387ae6b073d1a9d0"},
+    {file = "microquake-0.1.261.tar.gz", hash = "md5:07dead49df03f5444edf609422249d65"},
 ]
 microquake-hashwrap = [
     {file = "microquake-hashwrap-0.0.4.tar.gz", hash = "sha256:86b516988ce509b651cc02fa90ebe1749b2482c28919db6a50505d18b857aefc"},
@@ -2672,8 +2672,8 @@ scipy = [
     {file = "scipy-1.4.1.tar.gz", hash = "sha256:dee1bbf3a6c8f73b6b218cb28eed8dd13347ea2f87d572ce19b289d6fd3fbc59"},
 ]
 seismic-client = [
-    {file = "seismic_client-0.1.12-py3-none-any.whl", hash = "md5:1b8372dfadd6df6b9c57a871cb6383e9"},
-    {file = "seismic_client-0.1.12.tar.gz", hash = "md5:a5a5f5c93dbe21b261dbb5a63baea708"},
+    {file = "seismic_client-0.1.14-py3-none-any.whl", hash = "md5:6b3c6bc7a6d370942fba271250e15b65"},
+    {file = "seismic_client-0.1.14.tar.gz", hash = "md5:441677b8ddb097a09cec372fb73f5b8f"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
