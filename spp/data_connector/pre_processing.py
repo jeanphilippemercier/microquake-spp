@@ -397,12 +397,12 @@ def event_classification(cat, mag, fixed_length, context, event_types_lookup):
 
     logger.info('{}'.format(sorted_list))
 
-    if classes['seismic event'] > 0.1:
-        event_type = 'seismic event'
-        likelihood = classes['seismic event']
-    else:
-        event_type = sorted_list[0][0]
-        likelihood = sorted_list[0][1]
+    # if classes['seismic event'] > 0.1:
+    #     event_type = 'seismic event'
+    #     likelihood = classes['seismic event']
+    # else:
+    event_type = sorted_list[0][0]
+    likelihood = sorted_list[0][1]
 
     likelihood_threshold = settings.get(
         'event_classifier').likelihood_threshold
