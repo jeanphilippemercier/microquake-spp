@@ -543,18 +543,14 @@ def pre_process(event_id, force_send_to_api=False,
     tr = fixed_length.select(station=context[0].stats.station)
     classes = snc.predict(tr, context, new_cat.copy())
     logger.info(classes)
+    if force_accept or force_send_to_api:
+        classes['signal'] = 1
     if classes['signal'] < 0.1:
         logger.info('event identified as noise...')
 
-        if not force_send_to_api or force_accept:
-            logger.info('the event will not be further processed')
-            logger.info('exiting')
-            return
-
-        if force_send_to_api:
-            logger.info('the event will be sent to the API')
-        if force_accept:
-            logger.info('the event will be shown as accepted')
+        logger.info('the event will not be further processed')
+        logger.info('exiting')
+        return
 
     new_cat, send_automatic, send_api = event_classification(new_cat.copy(),
                                                              qmag,
@@ -562,17 +558,14 @@ def pre_process(event_id, force_send_to_api=False,
                                                              context,
                                                              event_types_lookup)
 
-    send_api = True
-
-    if send_api or force_send_to_api:
-        logger.info('calculating rays')
-        rt_start_time = time()
-        rtp = ray_tracer.Processor()
-        rtp.process(cat=new_cat)
-        new_cat = rtp.output_catalog(new_cat)
-        rt_end_time = time()
-        rt_processing_time = rt_end_time - rt_start_time
-        logger.info(f'done calculating rays in {rt_processing_time} seconds')
+    logger.info('calculating rays')
+    rt_start_time = time()
+    rtp = ray_tracer.Processor()
+    rtp.process(cat=new_cat)
+    new_cat = rtp.output_catalog(new_cat)
+    rt_end_time = time()
+    rt_processing_time = rt_end_time - rt_start_time
+    logger.info(f'done calculating rays in {rt_processing_time} seconds')
 
     if force_accept:
         new_cat[0].preferred_origin().evaluation_status = 'preliminary'

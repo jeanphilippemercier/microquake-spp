@@ -34,75 +34,53 @@ ct = 0
 sorted_cat = sorted(cat, reverse=True,
                     key=lambda x: x.preferred_origin().time)
 
+api_username = settings.get('API_USERNAME')
+api_password = settings.get('API_PASSWORD')
+
+sc = api_client.SeismicClient(api_base_url,
+                              username=api_username,
+                              password=api_password)
+
 for i, event in enumerate(sorted_cat):
     logger.info(f'processing event {i} of {len(cat)} -- ({i/len(cat) * 100}%)')
 
     event_time = event.preferred_origin().time
     tolerance = 0.5
 
-    start_time = event_time - tolerance
-    end_time = event_time + tolerance
-    re_list = api_client.get_events_catalog(api_base_url, start_time, end_time)
+    s_time = event_time - tolerance
+    e_time = event_time + tolerance
+
+    response, re_list = sc.events_list(s_time, e_time, status='accepted')
 
     if re_list:
         continue
 
     event_id = event.resource_id.id
+    response, event = sc.events_read(event_id)
 
-    if api_client.get_event_by_id(api_base_url, event_id):
-        continue
+    if response:
+        if event.evaluation_mode == 'manual':
+            continue
+        else:
+            body = sc.event_detail()
 
-    logger.info(f'sending event {ct} to the queue')
-    set_event(event_id, catalogue=event.copy())
-    logger.info(f'sending event with event id {event_id} to the '
-                f'pre_processing queue')
-    # result = we_job_queue.rq_queue.enqueue(pre_process,
-    #                                        args=(event_id,),
-    #                                        kwargs={'force_send_to_api':
-    #                                                True,
-    #                                                'force_send_to_automatic':
-    #                                                True,
-    #                                                'force_accept':
-    #                                                True})
-
-    data = {"evaluation_mode": "automatic",
-            "status": "preliminary"}
-
-    encoded_id = urllib.parse.quote(event_id, safe='')
-    if api_base_url[-1] != '/':
-        api_base_url + '/'
-
-    url = api_base_url + 'events/' + encoded_id
-
-    resp = requests.patch(url, json=data)
-
-    if resp:
-        continue
-
-    result = we_job_queue.submit_task(pre_process, event_id,
-                                      force_send_to_api=True,
-                                      force_send_to_automatic=True,
-                                      force_accept=True)
-
-    # for i, offset in enumerate([-5, -3, -1, 1, 3, 5]):
-    #     event2 = event.copy()
-    #     event2.resource_id = ResourceIdentifier()
-    #     event_id = event2.resource_id.id
-    #
-    #     # changing the origin ids
-    #     po_id = event2.preferred_origin().resource_id.id
-    #     for j, origin in enumerate(event2.origins):
-    #         rid = ResourceIdentifier()
-    #         if event2.preferred_origin().resource_id.id == po_id:
-    #             event2.origins[j].resource_id = rid
-    #             event2.preferred_origin_id = rid
-    #
-    #         else:
-    #             event2.origins[j] = rid
-    #
-    #     event2.preferred_origin().time += offset
-    #     set_event(event_id, catalogue=event2.copy())
-    #     result2 = we_job_queue_low_priority.submit_task(pre_process,
-    #                                                     event_id=event_id)
+        response, re_list = sc.events_list(s_time, e_time,
+                                           status='rejected',
+                                           evaluation_mode='automatic')
+        if re_list:
+            sc.events_partial_update(event_id, status='preliminary')
+    else:
+        logger.info(f'sending event {ct} to the queue')
+        set_event(event_id, catalogue=event.copy())
+        logger.info(f'sending event with event id {event_id} to the '
+                    f'pre_processing queue')
+        result = we_job_queue.rq_queue.enqueue(pre_process,
+                                               args=(event_id,),
+                                               kwargs={'force_send_to_api':
+                                                           True,
+                                                       'force_send_to_automatic':
+                                                           True,
+                                                       'force_accept':
+                                                           True})
 
     ct += 1

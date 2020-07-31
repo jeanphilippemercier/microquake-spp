@@ -44,6 +44,9 @@ we_job_queue = RedisQueue(we_message_queue)
 we_job_queue_low_priority = RedisQueue(we_message_queue + '.low_priority')
 we_job_queue_test = RedisQueue('test')
 
+watchdog_message_queue = settings.MESSAGE_QUEUE
+watchdog_job_queue = RedisQueue(watchdog_message_queue)
+
 last_run_file = os.path.join(spp_common_path, '.watchdog_last_run')
 
 
@@ -87,14 +90,6 @@ def set_end_processing_time(e_time):
     return
 
 
-def already_processed(seismic_event):
-    # query = db.select([db.func.count(processing_logs.columns.event_id)]).where(
-    #     processing_logs.columns.event_id == seismic_event.resource_id.id)
-    #
-    # return bool(pg.execute(query).scalar())
-    return False
-
-
 class TimeOutException(Exception):
     def __init__(self, message, errors):
         super(TimeOutException, self).__init__(message)
@@ -120,26 +115,24 @@ def heartbeat():
 
     response = None
     try:
-        response = requests.post(url, json={'source': 'event_connector'})
+        response = requests.post(url, json={'source': 'event_connector'},
+                                 auth=(api_username, api_password))
     except RequestException as e:
         logger.error(e)
 
     return response
 
 
-# run for 10 minutes
-while time() - init_time < 600:
+def watchdog():
+    watchdog_job_queue.submit_task(watchdog)
 
     heartbeat()
-
-    logger.info(f'Time remaining (s): {600 - (time() - init_time)}')
-    # time in UTC
 
     closing_window_time_seconds = settings.get(
         'data_connector').closing_window_time_seconds
 
-    end_time = datetime.utcnow().replace(tzinfo=utc) - \
-              timedelta(seconds=closing_window_time_seconds)
+    end_time = datetime.utcnow().replace(tzinfo=utc) - timedelta(
+        seconds=closing_window_time_seconds)
 
     start_time = get_start_time()
 
@@ -150,15 +143,14 @@ while time() - init_time < 600:
                                        utc, accepted=False, manual=False)
     except RequestException as e:
         logger.error(e)
-        sleep(10)
-        continue
+        return
     except TimeOutException as te:
         logger.error('IMS request timed out')
         logger.error(te)
-        continue
+        return
     except Exception as e:
         logger.error(e)
-        continue
+        return
 
     signal.alarm(0)
     logger.info('done retrieving catalogue')
@@ -166,9 +158,8 @@ while time() - init_time < 600:
 
     if len(cat) == 0:
         logger.info('nothing to do ...')
-        # sys.exit()
         sleep(10)
-        continue
+        return
 
     ct = 0
 
@@ -176,58 +167,24 @@ while time() - init_time < 600:
                         key=lambda x: x.preferred_origin().time)
 
     for event in sorted_cat:
-        start_processing_time = time()
         event_id = event.resource_id.id
 
-        if not already_processed(event):
-            ct += 1
-            logger.info('sending events with event_id {} to redis the {} '
-                        'message_queue'.format(event.resource_id.id,
-                                               we_message_queue))
-            set_event(event_id, catalogue=event.copy())
-            
-            result = we_job_queue.submit_task(pre_process, event_id=event_id)
-            result = we_job_queue_test.submit_task(pre_process,
-                                                   event_id=event_id)
+        ct += 1
+        logger.info('sending events with event_id {} to redis the {} '
+                    'message_queue'.format(event.resource_id.id,
+                                           we_message_queue))
+        set_event(event_id, catalogue=event.copy())
 
-            # result = we_job_queue.submit_task(pre_process_2, event_id)
-            
-            # for i, offset in enumerate([-5, -3, 3, 5]):
-            #     event2 = event.copy()
-            #     event2.resource_id = ResourceIdentifier()
-            #     event_id = event2.resource_id.id
-            #
-            #     # changing the origin ids
-            #     po_id = event2.preferred_origin().resource_id.id
-            #     for j, origin in enumerate(event2.origins):
-            #         rid = ResourceIdentifier()
-            #         if event2.preferred_origin().resource_id.id == po_id:
-            #             event2.origins[j].resource_id = rid
-            #             event2.preferred_origin_id = rid
-            #
-            #         else:
-            #             event2.origins[j] = rid
-            #
-            #     event2.preferred_origin().time += offset
-            #     set_event(event_id, catalogue=event2.copy())
-            #     result2 = we_job_queue_low_priority.submit_task(pre_process,
-            #                                                     event_id=event_id)
+        we_job_queue.submit_task(pre_process, event_id=event_id)
 
-            status = 'success'
-
-            end_processing_time = time()
-            processing_time = end_processing_time - start_processing_time
-
-            set_end_processing_time(end_time)
-
-            # result = record_processing_logs_pg(event, status,
-            #                                    __processing_step__,
-            #                                    __processing_step_id__,
-            #                                    processing_time)
+        set_end_processing_time(end_time)
 
     logger.info(f'sent {ct} events for further processing')
-    
-# pg.close()
-# engine.dispose()
+
+
+if __name__ == "__main__":
+    from spp.data_connector.event_watchdog import watchdog as wd
+    watchdog_job_queue.submit_task(wd)
+
 
 
