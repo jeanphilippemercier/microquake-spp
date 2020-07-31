@@ -129,7 +129,9 @@ def heartbeat():
 def watchdog():
     watchdog_job_queue.submit_task(watchdog)
 
-    heartbeat()
+    logger.info('sending heartbeat signal')
+    response = heartbeat()
+    logger.info(response)
 
     closing_window_time_seconds = settings.get(
         'data_connector').closing_window_time_seconds
@@ -187,7 +189,8 @@ def watchdog():
 
 if __name__ == "__main__":
     from spp.data_connector.event_watchdog import watchdog as wd
-    watchdog_job_queue.submit_task(wd)
+    if len(watchdog_job_queue.rq_queue) == 0:
+        watchdog_job_queue.submit_task(wd)
 
 
 
