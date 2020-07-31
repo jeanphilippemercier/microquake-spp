@@ -56,7 +56,7 @@ for i, event in enumerate(sorted_cat):
         continue
 
     event_id = event.resource_id.id
-    response, event = sc.events_read(event_id)
+    response, event2 = sc.events_read(event_id)
 
     if response:
         if event.evaluation_mode == 'manual':

@@ -105,6 +105,9 @@ signal.signal(signal.SIGALRM, timeout_handler)
 
 init_time = time()
 
+api_username = settings.get('api_username')
+api_password = settings.get('api_password')
+
 
 def heartbeat():
     import requests
