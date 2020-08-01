@@ -472,7 +472,10 @@ def pre_process(event_id, force_send_to_api=False,
     # tmp = deserialize(message)
     start_processing_time = time()
     event = get_event(event_id)
-    cat = event['catalogue']
+
+    if event:
+        cat = event['catalogue']
+    else
 
     event_resource_id = cat[0].resource_id.id
 

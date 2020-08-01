@@ -42,7 +42,9 @@ sc = api_client.SeismicClient(api_base_url,
                               password=api_password)
 
 for i, event in enumerate(sorted_cat):
-    logger.info(f'processing event {i} of {len(cat)} -- ({i/len(cat) * 100}%)')
+    logger.info(f'processing event ({event.resource_id} '
+                f'{i+1} of {len(cat)} -- '
+                f'({(i + 1)/len(cat) * 100}%)')
 
     event_time = event.preferred_origin().time
     tolerance = 0.5
@@ -58,8 +60,8 @@ for i, event in enumerate(sorted_cat):
     event_id = event.resource_id.id
     response, event2 = sc.events_read(event_id)
 
-    if response:
-        if event.preferred_origin().evaluation_mode == 'manual':
+    if event2:
+        if event2.evaluation_mode == 'manual':
             continue
         else:
             body = sc.event_detail()
