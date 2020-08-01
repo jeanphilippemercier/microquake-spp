@@ -13,7 +13,7 @@ import sqlalchemy as db
 from pytz import utc
 
 from loguru import logger
-from microquake.clients.ims import web_client
+from spp.clients.ims import web_client
 from microquake.core.helpers.time import get_time_zone
 from microquake.core.settings import settings
 from microquake.db.connectors import (RedisQueue, connect_postgres,
@@ -190,6 +190,7 @@ def watchdog():
 if __name__ == "__main__":
     from spp.data_connector.event_watchdog import watchdog as wd
     if len(watchdog_job_queue.rq_queue) == 0:
+        print('bubu')
         watchdog_job_queue.submit_task(wd)
 
 

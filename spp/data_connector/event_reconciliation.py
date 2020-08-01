@@ -1,5 +1,5 @@
-from microquake.clients.ims import web_client
-from microquake.clients import api_client
+from spp.clients.ims import web_client
+from spp.clients import api_client
 from microquake.core.settings import settings
 from datetime import datetime, timedelta
 from pytz import utc
@@ -59,7 +59,7 @@ for i, event in enumerate(sorted_cat):
     response, event2 = sc.events_read(event_id)
 
     if response:
-        if event.evaluation_mode == 'manual':
+        if event.preferred_origin().evaluation_mode == 'manual':
             continue
         else:
             body = sc.event_detail()
