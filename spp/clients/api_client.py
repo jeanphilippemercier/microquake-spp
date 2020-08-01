@@ -207,6 +207,20 @@ class SeismicClient:
         logger.info(resp)
         return(resp)
 
+    def post_data_from_objects(self, network, event_id=None, cat=None,
+                                stream=None, context=None, variable_length=None,
+                                tolerance=0.5, send_to_bus=False):
+        response = post_data_from_objects(self.api_base_url, network,
+                                          event_id=event_id,
+                                          cat=cat, stream=stream,
+                                          context=context,
+                                          variable_length=variable_length,
+                                          tolerance=tolerance,
+                                          send_to_bus=send_to_bus,
+                                          username=self.username,
+                                          password=self.password)
+        return response
+
         # try:
         #     response = self.api_instance.api_v1_events_partial_update_0(body,
         #                                  event_resource_id)

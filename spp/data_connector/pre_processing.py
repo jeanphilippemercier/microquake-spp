@@ -11,11 +11,10 @@ from pytz import utc
 
 from loguru import logger
 from microquake.core.stream import Stream
-from microquake.clients.ims import web_client
-from microquake.clients.api_client import (post_data_from_objects,
-                                           get_event_by_id,
-                                           put_data_from_objects,
-                                           get_event_types)
+from spp.clients.ims import web_client
+from spp.clients.api_client import (SeismicClient, post_data_from_objects,
+                                    get_event_by_id, put_data_from_objects,
+                                    get_event_types)
 from obspy import UTCDateTime
 from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue
@@ -34,7 +33,6 @@ import requests
 from urllib.parse import urlencode
 
 import json
-
 
 automatic_message_queue = settings.AUTOMATIC_PIPELINE_MESSAGE_QUEUE
 try:
@@ -71,6 +69,10 @@ use_time_scale = settings.USE_TIMESCALE
 minimum_recovery_fraction = settings.get(
     'data_connector').minimum_recovery_fraction
 
+api_username = settings.get('api_username')
+api_password = settings.get('api_password')
+sc = SeismicClient(api_base_url, api_username, api_password)
+
 
 def event_within_tolerance(event_time, tolerance=0.5):
     """
@@ -81,13 +83,16 @@ def event_within_tolerance(event_time, tolerance=0.5):
     :return:
     """
 
-    api_base_url = settings.get('api_base_url')
+    if tolerance is None:
+        return False
+
+    # api_base_url = settings.get('api_base_url')
 
     if isinstance(event_time, datetime):
         event_time = UTCDateTime(event_time)
 
-    start_time = event_time - 0.25
-    end_time = event_time + 0.25
+    start_time = event_time - tolerance
+    end_time = event_time + tolerance
 
     query = urlencode({'time_utc_after': start_time,
                        'time_utc_before': end_time})
@@ -97,9 +102,12 @@ def event_within_tolerance(event_time, tolerance=0.5):
 
     url = f'{api_base_url}events?{query}'
     # from pdb import set_trace; set_trace()
-    response = json.loads(requests.get(url).content)
+    response, res = sc.events_list(start_time=start_time, end_time=end_time)
+    # response = json.loads(requests.get(url, auth=).content)
 
-    if response['count']:
+    if len(res):
+        logger.info(f'event found within {tolerance} second of the current'
+                    f' event')
         return True
 
     return False
@@ -297,14 +305,11 @@ def get_waveforms(interloc_dict, event):
     return waveforms
 
 
-def send_to_api(event_id, **kwargs):
+def send_to_api(event_id, tolerance=0.5, **kwargs):
 
-    processing_step = 'post_event_api'
-    processing_step_id = 4
     start_processing_time = time()
     send_to_bus = kwargs.get('send_to_bus', True)
 
-    api_base_url = settings.get('api_base_url')
     event = get_event(event_id)
 
     cat = event['catalogue']
@@ -312,7 +317,9 @@ def send_to_api(event_id, **kwargs):
 
     event_resource_id = cat[0].resource_id.id
 
-    if get_event_by_id(api_base_url, event_resource_id):
+    response, event_api = sc.events_read(event_resource_id)
+
+    if event_api:
         logger.warning('event already exists in the database... the event '
                        'will not be uploaded... exiting')
         return
@@ -334,25 +341,41 @@ def send_to_api(event_id, **kwargs):
 
     response = None
 
-    if event_within_tolerance(event['catalogue'][0].preferred_origin().time):
+    if event_within_tolerance(event['catalogue'][0].preferred_origin().time,
+                              tolerance=tolerance):
+        logger.warning('event withing ')
         return
 
     try:
-        response = post_data_from_objects(api_base_url,
-                                          network_code, event_id=None,
-                                          cat=event['catalogue'],
-                                          stream=event['fixed_length'],
-                                          context=event['context'],
-                                          variable_length=event['variable_length'],
-                                          tolerance=0.5,
-                                          send_to_bus=send_to_bus)
+        response = sc.post_data_from_objects(network_code, event_id=None,
+                                             cat=event['catalogue'],
+                                             stream=event['fixed_length'],
+                                             context=event['context'],
+                                             variable_length=event['variable_length'],
+                                             tolerance=tolerance,
+                                             send_to_bus=send_to_bus)
+        # response = post_data_from_objects(api_base_url,network_code, event_id=None,
+        #                                   cat=event['catalogue'],
+        #                                   stream=event['fixed_length'],
+        #                                   context=event['context'],
+        #                                   variable_length=event['variable_length'],
+        #                                   tolerance=tolerance,
+        #                                   send_to_bus=send_to_bus)
+        #                                   network_code, event_id=None,
+        #                                   cat=event['catalogue'],
+        #                                   stream=event['fixed_length'],
+        #                                   context=event['context'],
+        #                                   variable_length=event['variable_length'],
+        #                                   tolerance=tolerance,
+        #                                   send_to_bus=send_to_bus)
 
     except requests.exceptions.RequestException as e:
         logger.error(e)
         return
         logger.info('request failed, resending to queue')
         set_event(event_id, **event)
-        result = api_job_queue.submit_task(send_to_api, event_id=event_id)
+        result = api_job_queue.submit_task(send_to_api, event_id=event_id,
+                                           **kwargs)
 
     if not response:
         logger.info('request failed')
@@ -363,9 +386,6 @@ def send_to_api(event_id, **kwargs):
 
     logger.info('request successful')
     end_processing_time = time()
-    processing_time = end_processing_time - start_processing_time
-
-    evt = event['catalogue'][0]
 
     # record_processing_logs_pg(evt, 'success', processing_step,
     #                           processing_step_id, processing_time)
@@ -576,7 +596,7 @@ def pre_process(event_id, force_send_to_api=False,
 
     set_event(event_id, **dict_out)
 
-    if send_api or force_send_to_api:
+    if send_api:
         result = api_job_queue.submit_task(
             send_to_api,
             event_id=event_id,
@@ -584,6 +604,18 @@ def pre_process(event_id, force_send_to_api=False,
             send_to_bus=send_automatic or force_send_to_automatic,
         )
         logger.info('event will be saved to the API')
+
+    if force_send_to_api:
+        logger.info('force send to API')
+        result = api_job_queue.submit_task(
+            send_to_api,
+            event_id=event_id,
+            network=network_code,
+            send_to_bus=send_automatic or force_send_to_automatic,
+            tolerance=None
+        )
+        logger.info('event will be saved to the API')
+
 
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time
