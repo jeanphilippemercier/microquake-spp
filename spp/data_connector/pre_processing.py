@@ -473,9 +473,7 @@ def pre_process(event_id, force_send_to_api=False,
     start_processing_time = time()
     event = get_event(event_id)
 
-    if event:
-        cat = event['catalogue']
-    else
+    cat = event['catalogue']
 
     event_resource_id = cat[0].resource_id.id
 
