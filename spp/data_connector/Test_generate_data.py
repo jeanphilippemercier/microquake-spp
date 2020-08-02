@@ -1,9 +1,9 @@
 import numpy as np
-from microquake.db.connectors import connect_postgres
+from spp.db.connectors import connect_postgres
 from datetime import datetime, timedelta
 from loguru import logger
 from time import time
-from microquake.db.connectors import connect_redis
+from spp.db.connectors import connect_redis
 import psycopg2
 from psycopg2.extras import execute_values
 

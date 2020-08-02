@@ -6,7 +6,7 @@ from microquake.core.settings import settings
 from datetime import datetime, timedelta
 from microquake.core.helpers.time import get_time_zone
 from pytz import utc
-from microquake.db.models.redis import set_event, get_event
+from spp.db.models.redis import set_event, get_event
 from spp.data_connector.pre_processing import pre_process, send_to_api
 
 sites = [station.code for station in settings.inventory.stations()]

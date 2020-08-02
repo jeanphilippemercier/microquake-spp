@@ -21,9 +21,9 @@ from spp.clients.api_client import (post_data_from_objects,
 from microquake.ml.signal_noise_classifier import SignalNoiseClassifier
 from obspy import UTCDateTime
 from microquake.core.settings import settings
-from microquake.db.connectors import RedisQueue
+from spp.db.connectors import RedisQueue
     # record_processing_logs_pg
-from microquake.db.models.redis import set_event, get_event
+from spp.db.models.redis import set_event, get_event
 from microquake.processors import (clean_data, event_classifier, interloc,
                                    quick_magnitude, ray_tracer)
 from microquake.pipelines.automatic_pipeline import automatic_pipeline
@@ -171,7 +171,7 @@ def send_to_api(cat, fixed_length, variable_length=None, context=None,
 
 
 
-from microquake.db.connectors import RedisQueue
+from spp.db.connectors import RedisQueue
 from microquake.processors import event_detection
 # from obspy.signal.trigger import recursive_sta_lta, trigger_onset
 from pytz import utc
@@ -903,7 +903,7 @@ def pre_process(event_id, force_send_to_api=False, force_accept=False,
 
 def test():
 
-    from microquake.db.connectors import RedisQueue
+    from spp.db.connectors import RedisQueue
     from microquake.processors import event_detection
     from obspy.core import UTCDateTime
     from time import time

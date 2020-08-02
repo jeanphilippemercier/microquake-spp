@@ -1,11 +1,11 @@
 from spp.clients.ims import web_client
 from microquake.core.settings import settings
-from microquake.db.connectors import (RedisQueue, connect_redis)
+from spp.db.connectors import (RedisQueue, connect_redis)
 from microquake.core.helpers.time import get_time_zone
 from obspy.core import UTCDateTime
 from loguru import logger
 from uuid import uuid4
-from microquake.db.models.redis import set_event, get_event
+from spp.db.models.redis import set_event, get_event
 
 inventory = settings.inventory
 ims_base_url = settings.get('ims_base_url')

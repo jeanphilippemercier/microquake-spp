@@ -34,7 +34,7 @@ from microquake.core.helpers.hdf5 import write_ttable_h5
 from microquake.core.helpers.nlloc import nll_sensors, nll_velgrids
 from microquake.core.settings import settings
 from microquake.core.helpers.velocity import create_velocities
-from microquake.db.connectors import connect_redis
+from spp.db.connectors import connect_redis
 
 LOGGING_LEVELS = {
     0: logging.NOTSET,
