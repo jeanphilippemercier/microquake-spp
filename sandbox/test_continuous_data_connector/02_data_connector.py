@@ -103,7 +103,7 @@ def write_mseed_chunk(stream, brokers, mseed_chunk_size=4096):
     return 1
 
 
-from microquake.clients.ims import web_client
+from spp.clients.ims import web_client
 import numpy as np
 
 brokers = app.settings.get('kafka').brokers

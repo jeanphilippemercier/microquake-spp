@@ -24,7 +24,7 @@ import sqlalchemy as db
 from pytz import utc
 
 from loguru import logger
-from microquake.clients.ims import web_client
+from spp.clients.ims import web_client
 from microquake.core.helpers.time import get_time_zone
 from microquake.core.settings import settings
 from microquake.db.connectors import (RedisQueue, connect_postgres,

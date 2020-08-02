@@ -8,7 +8,7 @@ from microquake.core.settings import settings
 from microquake.core.helpers.time import get_time_zone
 from microquake.core.helpers.grid import get_grid
 from loguru import logger
-from microquake.clients import api_client
+from spp.clients import api_client
 from time import time
 import pickle
 

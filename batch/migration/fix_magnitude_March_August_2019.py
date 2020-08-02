@@ -1,4 +1,4 @@
-from microquake.clients import api_client
+from spp.clients import api_client
 from microquake.core.settings import settings
 from microquake.core.helpers.time import get_time_zone
 from obspy.core import UTCDateTime
@@ -7,7 +7,7 @@ from datetime import datetime
 import urllib
 from loguru import logger
 from importlib import reload
-from microquake.clients.ims import web_client
+from spp.clients.ims import web_client
 from pytz import utc
 import requests
 import numpy as np

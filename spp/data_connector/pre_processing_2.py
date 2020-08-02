@@ -12,8 +12,8 @@ from pytz import utc
 from loguru import logger
 from microquake.core.event import ResourceIdentifier
 from microquake.core.stream import Stream
-from microquake.clients.ims import web_client
-from microquake.clients.api_client import (post_data_from_objects,
+from spp.clients.ims import web_client
+from spp.clients.api_client import (post_data_from_objects,
                                            get_event_by_id,
                                            put_data_from_objects,
                                            get_event_types)
@@ -176,7 +176,7 @@ from microquake.processors import event_detection
 # from obspy.signal.trigger import recursive_sta_lta, trigger_onset
 from pytz import utc
 from microquake.core.settings import settings
-from microquake.clients.ims import web_client
+from spp.clients.ims import web_client
 import pandas as pd
 from microquake.core import Stream
 from microquake.core.helpers import time as tme
@@ -910,7 +910,7 @@ def test():
     from microquake.core.settings import settings
     from time import time
     from microquake.core.helpers import time as tme
-    from microquake.clients.ims import web_client
+    from spp.clients.ims import web_client
     from loguru import logger
 
 

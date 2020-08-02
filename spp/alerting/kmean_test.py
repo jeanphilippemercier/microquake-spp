@@ -1,4 +1,4 @@
-from microquake.clients.api_client import get_catalog
+from spp.clients.api_client import get_catalog
 from microquake.core.settings import settings
 from datetime import datetime
 import pandas as pd

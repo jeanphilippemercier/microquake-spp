@@ -1,4 +1,4 @@
-from microquake.clients.api_client import get_events_catalog
+from spp.clients.api_client import get_events_catalog
 from microquake.core.settings import settings
 from microquake.core.helpers.time import get_time_zone
 from datetime import datetime, timedelta

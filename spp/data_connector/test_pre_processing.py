@@ -1,7 +1,7 @@
 import os
 os.environ["SPP_USE_TIMESCALE"] = 'false'
 
-from microquake.clients.ims import web_client
+from spp.clients.ims import web_client
 from microquake.core.settings import settings
 from datetime import datetime, timedelta
 from microquake.core.helpers.time import get_time_zone
