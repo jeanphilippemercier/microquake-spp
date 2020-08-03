@@ -56,8 +56,8 @@ def extract_continuous_triggering(sensor_code, start_time,
                 f'{start_time} and {end_time}')
 
     if end_time - start_time < minimum_delay_second:
-        logger(f'start and end times are within {minimum_delay_second} second '
-               f'from each other... skipping')
+        logger.info(f'start and end times are within {minimum_delay_second} '
+                    f'second from each other... skipping')
         job_queue.submit_task(extract_continuous_triggering, sensor_code,
                               start_time)
         return
