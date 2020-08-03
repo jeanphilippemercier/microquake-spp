@@ -4,7 +4,8 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.dialects.postgresql import (TIMESTAMP, INTEGER,
-                                            DOUBLE_PRECISION, ARRAY)
+                                            DOUBLE_PRECISION, VARCHAR,
+                                            FLOAT)
 
 processing_logs = db.Table('processing_logs', metadata,
                            db.Column('id', db.Integer, primary_key=True),
@@ -43,19 +44,45 @@ ground_velocity = db.Table('ground_velocity', metadata,
 Base = declarative_base()
 
 
+# class Recordings(Base):
+#     __tablename__ = 'record'
+
+
 class ContinuousData(Base):
 
-    __tablename__ = 'recordings'
+    """
+    The continuous data are to be stored in Redis, Postgresql database is
+    used to enable the retrieval of continuous data
+    """
 
-    time = Column(TIMESTAMP(timezone=True), primary_key=True)
-    end_time = Column(TIMESTAMP(timezone=True))
-    sensor_id = Column(INTEGER())
-    sensor_type_id = Column(INTEGER())
-    sample_count = Column(INTEGER())
-    sample_rate = Column(DOUBLE_PRECISION)
-    x = Column(ARRAY(DOUBLE_PRECISION))
-    y = Column(ARRAY(DOUBLE_PRECISION))
-    z = Column(ARRAY(DOUBLE_PRECISION))
+    __tablename__ = 'continuous_data'
+
+    """
+    All time are to be stored in UTC time not in the local timezone
+    """
+
+    id = Column(INTEGER, autoincrement=True, primary_key=True)
+    start_time = Column(TIMESTAMP(timezone=True), index=True)
+    end_time = Column(TIMESTAMP(timezone=True), index=True)
+    sensor_id = Column(VARCHAR(5), index=True)
+    expiry_time = Column(TIMESTAMP(timezone=True))
+    redis_key = Column(VARCHAR(40))
+
+
+class Trigger(Base):
+
+    """
+    Probably to eventually be moved to the API or an API
+    """
+
+    __tablename__ = 'trigger'
+
+    id = Column(INTEGER, autoincrement=True, primary_key=True)
+    trigger_on_time = Column(TIMESTAMP(timezone=True), index=True)
+    trigger_off_time = Column(TIMESTAMP(timezone=True), index=True)
+    trigger_amplitude = Column(DOUBLE_PRECISION)
+    sensor_id = Column(VARCHAR(5), index=True)
+    trigger_band_id = Column(VARCHAR(25))
 
 # class data_quality(Base):
 #     __tablename__ = 'data_quality'

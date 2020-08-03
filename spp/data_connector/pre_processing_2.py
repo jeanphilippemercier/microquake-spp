@@ -394,7 +394,7 @@ def run_interloc(st, cat):
 def extract_continuous_triggering(sensor_code, start_time, end_time, *args,
                                   **kwargs):
     st = extract_continuous(sensor_code, start_time, end_time, *args,
-                             **kwargs)
+                            **kwargs)
 
     if st is None:
         return
