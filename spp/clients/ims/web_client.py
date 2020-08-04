@@ -138,7 +138,7 @@ def get_continuous(base_url, start_datetime, end_datetime,
         url = url_cont % (reqtime_start_nano, reqtime_end_nano, site, format)
         url = url.replace('//', '/').replace('http:/', 'http://')
 
-        logger.info("Getting trace for station %d between %s"
+        logger.info("Getting trace for station %d between %s and "
                     "%s" % (site, start_datetime, end_datetime))
 
         ts = timer()

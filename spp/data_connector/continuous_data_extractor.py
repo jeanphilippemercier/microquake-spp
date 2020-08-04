@@ -7,6 +7,7 @@ from obspy.core import UTCDateTime
 from loguru import logger
 from microquake.processors import event_detection
 import numpy as np
+from uuid import uuid4
 
 inventory = settings.inventory
 ims_base_url = settings.get('ims_base_url')
@@ -48,35 +49,54 @@ def triggering(trace, trigger_band_id='microseismic'):
 
 
 def extract_continuous_triggering(sensor_code, start_time,
-                                  minimum_delay_second=120,
-                                  taper_length_second=0.01):
+                                  minimum_delay_second=2,
+                                  taper_length_second=0.01,
+                                  max_length_minute=5):
+
+    max_length_second = max_length_minute * 60
+
+    end_time = UTCDateTime.now()
+
+    if end_time - start_time > max_length_second:
+        start_time = end_time - max_length_second
+
+    new_job_id = f'{uuid4()}_{sensor_code}'
+
     end_time = UTCDateTime.now()
 
     logger.info(f'extracting continuous data for sensor {sensor_code} between'
-                f'{start_time} and {end_time}')
+                f' {start_time} and {end_time}')
 
     if end_time - start_time < minimum_delay_second:
         logger.info(f'start and end times are within {minimum_delay_second} '
                     f'second from each other... skipping')
+        logger.info(f'submitting task {new_job_id} on queue{job_queue.queue}')
         job_queue.submit_task(extract_continuous_triggering, sensor_code,
-                              start_time)
+                              start_time, job_id=new_job_id)
         return
-
-    cd = web_client.get_continuous(ims_base_url, start_time, end_time,
-                                   sensor_code, time_zone)
+    try:
+        cd = web_client.get_continuous(ims_base_url, start_time, end_time,
+                                       [int(sensor_code)], time_zone)
+    except Exception as e:
+        logger.error(e)
+        job_queue.submit_task(extract_continuous_triggering, sensor_code,
+                              start_time, job_id=new_job_id)
 
     if len(cd) == 0:
         logger.warning(f'no continuous data extracted for sensor '
                        f'{sensor_code}')
+        logger.info(f'submitting task {new_job_id} on queue{job_queue.queue}')
+
         job_queue.submit_task(extract_continuous_triggering, sensor_code,
-                              start_time)
+                              start_time, job_id=new_job_id)
 
         return
     if len(cd[0].data) < taper_length_second * cd[0].stats.sampling_rate:
         logger.warning(f'The trace is too short '
                        f'{sensor_code}')
+        logger.info(f'submitting task {new_job_id} on queue{job_queue.queue}')
         job_queue.submit_task(extract_continuous_triggering, sensor_code,
-                              start_time)
+                              start_time, job_id=new_job_id)
 
         return
 
@@ -88,8 +108,10 @@ def extract_continuous_triggering(sensor_code, start_time,
         segment_length = trace_end_time - trace_start_time
         if trace_end_time - trace_start_time < 2:
             logger.info(f'the trace is too small...skipping')
+            logger.info(f'submitting task {new_job_id} on '
+                        f'queue{job_queue.queue}')
             job_queue.submit_task(extract_continuous_triggering, sensor_code,
-                                  start_time)
+                                  start_time, job_id=new_job_id)
 
         new_start_time = trace_end_time - 2 * taper_length_second
 
@@ -98,28 +120,32 @@ def extract_continuous_triggering(sensor_code, start_time,
         logger.info(f'trace end time: {trace_end_time}')
 
         logger.info('writing continuous data')
-        write_continuous_data(cd, ttl_hour=6)
+        write_continuous_data(cd, ttl_hour=0.33)
         logger.info('done writing continuous data')
 
+        logger.info(f'submitting task {new_job_id} on queue{job_queue.queue}')
         job_queue.submit_task(extract_continuous_triggering, sensor_code,
-                              new_start_time)
+                              new_start_time, job_id=new_job_id)
 
     except Exception as e:
         logger.error(e)
+        logger.info(f'submitting task {new_job_id} on queue{job_queue.queue}')
         job_queue.submit_task(extract_continuous_triggering, sensor_code,
-                              start_time)
+                              start_time, job_id=new_job_id)
 
     logger.info(f'performing triggering for sensor {sensor_code}')
 
-    tmp_trace = cd.copy().composite()
-    logger.info(f'len(tmp_trace) = {len(tmp_trace)}')
-    logger.info(f'the length of the trace is {len(tmp_trace[0].data)}')
-    tmp_trace = tmp_trace.detrend('demean').detrend('linear')
-    tmp_trace = tmp_trace.taper(max_percentage=0.01,
-                                max_length=taper_length_second,
-                                side='both')
-
-    triggering(tmp_trace[0])
+    try:
+        tmp_trace = cd.copy().composite()
+        logger.info(f'len(tmp_trace) = {len(tmp_trace)}')
+        logger.info(f'the length of the trace is {len(tmp_trace[0].data)}')
+        tmp_trace = tmp_trace.detrend('demean').detrend('linear')
+        tmp_trace = tmp_trace.taper(max_percentage=0.01,
+                                    max_length=taper_length_second,
+                                    side='both')
+        triggering(tmp_trace[0])
+    except Exception as e:
+        logger.error(e)
 
     return
 
@@ -134,8 +160,10 @@ if __name__ == '__main__':
     s_time = UTCDateTime.now() - 300
 
     for sensor in inventory.stations():
+        job_id = f'{uuid4()}_{sensor.code}'
         sc = sensor.code
-        job_queue.submit_task(ect, sc, s_time)
+        job_queue.submit_task(ect, sc, s_time, job_id=job_id,
+                              minimum_delay_second=2)
         # extract_continuous_triggering(sc, s_time)
 
 

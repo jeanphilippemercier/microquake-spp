@@ -49,7 +49,7 @@ def get_continuous_data(start_time, end_time, sensor_id=None):
 
     else:
         results = session.query(ContinuousData).filter(
-            ContinuousData.time <= end_time).filter(
+            ContinuousData.start_time <= end_time).filter(
             ContinuousData.end_time >= start_time).all()
 
     t1 = time()

@@ -10,7 +10,7 @@ from sqlalchemy.exc import OperationalError
 from microquake.core.settings import settings
 from spp.db.models.alchemy import (metadata,
                                    processing_logs)
-from redis import ConnectionPool, Redis
+from redis import ConnectionPool, StrictRedis
 from rq import Queue
 from walrus import Walrus
 
@@ -36,7 +36,7 @@ class RedisWrapper(object):
 
 class RedisQueue:
     def __init__(self, queue, timeout=1800):
-        self.redis = Redis.from_url(url=settings.REDIS_RQ_URL)
+        self.redis = StrictRedis.from_url(url=settings.REDIS_RQ_URL)
         self.timeout = timeout
         self.queue = queue
         self.rq_queue = Queue(self.queue, connection=self.redis,

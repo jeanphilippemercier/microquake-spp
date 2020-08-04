@@ -86,7 +86,7 @@ def event_within_tolerance(event_time, tolerance=0.5):
     if tolerance is None:
         return False
 
-    # api_base_url = settings.get('api_base_url')
+    api_base_url = settings.get('api_base_url')
 
     if isinstance(event_time, datetime):
         event_time = UTCDateTime(event_time)
