@@ -189,8 +189,8 @@ def watchdog():
 
 if __name__ == "__main__":
     from spp.data_connector.event_watchdog import watchdog as wd
-    if len(watchdog_job_queue.rq_queue) == 0:
-        print('bubu')
+    if len(watchdog_job_queue.rq_queue) < 5:
+        logger.info('starting the event watchdog')
         watchdog_job_queue.submit_task(wd)
 
 

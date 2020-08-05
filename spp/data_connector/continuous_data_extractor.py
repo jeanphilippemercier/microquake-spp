@@ -1,7 +1,9 @@
 from spp.clients.ims import web_client
 from microquake.core.settings import settings
 from spp.db.connectors import (RedisQueue, write_trigger)
-from spp.db.serializers.continuous_data import write_continuous_data
+from spp.db.serializers.continuous_data import (write_continuous_data,
+                                                write_processing_record,
+                                    continuous_get_not_processed_sensors)
 from microquake.core.helpers.time import get_time_zone
 from obspy.core import UTCDateTime
 from loguru import logger
@@ -20,6 +22,7 @@ evp = event_detection.Processor()
 
 
 def triggering(trace, trigger_band_id='microseismic'):
+
     triggers_on, triggers_off = evp.process(trace=trace)
 
     if not triggers_on:
@@ -51,7 +54,9 @@ def triggering(trace, trigger_band_id='microseismic'):
 def extract_continuous_triggering(sensor_code, start_time,
                                   minimum_delay_second=2,
                                   taper_length_second=0.01,
-                                  max_length_minute=5):
+                                  max_length_minute=2):
+
+    write_processing_record(sensor_code, ttl_minutes=5)
 
     max_length_second = max_length_minute * 60
 
@@ -157,13 +162,12 @@ if __name__ == '__main__':
 
     from importlib import reload
 
-    s_time = UTCDateTime.now() - 300
+    s_time = UTCDateTime.now() - 60
 
-    for sensor in inventory.stations():
-        job_id = f'{uuid4()}_{sensor.code}'
-        sc = sensor.code
+    for sensor in continuous_get_not_processed_sensors():
+        job_id = f'continuous_record:{uuid4()}'
+        sc = sensor
         job_queue.submit_task(ect, sc, s_time, job_id=job_id,
                               minimum_delay_second=2)
-        # extract_continuous_triggering(sc, s_time)
 
 

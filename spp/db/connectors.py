@@ -111,7 +111,7 @@ def create_postgres_session():
 
     session = sessionmaker(bind=engine)
 
-    return session(), engine
+    return session(), engine, pg
 
 
 def record_processing_logs_pg(event, status, processing_step,
