@@ -9,7 +9,8 @@ from sqlalchemy.exc import OperationalError
 
 from microquake.core.settings import settings
 from spp.db.models.alchemy import (metadata,
-                                   processing_logs)
+                                   processing_logs,
+                                   Base, triggers)
 from redis import ConnectionPool, StrictRedis
 from rq import Queue
 from walrus import Walrus
@@ -73,6 +74,8 @@ def connect_postgres(db_name='data'):
     connection = engine.connect()
     # Create tables if they do not exist
     metadata.create_all(engine)
+    Base.metadata.create_all(engine, Base.metadata.tables.values(),
+                             checkfirst=True)
 
     return connection, engine
 
@@ -168,12 +171,12 @@ def write_trigger(trigger_on, trigger_off, amplitude, sensor_id,
                 'sensor_id': sensor_id,
                 'trigger_band_id': trigger_band_id}
 
-    return write_document_postgres(document)
+    return write_document_postgres(document, triggers)
 
 
-def write_document_postgres(document):
+def write_document_postgres(document, table):
     pg, engine = connect_postgres()
-    query = db.insert(processing_logs)
+    query = db.insert(table)
     values_list = [document]
     result = pg.execute(query, values_list)
 

@@ -45,7 +45,10 @@ def triggering(trace, trigger_band_id='microseismic'):
                     f'sensor_id={sensor_id}, amplitude={amplitude}, '
                     f'trigger_band_id={trigger_band_id}')
 
-        write_trigger(trigger_on, trigger_off, amplitude, sensor_id,
+        write_trigger(trigger_on.datetime,
+                      trigger_off.datetime,
+                      amplitude,
+                      sensor_id,
                       trigger_band_id)
 
     return
@@ -125,7 +128,7 @@ def extract_continuous_triggering(sensor_code, start_time,
         logger.info(f'trace end time: {trace_end_time}')
 
         logger.info('writing continuous data')
-        write_continuous_data(cd, ttl_hour=0.33)
+        write_continuous_data(cd, ttl_hour=6)
         logger.info('done writing continuous data')
 
         logger.info(f'submitting task {new_job_id} on queue{job_queue.queue}')

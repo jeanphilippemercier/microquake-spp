@@ -5,7 +5,8 @@ from obspy.core import UTCDateTime
 
 from loguru import logger
 from microquake.core.stream import Stream, Trace
-from spp.db.models.alchemy import (ContinuousData)
+# from spp.db.models.alchemy import (ContinuousData)
+from spp.db.models.alchemy import continuous_data
 from spp.db.models.redis import set_event, get_event
 from spp.db.connectors import (write_document_postgres,
                                create_postgres_session,
@@ -47,18 +48,18 @@ def continuous_get_not_processed_sensors():
     return not_process_sensors
 
 
-def write_continuous_data(continuous_data, ttl_hour=6):
+def write_continuous_data(data, ttl_hour=6):
 
-    session, engine, pg = create_postgres_session()
+    # session, engine, pg = create_postgres_session()
 
     redis_key = str(uuid4())
 
     ttl_second = ttl_hour * 3600  # 6 hours
-    set_event(redis_key, fixed_length=continuous_data, ttl=ttl_second)
+    set_event(redis_key, fixed_length=data, ttl=ttl_second)
 
-    start_time = continuous_data[0].stats.starttime
-    end_time = continuous_data[0].stats.endtime
-    sensor_id = continuous_data[0].stats.station
+    start_time = data[0].stats.starttime.datetime
+    end_time = data[0].stats.endtime.datetime
+    sensor_id = data[0].stats.station
 
     expiry_time = datetime.utcnow() + timedelta(hours=ttl_hour)
 
@@ -68,24 +69,26 @@ def write_continuous_data(continuous_data, ttl_hour=6):
                 'expiry_time': expiry_time,
                 'redis_key': redis_key}
 
-    continuous_data = ContinuousData(start_time=start_time,
-                                     end_time=end_time,
-                                     sensor_id=sensor_id,
-                                     expiry_time=expiry_time,
-                                     redis_key=redis_key)
+    return write_document_postgres(document, continuous_data)
 
-    session.add(continuous_data)
-    result = session.commit()
-    session.close()
-    pg.close()
-    engine.dispose()
+    # continuous_data = ContinuousData(start_time=start_time,
+    #                                  end_time=end_time,
+    #                                  sensor_id=sensor_id,
+    #                                  expiry_time=expiry_time,
+    #                                  redis_key=redis_key)
+    #
+    # session.add(continuous_data)
+    # result = session.commit()
+    # session.close()
+    # pg.close()
+    # engine.dispose()
 
-    return result
+    # return result
 
 
 def get_continuous_data(start_time, end_time, sensor_id=None):
 
-    session, engine = create_postgres_session()
+    session, engine, tmp = create_postgres_session()
 
     t0 = time()
 
