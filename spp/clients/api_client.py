@@ -130,6 +130,8 @@ class SeismicClient:
         :param end_time: end_time in UTC expressed as "YYYY-MM-DDTHH:MM:SS.MS"
         or a UTCDateTime, or a datetime
         explicitely providing this paramter will override the time_utc_before
+        :param microquake_event_type: if true use microquake event types else
+        use Quakeml event types
         :param kwargs:
         :return:
         """
