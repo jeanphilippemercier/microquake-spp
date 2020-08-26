@@ -71,7 +71,7 @@ def get_continuous_wrapper(base_url, start_datetime, end_datetime, site_id,
 
 
 def get_continuous(base_url, start_datetime, end_datetime,
-                   site_ids, time_zone, format='binary-gz', network='',
+                   site_ids, time_zone, format='binary', network='',
                    sampling_rate=6000., nan_limit=10):
     """
     :param base_url: base url of the IMS server
