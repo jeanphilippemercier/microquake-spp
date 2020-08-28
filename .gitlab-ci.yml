@@ -1,3 +1,8 @@
+image: docker:19.03.10
+# image: docker:stable
+before_script:
+  - apk add --update openssh-client make ca-certificates openssl python git bash
+
 stages:
   - build
   - docker
@@ -21,11 +26,7 @@ services:
   - redis:latest
 
 spp:
-  image: docker:19.03.10
-#  image: docker:stable
   stage: build
-  before_script:
-    - apk add --update openssh-client make ca-certificates openssl python git bash
   script:
     - eval $(ssh-agent -s)
     - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY")'
@@ -44,7 +45,6 @@ spp:
     - docker push $CI_REGISTRY_IMAGE/spp:$CI_COMMIT_SHA
 
 kube:
-  image: docker:stable
   stage: deploy
   allow_failure: true
   script:
