@@ -1,3 +1,6 @@
+[submodule "libs/microquake"]
+	path = libs/microquake
+	url = git@git.microquake.org:rio-tinto/microquake
 [submodule "libs/seismic_client"]
 	path = libs/seismic_client
 	url = git@git.microquake.org:rio-tinto/seismic_client
