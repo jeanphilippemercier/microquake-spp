@@ -61,9 +61,9 @@ skidmarks = "^0.0.6"
 cachier = "^1.2"
 walrus = "^0.7.1"
 xseis2 = "^0.1.8"
+timeloop = "^1.0.2"
 microquake = { path = "libs/microquake" }
 seismic_client = { path = "libs/seismic_client" }
-timeloop = "^1.0.2"
 mplstereonet = "^0.5.0"
 ipdb = "^0.12.3"
 ipython = "^7.11"
@@ -71,6 +71,7 @@ tensorboard = "^2.1"
 # setuptools = "^1.0.0"
 
 sqlalchemy_utils = "^0.36.1"
+download = "^0.3.5"
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
 autopep8 = "*"

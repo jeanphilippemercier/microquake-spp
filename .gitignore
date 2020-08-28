@@ -30,7 +30,6 @@ sdist
 .mypy_cache/
 tmp/
 data/NLLOC_grids/
-libs/microquake
 *.s
 *.txt
 *.pdf
