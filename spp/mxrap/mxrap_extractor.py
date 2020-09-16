@@ -3,6 +3,11 @@ from spp.clients import api_client
 from microquake.core.settings import settings
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+import filecmp
+import os
+import shutil
+from loguru import logger
+import difflib
 
 api_base_url = settings.get('api_base_url')
 api_username = settings.get('api_username')
@@ -51,7 +56,8 @@ response, events = sc.events_list(start_time, end_time,
                                   event_type='seismic event',
                                   status='accepted')
 
-with open(output_file, 'w') as fout:
+tmp_out_file = 'tmp.csv'
+with open(tmp_out_file, 'w') as fout:
     header = 'Event UUID, event time (UTC), insertion time (UTC), ' \
              'modification time (UTC), x, y, z, location uncertainty (m), ' \
              'event type, evaluation mode, evaluation status (Quakeml), ' \
@@ -82,7 +88,7 @@ with open(output_file, 'w') as fout:
             astress = event.preferred_magnitude["apparent_stress_pa"]
 
         out_str = f'{event.event_resource_id}, {str(event.time_utc)[0:23]}, ' \
-                  f'{str(event.insertion_timestamp)[0:23]}' \
+                  f'{str(event.insertion_timestamp)[0:23]}, ' \
                   f'{str(event.modification_timestamp)[0:23]}, ' \
                   f'{event.x}, {event.y}, {event.z}, {event.uncertainty}, ' \
                   f'{reverse_event_lookup[event.event_type]}, ' \
@@ -99,3 +105,19 @@ with open(output_file, 'w') as fout:
                   f'{astress}\n'
 
         fout.write(out_str)
+
+# comparing the new file with the current file. If the files are not equal
+# or if the file does not exist, the tmp file will be moved.
+
+if os.path.exists(output_file):
+    logger.info('file already exists...')
+    if not filecmp.cmp(tmp_out_file, output_file):
+        logger.info('but files are different')
+        shutil.move(tmp_out_file, output_file)
+else:
+    logger('file is being created')
+    shutil.move(tmp_out_file, output_file)
+
+
+
+
