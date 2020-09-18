@@ -1,13 +1,13 @@
 import argparse
 from spp.clients import api_client
 from microquake.core.settings import settings
-from datetime import datetime, timedelta
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from dateutil import parser as dtparser
 import filecmp
 import os
 import shutil
 from loguru import logger
-import difflib
 
 api_base_url = settings.get('api_base_url')
 api_username = settings.get('api_username')
@@ -87,9 +87,19 @@ with open(tmp_out_file, 'w') as fout:
             ssd = event.preferred_magnitude["static_stress_drop"]
             astress = event.preferred_magnitude["apparent_stress_pa"]
 
-        out_str = f'{event.event_resource_id}, {str(event.time_utc)[0:23]}, ' \
-                  f'{str(event.insertion_timestamp)[0:23]}, ' \
-                  f'{str(event.modification_timestamp)[0:23]}, ' \
+        event_time_utc = event.time_utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[0:-3]
+        if event.insertion_timestamp is not None:
+            insertion_timestamp = event.insertion_timestamp.strftime(
+                '%Y-%m-%dT%H:%M:%S.%f')[0:-3]
+        else:
+            insertion_timestamp = event_time_utc
+
+        modification_timestamp = event.modification_timestamp.strftime(
+            '%Y-%m-%dT%H:%M:%S.%f')[0:-3]
+
+        out_str = f'{event.event_resource_id}, {str(event_time_utc)}, ' \
+                  f'{str(insertion_timestamp)}, ' \
+                  f'{str(modification_timestamp)}, ' \
                   f'{event.x}, {event.y}, {event.z}, {event.uncertainty}, ' \
                   f'{reverse_event_lookup[event.event_type]}, ' \
                   f'{event.evaluation_mode}, {event.status}, {event.npick}, ' \
@@ -115,7 +125,7 @@ if os.path.exists(output_file):
         logger.info('but files are different')
         shutil.move(tmp_out_file, output_file)
 else:
-    logger('file is being created')
+    logger.info('file is being created')
     shutil.move(tmp_out_file, output_file)
 
 
