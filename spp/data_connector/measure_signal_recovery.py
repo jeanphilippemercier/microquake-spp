@@ -22,11 +22,11 @@ api_base_url = settings.get('API_BASE_URL')
 if api_base_url[-1] == '/':
     api_base_url = api_base_url[:-1]
 
-api_url_sensors = api_base_url + '/inventory/sensors?page_size=1000'
+# api_url_sensors = api_base_url + '/inventory/sensors?page_size=1000'
 api_url = api_base_url + '/signal_quality'
-response = requests.get(api_url_sensors)
+# response = requests.get(api_url_sensors)
 
-sensors = json.loads(response.content)['results']
+inventory = settings.inventory
 
 network_code = settings.NETWORK_CODE
 
@@ -36,15 +36,17 @@ signal_quality_template = {'energy': '0',
                            'num_samples': '0',
                            'amplitude': '0'}
 
-for sensor in sensors:
-    logger.info(f'Measuring signal quality for sensor {sensor["code"]}')
-    signal_quality = signal_quality_template
+for sensor in inventory.stations():
+    logger.info(f'Measuring signal quality for sensor {sensor.code}')
+    signal_quality = signal_quality_template.copy()
+    sensor_code = sensor.code
     st = web_client.get_continuous(ims_base_url, starttime, endtime,
-                                   [str(sensor['code'])],
+                                   [sensor_code],
                                    network=network_code)
 
-    signal_quality['sensor_code'] = sensor['code']
+    signal_quality['sensor_code'] = sensor_code
     if len(st) == 0:
+        logger.info(f'signal recovery is 0 %')
         r = requests.post(api_url, json=signal_quality)
 
         if r:
@@ -80,7 +82,7 @@ for sensor in sensors:
         r = requests.post(api_url, json=signal_quality)
     except requests.exceptions.ConnectionError as r:
         logger.error(f'connection error when attempting to POST information '
-                     f'for sensor {sensor}')
+                     f'for sensor {sensor_code}')
         continue
 
     if r:
