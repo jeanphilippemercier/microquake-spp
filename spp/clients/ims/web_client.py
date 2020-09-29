@@ -61,7 +61,7 @@ def get_continuous_wrapper(base_url, start_datetime, end_datetime, site_id,
 
     try:
         st = get_continuous(base_url, start_datetime, end_datetime,
-                            [site_id], None, format=format, network=network,
+                            [site_id], format=format, network=network,
                             sampling_rate=sampling_rate, nan_limit=nan_limit)
     except Exception as e:
         logger.error(e)
@@ -71,7 +71,7 @@ def get_continuous_wrapper(base_url, start_datetime, end_datetime, site_id,
 
 
 def get_continuous(base_url, start_datetime, end_datetime,
-                   site_ids, time_zone, format='binary', network='',
+                   site_ids, format='binary', network='',
                    sampling_rate=6000., nan_limit=10):
     """
     :param base_url: base url of the IMS server
@@ -744,7 +744,6 @@ def get_seismogram_event(base_url, event, network_code, timezone):
 
             st = get_seismogram(base_url, sname, network_code, station_code,
                                 timezone)
-
 
         for tr in st:
             traces.append(tr)

@@ -349,8 +349,7 @@ def get_context_trace(cat, st):
                     f'at {dists[i]} m from the event hypocenter')
 
         context = web_client.get_continuous(ims_base_url, start_time, end_time,
-                                            [sensors[i]], utc,
-                                            network=network_code)
+                                            [sensors[i]], network=network_code)
 
         if not context:
             continue
@@ -415,7 +414,7 @@ def extract_continuous(sensor_code, start_time, end_time, *args, **kwargs):
     logger.info(f'getting trace for station {sensor_code}')
 
     st = web_client.get_continuous(ims_base_url, start_time, end_time,
-                                   [sensor_code], utc, network=network_code)
+                                   [sensor_code], network=network_code)
 
     if len(st) == 0:
         return None

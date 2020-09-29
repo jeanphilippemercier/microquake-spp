@@ -84,7 +84,7 @@ def extract_continuous_triggering(sensor_code, start_time,
         return
     try:
         cd = web_client.get_continuous(ims_base_url, start_time, end_time,
-                                       [int(sensor_code)], time_zone)
+                                       [int(sensor_code)])
     except Exception as e:
         logger.error(e)
         job_queue.submit_task(extract_continuous_triggering, sensor_code,

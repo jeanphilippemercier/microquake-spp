@@ -31,8 +31,7 @@ def extract_continuous(starttime, endtime, sensor_id):
     s_time = time()
 
     st = web_client.get_continuous(base_url, starttime, endtime,
-                                   [str(sensor_id)], utc,
-                                   network=network_code)
+                                   [str(sensor_id)], network=network_code)
 
     st = st.detrend('demean').detrend('linear')
 

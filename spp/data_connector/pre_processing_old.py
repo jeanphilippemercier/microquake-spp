@@ -130,8 +130,7 @@ def extract_continuous(starttime, endtime, sensor_id=None):
     else:
         sensors = [station.code for station in inventory.stations()]
         st = web_client.get_continuous(base_url, starttime, endtime,
-                                       sensors,
-                                       network=network_code)
+                                       sensors, network=network_code)
 
         return st
 
@@ -184,42 +183,58 @@ def extract_continuous(starttime, endtime, sensor_id=None):
     return Stream(traces=trs)
 
 
-def interloc_processing(cat, variable_length_wf):
+def interloc_election(cat):
 
-    interloc_processor = interloc.Processor()
-    clean_data_processor = clean_data.Processor()
+    event = cat[0]
 
-    max_times = []
-    sensor_list = []
-    for tr in variable_length_wf.copy().composite():
-        tr_start_time = tr.stats.starttime
-        tr_sr = tr.stats.sampling_rate
-        sensor_list.append(tr.stats.station)
-        i = np.argmax(np.abs(tr.data))
-        max_times.append(tr_start_time + i / tr_sr)
+    event_time = event.preferred_origin().time.datetime.replace(
+        tzinfo=utc)
 
-    earliest_time = np.min(max_times)
+    interloc_results = []
+    thresholds = []
+    wfs = []
 
-    continuous_sts = []
-    # The time before trigger and the time after trigger should be
-    # parameterizable
-    start_time = earliest_time - 0.5
-    end_time = earliest_time + 1.5
-    wf = web_client.get_continuous(base_url, start_time, end_time,
-                                   sensor_list)
+    starttime = event_time - timedelta(seconds=1.5)
+    endtime = event_time + timedelta(seconds=3.5)
 
-    wf = wf.detrend('demean').taper(max_length=0.01, max_percentage=0.01)
-    clean_wf = clean_data_processor.process(waveform=wf.copy())
+    complete_wf = extract_continuous(starttime, endtime)
 
-    results = interloc_processor.process(stream=clean_wf)
-    results['catalog'] = interloc_processor.output_catalog(cat)
+    complete_wf.detrend('demean').taper(max_percentage=0.001,
+                                        max_length=0.01).filter('bandpass',
+                                                                freqmin=60,
+                                                                freqmax=500)
+    for offset in [-1.5, -0.5, 0.5, 1.5]:
+        starttime = event_time + timedelta(seconds=offset)
+        endtime = starttime + timedelta(seconds=2)
 
-    cat_out = results['catalog']
+        wf = complete_wf.copy()
+        wf.trim(starttime=UTCDateTime(starttime),
+                endtime=UTCDateTime(endtime))
+        wf = wf.detrend('demean').taper(max_length=0.01, max_percentage=0.01)
+
+        clean_data_processor = clean_data.Processor()
+        clean_wf = clean_data_processor.process(waveform=wf.copy())
+
+        max_len = np.max([len(tr) for tr in clean_wf])
+        trs = [tr for tr in clean_wf if len(tr) == max_len]
+        clean_wf.traces = trs
+
+        interloc_processor = interloc.Processor()
+        results = interloc_processor.process(stream=clean_wf)
+        new_cat = interloc_processor.output_catalog(cat)
+        results['catalog'] = new_cat.copy()
+        interloc_results.append(results)
+        wfs.append(wf)
+        thresholds.append(results['normed_vmax'])
+
+    index = np.argmax(thresholds)
+
+    cat_out = interloc_results[index]['catalog'].copy()
 
     logger.info('Event location: {}'.format(cat_out[0].preferred_origin().loc))
     logger.info('Event time: {}'.format(cat_out[0].preferred_origin().time))
 
-    return results
+    return interloc_results[index]
 
 
 def get_waveforms(interloc_dict, event):
@@ -504,7 +519,7 @@ def pre_process(event_id, force_send_to_api=False,
         set_event(event_id, **event)
         we_job_queue.submit_task(pre_process, event_id=event_id)
 
-    interloc_results = interloc_processing(cat, variable_length_wf)
+    interloc_results = interloc_election(cat)
 
     if not interloc_results:
         logger.error('interloc failed')
@@ -599,6 +614,7 @@ def pre_process(event_id, force_send_to_api=False,
             tolerance=None
         )
         logger.info('event will be saved to the API')
+
 
     end_processing_time = time()
     processing_time = end_processing_time - start_processing_time

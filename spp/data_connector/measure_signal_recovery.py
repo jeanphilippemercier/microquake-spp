@@ -40,7 +40,7 @@ for sensor in sensors:
     logger.info(f'Measuring signal quality for sensor {sensor["code"]}')
     signal_quality = signal_quality_template
     st = web_client.get_continuous(ims_base_url, starttime, endtime,
-                                   [str(sensor['code'])], utc,
+                                   [str(sensor['code'])],
                                    network=network_code)
 
     signal_quality['sensor_code'] = sensor['code']
