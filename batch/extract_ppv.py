@@ -6,7 +6,7 @@ from loguru import logger
 from tqdm import tqdm
 from pandas import DataFrame
 import numpy as np
-from microquake.processors import ray_tracer, simple_magnitude
+from spp.processors import ray_tracer, simple_magnitude
 
 rt_processor = ray_tracer.Processor()
 sm_processor = simple_magnitude.Processor()

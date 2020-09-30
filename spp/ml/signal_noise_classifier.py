@@ -10,7 +10,7 @@ from tensorflow.keras.models import Model
 from loguru import logger
 from microquake.core.settings import settings
 from obspy.core.stream import Stream
-from microquake.processors import quick_magnitude
+from spp.processors import quick_magnitude
 _version_ = 1.0
 
 

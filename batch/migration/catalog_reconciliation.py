@@ -9,7 +9,7 @@ from obspy.core.event import ResourceIdentifier
 from loguru import logger
 from obspy.core import UTCDateTime
 import numpy as np
-from microquake.processors import event_classifier, ray_tracer, nlloc
+from spp.processors import event_classifier, ray_tracer, nlloc
 from microquake.core.event import Catalog
 from obspy.core.event import ResourceIdentifier
 from importlib import reload
