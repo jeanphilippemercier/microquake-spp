@@ -1,8 +1,6 @@
-from microquake.ml.classifier import SeismicModel
+from spp.ml.classifier import SeismicModel
 from spp.processors.processing_unit import ProcessingUnit
 from spp.core.helpers.logging import logger
-import requests
-import json
 
 
 class Processor(ProcessingUnit):
