@@ -42,7 +42,7 @@ class Processor(ProcessingUnit):
             magnitude = cat[0].preferred_magnitude().mag
 
         response = self.seismic_model.predict(tr, context_trace,
-                                              elevation, magnitude)
+                                              cat)
         return response
 
     def legacy_pipeline_handler(self, msg_in, res):
