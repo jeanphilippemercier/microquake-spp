@@ -5,5 +5,4 @@ from spp.core.settings import settings
 
 logging_level = settings.get('debug_level')
 logger.add(sys.stderr, level=logging_level)
-
-
+logger.remove(0)
