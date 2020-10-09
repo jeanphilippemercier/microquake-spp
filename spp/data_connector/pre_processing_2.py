@@ -9,7 +9,7 @@ import numpy as np
 import requests
 from pytz import utc
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.core.event import ResourceIdentifier
 from microquake.core.stream import Stream
 from spp.clients.ims import web_client
@@ -910,7 +910,7 @@ def test():
     from time import time
     from microquake.core.helpers import time as tme
     from spp.clients.ims import web_client
-    from loguru import logger
+    from spp.core.helpers.logging import logger
 
 
     event_time = UTCDateTime(2020, 7, 10, 14, 56, 14)

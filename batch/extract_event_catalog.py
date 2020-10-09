@@ -5,7 +5,7 @@ from obspy.core import UTCDateTime
 from dateutil.parser import parse
 import argparse
 from importlib import reload
-from loguru import logger
+from spp.core.helpers.logging import logger
 
 reload(api_client)
 

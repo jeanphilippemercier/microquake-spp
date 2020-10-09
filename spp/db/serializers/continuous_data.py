@@ -3,7 +3,7 @@ from time import time
 
 from obspy.core import UTCDateTime
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.core.stream import Stream, Trace
 # from spp.db.models.alchemy import (ContinuousData)
 from spp.db.models.alchemy import continuous_data

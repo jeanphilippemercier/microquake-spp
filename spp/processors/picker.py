@@ -4,7 +4,7 @@ import numpy as np
 from obspy import UTCDateTime
 from obspy.core.event import CreationInfo
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.core.event import Origin
 from microquake.core.helpers.grid import (create_arrivals_from_picks,
                                           estimate_origin_time,

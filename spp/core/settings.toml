@@ -7,6 +7,9 @@ site_code = 'OT'
 network = 'Hugo North Ungerground Network'
 network_code = 'OT'
 redis_rq_url = ''
+logging_level = 0
+debug_level = 0
+debug_file_dir = '.'
 
 # nlloc
 nlloc.nll_base = 'NLL'

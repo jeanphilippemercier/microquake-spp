@@ -1,7 +1,7 @@
 # This modules expect to receive a message containing the following:
 # [catalog, stream, context_stream, event_id]
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.clients.api_client import (post_data_from_objects)
 
 from microquake.core.settings import settings

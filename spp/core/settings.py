@@ -1,7 +1,7 @@
 import os
 
 from dynaconf import LazySettings
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.core.data.inventory import Inventory
 
 

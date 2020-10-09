@@ -1,6 +1,6 @@
 from time import time
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 
 from microquake.core import Stream
 from microquake.core.event import (Catalog, Origin, Magnitude)

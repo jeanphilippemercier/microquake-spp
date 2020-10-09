@@ -1,6 +1,6 @@
 import numpy as np
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 
 from obspy.signal.trigger import recursive_sta_lta, trigger_onset
 

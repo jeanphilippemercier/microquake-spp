@@ -21,7 +21,7 @@ from query import sql
 from sqlalchemy import create_engine, MetaData, Table, Column, \
     DateTime, Float, CHAR, TEXT, INTEGER
 from dynaconf import settings
-from loguru import logger
+from spp.core.helpers.logging import logger
 from pyodbc import OperationalError
 
 __author__ = "Geotechnical Monitoring Team/Munkhtsolmon Munkhchuluun"

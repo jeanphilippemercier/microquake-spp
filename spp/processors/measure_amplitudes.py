@@ -1,4 +1,4 @@
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.core.stream import Stream
 from microquake.waveform.amp_measures import measure_pick_amps
 from microquake.waveform.transforms import rotate_to_ENZ, rotate_to_P_SV_SH

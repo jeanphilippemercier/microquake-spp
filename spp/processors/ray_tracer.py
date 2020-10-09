@@ -1,7 +1,7 @@
 # This module calculates the magnitude base of a simple GMPE
 
 from spp.processors.processing_unit import ProcessingUnit
-from loguru import logger
+from spp.core.helpers.logging import logger
 
 from microquake.core.helpers.grid import get_ray, get_grid_point
 

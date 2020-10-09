@@ -7,7 +7,7 @@ from obspy.core import UTCDateTime
 from obspy.core.util.attribdict import AttribDict
 from xseis2 import xspy
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.core.event import Origin
 from microquake.core.util import tools
 

@@ -1,6 +1,6 @@
 import numpy as np
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.waveform.mag import (calc_magnitudes_from_lambda,
                                      set_new_event_mag)
 
