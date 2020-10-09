@@ -1,4 +1,4 @@
-from spp.ml.classifier import SeismicModel
+from spp.ml.classifier import EventClassifier
 from spp.processors.processing_unit import ProcessingUnit
 from spp.core.helpers.logging import logger
 
@@ -12,7 +12,7 @@ class Processor(ProcessingUnit):
         return "event_classifier"
 
     def initializer(self):
-        self.seismic_model = SeismicModel()
+        self.seismic_model = EventClassifier()
         self.seismic_model.create_model()
 
     def process(self, **kwargs):
