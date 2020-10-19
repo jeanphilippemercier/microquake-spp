@@ -3,7 +3,7 @@ import requests
 from dateutil.parser import parse
 from datetime import datetime
 from pytz import utc
-from loguru import logger
+from spp.core.helpers.logging import logger
 from time import sleep
 
 from spp.alerting.alert_db_helpers import (create_postgres_session,

@@ -3,7 +3,7 @@ from io import BytesIO
 
 import numpy as np
 from dateutil.parser import parse
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.core import read_events, read
 from obspy import UTCDateTime
 from obspy.core.event import (CreationInfo, ResourceIdentifier,

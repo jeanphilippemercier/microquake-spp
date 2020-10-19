@@ -2,7 +2,7 @@ from microquake.core.stream import Trace, Stream
 from spp.core.settings import settings
 import numpy as np
 from obspy.core import UTCDateTime
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.db.models.alchemy import ContinuousData
 from microquake.db.connectors import connect_timescale
 from datetime import datetime

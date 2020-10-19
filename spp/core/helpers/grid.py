@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-from loguru import logger
+from spp.core.helpers.logging import logger
 from numpy.linalg import norm
 from obspy.core import UTCDateTime
 from obspy.core.event import WaveformStreamID

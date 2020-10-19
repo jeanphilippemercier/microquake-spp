@@ -1,8 +1,6 @@
-from microquake.ml.classifier import SeismicModel
+from spp.ml.classifier import EventClassifier
 from spp.processors.processing_unit import ProcessingUnit
-from loguru import logger
-import requests
-import json
+from spp.core.helpers.logging import logger
 
 
 class Processor(ProcessingUnit):
@@ -14,7 +12,7 @@ class Processor(ProcessingUnit):
         return "event_classifier"
 
     def initializer(self):
-        self.seismic_model = SeismicModel()
+        self.seismic_model = EventClassifier()
         self.seismic_model.create_model()
 
     def process(self, **kwargs):
@@ -44,7 +42,7 @@ class Processor(ProcessingUnit):
             magnitude = cat[0].preferred_magnitude().mag
 
         response = self.seismic_model.predict(tr, context_trace,
-                                              elevation, magnitude)
+                                              cat)
         return response
 
     def legacy_pipeline_handler(self, msg_in, res):

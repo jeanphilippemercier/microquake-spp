@@ -8,7 +8,7 @@ from sklearn.mixture import GaussianMixture as GMM
 import matplotlib.pyplot as plt
 from sklearn.metrics import silhouette_score
 import numpy as np
-from loguru import logger
+from spp.core.helpers.logging import logger
 
 api_base_url = settings.get('api_base_url')
 

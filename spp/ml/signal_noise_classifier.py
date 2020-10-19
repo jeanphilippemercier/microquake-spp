@@ -7,7 +7,7 @@ from tensorflow.keras.layers import (Add, BatchNormalization, Conv2D, Dense,
                                      Embedding,Flatten, Input, MaxPooling2D,
                                      concatenate, Activation)
 from tensorflow.keras.models import Model
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.core.settings import settings
 from obspy.core.stream import Stream
 from spp.processors import quick_magnitude

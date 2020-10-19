@@ -23,7 +23,7 @@ import signal
 import sqlalchemy as db
 from pytz import utc
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 from spp.clients.ims import web_client
 from microquake.core.helpers.time import get_time_zone
 from microquake.core.settings import settings

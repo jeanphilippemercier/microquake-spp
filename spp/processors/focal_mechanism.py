@@ -1,6 +1,6 @@
 from obspy.core.event.base import ResourceIdentifier
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.core.focal_mechanism import calc
 
 from spp.processors.processing_unit import ProcessingUnit

@@ -6,7 +6,7 @@ from xseis2 import xchange, xio
 from xseis2.xsql import XCorr, ChanPair
 
 import redis
-from loguru import logger
+from spp.core.helpers.logging import logger
 
 from spp.processors.processing_unit import ProcessingUnit
 

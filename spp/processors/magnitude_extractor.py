@@ -1,4 +1,4 @@
-from loguru import logger
+from spp.core.helpers.logging import logger
 import numpy as np
 
 from spp.processors.processing_unit import ProcessingUnit

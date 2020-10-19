@@ -12,7 +12,7 @@ import argparse
 import requests
 from pytz import utc
 import urllib
-from loguru import logger
+from spp.core.helpers.logging import logger
 import matplotlib.dates as mdates
 from matplotlib import dates
 from matplotlib import ticker

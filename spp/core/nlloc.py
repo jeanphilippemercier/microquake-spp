@@ -30,7 +30,7 @@ from time import time
 
 import numpy as np
 import obspy.core.event
-from loguru import logger
+from spp.core.helpers.logging import logger
 from obspy import UTCDateTime
 from obspy.core import AttribDict
 

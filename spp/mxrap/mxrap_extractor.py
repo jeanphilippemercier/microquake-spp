@@ -7,7 +7,7 @@ from dateutil import parser as dtparser
 import filecmp
 import os
 import shutil
-from loguru import logger
+from spp.core.helpers.logging import logger
 
 api_base_url = settings.get('api_base_url')
 api_username = settings.get('api_username')

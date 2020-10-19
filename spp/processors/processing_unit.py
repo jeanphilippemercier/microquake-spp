@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 
 from microquake.core.settings import settings
 

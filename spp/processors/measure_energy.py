@@ -1,4 +1,4 @@
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.waveform.amp_measures import calc_velocity_flux
 from microquake.waveform.mag import calculate_energy_from_flux
 from microquake.core.helpers.velocity import get_velocities

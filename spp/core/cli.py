@@ -23,7 +23,7 @@ import logging
 import click
 import msgpack
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 from spp.core.nlloc import NLL
 
 from .. import __version__

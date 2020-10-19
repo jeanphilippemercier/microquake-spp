@@ -1,6 +1,6 @@
 from time import time
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 import numpy as np
 from microquake.core.event import Magnitude
 from spp.processors import (focal_mechanism, magnitude,

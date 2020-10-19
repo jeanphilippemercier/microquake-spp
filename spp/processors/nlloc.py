@@ -4,7 +4,7 @@ Predict hypocenter location
 
 from time import time
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 from microquake.core.nlloc import NLL, calculate_uncertainty
 
 from microquake.core.helpers.grid import fix_arr_takeoff_and_azimuth

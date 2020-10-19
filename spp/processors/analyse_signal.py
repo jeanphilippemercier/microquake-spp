@@ -1,6 +1,6 @@
 import numpy as np
 
-from loguru import logger
+from spp.core.helpers.logging import logger
 from obspy import UTCDateTime
 
 from spp.processors.processing_unit import ProcessingUnit

@@ -6,7 +6,7 @@ from pytz import utc
 from spp.data_connector.pre_processing import pre_process
 from spp.db.connectors import RedisQueue
 from spp.db.models.redis import set_event
-from loguru import logger
+from spp.core.helpers.logging import logger
 import requests
 import urllib
 

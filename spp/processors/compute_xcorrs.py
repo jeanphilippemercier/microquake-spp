@@ -7,7 +7,7 @@ from xseis2.h5stream import H5Stream
 from xseis2.xsql import XCorr
 
 import redis
-from loguru import logger
+from spp.core.helpers.logging import logger
 
 from microquake.core.settings import settings
 from spp.processors.processing_unit import ProcessingUnit

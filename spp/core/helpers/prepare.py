@@ -1,4 +1,4 @@
-from loguru import logger
+from spp.core.helpers.logging import logger
 
 from spp.core.helpers.hdf5 import write_ttable_h5
 from spp.core.helpers.nlloc import nll_velgrids, nll_sensors

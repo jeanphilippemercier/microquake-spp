@@ -1,6 +1,6 @@
 from spp.processors.processing_unit import ProcessingUnit
 from microquake.core.stream import Stream
-from loguru import logger
+from spp.core.helpers.logging import logger
 import numpy as np
 
 from microquake.core.settings import settings
