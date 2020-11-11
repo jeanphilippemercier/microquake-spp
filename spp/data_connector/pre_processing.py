@@ -69,9 +69,9 @@ use_time_scale = settings.USE_TIMESCALE
 minimum_recovery_fraction = settings.get(
     'data_connector').minimum_recovery_fraction
 
-api_username = settings.get('api_username')
+api_user = settings.get('api_user')
 api_password = settings.get('api_password')
-sc = SeismicClient(api_base_url, api_username, api_password)
+sc = SeismicClient(api_base_url, api_user, api_password)
 
 
 def event_within_tolerance(event_time, tolerance=0.5):

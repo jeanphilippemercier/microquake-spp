@@ -58,7 +58,7 @@ if base_url[-1] == '/':
     base_url = base_url[:-1]
 url = f'{base_url}/events'
 
-api_username = settings.get('api_username')
+api_user = settings.get('api_user')
 api_password = settings.get('api_password')
 
 start_time = UTCDateTime(parse(args.starttime).replace(tzinfo=tz))
@@ -76,10 +76,10 @@ magnitudes = []
 times = []
 
 while query:
-    if api_username is None:
+    if api_user is None:
         re = requests.get(query)
     else:
-        re = requests.get(query, auth=(api_username, api_password))
+        re = requests.get(query, auth=(api_user, api_password))
     if not re:
         logger.error('Problem communicating with the API')
         exit()

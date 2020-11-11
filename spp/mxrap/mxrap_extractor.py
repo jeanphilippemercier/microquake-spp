@@ -10,11 +10,11 @@ import shutil
 from spp.core.helpers.logging import logger
 
 api_base_url = settings.get('api_base_url')
-api_username = settings.get('api_username')
+api_user = settings.get('api_user')
 api_password = settings.get('api_password')
 
 event_type_lookup = api_client.get_event_types(api_base_url,
-                                               username=api_username,
+                                               username=api_user,
                                                password=api_password)
 
 reverse_event_lookup = {}
@@ -51,7 +51,7 @@ else:
     end_time = None
     start_time = None
 
-sc = api_client.SeismicClient(api_base_url, api_username, api_password)
+sc = api_client.SeismicClient(api_base_url, api_user, api_password)
 response, events = sc.events_list(start_time, end_time,
                                   event_type='seismic event',
                                   status='accepted')
