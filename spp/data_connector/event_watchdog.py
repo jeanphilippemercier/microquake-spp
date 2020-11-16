@@ -105,7 +105,7 @@ signal.signal(signal.SIGALRM, timeout_handler)
 
 init_time = time()
 
-api_username = settings.get('api_username')
+api_user = settings.get('api_user')
 api_password = settings.get('api_password')
 
 
@@ -119,7 +119,7 @@ def heartbeat():
     response = None
     try:
         response = requests.post(url, json={'source': 'event_connector'},
-                                 auth=(api_username, api_password))
+                                 auth=(api_user, api_password))
     except RequestException as e:
         logger.error(e)
 

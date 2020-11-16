@@ -82,7 +82,8 @@ def get_continuous(base_url, start_datetime, end_datetime,
     :type end_datetime: datetime.datetime
     :param site_ids: list of sites for which data should be read
     :type site_ids: list or integer
-    :param format: Requested data format ('possible values: binary and binary-gz')
+    :param format: Requested data format ('possible values: binary and
+    binary-gz')
     :type format: str
     :param network: Network name (default = '')
     :type network: str
@@ -125,7 +126,7 @@ def get_continuous(base_url, start_datetime, end_datetime,
     reqtime_end_nano = int(end_datetime_utc.timestamp * 1e6) * int(1e3)
     url_cont = base_url + '/continuous-seismogram?' + \
         'startTimeNanos=%d&endTimeNanos=%d&siteId' + \
-        '=%d&format=%s'
+        '=%s&format=%s'
 
     stream = Stream()
 

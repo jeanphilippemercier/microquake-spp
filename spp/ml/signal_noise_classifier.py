@@ -31,7 +31,7 @@ class SignalNoiseClassifier:
         """
             :param model_name: Name of the model weight file name.
         """
-        self.base_directory = Path(settings.common_dir) / '../data/weights'
+        self.base_directory = Path(settings.common_dir) / 'weights'
         # Model was trained at these dimensions
         self.D = (128, 128, 1)
         self.microquake_class_names = ['blast', 'crusher noise',

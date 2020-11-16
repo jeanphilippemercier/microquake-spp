@@ -34,11 +34,11 @@ ct = 0
 sorted_cat = sorted(cat, reverse=True,
                     key=lambda x: x.preferred_origin().time)
 
-api_username = settings.get('API_USERNAME')
+api_user = settings.get('api_user')
 api_password = settings.get('API_PASSWORD')
 
 sc = api_client.SeismicClient(api_base_url,
-                              username=api_username,
+                              username=api_user,
                               password=api_password)
 
 for i, event in enumerate(sorted_cat):
