@@ -55,6 +55,120 @@ s.mount("https://", adapter)
 s.mount("http://", adapter)
 
 
+def get_continuous_multiple(base_url, start_datetime, end_datetime,
+                            site_ids=None, network='', sampling_rate=6000.,
+                            nan_limit=10):
+    """
+    Get continuous data from the IMS system between a start and end times.
+    :param base_url: the base URL of the IMS system
+    :param start_datetime: the start date and time in UTC time
+    :param end_datetime: the end date and time in UTC time
+    :param site_ids: the IDs of the sensors for which the data are recovered
+    :param network: the network ID
+    :param sampling_rate: the sampling rate of the data
+    :param nan_limit:  maximum length of a not a number sequence to be
+    interpolated
+    :return: None
+    """
+
+    if isinstance(site_ids, int):
+        site_ids = [site_ids]
+
+    start_datetime_utc = UTCDateTime(start_datetime)
+    end_datetime_utc = UTCDateTime(end_datetime)
+    reqtime_start_nano = int(start_datetime_utc.timestamp * 1e6) * int(1e3)
+    reqtime_end_nano = int(end_datetime_utc.timestamp * 1e6) * int(1e3)
+    url_cont = base_url + '/continuous-seismogram?' + \
+        'startTimeNanos=%d&endTimeNanos=%d&siteId' + \
+        '=%s&format=binary'
+
+    stream = Stream()
+
+    site_ids = np.sort([int(site_id) for site_id in site_ids])
+    site_ids_string = ','.join([str(site_id) for site_id in site_ids])
+
+    url = url_cont % (reqtime_start_nano, reqtime_end_nano, site_ids_string)
+    url = url.replace('//', '/').replace('http:/', 'http://')
+
+    print(url)
+
+    logger.info(f"Getting traces for sensors {site_ids_string} between"
+                f" {start_datetime} and {end_datetime}")
+
+    try:
+        resp = requests.get(url, stream=True)
+    except requests.RequestException as e:
+        logger.error(e)
+        return
+
+    if not resp.ok:
+        raise Exception('request failed! \n %s' % url)
+        # continue
+
+    fileobj = BytesIO(resp.content)
+
+    fileobj.seek(0, 2)
+    file_length = fileobj.tell()
+    fileobj.seek(0)
+
+    k = 1
+    while fileobj.tell() < file_length:
+        site = unpack('>i', fileobj.read(4))[0]
+        payload_size = unpack('>i', fileobj.read(4))[0]
+
+        payload = fileobj.read(payload_size)
+
+        header_size = unpack('>i', payload[0:4])[0]
+        data = payload[header_size:]
+
+        time, sigs = strided_read(data)
+
+        time_norm = (time - time[0]) / 1e9
+        nan_ranges = get_nan_ranges(time_norm, sampling_rate, limit=nan_limit)
+
+        time_new = np.arange(time_norm[0], time_norm[-1], 1. / sampling_rate)
+
+        newsigs = np.zeros((len(sigs), len(time_new)), dtype=np.float32)
+
+        for i in range(len(sigs)):
+            newsigs[i] = np.interp(time_new, time_norm, sigs[i])
+
+        nan_ranges_ix = ((nan_ranges - time_new[0]) *
+                         sampling_rate).astype(int)
+
+        for chan in newsigs:
+            for lims in nan_ranges_ix:
+                chan[lims[0]:lims[1]] = np.nan
+
+        te = timer()
+
+        ts = timer()
+        chans = ['X', 'Y', 'Z']
+
+        for i in range(len(newsigs)):
+            if np.all(np.isnan(newsigs[i])):
+                continue
+            tr = Trace(data=newsigs[i])
+            tr.stats.sampling_rate = sampling_rate
+            tr.stats.network = str(network)
+            tr.stats.station = str(site)
+            # it seems that the time returned by IMS is local time...
+            # The IMS API has changed. It was returning the time in local
+            # time, now the time is UTC.
+            starttime_utc = datetime.utcfromtimestamp(time[0] / 1e9)
+            # starttime_local = starttime_local.replace(tzinfo=time_zone)
+            tr.stats.starttime = UTCDateTime(starttime_utc)
+            tr.stats.channel = chans[i]
+            # tr.stats.station = site_id
+            stream.append(tr)
+
+        te = timer()
+        logger.info('Completing stream build in %.2f seconds' % (te - ts))
+
+    return stream
+
+
+
 def get_continuous_wrapper(base_url, start_datetime, end_datetime, site_id,
                            format='binary-gz', network='', sampling_rate=6000.,
                            nan_limit=10):
@@ -144,37 +258,36 @@ def get_continuous(base_url, start_datetime, end_datetime,
 
         ts = timer()
         try:
-            r = requests.get(url, stream=True)
+            resp = requests.get(url, stream=True)
         except requests.RequestException as e:
             logger.error(e)
             continue
 
-        if r.status_code != 200:
-            # raise Exception('request failed! \n %s' % url)
-            continue
+        if resp.status_code != 200:
+            raise Exception('request failed! \n %s' % url)
+            # continue
 
         if format == 'binary-gz':
-            fileobj = GzipFile(fileobj=BytesIO(r.content))
+            fileobj = GzipFile(fileobj=BytesIO(resp.content))
         elif format == 'binary':
-            fileobj = BytesIO(r.content)
+            fileobj = BytesIO(resp.content)
         else:
             raise Exception('unsuported format!')
             continue
 
-        fileobj.seek(0)
         te = timer()
         logger.info('Completing request in %.2f seconds' % (te - ts))
 
         # Reading header
 
-        if len(r.content) < 44:
-            continue
+        # if len(resp.raw) < 44:
+        #     continue
         ts = timer()
         header_size = unpack('>i', fileobj.read(4))[0]
         net_id = unpack('>i', fileobj.read(4))[0]
         site_id = unpack('>i', fileobj.read(4))[0]
         starttime = unpack('>q', fileobj.read(8))[0]
-        endtime = unpack('>q', fileobj.read(8))[0]
+        endtime = unpack('>q',fileobj.read(8))[0]
         netADC_id = unpack('>i', fileobj.read(4))[0]
         sensor_id = unpack('>i', fileobj.read(4))[0]
         attenuator_id = unpack('>i', fileobj.read(4))[0]
