@@ -143,7 +143,7 @@ def read_nlloc_hypocenter_file(filename, picks=None,
         oq.associated_phase_count = 0
 
         for line in all_lines:
-            if 'PHASE ' in line:
+            if 'PHASE' in line:
                 TravelTime = True
 
                 continue
@@ -260,13 +260,23 @@ def calculate_uncertainty(event, base_directory, base_name, perturbation=5,
         scatter[:, 0] -= np.mean(scatter[:, 0])
         scatter[:, 1] -= np.mean(scatter[:, 1])
         scatter[:, 2] -= np.mean(scatter[:, 2])
-        u, d, v = np.linalg.svd(scatter)
-        uncertainty = np.sqrt(d)
 
-        h = np.linalg.norm(v[0, :-1])
-        vert = v[0, -1]
+        cloud_points = scatter[:, 0:-1]
+
+        v, u = np.linalg.eig(np.cov(cloud_points.T))
+
+        major_axis_index = np.argmax(v)
+
+        uncertainty = np.sort(np.sqrt(v))[-1::-1]
+
+
+        h = np.linalg.norm(u[major_axis_index, :-1])
+        vert = u[major_axis_index, -1]
+
         major_axis_plunge = np.arctan2(-vert, h)
-        major_axis_azimuth = np.arctan2(v[0, 0], v[0, 1])
+        x = u[major_axis_index, 0]
+        y = u[major_axis_index, 1]
+        major_axis_azimuth = np.arctan2(x, y)
         major_axis_rotation = 0
 
         ce = obspy.core.event.ConfidenceEllipsoid(
@@ -983,10 +993,14 @@ class NLL(object):
         with open('%s/%s/obs/%s.obs' % (self.base_folder, self.worker_folder,
                                         self.base_name), 'w') as out_file:
             po = event.preferred_origin()
-            logger.debug('%s.%s: pref origin=[%s]' % (__name__, fname, po))
 
             if not po:
-                logger.error('preferred origin is not set')
+                logger.warning('preferred origin is not set!\n'
+                               'using the last origin in the origin list')
+
+            po = event.origins[-1]
+
+            logger.debug('%s.%s: pref origin=[%s]' % (__name__, fname, po))
 
             for arr in po.arrivals:
 
