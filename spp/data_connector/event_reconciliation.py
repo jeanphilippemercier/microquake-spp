@@ -4,8 +4,8 @@ from microquake.core.settings import settings
 from datetime import datetime, timedelta
 from pytz import utc
 from spp.data_connector.pre_processing import pre_process
-from spp.db.connectors import RedisQueue
-from spp.db.models.redis import set_event
+from microquake.db.connectors import RedisQueue
+from microquake.db.models.redis import set_event
 from microquake.helpers.logging import logger
 import requests
 import urllib

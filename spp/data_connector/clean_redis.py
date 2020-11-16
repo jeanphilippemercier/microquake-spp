@@ -1,7 +1,7 @@
 # For some reasons the expired keys are not deleted by the redis database
 # this script removes the expired keys
 
-from spp.db.connectors import connect_redis
+from microquake.db.connectors import connect_redis
 r = connect_redis()
 
 keys = []

@@ -7,7 +7,7 @@ from microquake.core import read_events
 cat = read_events('9e63e1141c405572afb178627f3fc990.xml')
 cat
 cat[0].preferred_origin().time = cat[0].preferred_origin().time + 2
-from spp.db.models.redis import set_event
+from microquake.db.models.redis import set_event
 cat[0].preferred_origin().time = cat[0].preferred_origin().time - 1
 cat[0].preferred_origin().time
 from microquake.core.settings import settiings
@@ -27,10 +27,10 @@ from microquake.helpers.logging import logger
 from spp.clients.ims import web_client
 from microquake.helpers.time import get_time_zone
 from microquake.core.settings import settings
-from spp.db.connectors import (RedisQueue, connect_postgres,
+from microquake.db.connectors import (RedisQueue, connect_postgres,
                                       record_processing_logs_pg)
-from spp.db.models.alchemy import processing_logs
-from spp.db.models.redis import set_event
+from microquake.db.models.alchemy import processing_logs
+from microquake.db.models.redis import set_event
 from obspy.core.event import ResourceIdentifier
 from spp.data_connector import pre_processing
 from spp.data_connector.pre_processing import pre_process

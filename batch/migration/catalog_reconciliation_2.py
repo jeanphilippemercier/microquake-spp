@@ -3,8 +3,8 @@ from spp.clients import api_client
 from microquake.core.settings import settings
 from datetime import datetime, timedelta
 from pytz import utc
-from spp.db.connectors import RedisQueue
-from spp.db.models.redis import set_event
+from microquake.db.connectors import RedisQueue
+from microquake.db.models.redis import set_event
 from obspy.core.event import ResourceIdentifier
 from microquake.helpers.logging import logger
 from obspy.core import UTCDateTime

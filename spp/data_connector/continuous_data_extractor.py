@@ -1,7 +1,7 @@
 from spp.clients.ims import web_client
 from microquake.core.settings import settings
-from spp.db.connectors import (RedisQueue, write_trigger)
-from spp.db.serializers.continuous_data import (write_continuous_data,
+from microquake.db.connectors import (RedisQueue, write_trigger)
+from microquake.db.serializers.continuous_data import (write_continuous_data,
                                                 write_processing_record,
                                     continuous_get_not_processed_sensors)
 from microquake.helpers.time import get_time_zone

@@ -17,9 +17,9 @@ from spp.clients.api_client import (SeismicClient, post_data_from_objects,
                                     get_event_types)
 from obspy import UTCDateTime
 from microquake.core.settings import settings
-from spp.db.connectors import RedisQueue
+from microquake.db.connectors import RedisQueue
     # record_processing_logs_pg
-from spp.db.models.redis import set_event, get_event
+from microquake.db.models.redis import set_event, get_event
 from microquake.processors import (clean_data, interloc,
                                    quick_magnitude, ray_tracer)
 from microquake.helpers.timescale_db import (get_continuous_data,
