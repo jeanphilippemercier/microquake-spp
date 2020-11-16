@@ -14,7 +14,7 @@ from pytz import utc
 
 from microquake.helpers.logging import logger
 from spp.clients.ims import web_client
-from from microquake.helpers.time import get_time_zone
+from microquake.helpers.time import get_time_zone
 from microquake.core.settings import settings
 from spp.db.connectors import (RedisQueue, connect_postgres,
                                       record_processing_logs_pg)
