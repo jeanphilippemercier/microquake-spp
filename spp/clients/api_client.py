@@ -8,7 +8,7 @@ from obspy import UTCDateTime
 from microquake.core.event import Catalog
 from obspy.core.util.attribdict import AttribDict
 
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from microquake.core import read
 from microquake.core.event import Ray, read_events
 from uuid import uuid4

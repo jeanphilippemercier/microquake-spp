@@ -6,7 +6,7 @@ CLI-related classes and functions
 import argparse
 import importlib.util
 
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 
 from microquake.core.settings import settings
 

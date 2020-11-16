@@ -8,7 +8,7 @@ from tensorflow.keras.layers import (Add, BatchNormalization, Conv2D, Dense,
                                      Flatten, Input, MaxPooling2D, concatenate,
                                      Activation, Dropout)
 from tensorflow.keras.models import Model
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from microquake.core.settings import settings
 from microquake.core.stream import Stream
 from microquake.processors import quick_magnitude

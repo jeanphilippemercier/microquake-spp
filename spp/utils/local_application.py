@@ -6,7 +6,7 @@ from microquake.core.stream import read
 
 from .application import Application
 
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 
 class LocalApplication(Application):
     def __init__(

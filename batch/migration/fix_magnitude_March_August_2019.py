@@ -5,7 +5,7 @@ from obspy.core import UTCDateTime
 from dateutil.parser import parse
 from datetime import datetime
 import urllib
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from importlib import reload
 from spp.clients.ims import web_client
 from pytz import utc

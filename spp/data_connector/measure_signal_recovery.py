@@ -7,7 +7,7 @@ import numpy as np
 from pytz import utc
 import requests
 import json
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 
 # inventory = settings.inventory
 

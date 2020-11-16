@@ -3,7 +3,7 @@ from spp.clients.api_client import get_catalog
 from obspy.core import UTCDateTime
 import numpy as np
 import bisect
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from microquake.core.helpers.time import get_time_zone
 from pytz import utc
 from datetime import datetime

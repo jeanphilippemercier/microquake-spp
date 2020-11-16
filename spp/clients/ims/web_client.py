@@ -31,7 +31,7 @@ from obspy.core.event import (ConfidenceEllipsoid, OriginUncertainty,
                               WaveformStreamID)
 from obspy.core.trace import Stats
 
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from microquake.core import Stream, Trace
 from microquake.core.event import Arrival, Event, Magnitude, Origin, Pick
 

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from shutil import copyfile
 
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from microquake.core import read_events
 from microquake.core.stream import read
 

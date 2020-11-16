@@ -2,7 +2,7 @@ from spp.clients.api_client import RequestEvent
 from microquake.core.settings import settings
 import requests
 from urllib.parse import quote
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from tqdm import tqdm
 from pandas import DataFrame
 import numpy as np

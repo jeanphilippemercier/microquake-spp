@@ -1,7 +1,7 @@
 import numpy as np
 from spp.db.connectors import connect_postgres
 from datetime import datetime, timedelta
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from time import time
 from spp.db.connectors import connect_redis
 import psycopg2

@@ -5,7 +5,7 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from microquake.core import read_events
 from microquake.io import msgpack
 

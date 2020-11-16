@@ -1,7 +1,7 @@
 from datetime import datetime
 from struct import unpack
 from uuid import uuid4
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 
 import numpy as np
 

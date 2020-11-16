@@ -6,7 +6,7 @@ from pytz import utc
 from spp.db.connectors import RedisQueue
 from spp.db.models.redis import set_event
 from obspy.core.event import ResourceIdentifier
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from obspy.core import UTCDateTime
 import numpy as np
 from microquake.processors import event_classifier, ray_tracer, nlloc

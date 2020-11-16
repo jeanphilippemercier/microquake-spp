@@ -1,7 +1,7 @@
 from spp.clients import api_client
 
 from .application import Application
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 
 
 class APIApplication(Application):

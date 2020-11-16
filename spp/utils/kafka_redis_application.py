@@ -2,7 +2,7 @@ import uuid
 from time import time
 
 from confluent_kafka import Consumer, KafkaError, Producer
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from redis import Redis
 from tenacity import retry, stop_after_attempt, wait_exponential
 

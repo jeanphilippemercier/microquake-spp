@@ -13,7 +13,7 @@ from pytz import utc
 from .alert_db_helpers import (create_postgres_session, AlarmingState)
 import pandas as pd
 from sklearn.cluster import MeanShift
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 import numpy as np
 from sqlalchemy import desc
 

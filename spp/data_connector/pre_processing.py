@@ -9,7 +9,7 @@ import numpy as np
 import requests
 from pytz import utc
 
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from microquake.core.stream import Stream
 from spp.clients.ims import web_client
 from spp.clients.api_client import (SeismicClient, post_data_from_objects,

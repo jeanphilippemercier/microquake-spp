@@ -23,17 +23,17 @@ import logging
 import click
 import msgpack
 
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from spp.core.nlloc import NLL
 
 from .. import __version__
 from microquake.pipelines.automatic_pipeline import automatic_pipeline
 from microquake.pipelines.interactive_pipeline import interactive_pipeline
 from ..utils.kafka_redis_application import KafkaRedisApplication
-from spp.core.helpers.hdf5 import write_ttable_h5
-from spp.core.helpers.nlloc import nll_sensors, nll_velgrids
-from spp.core.settings import settings
-from spp.core.helpers.velocity import create_velocities
+from microquake.helpers.hdf5 import write_ttable_h5
+from microquake.helpers.nlloc import nll_sensors, nll_velgrids
+from microquake.core.settings import settings
+from microquake.helpers.velocity import create_velocities
 from spp.db.connectors import connect_redis
 
 LOGGING_LEVELS = {

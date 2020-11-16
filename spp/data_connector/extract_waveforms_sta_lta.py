@@ -2,7 +2,7 @@ from time import time
 
 from pytz import utc
 
-from spp.core.helpers.logging import logger
+from microquake.helpers.logging import logger
 from spp.clients.ims import web_client
 from microquake.core.settings import settings
 from obspy.signal.trigger import recursive_sta_lta
