@@ -24,7 +24,7 @@ import click
 import msgpack
 
 from microquake.helpers.logging import logger
-from spp.core.nlloc import NLL
+from microquake.core.nlloc import NLL
 
 from .. import __version__
 from microquake.pipelines.automatic_pipeline import automatic_pipeline
