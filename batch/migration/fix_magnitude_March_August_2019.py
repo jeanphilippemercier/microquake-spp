@@ -1,6 +1,6 @@
 from spp.clients import api_client
 from microquake.core.settings import settings
-from microquake.core.helpers.time import get_time_zone
+from from microquake.helpers.time import get_time_zone
 from obspy.core import UTCDateTime
 from dateutil.parser import parse
 from datetime import datetime

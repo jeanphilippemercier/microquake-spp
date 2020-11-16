@@ -4,7 +4,7 @@ from spp.db.connectors import (RedisQueue, write_trigger)
 from spp.db.serializers.continuous_data import (write_continuous_data,
                                                 write_processing_record,
                                     continuous_get_not_processed_sensors)
-from microquake.core.helpers.time import get_time_zone
+from from microquake.helpers.time import get_time_zone
 from obspy.core import UTCDateTime
 from microquake.helpers.logging import logger
 from microquake.processors import event_detection

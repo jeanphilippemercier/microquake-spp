@@ -22,9 +22,9 @@ from spp.db.connectors import RedisQueue
 from spp.db.models.redis import set_event, get_event
 from microquake.processors import (clean_data, interloc,
                                    quick_magnitude, ray_tracer)
-from microquake.core.helpers.timescale_db import (get_continuous_data,
+from from microquake.helpers.timescale_db import (get_continuous_data,
                                                   get_db_lag)
-from microquake.core.helpers.time import get_time_zone
+from from microquake.helpers.time import get_time_zone
 from microquake.ml.signal_noise_classifier import SignalNoiseClassifier
 from microquake.ml.classifier import EventClassifier
 from datetime import datetime

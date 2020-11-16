@@ -14,8 +14,8 @@ from microquake.core.event import Catalog
 from obspy.core.event import ResourceIdentifier
 from importlib import reload
 import requests
-from microquake.core.helpers.grid import get_grid_point
-from microquake.core.helpers.time import get_time_zone
+from from microquake.helpers.grid import get_grid_point
+from from microquake.helpers.time import get_time_zone
 
 reload(web_client)
 

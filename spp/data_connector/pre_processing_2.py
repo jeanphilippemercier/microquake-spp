@@ -27,10 +27,10 @@ from spp.db.models.redis import set_event, get_event
 from microquake.processors import (clean_data, event_classifier, interloc,
                                    quick_magnitude, ray_tracer)
 from microquake.pipelines.automatic_pipeline import automatic_pipeline
-from microquake.core.helpers.timescale_db import (get_continuous_data,
+from from microquake.helpers.timescale_db import (get_continuous_data,
                                                   get_db_lag)
 from microquake.ml import signal_noise_classifier
-from microquake.core.helpers.time import get_time_zone
+from from microquake.helpers.time import get_time_zone
 from datetime import datetime
 import json
 import requests
@@ -179,7 +179,7 @@ from microquake.core.settings import settings
 from spp.clients.ims import web_client
 import pandas as pd
 from microquake.core import Stream
-from microquake.core.helpers import time as tme
+from from microquake.helpers import time as tme
 
 evp = event_detection.Processor()
 # extract_continuous_queue = settings.get('EXTRACT_CONTINUOUS_QUEUE')
@@ -703,7 +703,7 @@ def process_individual_event(input_dict, *args, force_send_to_api=False,
 
 
 def ray_tracing(input_dict, ev_loc, p_ori):
-    from microquake.core.helpers.grid import get_ray, get_grid_point
+    from from microquake.helpers.grid import get_ray, get_grid_point
 
     phase = input_dict['phase']
     station_code = input_dict['station_code']
@@ -908,7 +908,7 @@ def test():
     from time import time
     from microquake.core.settings import settings
     from time import time
-    from microquake.core.helpers import time as tme
+    from from microquake.helpers import time as tme
     from spp.clients.ims import web_client
     from microquake.helpers.logging import logger
 
@@ -1008,7 +1008,7 @@ def test():
 
 
 # def test_signal_noise_classifier():
-#     from microquake.core.helpers import time as tme
+#     from from microquake.helpers import time as tme
 #
 #     start_time = UTCDateTime(2020, 7, 5, 8, 51, 13)
 #     end_time = UTCDateTime.now()

@@ -4,7 +4,7 @@ from obspy.core import UTCDateTime
 import numpy as np
 import bisect
 from microquake.helpers.logging import logger
-from microquake.core.helpers.time import get_time_zone
+from from microquake.helpers.time import get_time_zone
 from pytz import utc
 from datetime import datetime
 from urllib.parse import urlencode, quote

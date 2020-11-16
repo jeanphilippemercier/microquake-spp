@@ -5,8 +5,8 @@ import numpy as np
 from tqdm import tqdm
 from pathos.multiprocessing import ProcessingPool
 from microquake.core.settings import settings
-from microquake.core.helpers.time import get_time_zone
-from microquake.core.helpers.grid import get_grid
+from from microquake.helpers.time import get_time_zone
+from from microquake.helpers.grid import get_grid
 from microquake.helpers.logging import logger
 from spp.clients import api_client
 from time import time

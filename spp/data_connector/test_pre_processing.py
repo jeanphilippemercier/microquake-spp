@@ -4,7 +4,7 @@ os.environ["SPP_USE_TIMESCALE"] = 'false'
 from spp.clients.ims import web_client
 from microquake.core.settings import settings
 from datetime import datetime, timedelta
-from microquake.core.helpers.time import get_time_zone
+from from microquake.helpers.time import get_time_zone
 from pytz import utc
 from spp.db.models.redis import set_event, get_event
 from spp.data_connector.pre_processing import pre_process, send_to_api
