@@ -7,7 +7,7 @@ from spp.db.serializers.continuous_data import (write_continuous_data,
 from microquake.core.helpers.time import get_time_zone
 from obspy.core import UTCDateTime
 from spp.core.helpers.logging import logger
-from spp.processors import event_detection
+from microquake.processors import event_detection
 import numpy as np
 from uuid import uuid4
 

@@ -9,8 +9,8 @@ from tensorflow.keras.layers import (Add, BatchNormalization, Conv2D, Dense,
 from tensorflow.keras.models import Model
 from spp.core.helpers.logging import logger
 from microquake.core.settings import settings
-from obspy.core.stream import Stream
-from spp.processors import quick_magnitude
+from microquake.core.stream import Stream
+from microquake.processors import quick_magnitude
 _version_ = 1.0
 
 

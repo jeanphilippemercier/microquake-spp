@@ -3,7 +3,7 @@ import numpy as np
 from obspy.core import UTCDateTime
 from spp.clients.ims import web_client
 from spp.db.connectors import RedisQueue
-# from spp.processors import event_detection
+# from microquake.processors import event_detection
 from obspy.signal.trigger import recursive_sta_lta, trigger_onset
 
 

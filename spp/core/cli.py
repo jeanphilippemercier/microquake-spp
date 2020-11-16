@@ -27,8 +27,8 @@ from spp.core.helpers.logging import logger
 from spp.core.nlloc import NLL
 
 from .. import __version__
-from spp.pipelines.automatic_pipeline import automatic_pipeline
-from spp.pipelines.interactive_pipeline import interactive_pipeline
+from microquake.pipelines.automatic_pipeline import automatic_pipeline
+from microquake.pipelines.interactive_pipeline import interactive_pipeline
 from ..utils.kafka_redis_application import KafkaRedisApplication
 from spp.core.helpers.hdf5 import write_ttable_h5
 from spp.core.helpers.nlloc import nll_sensors, nll_velgrids
