@@ -141,9 +141,13 @@ def extract_continuous(starttime, endtime, sensor_id=None):
 
     if sensor_id is not None:
         if st is None:
-            st = web_client.get_continuous(base_url, starttime, endtime,
-                                           [str(sensor_id)],
-                                           network=network_code)
+            try:
+                st = web_client.get_continuous(base_url, starttime, endtime,
+                                               [str(sensor_id)],
+                                               network=network_code)
+            except Exception as e:
+                logger.error(e)
+                continue
 
             if st is None:
                 return None
@@ -162,9 +166,13 @@ def extract_continuous(starttime, endtime, sensor_id=None):
         logger.info(f'requesting data for sensor {sensor.code}')
         logger.info('no data in the timescale db, requesting from the '
                     'IMS system')
-        st_tmp = web_client.get_continuous(base_url, starttime, endtime,
-                                           [sensor.code],
-                                           network=network_code)
+        try:
+            st_tmp = web_client.get_continuous(base_url, starttime, endtime,
+                                               [sensor.code],
+                                               network=network_code)
+        except Exception as e:
+            logger.error(e)
+            continue
 
         if (st_tmp is None) or (len(st_tmp) == 0):
             continue
