@@ -147,7 +147,7 @@ def extract_continuous(starttime, endtime, sensor_id=None):
                                                network=network_code)
             except Exception as e:
                 logger.error(e)
-                continue
+                return None
 
             if st is None:
                 return None
