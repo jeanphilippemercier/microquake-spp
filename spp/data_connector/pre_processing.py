@@ -518,9 +518,9 @@ def pre_process(event_id, force_send_to_api=False,
         set_event(event_id, **event)
         we_job_queue.submit_task(pre_process, event_id=event_id)
 
-    logger.info('getting the catalog of event for the covered time period')
-    cat = web_client.get_catalogue(base_url, start_time, end_time, sites,
-                                   utc, accepted=False, manual=False)
+    # logger.info('getting the catalog of event for the covered time period')
+    # cat = web_client.get_catalogue(base_url, start_time, end_time, sites,
+    #                                utc, accepted=False, manual=False)
 
     logger.info('getting 15 seconds of data before and after this event')
 
