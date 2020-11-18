@@ -745,8 +745,8 @@ def extract_data_events(event_time, cat):
 
     logger.info('Extracting seismogram and triggering')
 
-    results = rq_map(extract_continuous_triggering, sensors, 'test', start_time,
-                     end_time, execution_time_out=20)
+    results = rq_map(extract_continuous_triggering, sensors, 'test',
+                     start_time, end_time, execution_time_out=20)
 
     trs = []
     triggers = {'sensor': [],
