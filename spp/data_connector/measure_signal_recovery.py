@@ -4,17 +4,16 @@ from microquake.core.settings import settings
 from obspy.core import UTCDateTime
 from datetime import datetime, timedelta
 import numpy as np
-from pytz import utc
 import requests
-import json
 from microquake.helpers.logging import logger
+from time import time
 
 # inventory = settings.inventory
 
 signal_duration_seconds = 60
 
-endtime = UTCDateTime.utcnow() - 120
-starttime = endtime - signal_duration_seconds
+endtime = datetime.utcnow() - timedelta(minutes=2)
+starttime = endtime - timedelta(seconds=signal_duration_seconds)
 
 ims_base_url = settings.get('IMS_BASE_URL')
 api_base_url = settings.get('API_BASE_URL')
@@ -36,13 +35,23 @@ signal_quality_template = {'energy': '0',
                            'num_samples': '0',
                            'amplitude': '0'}
 
-for sensor in inventory.stations():
-    logger.info(f'Measuring signal quality for sensor {sensor.code}')
+sensor_ids = np.sort([int(station.code) for station in inventory.stations()])
+
+logger.info('retrieving the continuous data')
+
+t0 = time()
+st_all = web_client.get_continuous_multiple(ims_base_url, starttime, endtime,
+                                            site_ids=sensor_ids,
+                                            network=network_code)
+t1 = time()
+logger.info(f'done retrieving the continuous data in {t0 - t1:0.0f} seconds')
+
+for sensor_code in sensor_ids:
+    sensor_code = str(sensor_code)
+    logger.info(f'Measuring signal quality for sensor {sensor_code}')
+    st = st_all.select(station=sensor_code)
+
     signal_quality = signal_quality_template.copy()
-    sensor_code = sensor.code
-    st = web_client.get_continuous(ims_base_url, starttime, endtime,
-                                   [sensor_code],
-                                   network=network_code)
 
     signal_quality['sensor_code'] = sensor_code
     if len(st) == 0:
