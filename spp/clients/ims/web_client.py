@@ -103,7 +103,7 @@ def get_continuous_multiple(base_url, start_datetime, end_datetime,
     url = url_cont % (reqtime_start_nano, reqtime_end_nano, site_ids_string)
     url = url.replace('//', '/').replace('http:/', 'http://')
 
-    print(url)
+    # print(url)
 
     logger.info(f"Getting traces for sensors {site_ids_string} between"
                 f" {start_datetime} and {end_datetime}")
@@ -172,8 +172,8 @@ def get_continuous_multiple(base_url, start_datetime, end_datetime,
             # tr.stats.station = site_id
             stream.append(tr)
 
-        te = timer()
-        logger.info('Completing request in %.2f seconds' % (te - ts))
+    te = timer()
+    logger.info('Completing request in %.2f seconds' % (te - ts))
 
     return stream
 
