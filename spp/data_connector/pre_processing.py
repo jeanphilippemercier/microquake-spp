@@ -18,7 +18,6 @@ from spp.clients.api_client import (SeismicClient, post_data_from_objects,
 from obspy import UTCDateTime
 from microquake.core.settings import settings
 from microquake.db.connectors import RedisQueue
-    # record_processing_logs_pg
 from microquake.db.models.redis import set_event, get_event
 from microquake.processors import (clean_data, interloc,
                                    quick_magnitude, ray_tracer)
@@ -28,7 +27,6 @@ from microquake.helpers.time import get_time_zone
 from microquake.ml.signal_noise_classifier import SignalNoiseClassifier
 from microquake.ml.classifier import EventClassifier
 from datetime import datetime
-import json
 import requests
 from urllib.parse import urlencode
 
@@ -114,74 +112,91 @@ def event_within_tolerance(event_time, tolerance=0.5):
 
 
 def extract_continuous(starttime, endtime, sensor_id=None):
-    s_time = time()
-    trs = []
+    site_ids = np.sort([int(site.code) for site in inventory.stations()])
+    st = web_client.get_continuous_multiple(base_url, starttime, endtime,
+                                            site_ids=site_ids,
+                                            network=network_code)
 
-    if type(starttime) is datetime:
-        starttime = UTCDateTime(starttime)
-    if type(endtime) is datetime:
-        endtime = UTCDateTime(endtime)
+    return st
 
-    duration = endtime - starttime
 
-    st = None
-    if use_time_scale:
-        st = get_continuous_data(starttime, endtime, sensor_id=sensor_id)
-    else:
-        sensors = [station.code for station in inventory.stations()]
-        st = web_client.get_continuous(base_url, starttime, endtime,
-                                       sensors,
-                                       network=network_code)
-
-        return st
-
-    if st is not None:
-        for tr in st:
-            trs.append(tr)
-
-    if sensor_id is not None:
-        if st is None:
-            st = web_client.get_continuous(base_url, starttime, endtime,
-                                           [str(sensor_id)],
-                                           network=network_code)
-
-            if st is None:
-                return None
-
-            expected_number_sample = duration * st[0].stats.sampling_rate
-            if len(st[0].data) < 0.9 * expected_number_sample:
-                logger.warning(f'not enough data for sensor {sensor_id}')
-                return None
-
-        return st
-
-    for sensor in inventory.stations():
-        if sensor.code in st.unique_stations():
-            continue
-
-        logger.info(f'requesting data for sensor {sensor.code}')
-        logger.info('no data in the timescale db, requesting from the '
-                    'IMS system')
-        st_tmp = web_client.get_continuous(base_url, starttime, endtime,
-                                           [sensor.code],
-                                           network=network_code)
-
-        if (st_tmp is None) or (len(st_tmp) == 0):
-            continue
-
-        expected_number_sample = duration * st_tmp[0].stats.sampling_rate
-        if len(st_tmp[0].data) < 0.9 * expected_number_sample:
-            logger.warning(f'data only partially recovered for sensor'
-                           f'{sensor}. The trace will not be kept')
-            continue
-
-        for tr in st_tmp:
-            trs.append(tr)
-
-    if not trs:
-        return None
-
-    return Stream(traces=trs)
+# def extract_continuous(starttime, endtime, sensor_id=None):
+#     s_time = time()
+#     trs = []
+#
+#     if type(starttime) is datetime:
+#         starttime = UTCDateTime(starttime)
+#     if type(endtime) is datetime:
+#         endtime = UTCDateTime(endtime)
+#
+#     duration = endtime - starttime
+#
+#     st = None
+#     if use_time_scale:
+#         st = get_continuous_data(starttime, endtime, sensor_id=sensor_id)
+#     else:
+#         sensors = [station.code for station in inventory.stations()]
+#         st = web_client.get_continuous(base_url, starttime, endtime,
+#                                        sensors,
+#                                        network=network_code)
+#
+#         return st
+#
+#     if st is not None:
+#         for tr in st:
+#             trs.append(tr)
+#
+#     if sensor_id is not None:
+#         if st is None:
+#             try:
+#                 st = web_client.get_continuous(base_url, starttime, endtime,
+#                                                [str(sensor_id)],
+#                                                network=network_code)
+#             except Exception as e:
+#                 logger.error(e)
+#                 return None
+#
+#             if st is None:
+#                 return None
+#
+#             expected_number_sample = duration * st[0].stats.sampling_rate
+#             if len(st[0].data) < 0.9 * expected_number_sample:
+#                 logger.warning(f'not enough data for sensor {sensor_id}')
+#                 return None
+#
+#         return st
+#
+#     for sensor in inventory.stations():
+#         if sensor.code in st.unique_stations():
+#             continue
+#
+#         logger.info(f'requesting data for sensor {sensor.code}')
+#         logger.info('no data in the timescale db, requesting from the '
+#                     'IMS system')
+#         try:
+#             st_tmp = web_client.get_continuous(base_url, starttime, endtime,
+#                                                [sensor.code],
+#                                                network=network_code)
+#         except Exception as e:
+#             logger.error(e)
+#             continue
+#
+#         if (st_tmp is None) or (len(st_tmp) == 0):
+#             continue
+#
+#         expected_number_sample = duration * st_tmp[0].stats.sampling_rate
+#         if len(st_tmp[0].data) < 0.9 * expected_number_sample:
+#             logger.warning(f'data only partially recovered for sensor'
+#                            f'{sensor}. The trace will not be kept')
+#             continue
+#
+#         for tr in st_tmp:
+#             trs.append(tr)
+#
+#     if not trs:
+#         return None
+#
+#     return Stream(traces=trs)
 
 
 def interloc_processing(cat, variable_length_wf):
@@ -205,8 +220,11 @@ def interloc_processing(cat, variable_length_wf):
     # parameterizable
     start_time = earliest_time - 0.5
     end_time = earliest_time + 1.5
-    wf = web_client.get_continuous(base_url, start_time, end_time,
-                                   sensor_list)
+    wf = web_client.get_continuous_multiple(base_url, start_time, end_time,
+                                            site_ids=sensor_list,
+                                            network=network_code)
+    # wf = web_client.get_continuous(base_url, start_time, end_time,
+    #                                sensor_list)
 
     wf = wf.detrend('demean').taper(max_length=0.01, max_percentage=0.01)
     clean_wf = clean_data_processor.process(waveform=wf.copy())
@@ -469,11 +487,8 @@ def pre_process(event_id, force_send_to_api=False,
                 force_send_to_automatic=False,
                 force_accept=False, **kwargs):
 
-    start_processing_time = time()
-
     logger.info('message received')
 
-    # tmp = deserialize(message)
     start_processing_time = time()
     event = get_event(event_id)
 
@@ -484,7 +499,6 @@ def pre_process(event_id, force_send_to_api=False,
     if get_event_by_id(api_base_url, event_resource_id):
         logger.warning('event already exists in the database... skipping!')
         return
-
     try:
         event_types_lookup = get_event_types(api_base_url)
     except ConnectionError:
@@ -503,6 +517,13 @@ def pre_process(event_id, force_send_to_api=False,
         logger.error('resending to the queue')
         set_event(event_id, **event)
         we_job_queue.submit_task(pre_process, event_id=event_id)
+
+    # logger.info('getting the catalog of event for the covered time period')
+    # cat = web_client.get_catalogue(base_url, start_time, end_time, sites,
+    #                                utc, accepted=False, manual=False)
+
+    logger.info('getting 15 seconds of data before and after this event')
+
 
     interloc_results = interloc_processing(cat, variable_length_wf)
 

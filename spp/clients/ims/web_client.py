@@ -54,6 +54,18 @@ s = requests.Session()
 s.mount("https://", adapter)
 s.mount("http://", adapter)
 
+# from spp.clients.ims import web_client
+# from datetime import datetime
+# from datetime import datetime, timedelta
+# endtime = datetime.utcnow()
+# starttime = endtime - timedelta(seconds=20)
+# from microquake.core.settings import settings
+# base_url = settings.IMS_BASE_URL
+# inventory = settings.inventory
+# site_ids = [station.code for station in inventory.stations()]
+# site_ids
+# web_client.get_continuous_multiple(base_url, start_time, end_time, site_ids=site_ids)
+
 
 def get_continuous_multiple(base_url, start_datetime, end_datetime,
                             site_ids=None, network='', sampling_rate=6000.,
@@ -71,6 +83,7 @@ def get_continuous_multiple(base_url, start_datetime, end_datetime,
     :return: None
     """
 
+    ts = timer()
     if isinstance(site_ids, int):
         site_ids = [site_ids]
 
@@ -140,9 +153,6 @@ def get_continuous_multiple(base_url, start_datetime, end_datetime,
             for lims in nan_ranges_ix:
                 chan[lims[0]:lims[1]] = np.nan
 
-        te = timer()
-
-        ts = timer()
         chans = ['X', 'Y', 'Z']
 
         for i in range(len(newsigs)):
@@ -163,7 +173,7 @@ def get_continuous_multiple(base_url, start_datetime, end_datetime,
             stream.append(tr)
 
         te = timer()
-        logger.info('Completing stream build in %.2f seconds' % (te - ts))
+        logger.info('Completing request in %.2f seconds' % (te - ts))
 
     return stream
 
