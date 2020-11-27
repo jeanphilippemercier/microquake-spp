@@ -1,4 +1,4 @@
-from spp.clients.ims import web_client
+from microquake.clients.ims import web_client
 from microquake.helpers.timescale_db import get_continuous_data, get_db_lag
 from microquake.core.settings import settings
 from obspy.core import UTCDateTime

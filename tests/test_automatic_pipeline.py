@@ -1,4 +1,4 @@
-from spp.clients.api_client import get_event_by_id
+from microquake.clients.api_client import get_event_by_id
 from microquake.core.settings import settings
 from microquake.pipelines.automatic_pipeline import automatic_pipeline
 

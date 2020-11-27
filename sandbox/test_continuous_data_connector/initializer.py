@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from spp.utils.application import Application
-from spp.clients.ims import web_client
+from microquake.clients.ims import web_client
 import faust
 from dateutil.parser import parse
 from pytz import utc

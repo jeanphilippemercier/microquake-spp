@@ -1,4 +1,4 @@
-from spp.clients.api_client import get_events_catalog
+from microquake.clients.api_client import get_events_catalog
 from obspy import UTCDateTime
 from spp.utils.application import Application
 import matplotlib.pyplot as plt

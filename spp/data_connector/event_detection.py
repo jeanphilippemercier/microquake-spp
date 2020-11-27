@@ -1,4 +1,4 @@
-from spp.clients.ims import web_client
+from microquake.clients.ims import web_client
 from datetime import datetime, timedelta
 from microquake.core.settings import settings
 import numpy as np

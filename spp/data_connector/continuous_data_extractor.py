@@ -1,4 +1,4 @@
-from spp.clients.ims import web_client
+from microquake.clients.ims import web_client
 from microquake.core.settings import settings
 from microquake.db.connectors import (RedisQueue, write_trigger)
 from microquake.db.serializers.continuous_data import (write_continuous_data,

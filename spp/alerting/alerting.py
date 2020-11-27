@@ -1,7 +1,7 @@
 import smtplib
 from os import environ
 from microquake.core.settings import settings
-from spp.clients.api_client import get_catalog
+from microquake.clients.api_client import get_catalog
 import requests
 from dateutil.parser import parse
 from datetime import datetime, timedelta

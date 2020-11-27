@@ -11,8 +11,8 @@ from pytz import utc
 
 from microquake.helpers.logging import logger
 from microquake.core.stream import Stream
-from spp.clients.ims import web_client
-from spp.clients.api_client import (SeismicClient, post_data_from_objects,
+from microquake.clients.ims import web_client
+from microquake.clients.api_client import (SeismicClient, post_data_from_objects,
                                     get_event_by_id, put_data_from_objects,
                                     get_event_types)
 from obspy import UTCDateTime

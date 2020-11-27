@@ -1,5 +1,5 @@
 import argparse
-from spp.clients import api_client
+from microquake.clients import api_client
 from microquake.core.settings import settings
 from datetime import datetime
 from dateutil.relativedelta import relativedelta

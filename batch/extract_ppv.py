@@ -1,4 +1,4 @@
-from spp.clients.api_client import RequestEvent
+from microquake.clients.api_client import RequestEvent
 from microquake.core.settings import settings
 import requests
 from urllib.parse import quote

@@ -1,4 +1,4 @@
-from spp.clients import api_client
+from microquake.clients import api_client
 
 from .application import Application
 from microquake.helpers.logging import logger

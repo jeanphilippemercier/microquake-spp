@@ -1,5 +1,5 @@
 from microquake.core.settings import settings
-from spp.clients.api_client import get_catalog
+from microquake.clients.api_client import get_catalog
 from obspy.core import UTCDateTime
 import numpy as np
 import bisect

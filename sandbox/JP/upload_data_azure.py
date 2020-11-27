@@ -1,4 +1,4 @@
-from spp.clients import api_client
+from microquake.clients import api_client
 from glob import glob
 import numpy as np
 from importlib import reload

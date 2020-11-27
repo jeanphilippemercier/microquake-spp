@@ -1,12 +1,12 @@
 import colorama
 colorama.init(convert=True)
 
-from spp.clients.ims import web_client
+from microquake.clients.ims import web_client
 from obspy import UTCDateTime
 from spp.utils.application import Application
 import pytz
 from io import BytesIO
-from spp.clients import api_client
+from microquake.clients import api_client
 
 app = Application()
 site = app.get_stations()
