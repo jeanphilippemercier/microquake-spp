@@ -10,7 +10,7 @@ from time import time
 
 # inventory = settings.inventory
 
-signal_duration_seconds = 60
+signal_duration_seconds = 25
 
 endtime = datetime.utcnow() - timedelta(minutes=2)
 starttime = endtime - timedelta(seconds=signal_duration_seconds)
